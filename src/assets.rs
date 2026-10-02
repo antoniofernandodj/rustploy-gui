@@ -2,13 +2,13 @@
 //!
 //! Every KDL template, stylesheet, icon and blueprint logo is referenced by a
 //! path relative to the process' current working directory — both from Rust
-//! (`crates/rustploy-gui/views/styles/app.gss`, `crates/rustploy-gui/views/app.gv`,
-//! `crates/shared/views/blueprints/<id>/<logo>`) and from *inside* the KDL
-//! themselves (`import ... from="crates/rustploy-gui/views/service.gv"`,
-//! `theme "crates/rustploy-gui/views/styles/theme.json"`, `Svg "crates/rustploy-gui/…"`).
+//! (`views/styles/app.gss`, `views/app.gv`,
+//! `assets/blueprint-logos/<id>/<logo>`) and from *inside* the KDL
+//! themselves (`import ... from="views/service.gv"`,
+//! `theme "views/styles/theme.json"`, `Svg "assets/icons/…"`).
 //!
 //! Rather than rewrite every literal, we locate the directory that holds those
-//! `crates/rustploy-gui/…` and `crates/shared/…` trees once at startup and
+//! `views/` and `assets/` trees once at startup and
 //! `chdir` into it. After that, every relative path resolves no matter how the
 //! app was launched: `cargo run` from the workspace root, the Windows `.zip`
 //! (assets sit next to the `.exe`), or the Debian package (assets under
@@ -17,7 +17,7 @@
 use std::path::{Path, PathBuf};
 
 /// A file that must exist under any valid asset base — used as the probe.
-const MARKER: &str = "crates/rustploy-gui/views/app.gv";
+const MARKER: &str = "views/app.gv";
 
 /// System-wide install prefix used by the Debian package (see the `deb`
 /// metadata in `Cargo.toml`).

@@ -1,7 +1,7 @@
 <!--
   Linha do catálogo de templates de aplicação: logo à esquerda (vetor ou
   raster conforme logo_kind), nome + descrição, e o botão "Escolher" à direita.
-  Os logos vêm de crates/shared/templates/blueprints/<id>/<arquivo> (ver
+  Os logos vêm de assets/blueprint-logos/<id>/<arquivo> (ver
   `templates_json` em app/wizard.rs).
 -->
 <component>

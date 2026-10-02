@@ -80,7 +80,7 @@ fn fontes() -> Vec<(String, String)> {
         }
     }
 
-    let base = std::path::Path::new("crates/rustploy-gui/views/scripts");
+    let base = std::path::Path::new("views/scripts");
     let mut out = Vec::new();
     recolhe(base, base, &mut out);
     out

@@ -47,7 +47,7 @@ pub(crate) fn run() -> iced::Result {
         // `<tray>`. O `.main_template` (e não `.main`) mantém o `<app>`/`<tray>`
         // lidos; o caminho é relativo ao workspace, onde `assets::locate_and_chdir`
         // deixa o CWD.
-        .main_template("crates/rustploy-gui/views/app.gv")
+        .main_template("views/app.gv")
         .font(FONT_REGULAR)
         .font(FONT_BOLD)
         .default_font(Font::with_name("JetBrains Mono"))

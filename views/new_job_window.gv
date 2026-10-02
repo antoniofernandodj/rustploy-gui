@@ -7,13 +7,13 @@
   escolher projeto → escolher serviço gatilho (rede + env vars de base) →
   formulário (nome, compose, main_service, recorrência). Ao concluir, emite
   broadcast("job_created") e fecha. -->
-<screen decorations="false" icon="crates/rustploy-gui/views/assets/rustploy.png" title="Novo job — Rustploy" size="560 700">
+<screen decorations="false" icon="views/assets/rustploy.png" title="Novo job — Rustploy" size="560 700">
   <resources>
     <component name="SemProjetosParaJob">
       <text class="muted">Nenhum projeto ainda.</text>
     </component>
-    <link rel="theme"       href="crates/rustploy-gui/views/styles/theme.json" />
-    <link rel="stylesheet"  href="crates/rustploy-gui/views/styles/app.gss" />
+    <link rel="theme"       href="views/styles/theme.json" />
+    <link rel="stylesheet"  href="views/styles/app.gss" />
     <link rel="import"      href="components/picker_row.gv" as="PickerRow" />
     <link rel="import"      href="components/tab_button.gv" as="TabButton" />
 

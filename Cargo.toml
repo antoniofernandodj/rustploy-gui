@@ -94,7 +94,7 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg",
 
 # ── Debian package (cargo deb -p rustploy-gui) ───────────────────────────────────
 # Installs the binary to /usr/bin, all runtime assets under /usr/share/rustploy
-# preserving the `crates/…` prefix the templates reference (the app chdir's here
+# preserving the `views/`/`assets/` prefixes the templates reference (the app chdir's here
 # at startup — see src/assets.rs), plus the .desktop entry and hicolor icons so
 # the app shows up in the applications menu and the dock/taskbar.
 [package.metadata.deb]

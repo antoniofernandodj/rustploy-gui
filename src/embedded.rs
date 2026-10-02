@@ -4,7 +4,7 @@
 //! motor lê em runtime é embutida no executável via `include_dir!`, e uma
 //! [`EmbeddedAssets`] é injetada no [`glacier_ui::GlacierDaemon`] (ver
 //! `app::run`). O binário fica **100% desacoplado dos arquivos**: pode ser
-//! copiado sozinho para qualquer lugar e rodar, sem a árvore `crates/…` ao lado
+//! copiado sozinho para qualquer lugar e rodar, sem as árvores `views/` e `assets/` ao lado
 //! nem o `chdir` de `assets.rs`.
 //!
 //! Em **debug** este módulo nem é compilado: o dev continua lendo do disco (com
@@ -19,9 +19,9 @@
 //!
 //! | prefixo de runtime | árvore embutida |
 //! |---|---|
-//! | `crates/rustploy-gui/views/…` | [`VIEWS`] (`.gv`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau`) |
-//! | `crates/rustploy-gui/assets/icons/…` | [`ICONS`] (ícones SVG) |
-//! | `crates/shared/templates/blueprints/…` | [`BLUEPRINTS`] (logos dos templates) |
+//! | `views/…` | [`VIEWS`] (`.gv`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau`) |
+//! | `assets/icons/…` | [`ICONS`] (ícones SVG) |
+//! | `assets/blueprint-logos/…` | [`BLUEPRINTS`] (logos dos templates) |
 
 use std::borrow::Cow;
 use std::io;
@@ -33,10 +33,10 @@ use include_dir::{Dir, File, include_dir};
 /// `views/`: templates `.gv`, estilos `styles/*.gss`, `styles/theme.json` e os
 /// scripts Luau em `scripts/**/*.luau` (resolvidos por `require`/`<script src>`).
 static VIEWS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/views");
-/// `assets/icons/`: ícones SVG referenciados por `<svg src="crates/…/icons/…">`.
+/// `assets/icons/`: ícones SVG referenciados por `<svg src="assets/icons/…">`.
 static ICONS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/icons");
 /// Logos dos blueprints, referenciados via o `{logo}` data-driven do catálogo
-/// do daemon (`crates/shared/templates/blueprints/<id>/<arquivo>`). Apenas as
+/// do daemon (`assets/blueprint-logos/<id>/<arquivo>`). Apenas as
 /// **imagens** são embutidas, espelhadas em `<id>/<arquivo>` pelo `build.rs`
 /// (que filtra o `docker-compose.yml`/`template.toml` — ver `stage_blueprint_logos`).
 static BLUEPRINTS: Dir<'static> = include_dir!("$OUT_DIR/blueprint_logos");
@@ -78,9 +78,9 @@ fn route(path: &str) -> Option<&'static File<'static>> {
     let norm = norm.strip_prefix("./").unwrap_or(&norm);
 
     const ROUTES: &[(&str, &Dir<'static>)] = &[
-        ("crates/rustploy-gui/views/", &VIEWS),
-        ("crates/rustploy-gui/assets/icons/", &ICONS),
-        ("crates/shared/templates/blueprints/", &BLUEPRINTS),
+        ("views/", &VIEWS),
+        ("assets/icons/", &ICONS),
+        ("assets/blueprint-logos/", &BLUEPRINTS),
     ];
     for (prefix, dir) in ROUTES {
         if let Some(rest) = norm.strip_prefix(prefix) {
@@ -149,27 +149,27 @@ mod tests {
         let a = EmbeddedAssets;
         // views: template, estilo, tema, scripts (entrada + módulo `require`d).
         for p in [
-            "crates/rustploy-gui/views/app.gv",
-            "crates/rustploy-gui/views/styles/app.gss",
-            "crates/rustploy-gui/views/styles/theme.json",
-            "crates/rustploy-gui/views/scripts/app.luau",
-            "crates/rustploy-gui/views/scripts/handlers/connection.luau",
+            "views/app.gv",
+            "views/styles/app.gss",
+            "views/styles/theme.json",
+            "views/scripts/app.luau",
+            "views/scripts/handlers/connection.luau",
         ] {
             assert!(a.exists(p), "faltou embutir (texto): {p}");
             assert!(a.read_to_string(p).is_ok(), "não leu (texto): {p}");
         }
         // binários: ícone SVG estático + um logo de blueprint (data-driven).
         for p in [
-            "crates/rustploy-gui/assets/icons/terminal.svg",
-            "crates/shared/templates/blueprints/ackee/logo.png",
+            "assets/icons/terminal.svg",
+            "assets/blueprint-logos/ackee/logo.png",
         ] {
             assert!(a.exists(p), "faltou embutir (binário): {p}");
             assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}");
         }
         // Ausente → NotFound / exists=false.
-        assert!(!a.exists("crates/rustploy-gui/views/nao_existe.gv"));
+        assert!(!a.exists("views/nao_existe.gv"));
         assert!(
-            a.read_to_string("crates/rustploy-gui/views/nao_existe.gv")
+            a.read_to_string("views/nao_existe.gv")
                 .is_err()
         );
     }
@@ -184,7 +184,7 @@ mod tests {
         use std::sync::Arc;
         let mut motor = glacier_ui::GlacierUI::new().with_asset_source(Arc::new(EmbeddedAssets));
         motor
-            .register_component("app", "crates/rustploy-gui/views/app.gv")
+            .register_component("app", "views/app.gv")
             .expect("registrar 'app' a partir dos assets embutidos");
         motor.set_initial_screen("app");
         assert!(

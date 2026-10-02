@@ -27,7 +27,7 @@
       <row class="login_head">
 
         <svg
-          src="crates/rustploy-gui/assets/icons/terminal.svg"
+          src="assets/icons/terminal.svg"
           color="#2F81F7"
           width="34"
           height="34"

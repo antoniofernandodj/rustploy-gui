@@ -114,7 +114,7 @@ function open_new_job_window(): ()
         end
     end
     open_window{
-        file = "crates/rustploy-gui/views/new_job_window.gv",
+        file = "views/new_job_window.gv",
         resizable = false,
         data = {
             api_url = ctx.api_url or "",
@@ -178,7 +178,7 @@ function open_edit_job_window(id: string): ()
     end
 
     open_window{
-        file = "crates/rustploy-gui/views/new_job_window.gv",
+        file = "views/new_job_window.gv",
         -- Sobrepõe o `title` do <screen> ("Novo job"): só quem abre sabe que
         -- desta vez é edição.
         title = "Editar job — Rustploy",
@@ -211,7 +211,7 @@ function open_job_logs_window(job_run_id: string): ()
         end
     end
     open_window{
-        file = "crates/rustploy-gui/views/log_window.gv",
+        file = "views/log_window.gv",
         title = "Job — " .. string.sub(job_run_id, 1, 12),
         resizable = true,
         data = {

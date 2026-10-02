@@ -13,20 +13,17 @@ use glacier_ui::GlacierUI;
 
 fn boot() -> GlacierUI {
     let crate_dir = env!("CARGO_MANIFEST_DIR");
-    let ws_root = std::path::Path::new(crate_dir)
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("workspace root");
+    let ws_root = std::path::Path::new(crate_dir);
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 
     // A fixture mora fora da árvore de scripts do app (para não virar script
     // do app), então o `require("fmt/time")` dela precisa desta raiz extra.
     unsafe {
-        std::env::set_var("GLACIER_LUAU_PATH", "crates/rustploy-gui/views/scripts");
+        std::env::set_var("GLACIER_LUAU_PATH", "views/scripts");
     }
 
     let mut m = GlacierUI::new();
-    m.register_component("tempo", "crates/rustploy-gui/tests/fixtures/tempo.gv")
+    m.register_component("tempo", "tests/fixtures/tempo.gv")
         .expect("registrar a fixture");
     m.set_initial_screen("tempo");
     m

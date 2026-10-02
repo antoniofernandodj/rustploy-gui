@@ -31,7 +31,7 @@ end
 -- views/new_project_form.gv + scripts/new_project_window.luau.
 function open_new_project_window(): ()
     open_window{
-        file = "crates/rustploy-gui/views/new_project_form.gv",
+        file = "views/new_project_form.gv",
         resizable = false,  -- diálogo fixo (borderless, sem alças de resize)
         data = {
             api_url = ctx.api_url or "",

@@ -161,7 +161,7 @@ M.refresh_tokens = registry_refresh_tokens
 -- new_registry_token_window.gv/.luau).
 function registry_open_token_window(): ()
     open_window{
-        file = "crates/rustploy-gui/views/new_registry_token_window.gv",
+        file = "views/new_registry_token_window.gv",
         resizable = false,
         data = {
             api_url = ctx.api_url or "",

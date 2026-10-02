@@ -1,6 +1,6 @@
 //! `GET /agent/schema` — o documento de descoberta.
 //!
-//! Sem isto, montar a primeira chamada exige ler `crates/shared/src/protocol.rs`
+//! Sem isto, montar a primeira chamada exige ler `src/protocol.rs` do rustploy-shared
 //! e `models.rs` e deduzir a codificação serde na mão — viável para quem tem o
 //! repositório aberto, inviável para um agente diante de um daemon remoto. É o
 //! atrito mais caro relatado em `docs/plano-erro-de-deploy-invisivel.md` (2.1).
@@ -210,7 +210,7 @@ pub(super) fn schema() -> Value {
                  variante sem campos é a string nua — \"ProjectList\". Vale para \
                  Command e para Response.",
             "source_of_truth":
-                "crates/shared/src/protocol.rs (Command/Response) e models.rs \
+                "src/protocol.rs do crate rustploy-shared (Command/Response) e models.rs \
                  (ServiceSpec, ServiceSource, EnvVar, Healthcheck…)",
             "not_a_command": {
                 "archive_upload":

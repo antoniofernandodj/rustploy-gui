@@ -8,17 +8,14 @@ use glacier_ui::GlacierUI;
 /// workspace-relative template paths resolve.
 fn boot() -> GlacierUI {
     let crate_dir = env!("CARGO_MANIFEST_DIR");
-    let ws_root = std::path::Path::new(crate_dir)
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("workspace root");
+    let ws_root = std::path::Path::new(crate_dir);
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 
     let mut m = GlacierUI::new();
     // app.gv itself links app.gss (<link rel="stylesheet">, global since
     // glacier-ui 0.23), so register_component picks it up — no separate
     // load_stylesheet call needed here.
-    m.register_component("app", "crates/rustploy-gui/views/app.gv")
+    m.register_component("app", "views/app.gv")
         .expect("app.gv + imports must register (includes app.gss parsing — an unknown property drops the whole sheet)");
     m.set_initial_screen("app");
     m
@@ -27,10 +24,7 @@ fn boot() -> GlacierUI {
 /// Cd's to the workspace root (idempotent — safe alongside `boot`).
 fn cd_ws_root() {
     let crate_dir = env!("CARGO_MANIFEST_DIR");
-    let ws_root = std::path::Path::new(crate_dir)
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("workspace root");
+    let ws_root = std::path::Path::new(crate_dir);
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 }
 
@@ -46,7 +40,7 @@ fn new_project_form_window_renders() {
     m.define_data("api_token", "t");
     m.register_component(
         "new_project_form",
-        "crates/rustploy-gui/views/new_project_form.gv",
+        "views/new_project_form.gv",
     )
     .expect("new_project_form.gv must register");
     m.set_initial_screen("new_project_form");
@@ -106,7 +100,7 @@ fn new_job_window_renders() {
     );
     m.register_component(
         "new_job_window",
-        "crates/rustploy-gui/views/new_job_window.gv",
+        "views/new_job_window.gv",
     )
     .expect("new_job_window.gv must register");
     m.set_initial_screen("new_job_window");
@@ -168,7 +162,7 @@ fn log_window_renders() {
         "lw_seed",
         r#"[{"stream":"Stdout","line":"hello","timestamp":"2026-07-10T23:00:00Z"}]"#,
     );
-    m.register_component("log_window", "crates/rustploy-gui/views/log_window.gv")
+    m.register_component("log_window", "views/log_window.gv")
         .expect("log_window.gv must register");
     m.set_initial_screen("log_window");
     m.reevaluate_all().expect("eval log_window");
@@ -189,7 +183,7 @@ fn new_service_wizard_window_renders() {
     m.define_data("proj_name", "demo");
     m.register_component(
         "new_service_window",
-        "crates/rustploy-gui/views/new_service_window.gv",
+        "views/new_service_window.gv",
     )
     .expect("new_service_window.gv must register");
     m.set_initial_screen("new_service_window");
@@ -206,7 +200,7 @@ fn new_service_wizard_window_renders() {
     );
     m.define_data(
         "ns_templates",
-        r#"[{"id":"forgejo","name":"Forgejo","description":"git","logo":"crates/shared/templates/blueprints/forgejo/forgejo.svg","logo_kind":"svg"},{"id":"wordpress","name":"WordPress","description":"cms","logo":"crates/shared/templates/blueprints/wordpress/wordpress.png","logo_kind":"img"}]"#,
+        r#"[{"id":"forgejo","name":"Forgejo","description":"git","logo":"assets/blueprint-logos/forgejo/forgejo.svg","logo_kind":"svg"},{"id":"wordpress","name":"WordPress","description":"cms","logo":"assets/blueprint-logos/wordpress/wordpress.png","logo_kind":"img"}]"#,
     );
     m.define_data(
         "ns_template_vars",
@@ -923,31 +917,31 @@ fn janelas_declaram_titulo_e_tamanho_no_proprio_template() {
     // (arquivo, componente, título esperado, tamanho esperado)
     let janelas = [
         (
-            "crates/rustploy-gui/views/app.gv",
+            "views/app.gv",
             "app",
             Some("Rustploy"),
             (1280.0, 820.0),
         ),
         (
-            "crates/rustploy-gui/views/new_project_form.gv",
+            "views/new_project_form.gv",
             "new_project_form",
             Some("Novo projeto — Rustploy"),
             (460.0, 340.0),
         ),
         (
-            "crates/rustploy-gui/views/new_job_window.gv",
+            "views/new_job_window.gv",
             "new_job_window",
             Some("Novo job — Rustploy"),
             (560.0, 700.0),
         ),
         (
-            "crates/rustploy-gui/views/new_service_window.gv",
+            "views/new_service_window.gv",
             "new_service_window",
             Some("Novo serviço — Rustploy"),
             (560.0, 700.0),
         ),
         (
-            "crates/rustploy-gui/views/new_registry_token_window.gv",
+            "views/new_registry_token_window.gv",
             "new_registry_token_window",
             Some("Novo token — Rustploy"),
             (480.0, 420.0),
@@ -956,7 +950,7 @@ fn janelas_declaram_titulo_e_tamanho_no_proprio_template() {
         // nginx", "Build — abc123") e continua vindo de quem a abre; só o
         // tamanho é do arquivo.
         (
-            "crates/rustploy-gui/views/log_window.gv",
+            "views/log_window.gv",
             "log_window",
             None,
             (900.0, 560.0),
@@ -977,7 +971,7 @@ fn janelas_declaram_titulo_e_tamanho_no_proprio_template() {
 
     // A principal também fixa um mínimo — era o `min_size` do `main_window()`.
     let mut m = GlacierUI::new();
-    m.register_component("app", "crates/rustploy-gui/views/app.gv")
+    m.register_component("app", "views/app.gv")
         .expect("app.gv deve registrar");
     m.set_initial_screen("app");
     assert_eq!(
@@ -1029,7 +1023,7 @@ fn comentarios_fora(src: &str) -> String {
 fn todo_template_comeca_com_cabecalho() {
     cd_ws_root();
 
-    let raiz = std::path::Path::new("crates/rustploy-gui/views");
+    let raiz = std::path::Path::new("views");
     let mut vistos = 0;
 
     // `views/` mistura janelas (<screen>) e views internas (<component>); só

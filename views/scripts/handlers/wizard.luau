@@ -46,7 +46,7 @@ function open_new_service_window(): ()
         templates = res.WizardCatalog.templates or "[]"
     end
     open_window{
-        file = "crates/rustploy-gui/views/new_service_window.gv",
+        file = "views/new_service_window.gv",
         resizable = false,
         data = {
             api_url = ctx.api_url or "",
