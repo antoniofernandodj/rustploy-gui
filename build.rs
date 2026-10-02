@@ -69,16 +69,18 @@ fn main() {
     let _ = embed_resource::compile("assets/rustploy.rc", &macros);
 }
 
-/// Leva só os logos de `crates/shared/templates/blueprints/**` para
+/// Leva os logos de `assets/blueprint-logos/**` para
 /// `$OUT_DIR/blueprint_logos/**`, **espelhando a estrutura `<id>/<arquivo>`** (o
 /// caminho por onde o `EmbeddedAssets` os serve) e **reduzindo os raster** (ver
 /// [`copy_images`]/[`downscale_png`]). Assim o binário de release embute só os
 /// logos — já encolhidos —, e não os `docker-compose.yml`/`template.toml` (que a
-/// GUI nunca lê e já vivem embutidos no daemon, via `crates/shared/build.rs`).
+/// GUI nunca lê e vivem no `rustploy-shared`).
 fn stage_blueprint_logos() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
     let out = std::env::var("OUT_DIR").expect("OUT_DIR");
-    let src = Path::new(&manifest).join("../shared/templates/blueprints");
+    // Os logos moram aqui (saíram do crate `rustploy-shared`, que não os carrega
+    // mais); o nome de cada um vem do catálogo do shared (`templates/logos.txt`).
+    let src = Path::new(&manifest).join("assets/blueprint-logos");
     let dst = Path::new(&out).join("blueprint_logos");
 
     // Re-stage quando a árvore de blueprints mudar.

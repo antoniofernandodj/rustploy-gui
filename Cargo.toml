@@ -47,7 +47,7 @@ include_dir = "0.7"
 # cargo deduplicar — sem uma segunda cópia do crate no binário.
 zip = { version = "8", default-features = false, features = ["deflate-flate2"] }
 
-shared = { package = "rustploy-shared", version = "0.1.0", path = "../shared" }
+shared = { package = "rustploy-shared", version = "0.1.0" }
 
 # GUI — features must stay compatible with glacier-ui's iced.
 iced = { version = "0.14", features = ["image", "svg", "tokio"] }
@@ -108,7 +108,7 @@ priority             = "optional"
 # libappindicator+GTK em runtime (ver src/tray.rs na glacier), então garantimos
 # as libs de sistema para o tray subir no desktop do usuário.
 depends              = "$auto, libgtk-3-0, libayatana-appindicator3-1"
-maintainer-scripts   = "../../packaging/rustploy-gui"
+maintainer-scripts   = "packaging"
 assets = [
     ["target/release/rustploy-gui", "usr/bin/rustploy-gui", "755"],
 
@@ -117,6 +117,21 @@ assets = [
     # /usr/share — o executável é standalone. Só a integração com o desktop fica.
 
     # Desktop integration.
-    ["../../packaging/rustploy-gui/rustploy-gui.desktop", "usr/share/applications/", "644"],
-    ["../../packaging/rustploy-gui/icons/hicolor/**/*",         "usr/share/icons/hicolor/", "644"],
+    ["packaging/rustploy-gui.desktop", "usr/share/applications/", "644"],
+    ["packaging/icons/hicolor/**/*",         "usr/share/icons/hicolor/", "644"],
 ]
+
+# Perfil de release. NÃO use `panic = "abort"`: o `mlua` EXIGE `panic = "unwind"`
+# (o Luau é C++ e propaga erro de Lua desenrolando a pilha por frames Rust do
+# mlua; com `abort` qualquer erro de Lua num callback vira SIGABRT).
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+# Recorte do text_editor no renderer de software (ver vendor/README.md).
+[patch.crates-io]
+iced_tiny_skia = { path = "vendor/iced_tiny_skia" }
