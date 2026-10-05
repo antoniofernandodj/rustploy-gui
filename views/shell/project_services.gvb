@@ -1,0 +1,186 @@
+// Projeto aberto (view = project_services): cabeçalho/edição, sub-abas e grade de
+// serviços; cada sub-aba pesada mora em seu arquivo. Importada por shell.gvb.
+component {
+  resources {
+    link(rel = import, href = "project_env.gvb", as = ProjectEnvTab)
+    link(rel = import, href = "project_secrets.gvb", as = ProjectSecretsTab)
+    link(rel = import, href = "project_jobs.gvb", as = ProjectJobsTab)
+
+    component(name = SemServicosNoProjeto) {
+      text(class = muted, content = "Nenhum serviço neste projeto ainda.")
+    }
+  }
+
+  column(class = content) {
+    row(class = header_row) {
+      column(class = header_titles) {
+        // Barra superior: voltar à esquerda, ações do projeto
+        // empurradas para a extremidade direita (hspacer = width:fill).
+        // Em modo de edição as ações somem (o form tem Salvar/Cancelar).
+        row(class = proj_topbar) {
+          button(
+            class = btn_ghost,
+            on_click = nav_projects,
+            text = "‹ Projetos",
+          )
+
+          column(class = hspacer)
+
+          if @editing_project != "true" {
+            row(class = proj_actions) {
+              button(
+                class = btn_sm_primary,
+                on_click = open_new_service_window,
+                text = "+ Novo serviço",
+              )
+
+              button(
+                class = btn_sm_ghost,
+                on_click = edit_project_toggle,
+                text = "Editar projeto",
+              )
+
+              if @proj_can_delete == "1" {
+                button(
+                  class = btn_sm_danger,
+                  on_click = delete_project:@selected_project_id,
+                  text = "Remover projeto",
+                )
+              }
+            }
+          }
+        }
+
+        if @editing_project == "true" {
+          form(
+            name = edit_project,
+            on_submit = save_project_edit,
+            on_validation_error = proj_edit_apontar,
+            spacing = 6,
+            width = fill,
+          ) {
+            input(
+              class = field_input,
+              form_control = edit_proj_name,
+              rules = required,
+              msg = "informe um nome",
+              placeholder = "Nome do projeto",
+            )
+
+            text(
+              class = err,
+              if = @erro_edit_proj_name,
+              not_empty,
+              content = "@erro_edit_proj_name",
+            )
+
+            input(
+              class = field_input,
+              form_control = edit_proj_desc,
+              placeholder = "Descrição (opcional)",
+            )
+
+            row(class = env_add) {
+              button(type = submit, class = btn_primary, text = Salvar)
+
+              button(
+                class = btn_ghost,
+                on_click = cancel_project_edit,
+                text = Cancelar,
+              )
+
+              text(class = muted, content = "@proj_action_msg")
+            }
+          }
+        } else {
+          text(class = title, content = "@proj_name")
+          text(class = subtitle, content = "@proj_description")
+
+          text(
+            if = @proj_action_msg,
+            not_equals = "",
+            class = muted,
+            content = "@proj_action_msg",
+          )
+        }
+      }
+    }
+
+    // Sub-abas do projeto
+    row(class = tabs) {
+      TabButton(
+        label = Serviços,
+        current = @proj_tab,
+        target = services,
+        action = proj_tab:services,
+      )
+
+      TabButton(
+        label = "Variáveis (@proj_env_count)",
+        current = @proj_tab,
+        target = env,
+        action = proj_tab:env,
+      )
+
+      TabButton(
+        label = "Secrets (@proj_secrets_count)",
+        current = @proj_tab,
+        target = secrets,
+        action = proj_tab:secrets,
+      )
+
+      TabButton(
+        label = "Jobs (@proj_jobs_count)",
+        current = @proj_tab,
+        target = jobs,
+        action = proj_tab:jobs,
+      )
+    }
+
+    hr
+
+    if @proj_loading == "true" {
+      LoadingRow
+    }
+
+    if @proj_tab == "env" {
+      // ── Variáveis de ambiente do projeto ──────────────────────
+    ProjectEnvTab(if = @proj_loading, not_equals = true)
+    }
+
+    if @proj_tab == "secrets" {
+      // ── Secrets do projeto ──────────────────────────────────────
+      // Write-only: o daemon só devolve os nomes (o valor é cifrado
+      // com a chave mestre do servidor), então não há coluna de valor
+      // nem edição — sobrescrever é salvar de novo com o mesmo nome.
+      // Ver handlers/secrets.luau e docs/secrets.md.
+    ProjectSecretsTab(if = @proj_loading, not_equals = true)
+    }
+
+    if @proj_tab == "jobs" {
+      ProjectJobsTab
+    }
+
+    if @proj_tab == "services" {
+      scrollable(
+        if = @proj_loading,
+        not_equals = true,
+        direction = vertical,
+        class = scroll_fill,
+      ) {
+        // `virtualize` = altura de UMA fileira de cartões: só as
+        // fileiras visíveis são montadas, e as de fora viram um vão do
+        // tamanho exato (glacier-ui 0.77, ver PRIMITIVAS.md). O valor é
+        // a altura do card; o `spacing: 10` da .grid o motor soma
+        // sozinho. Errar desalinha a barra de rolagem, não quebra.
+        column(class = grid) {
+          each @project_services as r (fallback = SemServicosNoProjeto) {
+            row(class = card_row) {
+              ServiceCard(:for-each = r.cards, var = c, spread = @c)
+            }
+          }
+        }
+      }
+    }
+  }
+}

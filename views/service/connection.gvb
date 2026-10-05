@@ -1,0 +1,120 @@
+// Connection (valores copiáveis)
+component {
+  resources {
+    // Estado vazio da lista de containers (`fallback` do <foreach>).
+    component(name = SemContainers) {
+      text(class = muted, content = "Nenhum container em execução.")
+    }
+  }
+
+  column(class = kv_list) {
+    row(class = kv_row) {
+      text(class = kv_key, content = "Container port")
+      text(class = kv_val_fill, content = "@svc_port")
+      text(content = " ")
+
+      button(
+        class = copy_btn,
+        on_click = clipboard:svc_port,
+        text = Copiar,
+      )
+    }
+
+    row(class = kv_row) {
+      text(class = kv_key, content = "Host port")
+      text(class = kv_val_fill, content = "@svc_host_port")
+      text(content = " ")
+
+      button(
+        class = copy_btn,
+        on_click = clipboard:svc_host_port,
+        text = Copiar,
+      )
+    }
+
+    row(class = kv_row) {
+      text(class = kv_key, content = "Domain")
+      text(class = kv_val_fill, content = "@svc_domain")
+      text(content = " ")
+
+      button(
+        class = copy_btn,
+        on_click = clipboard:svc_domain,
+        text = Copiar,
+      )
+    }
+
+    row(class = kv_row) {
+      text(class = kv_key, content = "TLS")
+      text(class = kv_val_fill, content = "@svc_tls")
+    }
+
+    row(class = kv_row) {
+      text(class = kv_key, content = "External URL")
+      text(class = kv_val_fill, content = "@svc_external_url_short")
+      text(content = " ")
+
+      button(
+        class = copy_btn,
+        on_click = clipboard:svc_external_url,
+        text = Copiar,
+      )
+    }
+
+    row(class = kv_row) {
+      text(class = kv_key, content = "Internal URL")
+      text(class = kv_val_fill, content = "@svc_internal_url_short")
+      text(content = " ")
+
+      button(
+        class = copy_btn,
+        on_click = clipboard:svc_internal_url,
+        text = Copiar,
+      )
+    }
+
+    row(class = kv_row, if = @svc_can_share, equals = true) {
+      text(class = kv_key, content = "Compartilhado")
+      text(class = kv_val_fill, content = "@svc_shared")
+
+      if @svc_shared == "false" {
+        button(
+          class = copy_btn,
+          on_click = shared_enable,
+          text = Compartilhar,
+        )
+      }
+
+      if @svc_shared == "true" {
+        button(
+          class = copy_btn,
+          on_click = shared_disable,
+          text = Desligar,
+        )
+      }
+    }
+
+    row(class = kv_row, if = @svc_db_kind, not_equals = "—") {
+      text(class = kv_key, content = "Tipo")
+      text(class = kv_val_fill, content = "@svc_db_kind")
+    }
+
+    // Containers reais em execução para este serviço (id + nome + estado).
+    hr
+
+    text(
+      class = label_cap,
+      content = "CONTAINERS (@svc_containers_count)",
+    )
+
+    each @svc_containers as c (fallback = SemContainers) {
+      row(class = kv_row) {
+        rp-badge(color = @c.state_color, label = @c.state)
+        text(class = kv_val_fill, content = "  ")
+        text(class = kv_val_fill, content = "@c.name")
+        text(class = kv_val_fill, content = "  ")
+        text(class = muted, content = "@c.id_short")
+      }
+    }
+  }
+}

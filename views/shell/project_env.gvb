@@ -1,0 +1,229 @@
+// Aba Variáveis do projeto. A condição (`if` de carregamento) vai na CHAMADA em
+// project_services.gvb, não na raiz daqui (lá o `if` não é aplicado).
+component {
+  resources {
+    component(name = SemVariaveis) {
+      text(class = muted, content = "Nenhuma variável.")
+    }
+  }
+
+  column(class = env_wrap, if = @proj_loading, not_equals = true) {
+    row(class = env_head) {
+      text(
+        class = muted_fill,
+        content = """
+          Herdadas por todos os serviços deste projeto no deploy — as
+          do serviço têm precedência.
+        """,
+      )
+
+      button(
+        class = btn_export,
+        on_click = penv_export,
+        text = Exportar,
+      )
+
+      text(content = " ")
+
+      if @penv_text_open == "true" {
+        button(
+          class = btn_export_on,
+          on_click = penv_text_toggle,
+          text = Fechar,
+        )
+      } else {
+        button(class = tab, on_click = penv_text_toggle, text = .env)
+      }
+    }
+
+    form(
+      name = penv_add,
+      on_submit = penv_add,
+      on_validation_error = penv_apontar,
+      width = fill,
+      spacing = 8,
+    ) {
+      row(class = env_add) {
+        input(
+          class = env_in_key,
+          form_control = penv_new_key,
+          rules = required,
+          msg = "chave vazia",
+          placeholder = KEY,
+        )
+      }
+
+      // Modo secret: o campo valor passa a receber o NOME de um
+      // secret do projeto (a referência, não o conteúdo), que o
+      // daemon decifra no deploy. Vários filhos condicionais →
+      // `<template>`, não `if=` atributo.
+      if @penv_new_is_secret == "true" {
+        row(class = env_add) {
+          input(
+            class = env_in_val,
+            form_control = penv_new_val,
+            placeholder = "nome do secret",
+          )
+
+          button(
+            class = btn_export_on,
+            on_click = penv_secret_toggle,
+            text = "usar secret",
+          )
+        }
+
+        text(
+          if = @proj_secrets,
+          empty = "",
+          class = muted,
+          content = "Nenhum secret cadastrado — crie um na aba Secrets.",
+        )
+
+        row(class = env_add, if = @proj_secrets, not_empty) {
+          text(class = muted, content = "Secrets do projeto: ")
+
+          button(
+            class = copy_btn,
+            :for-each = proj_secrets,
+            var = s,
+            on_click = secret_use:@s.name,
+            text = @s.name_display,
+          )
+        }
+      } else {
+        row(class = env_add) {
+          input(
+            class = env_in_val,
+            form_control = penv_new_val,
+            placeholder = value,
+          )
+
+          button(
+            class = tab,
+            on_click = penv_secret_toggle,
+            text = "usar secret",
+          )
+        }
+      }
+
+      row {
+        button(type = submit, class = btn_primary, text = Adicionar)
+      }
+    }
+
+    text(
+      class = err,
+      if = @erro_penv_new_key,
+      not_empty,
+      content = "@erro_penv_new_key",
+    )
+
+    scrollable(direction = vertical, class = env_list_scroll) {
+      column(class = kv_list) {
+        template(
+          :for-each = proj_env,
+          foreach_fallback = SemVariaveis,
+          var = e,
+          on_reorder = penv_reorder,
+          reorder_key = key,
+        ) {
+          // Comentários (# ...) do .env: arrastáveis como as vars
+          // (reancoram na var seguinte da nova ordem), mas sem
+          // delete — removem-se editando o .env.
+          if @e.__dragging == "true" {
+            if @e.kind == "comment" {
+              row(class = kv_row_drag) {
+                text(
+                  class = "env_drag_handle env_dragging",
+                  dragHandle = true,
+                  content = "⋮ ",
+                )
+
+                text(class = muted, content = "@e.value")
+              }
+            } else {
+              row(class = kv_row_drag) {
+                text(
+                  class = "env_drag_handle env_dragging",
+                  dragHandle = true,
+                  content = "⋮ ",
+                )
+
+                button(
+                  class = env_del,
+                  on_click = penv_del:@e.key,
+                  text = "✕",
+                )
+
+                text(class = env_sep)
+                text(class = env_key, content = "@e.key_display")
+                text(class = kv_val_fill, content = "@e.value")
+              }
+            }
+          } else {
+            if @e.kind == "comment" {
+              row(class = kv_row) {
+                text(
+                  class = env_drag_handle,
+                  dragHandle = true,
+                  content = "⋮ ",
+                )
+
+                text(class = muted, content = "@e.value")
+              }
+            } else {
+              row(class = kv_row) {
+                text(
+                  class = env_drag_handle,
+                  dragHandle = true,
+                  content = "⋮ ",
+                )
+
+                button(
+                  class = env_del,
+                  on_click = penv_del:@e.key,
+                  text = "✕",
+                )
+
+                text(class = env_sep)
+                text(class = env_key, content = "@e.key_display")
+                text(class = kv_val_fill, content = "@e.value")
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Editor .env: vários filhos condicionais → `<template>` (o atributo
+    // if= só esconderia o Text, deixando TextArea/botões sempre
+    // visíveis).
+    if @penv_text_open == "true" {
+      text(
+        class = muted,
+        content = "Cole/edite no formato KEY=VALUE (# comentário).",
+      )
+
+      textarea(
+        class = env_editor,
+        font = mono,
+        :value = proj_env_text,
+        placeholder = "KEY=VALUE   (# comentário)",
+      )
+
+      row(class = env_add) {
+        button(
+          class = btn_primary,
+          on_click = penv_import,
+          text = Salvar,
+        )
+
+        button(
+          class = btn_ghost,
+          on_click = penv_text_cancel,
+          text = Cancelar,
+        )
+      }
+    }
+  }
+}

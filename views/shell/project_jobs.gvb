@@ -1,0 +1,81 @@
+// Aba Jobs do projeto.
+component {
+  resources {
+    component(name = SemJobsNoProjeto) {
+      text(class = muted, content = "Nenhum job cadastrado ainda.")
+    }
+  }
+
+  row(class = env_head) {
+    text(class = muted_fill, content = "@proj_jobs_count job(s)")
+
+    button(
+      class = btn_sm_primary,
+      on_click = open_new_job_window,
+      text = "+ Novo job",
+    )
+  }
+
+  scrollable(direction = vertical, class = env_list_scroll) {
+    column(class = kv_list) {
+      each @proj_jobs as j (fallback = SemJobsNoProjeto) {
+        row(class = kv_row) {
+          text(class = env_key, content = "@j.name")
+          text(class = "muted col_dur", content = "@j.recurrence")
+
+          StateCell(
+            kind = @j.last_run_kind,
+            label = @j.last_run_label,
+          )
+
+          text(
+            class = "muted kv_val_fill",
+            content = "→ @j.next_run_at",
+          )
+
+          button(
+            class = copy_btn,
+            if = @j.running,
+            not_equals = true,
+            on_click = job_run_now:@j.id,
+            text = "Rodar agora",
+          )
+
+          button(
+            class = env_del,
+            if = @j.running,
+            equals = true,
+            on_click = job_run_cancel:@j.last_run_id,
+            text = Cancelar,
+          )
+
+          button(
+            class = copy_btn,
+            if = @j.last_run_id,
+            not_equals = "",
+            on_click = open_job_logs_window:@j.last_run_id,
+            text = "Ver logs",
+          )
+
+          button(
+            class = copy_btn,
+            on_click = job_toggle:@j.id,
+            text = @j.enabled_label,
+          )
+
+          button(
+            class = copy_btn,
+            on_click = open_edit_job_window:@j.id,
+            text = Editar,
+          )
+
+          button(
+            class = env_del,
+            on_click = job_del:@j.id,
+            text = "✕",
+          )
+        }
+      }
+    }
+  }
+}

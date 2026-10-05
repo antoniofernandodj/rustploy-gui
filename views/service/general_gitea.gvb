@@ -1,0 +1,153 @@
+// Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch; corpo do `if @prov_tab == "gitea"` de general.gvb.
+component {
+  text(
+    class = muted,
+    content = """
+      Selecione a conta conectada, o repositório e a branch a
+      implantar.
+    """,
+  )
+
+  row(class = busy_row, if = @gitea_msg, not_equals = "") {
+    spinner(class = busy_spin, if = @gitea_busy)
+    text(class = muted, content = "@gitea_msg")
+  }
+
+  text(class = label_cap, content = "CONTA CONECTADA")
+
+  select(
+    class = select,
+    :options = gitea_providers,
+    :value = gitea_provider_id,
+    on_change = gitea_provider_pick,
+    placeholder = "selecione a conta",
+    labelField = display,
+    valueField = id,
+  )
+
+  text(
+    class = muted,
+    content = "Conecte contas em Settings → Git.",
+  )
+
+  text(class = label_cap, content = "REPOSITÓRIO")
+
+  select(
+    class = select,
+    :options = gitea_repos,
+    :value = gitea_repo,
+    on_change = gitea_repo_pick,
+    placeholder = "selecione o repositório",
+    labelField = full_name,
+    valueField = full_name,
+  )
+
+  text(class = label_cap, content = "BRANCH")
+
+  select(
+    class = select,
+    :options = gitea_branches,
+    :value = f_branch,
+    on_change = field:f_branch,
+    placeholder = "selecione a branch",
+    labelField = name,
+    valueField = name,
+  )
+
+  text(class = label_cap, content = "SELEÇÃO ATUAL")
+
+  row(class = kv_row) {
+    text(class = kv_key, content = "Repo (clone URL)")
+    text(class = kv_val_fill, content = "@f_repo_url")
+  }
+
+  text(class = label_cap, content = "BUILD")
+
+  row(class = hc_grid) {
+    column(class = hc_field) {
+      text(class = label_cap, content = "BUILD PATH (root)")
+
+      input(
+        class = field_input,
+        form_control = f_build_path,
+        :value = f_build_path,
+        on_change = field:f_build_path,
+        placeholder = .,
+      )
+    }
+
+    column(class = hc_field) {
+      text(class = label_cap, content = "PORT")
+
+      input(
+        class = field_input,
+        form_control = f_gen_port,
+        :value = f_gen_port,
+        on_change = field:f_gen_port,
+        placeholder = 80,
+      )
+
+      text(
+        if = @erro_f_gen_port,
+        not_equals = "",
+        class = err,
+        content = "@erro_f_gen_port",
+      )
+    }
+  }
+
+  row(class = hc_grid) {
+    column(class = hc_field) {
+      text(class = label_cap, content = "DOCKERFILE")
+
+      input(
+        class = field_input,
+        form_control = f_dockerfile,
+        :value = f_dockerfile,
+        on_change = field:f_dockerfile,
+        placeholder = Dockerfile,
+      )
+    }
+
+    column(class = hc_field) {
+      text(class = label_cap, content = "CONTEXT PATH")
+
+      input(
+        class = field_input,
+        form_control = f_context_path,
+        :value = f_context_path,
+        on_change = field:f_context_path,
+        placeholder = .,
+      )
+    }
+  }
+
+  text(
+    class = label_cap,
+    content = "WATCH PATHS (separados por vírgula)",
+  )
+
+  input(
+    class = field_input,
+    form_control = f_watch_paths,
+    :value = f_watch_paths,
+    on_change = field:f_watch_paths,
+    placeholder = "src, Cargo.toml",
+  )
+
+  toggle(
+    :checked = f_submodules,
+    on_toggle = field:f_submodules,
+    label = "  Enable submodules",
+  )
+
+  row(class = env_add) {
+    button(
+      class = btn_primary,
+      on_click = gen_save,
+      text = Save,
+    )
+
+    text(class = muted, content = "@svc_action_msg")
+  }
+}

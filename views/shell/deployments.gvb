@@ -1,0 +1,76 @@
+// Lista de deployments (view = deployments); importada por shell.gvb.
+component {
+  resources {
+    component(name = SemDeployments) {
+      text(class = muted, content = "Nenhum deployment ainda.")
+    }
+  }
+
+  column(class = content) {
+    row(class = header_row) {
+      column(class = header_titles) {
+        text(class = title, content = "Deployments")
+
+        text(
+          class = subtitle,
+          content = "Real-time status of services in the cluster.",
+        )
+      }
+
+      row(class = "stats_row stats_hide_lg") {
+        StatCard(label = STATUS, value = @services_label, accent = 1)
+        StatCard(label = UPTIME, value = @daemon_uptime)
+      }
+
+      button(
+        class = btn_danger,
+        on_click = deployments_clear_finished,
+        text = "Limpar parados/falhos",
+      )
+    }
+
+    text(
+      if = @deployments_msg,
+      not_equals = "",
+      class = muted,
+      content = "@deployments_msg",
+    )
+
+    column(class = panel_fill) {
+      row(class = thead) {
+        text(class = "th col_svc", content = "SERVIÇO")
+        text(class = "th col_proj", content = "PROJETO")
+        text(class = "th col_state", content = "ESTADO")
+        text(class = "th col_dur", content = "DURAÇÃO")
+        text(class = "th col_start", content = "INÍCIO")
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      }
+
+      scrollable(
+        if = @data_loading,
+        not_equals = true,
+        direction = vertical,
+        class = scroll_fill,
+      ) {
+        column(class = table_body) {
+          each @deployments as d (fallback = SemDeployments) {
+            column(class = row_wrap) {
+              row(class = trow) {
+                text(class = "td_key col_svc", content = "@d.service")
+                text(class = "td col_proj", content = "@d.project")
+                StateCell(kind = @d.state_kind, label = @d.state_label)
+                text(class = "td col_dur", content = "@d.duration")
+                text(class = "muted col_start", content = "@d.start")
+              }
+
+              hr
+            }
+          }
+        }
+      }
+    }
+  }
+}

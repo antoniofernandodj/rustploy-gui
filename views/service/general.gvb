@@ -1,0 +1,127 @@
+// General (source / build, editável)
+component {
+  resources {
+    link(rel = import, href = "general_compose.gvb", as = GeneralCompose)
+    link(rel = import, href = "general_git.gvb", as = GeneralGit)
+    link(rel = import, href = "general_zip.gvb", as = GeneralZip)
+    link(rel = import, href = "general_gitea.gvb", as = GeneralGitea)
+  }
+
+  scrollable(
+    direction = vertical,
+    class = scroll_fill,
+  ) {
+    // O scrollable só renderiza o PRIMEIRO filho: os forms ficam numa coluna.
+    column(width = fill, spacing = 12) {
+      // Enquanto o fetch do detalhe (spec + listas conta/repo/branch do
+      // Gitea) não completa, mostramos um loading — os Selects só aparecem
+      // depois, já populados, em vez de piscarem vazios.
+      column(class = form_panel, if = @svc_loading, equals = true) {
+        if @svc_loading == "true" {
+          LoadingRow(note = "Carregando dados do serviço…")
+        }
+      }
+
+      // Renomear: form próprio, FORA do form "general" (form não aninha).
+      // O nome é só de exibição para Compose (stack e volumes ficam
+      // gravados); em Application o alias de rede acompanha o nome no
+      // próximo deploy — o aviso abaixo diz qual dos dois vale.
+      form(
+        class = form_panel,
+        if = @svc_loading,
+        not_equals = true,
+        name = svc_rename,
+        on_submit = save_service_name,
+        on_validation_error = svc_rename_apontar,
+        spacing = 6,
+      ) {
+        text(class = label_cap, content = "NOME DO SERVIÇO")
+
+        row(class = env_add) {
+          input(
+            class = field_input,
+            form_control = edit_svc_name,
+            rules = required,
+            msg = "informe um nome",
+            placeholder = "Nome do serviço",
+          )
+
+          button(type = submit, class = btn_primary, text = Renomear)
+        }
+
+        text(
+          class = err,
+          if = @erro_edit_svc_name,
+          not_empty,
+          content = "@erro_edit_svc_name",
+        )
+
+        text(class = muted, content = "@svc_rename_note")
+      }
+
+      form(
+        class = form_panel,
+        if = @svc_loading,
+        not_equals = true,
+        name = general,
+        on_submit = gen_save,
+      ) {
+        // Serviços Compose (bancos/brokers) editam o YAML direto; não têm
+        // provider Git/Registry.
+        if @svc_source_kind == "Compose" {
+          GeneralCompose
+        }
+
+        // Provider Git/conta-conectada/Zip — apenas para serviços não-Compose.
+        if @svc_source_kind != "Compose" {
+          text(class = label_cap, content = "PROVIDER")
+
+          row(class = tabs) {
+            TabButton(
+              label = Git,
+              current = @prov_tab,
+              target = git,
+              action = prov:git,
+            )
+
+            template(if = @gitea_providers, not_empty) {
+              // Vale para qualquer conta conectada em Settings → Git —
+              // Gitea *e* GitHub. O `target`/`action` seguem "gitea" por
+              // ser a chave de estado (prov_tab), não o nome do provedor.
+              TabButton(
+                label = "Gitea/GitHub",
+                current = @prov_tab,
+                target = gitea,
+                action = prov:gitea,
+              )
+            }
+
+            TabButton(
+              label = Zip,
+              current = @prov_tab,
+              target = zip,
+              action = prov:zip,
+            )
+          }
+
+          hr
+
+          // ── Sub-aba Git: form de URL/imagem crua ───────────────
+          if @prov_tab == "git" {
+            GeneralGit
+          }
+
+          // ── Sub-aba Zip: upload de arquivo local com Dockerfile na raiz ─
+          if @prov_tab == "zip" {
+            GeneralZip
+          }
+
+          // ── Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch ─
+          if @prov_tab == "gitea" {
+            GeneralGitea
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,108 @@
+// Volumes — Rustploy só usa bind mounts, então volumes nomeados aqui são
+// sempre externos ao Rustploy (criados manualmente ou por VOLUME da imagem).
+component {
+  resources {
+    component(name = SemVolumes) {
+      text(class = muted, content = "Nenhum volume.")
+    }
+  }
+
+  column(class = panel_fill) {
+    row(class = env_head) {
+      text(class = muted_fill, content = "@docker_volumes_count volume(s)")
+
+      checkbox(
+        :checked = docker_volumes_only_used,
+        on_toggle = field:docker_volumes_only_used,
+        label = "Somente em uso",
+      )
+
+      checkbox(
+        :checked = docker_prune_all_volumes,
+        on_toggle = field:docker_prune_all_volumes,
+        label = "-a (limpar tudo, não só anônimos)",
+      )
+
+      button(
+        class = btn_danger,
+        on_click = docker_prune_volumes,
+        text = "Limpar sem uso",
+      )
+    }
+
+    text(
+      if = @docker_msg,
+      not_equals = "",
+      class = muted,
+      content = "@docker_msg",
+    )
+
+    row(class = thead) {
+      text(class = "th col_svc", content = "NOME")
+      text(class = "th col_proj", content = "DRIVER")
+      text(class = "th col_dur", content = "TAMANHO")
+      text(class = "th col_state", content = "USO")
+      text(class = "th col_act", content = "AÇÃO")
+    }
+
+    if @data_loading == "true" {
+      LoadingRow
+    }
+
+    scrollable(
+      if = @data_loading,
+      not_equals = true,
+      direction = vertical,
+      class = scroll_fill,
+    ) {
+      column(class = table_body) {
+        if @docker_volumes_only_used == "true" {
+          template(
+            :for-each = docker_volumes,
+            var = v,
+            foreach_fallback = SemVolumes,
+          ) {
+            column(
+              class = row_wrap,
+              if = @v.in_use_label,
+              equals = "EM USO",
+            ) {
+              row(class = trow) {
+                text(class = "td_key col_svc", content = "@v.name")
+                text(class = "td col_proj", content = "@v.driver")
+                text(class = "muted col_dur", content = "@v.size")
+                StateCell(kind = @v.in_use_kind, label = @v.in_use_label)
+                row(class = col_act)
+              }
+
+              hr
+            }
+          }
+        } else {
+          each @docker_volumes as v (fallback = SemVolumes) {
+            column(class = row_wrap) {
+              row(class = trow) {
+                text(class = "td_key col_svc", content = "@v.name")
+                text(class = "td col_proj", content = "@v.driver")
+                text(class = "muted col_dur", content = "@v.size")
+                StateCell(kind = @v.in_use_kind, label = @v.in_use_label)
+
+                row(class = col_act) {
+                  button(
+                    if = @v.in_use_label,
+                    equals = "SEM USO",
+                    class = dk_rm,
+                    on_click = docker_rm_volume:@v.name_full,
+                    text = Remover,
+                  )
+                }
+              }
+
+              hr
+            }
+          }
+        }
+      }
+    }
+  }
+}

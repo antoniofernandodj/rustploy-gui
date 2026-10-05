@@ -1,0 +1,256 @@
+// Git: contas conectadas + formulário de conexão
+component {
+  resources {
+    component(name = SemContasGit) {
+      text(class = muted, content = "Nenhuma conta Git conectada ainda.")
+    }
+  }
+
+  scrollable(direction = vertical, class = scroll_fill) {
+    column(class = form_panel) {
+      text(
+        class = label_cap,
+        content = "CONTAS CONECTADAS (@gitea_count)",
+      )
+
+      column(class = kv_list) {
+        template(
+          :for-each = gitea_providers,
+          var = p,
+          foreach_fallback = SemContasGit,
+        ) {
+          row(class = kv_row) {
+            column(class = header_titles) {
+              text(class = env_key, content = "@p.name")
+
+              text(
+                class = muted,
+                content = "@p.kind · @p.base_url · @p.auth_mode · @p.account",
+              )
+            }
+
+            button(
+              class = btn_danger,
+              on_click = gp_delete:@p.id,
+              text = Remover,
+            )
+          }
+        }
+      }
+
+      hr
+      text(class = label_cap, content = "CONECTAR CONTA GIT")
+
+      // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
+      // provedor) e os textos de ajuda abaixo.
+      row(class = tabs) {
+        TabButton(
+          label = Gitea,
+          current = @gp_kind,
+          target = gitea,
+          action = gp_kind:gitea,
+        )
+
+        TabButton(
+          label = GitHub,
+          current = @gp_kind,
+          target = github,
+          action = gp_kind:github,
+        )
+      }
+
+      text(
+        if = @gp_msg,
+        not_equals = "",
+        class = muted,
+        content = "@gp_msg",
+      )
+
+      // OAuth: o Luau não abre o navegador; guarda a URL em gp_oauth_url e
+      // o built-in open:<chave> do glacier abre no navegador padrão.
+      button(
+        if = @gp_oauth_url,
+        not_equals = "",
+        class = btn_primary,
+        on_click = open:gp_oauth_url,
+        text = "Abrir autorização no navegador",
+      )
+
+      form(
+        name = git_provider,
+        on_submit = gp_connect,
+        spacing = 10,
+        width = fill,
+      ) {
+        row(class = hc_grid) {
+          column(class = hc_field) {
+            text(class = label_cap, content = "NOME")
+
+            input(
+              placeholder = "Meu Gitea",
+              class = field_input,
+              formControl = gp_name,
+              :value = gp_name,
+              on_change = field:gp_name,
+            )
+
+            text(
+              if = @erro_gp_name,
+              not_equals = "",
+              class = err,
+              content = "@erro_gp_name",
+            )
+          }
+
+          column(class = hc_field) {
+            text(class = label_cap, content = "BASE URL")
+
+            input(
+              placeholder = "https://gitea.exemplo.com",
+              class = field_input,
+              formControl = gp_base_url,
+              :value = gp_base_url,
+              on_change = field:gp_base_url,
+            )
+
+            text(
+              if = @gp_kind,
+              equals = github,
+              class = muted,
+              content = """
+                Deixe vazio para github.com. Só preencha para GitHub
+                Enterprise Server (ex.: https://ghe.suaempresa.com).
+              """,
+            )
+          }
+        }
+
+        text(class = label_cap, content = "MÉTODO")
+
+        row(class = tabs) {
+          TabButton(
+            label = OAuth2,
+            current = @gp_mode,
+            target = oauth,
+            action = gp_mode:oauth,
+          )
+
+          TabButton(
+            label = "Token (PAT)",
+            current = @gp_mode,
+            target = pat,
+            action = gp_mode:pat,
+          )
+        }
+
+        // OAuth2
+        if @gp_mode != "pat" {
+          text(class = label_cap, content = "CLIENT ID")
+
+          input(
+            placeholder = "",
+            class = field_input,
+            formControl = gp_client_id,
+            :value = gp_client_id,
+            on_change = field:gp_client_id,
+          )
+
+          text(class = label_cap, content = "CLIENT SECRET")
+
+          input(
+            placeholder = "",
+            secure = true,
+            class = field_input,
+            formControl = gp_client_secret,
+            :value = gp_client_secret,
+            on_change = field:gp_client_secret,
+          )
+
+          text(
+            class = label_cap,
+            content = "REDIRECT URI (cole no app OAuth do provedor)",
+          )
+
+          row(class = kv_row) {
+            text(class = kv_val_fill, content = "@gp_redirect")
+
+            button(
+              class = copy_btn,
+              on_click = clipboard:gp_redirect,
+              text = Copiar,
+            )
+          }
+
+          text(
+            if = @gp_kind,
+            not_equals = github,
+            class = muted,
+            content = """
+              No Gitea: Settings → Applications → crie um OAuth2 app e
+              cole a Redirect URI acima.
+            """,
+          )
+
+          text(
+            if = @gp_kind,
+            equals = github,
+            class = muted,
+            content = """
+              No GitHub: Settings → Developer settings → OAuth Apps → New
+              OAuth App e cole a Redirect URI acima em "Authorization
+              callback URL".
+            """,
+          )
+        }
+
+        // PAT
+        if @gp_mode == "pat" {
+          text(class = label_cap, content = "PERSONAL ACCESS TOKEN")
+
+          input(
+            placeholder = "",
+            secure = true,
+            class = field_input,
+            formControl = gp_pat,
+            :value = gp_pat,
+            on_change = field:gp_pat,
+          )
+
+          text(
+            if = @gp_kind,
+            not_equals = github,
+            class = muted,
+            content = """
+              No Gitea: Settings → Applications → Generate New Token
+              (escopo: repo).
+            """,
+          )
+
+          text(
+            if = @gp_kind,
+            equals = github,
+            class = muted,
+            content = """
+              No GitHub: Settings → Developer settings → Personal access
+              tokens → gere um token com escopo "repo".
+            """,
+          )
+        }
+
+        row(class = env_add) {
+          button(
+            class = btn_primary,
+            on_click = gp_connect,
+            text = "Conectar conta",
+          )
+
+          button(
+            class = tab,
+            on_click = gp_refresh,
+            text = "Atualizar lista",
+          )
+        }
+      }
+    }
+  }
+}

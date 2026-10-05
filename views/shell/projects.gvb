@@ -1,0 +1,63 @@
+// Lista de projetos (view = projects); importada por shell.gvb.
+component {
+  resources {
+    component(name = SemProjetos) {
+      text(class = muted, content = "Nenhum projeto ainda.")
+    }
+  }
+
+  column(class = content) {
+    row(class = header_row) {
+      column(class = header_titles) {
+        text(class = title, content = "Projects")
+
+        text(
+          class = subtitle,
+          content = "Projetos do cluster e a contagem de serviços de cada um.",
+        )
+      }
+
+      row(class = stats_row) {
+        StatCard(label = SERVICES, value = @services_count)
+        StatCard(label = PROJECTS, value = @projects_count, accent = 1)
+      }
+    }
+
+    // Criar projeto agora abre uma JANELA à parte (new_project_form.gv,
+    // motor Glacier próprio); ao concluir, ela envia um broadcast
+    // "project_created" que `on_broadcast` (handlers/projects.luau) recebe
+    // para atualizar a grade. Ver open_new_project_window.
+    row(class = env_add) {
+      button(
+        class = btn_primary,
+        on_click = open_new_project_window,
+        text = "+ Novo projeto",
+      )
+    }
+
+    if @data_loading == "true" {
+      LoadingRow
+    }
+
+    scrollable(
+      if = @data_loading,
+      not_equals = true,
+      direction = vertical,
+      class = scroll_fill,
+    ) {
+      column(class = grid) {
+        template(
+          :for-each = project_rows,
+          var = r,
+          foreach_fallback = SemProjetos,
+        ) {
+          row(class = card_row) {
+            template(:for-each = r.cards, var = c) {
+              ProjectCard(spread = @c)
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,168 @@
+// Sub-aba Git do provider: URL/imagem crua; corpo do `if @prov_tab == "git"` de general.gvb.
+component {
+  text(
+    class = label_cap,
+    content = "SOURCE — REPOSITORY URL / IMAGE",
+  )
+
+  input(
+    class = field_input,
+    form_control = f_repo_url,
+    :value = f_repo_url,
+    on_change = field:f_repo_url,
+    placeholder = "github.com/user/repo  ou  nginx:latest",
+  )
+
+  text(
+    class = muted,
+    content = """
+      URL de repositório vira Git; caso contrário é imagem de
+      registry.
+    """,
+  )
+
+  row(class = hc_grid) {
+    column(class = hc_field) {
+      text(class = label_cap, content = "BRANCH")
+
+      input(
+        class = field_input,
+        form_control = f_branch,
+        :value = f_branch,
+        on_change = field:f_branch,
+        placeholder = main,
+      )
+    }
+
+    column(class = hc_field) {
+      text(class = label_cap, content = "PORT")
+
+      input(
+        class = field_input,
+        form_control = f_gen_port,
+        :value = f_gen_port,
+        on_change = field:f_gen_port,
+        placeholder = 80,
+      )
+
+      text(
+        if = @erro_f_gen_port,
+        not_equals = "",
+        class = err,
+        content = "@erro_f_gen_port",
+      )
+    }
+  }
+
+  row(class = hc_grid) {
+    column(class = hc_field) {
+      text(class = label_cap, content = "USERNAME")
+
+      input(
+        class = field_input,
+        form_control = f_username,
+        :value = f_username,
+        on_change = field:f_username,
+        placeholder = "(opcional)",
+      )
+    }
+
+    column(class = hc_field) {
+      text(class = label_cap, content = "CREDENTIALS (secret)")
+
+      input(
+        class = field_input,
+        form_control = f_credentials,
+        :value = f_credentials,
+        on_change = field:f_credentials,
+        placeholder = "(opcional)",
+      )
+
+      text(
+        class = muted,
+        content = """
+          Nome de um secret do projeto (aba Secrets), puro — sem
+          <secret:>. Usado para clonar repositório Git privado
+          via HTTPS; não tem efeito com URL SSH.
+        """,
+      )
+    }
+  }
+
+  text(class = label_cap, content = "BUILD PATH (root)")
+
+  input(
+    class = field_input,
+    form_control = f_build_path,
+    :value = f_build_path,
+    on_change = field:f_build_path,
+    placeholder = .,
+  )
+
+  text(
+    class = label_cap,
+    content = "WATCH PATHS (separados por vírgula)",
+  )
+
+  input(
+    class = field_input,
+    form_control = f_watch_paths,
+    :value = f_watch_paths,
+    on_change = field:f_watch_paths,
+    placeholder = "src, Cargo.toml",
+  )
+
+  toggle(
+    :checked = f_submodules,
+    on_toggle = field:f_submodules,
+    label = " Enable submodules",
+  )
+
+  text(class = label_cap, content = "BUILD ENGINE: DOCKERFILE")
+
+  row(class = hc_grid) {
+    column(class = hc_field) {
+      text(class = label_cap, content = "DOCKERFILE")
+
+      input(
+        class = field_input,
+        form_control = f_dockerfile,
+        :value = f_dockerfile,
+        on_change = field:f_dockerfile,
+        placeholder = Dockerfile,
+      )
+    }
+
+    column(class = hc_field) {
+      text(class = label_cap, content = "CONTEXT PATH")
+
+      input(
+        class = field_input,
+        form_control = f_context_path,
+        :value = f_context_path,
+        on_change = field:f_context_path,
+        placeholder = .,
+      )
+    }
+  }
+
+  text(class = label_cap, content = "BUILD STAGE (opcional)")
+
+  input(
+    class = field_input,
+    form_control = f_build_stage,
+    :value = f_build_stage,
+    on_change = field:f_build_stage,
+    placeholder = "(multi-stage target)",
+  )
+
+  row(class = env_add) {
+    button(
+      class = btn_primary,
+      on_click = gen_save,
+      text = Save,
+    )
+
+    text(class = muted, content = "@svc_action_msg")
+  }
+}

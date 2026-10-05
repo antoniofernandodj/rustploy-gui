@@ -1,0 +1,97 @@
+// Seção `ingress` (view = ingress) das telas globais; importada por home.gvb.
+component {
+  resources {
+    // Estados vazios das listas: o `fallback` do <foreach> (e o
+    // `foreach_fallback` do <template>) desenha um destes no lugar da lista.
+    component(name = SemPortasDeHost) {
+      text(
+        class = muted,
+        content = "Nenhum serviço com porta de host configurada.",
+      )
+    }
+  }
+
+  row(class = header_row) {
+    column(class = header_titles) {
+      text(class = title, content = "Ingress")
+
+      text(
+        class = subtitle,
+        content = "Active routes in the reverse proxy.",
+      )
+    }
+
+    row(class = stats_row) {
+      StatCard(label = ROUTES, value = @ingress_count)
+      StatCard(label = "PORTAS DE HOST", value = @host_ports_count)
+    }
+  }
+
+  column(class = panel_fill) {
+    row(class = thead) {
+      text(class = "th col_svc", content = "DOMÍNIO")
+      text(class = "th col_proj", content = "SERVIÇO")
+      text(class = "th col_dur", content = "UPSTREAM")
+      text(class = "th col_start", content = "TLS")
+    }
+
+    if @data_loading == "true" {
+      LoadingRow
+    }
+
+    scrollable(
+      if = @data_loading,
+      not_equals = true,
+      direction = vertical,
+      class = scroll_fill,
+    ) {
+      column(class = table_body) {
+        template(:for-each = ingress, var = i) {
+          column(class = row_wrap) {
+            row(class = trow) {
+              text(class = "td_key col_svc", content = "@i.domain")
+              text(class = "td col_proj", content = "@i.service")
+              text(class = "td col_dur", content = "@i.upstream")
+              text(class = "muted col_start", content = "@i.tls")
+            }
+
+            hr
+          }
+        }
+      }
+    }
+
+    // Portas TCP de host: exposição direta de porta (fora do proxy HTTP
+    // por domínio acima) — um serviço pode ter as duas, só uma, ou nenhuma.
+    text(
+      class = label_cap,
+      content = "PORTAS TCP DE HOST (@host_ports_count)",
+    )
+
+    row(class = thead) {
+      text(class = "th col_svc", content = "SERVIÇO")
+      text(class = "th col_proj", content = "PROJETO")
+      text(class = "th col_dur", content = "PORTA HOST")
+      text(class = "th col_start", content = "PORTA CONTAINER")
+    }
+
+    column(class = table_body) {
+      template(
+        :for-each = host_ports,
+        var = hp,
+        foreach_fallback = SemPortasDeHost,
+      ) {
+        column(class = row_wrap) {
+          row(class = trow) {
+            text(class = "td_key col_svc", content = "@hp.service")
+            text(class = "td col_proj", content = "@hp.project")
+            text(class = "td col_dur", content = "@hp.host_port")
+            text(class = "muted col_start", content = "@hp.container_port")
+          }
+
+          hr
+        }
+      }
+    }
+  }
+}

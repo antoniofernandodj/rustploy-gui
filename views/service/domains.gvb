@@ -1,0 +1,130 @@
+// Domains (editável): lista de rotas HTTP (domínio → porta de container,
+// TLS por rota), mais o form de adição e a porta TCP crua do host.
+component {
+  resources {
+    component(name = SemDominios) {
+      text(class = muted, content = "Nenhum domínio configurado.")
+    }
+  }
+
+  column(class = form_panel) {
+    text(class = label_cap, content = "DOMÍNIOS (@svc_domains_count)")
+
+    text(
+      class = muted,
+      content = """
+        Cada domínio pode apontar para uma porta de container diferente.
+      """,
+    )
+
+    scrollable(direction = vertical, class = env_list_scroll) {
+      column(class = kv_list) {
+        each @svc_domains as d (fallback = SemDominios) {
+          row(class = kv_row) {
+            button(
+              class = env_del,
+              on_click = dom_del:@d.domain,
+              text = "✕",
+            )
+
+            text(class = env_sep)
+            text(class = env_key, content = "@d.domain")
+            text(class = kv_val_fill, content = "→ @d.port")
+            text(class = muted, content = "@d.tls_label")
+          }
+        }
+      }
+    }
+
+    text(class = label_cap, content = "ADICIONAR DOMÍNIO")
+
+    input(
+      class = field_input,
+      form_control = f_domain,
+      :value = f_domain,
+      on_change = field:f_domain,
+      placeholder = app.exemplo.com,
+    )
+
+    text(
+      if = @erro_f_domain,
+      not_equals = "",
+      class = err,
+      content = "@erro_f_domain",
+    )
+
+    text(class = label_cap, content = "PORTA DO CONTAINER (opcional)")
+
+    input(
+      class = field_input,
+      form_control = f_port,
+      :value = f_port,
+      on_change = field:f_port,
+      placeholder = "(padrão do serviço)",
+    )
+
+    text(
+      if = @erro_f_port,
+      not_equals = "",
+      class = err,
+      content = "@erro_f_port",
+    )
+
+    toggle(
+      :checked = f_tls,
+      on_toggle = field:f_tls,
+      label = "  HTTPS / TLS",
+    )
+
+    row(class = env_add) {
+      button(
+        class = btn_primary,
+        on_click = dom_add,
+        text = "Adicionar domínio",
+      )
+
+      text(class = muted, content = "@svc_action_msg")
+    }
+
+    text(
+      class = label_cap,
+      content = "PORTA TCP DO HOST (passthrough, opcional)",
+    )
+
+    input(
+      class = field_input,
+      form_control = f_host_port,
+      :value = f_host_port,
+      on_change = field:f_host_port,
+      placeholder = "(padrão do serviço)",
+    )
+
+    text(
+      if = @erro_f_host_port,
+      not_equals = "",
+      class = err,
+      content = "@erro_f_host_port",
+    )
+
+    row(class = env_add) {
+      button(
+        class = btn_ghost,
+        on_click = dom_hostport_save,
+        text = "Salvar porta",
+      )
+
+      button(
+        class = btn_ghost,
+        on_click = dom_hostport_auto,
+        text = Automática,
+      )
+    }
+
+    text(
+      class = muted,
+      content = """
+        "Automática" aloca uma porta livre e a libera no firewall do host.
+      """,
+    )
+  }
+}

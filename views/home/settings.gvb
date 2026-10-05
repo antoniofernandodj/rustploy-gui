@@ -1,0 +1,68 @@
+// Seção `settings` (view = settings) das telas globais; importada por home.gvb.
+component {
+  resources {
+    link(rel = import, href = "settings/web.gvb", as = SettingsWebTab)
+    link(rel = import, href = "settings/git.gvb", as = SettingsGitTab)
+    link(rel = import, href = "settings/iac.gvb", as = SettingsIacTab)
+    link(rel = import, href = "settings/maintenance.gvb", as = SettingsMaintenanceTab)
+  }
+
+  row(class = header_row) {
+    column(class = header_titles) {
+      text(class = title, content = "Settings")
+
+      text(
+        class = subtitle,
+        content = "Daemon web server, HTTPS e contas Git.",
+      )
+    }
+  }
+
+  row(class = tabs) {
+    TabButton(
+      label = "Web Server",
+      current = @settings_tab,
+      target = web,
+      action = settings_tab:web,
+    )
+
+    TabButton(
+      label = Git,
+      current = @settings_tab,
+      target = git,
+      action = settings_tab:git,
+    )
+
+    TabButton(
+      label = "Infra as Code",
+      current = @settings_tab,
+      target = iac,
+      action = settings_tab:iac,
+    )
+
+    TabButton(
+      label = Manutenção,
+      current = @settings_tab,
+      target = maintenance,
+      action = settings_tab:maintenance,
+    )
+  }
+
+  hr
+
+  if @settings_tab == "web" {
+    SettingsWebTab
+  }
+
+  if @settings_tab == "git" {
+    SettingsGitTab
+  }
+
+  if @settings_tab == "iac" {
+    SettingsIacTab
+  }
+
+  if @settings_tab == "maintenance" {
+    SettingsMaintenanceTab
+  }
+}

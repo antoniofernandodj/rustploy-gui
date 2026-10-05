@@ -1,0 +1,78 @@
+// Web Server (default)
+component {
+  form(name = settings, on_submit = settings_save, width = fill) {
+    column(class = form_panel) {
+      text(class = label_cap, content = "URL PÚBLICA DA API")
+
+      row(class = kv_row) {
+        text(class = kv_val_fill, content = "@ss_public_base")
+
+        button(
+          class = copy_btn,
+          on_click = clipboard:ss_public_base,
+          text = Copiar,
+        )
+      }
+
+      text(
+        class = muted,
+        content = """
+          Derivada de [api] domain/port no daemon — é a base das URLs de
+          webhook dos serviços e do callback OAuth (mesma porta da API).
+          Para mudá-la, configure api.domain e reinicie o daemon.
+        """,
+      )
+
+      text(
+        class = label_cap,
+        content = "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",
+      )
+
+      input(
+        placeholder = voce@@exemplo.com,
+        class = field_input,
+        formControl = ss_email,
+      )
+
+      text(
+        if = @erro_ss_email,
+        not_equals = "",
+        class = err,
+        content = "@erro_ss_email",
+      )
+
+      text(
+        class = muted,
+        content = """
+          Certificados TLS emitidos automaticamente. Requer restart do
+          daemon.
+        """,
+      )
+
+      text(
+        class = label_cap,
+        content = "DOMÍNIO DO REGISTRY (EXPOSIÇÃO PÚBLICA)",
+      )
+
+      input(
+        placeholder = registry.meusite.com,
+        class = field_input,
+        formControl = ss_registry_domain,
+      )
+
+      text(
+        class = muted,
+        content = """
+          Expõe o registry Docker embutido via ingress + certificado
+          automático. Requer [registry] enabled = true na config. Vazio =
+          só acessível em 127.0.0.1.
+        """,
+      )
+
+      row(class = env_add) {
+        button(class = btn_primary, on_click = settings_save, text = Save)
+        text(class = muted, content = "@settings_msg")
+      }
+    }
+  }
+}

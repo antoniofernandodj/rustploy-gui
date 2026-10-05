@@ -1,0 +1,77 @@
+// Containers — um por serviço gerido pelo Rustploy (ligação com
+// projeto/serviço é direta, já que o container nasce de um Service).
+// Containers — todos do host (rodando + parados). Remover é oferecido só
+// nos PARADOS (o Docker recusa `rm` de um rodando sem force).
+component {
+  resources {
+    component(name = SemContainersDocker) {
+      text(class = muted, content = "Nenhum container.")
+    }
+  }
+
+  column(class = panel_fill) {
+    row(class = env_head) {
+      text(
+        class = muted_fill,
+        content = "@docker_containers_count container(s)",
+      )
+
+      button(
+        class = btn_danger,
+        on_click = docker_prune_containers,
+        text = "Limpar parados",
+      )
+    }
+
+    text(
+      if = @docker_msg,
+      not_equals = "",
+      class = muted,
+      content = "@docker_msg",
+    )
+
+    row(class = thead) {
+      text(class = "th col_svc", content = "NOME")
+      text(class = "th col_img", content = "IMAGEM")
+      text(class = "th col_state", content = "DONO")
+      text(class = "th col_dur", content = "ESTADO")
+      text(class = "th col_act", content = "AÇÃO")
+    }
+
+    if @data_loading == "true" {
+      LoadingRow
+    }
+
+    scrollable(
+      if = @data_loading,
+      not_equals = true,
+      direction = vertical,
+      class = scroll_fill,
+    ) {
+      column(class = table_body) {
+        each @docker_containers as c (fallback = SemContainersDocker) {
+          column(class = row_wrap) {
+            row(class = trow) {
+              text(class = "td_key col_svc", content = "@c.name")
+              text(class = "td col_img", content = "@c.image")
+              text(class = "muted col_state", content = "@c.owner")
+              StateCell(kind = @c.state_kind, label = @c.state_label)
+
+              row(class = col_act) {
+                button(
+                  if = @c.can_remove,
+                  equals = 1,
+                  class = dk_rm,
+                  on_click = docker_rm_container:@c.id_full,
+                  text = Remover,
+                )
+              }
+            }
+
+            hr
+          }
+        }
+      }
+    }
+  }
+}

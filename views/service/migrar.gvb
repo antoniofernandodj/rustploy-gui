@@ -1,0 +1,102 @@
+// Migrar este banco para um servidor compartilhado
+component {
+  scrollable(
+    direction = vertical,
+    class = scroll_fill,
+  ) {
+    column(width = fill, spacing = 8, class = form_panel) {
+      text(class = label_cap, content = "MIGRAR PARA BANCO COMPARTILHADO")
+
+      text(
+        class = muted,
+        content = """
+          Crie antes o database de destino no servidor compartilhado (aba
+          Databases de lá, marcando "Não mexer em env var"). Mesmo motor e
+          mesmo projeto. A migração é com parada: os serviços que usam
+          este banco ficam fora do ar durante a cópia.
+        """,
+      )
+
+      text(
+        class = label_cap,
+        content = "DATABASE DE ORIGEM (dentro deste banco)",
+      )
+
+      input(
+        class = field_input,
+        form_control = f_mig_db,
+        :value = f_mig_db,
+        on_change = field:f_mig_db,
+        placeholder = "nome do database",
+      )
+
+      text(class = label_cap, content = "DESTINO")
+
+      select(
+        class = select,
+        :options = mig_dests,
+        :value = f_mig_dest,
+        on_change = field:f_mig_dest,
+        placeholder = "database de destino...",
+        labelField = name,
+        valueField = id,
+      )
+
+      text(class = label_cap, content = "ENV VAR A TROCAR")
+
+      input(
+        class = field_input,
+        form_control = f_mig_env,
+        :value = f_mig_env,
+        on_change = field:f_mig_env,
+        placeholder = "padrão DATABASE_URL / MONGODB_URI",
+      )
+
+      row(class = env_add) {
+        button(class = btn_primary, on_click = mig_start, text = Migrar)
+
+        button(
+          class = btn_ghost,
+          on_click = mig_refresh,
+          text = Atualizar,
+        )
+      }
+
+      if @mig_has == "true" {
+        text(class = label_cap, content = "ANDAMENTO — @mig_status")
+
+        column(class = kv_list) {
+          row(class = kv_row, :for-each = mig_steps, var = s) {
+            text(class = env_key, content = "@s.icon")
+            text(class = kv_val_fill, content = "@s.name")
+            text(class = muted, content = "@s.detail")
+          }
+        }
+
+        if @mig_can_finish == "true" {
+          text(
+            class = muted,
+            content = """
+              Migração concluída — o banco antigo foi mantido (parado)
+              para rollback.
+            """,
+          )
+
+          row(class = env_add) {
+            button(
+              class = btn_ghost,
+              on_click = mig_rollback,
+              text = Reverter,
+            )
+
+            button(
+              class = btn_ghost,
+              on_click = mig_discard,
+              text = "Descartar banco antigo",
+            )
+          }
+        }
+      }
+    }
+  }
+}

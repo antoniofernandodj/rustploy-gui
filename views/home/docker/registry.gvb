@@ -1,0 +1,234 @@
+// Registry — repositórios/tags do registry OCI embutido (Fase 1: só
+// push/pull via docker CLI; sem auth ainda). Leitura + delete
+// (metadados) + GC (libera do disco blobs/manifests órfãos). Tags de um
+// repositório são buscadas sob demanda ao clicar "Ver tags" — não
+// vêm no snapshot periódico, diferente das outras sub-abas Docker.
+component {
+  resources {
+    // `registry_repos` chega FILTRADO pela busca; o count é da lista crua.
+    // Por isso o fallback distingue "registry vazio" de "busca sem resultado".
+    component(name = SemRepositorios) {
+      text(
+        if = @registry_repos_count,
+        equals = 0,
+        class = muted,
+        content = """
+          Nenhum repositório ainda. Faça `docker push` para o registry embutido.
+        """,
+      )
+
+      text(
+        if = @registry_repos_count,
+        not_equals = 0,
+        class = muted,
+        content = "Nenhum repositório corresponde à busca.",
+      )
+    }
+
+    component(name = SemTokens) {
+      text(
+        class = muted,
+        content = """
+          Nenhum token ainda. Sem token nenhum push/pull é autenticado — crie um
+          antes de usar o registry.
+        """,
+      )
+    }
+  }
+
+  column(class = panel_fill) {
+    row(class = env_head) {
+      text(
+        class = muted_fill,
+        content = """
+          Registry @registry_status_label · @registry_repos_count
+          repositório(s) · @registry_storage_human
+        """,
+      )
+
+      button(
+        class = btn_danger,
+        if = @registry_status_enabled,
+        equals = true,
+        on_click = registry_gc,
+        text = "Executar GC",
+      )
+    }
+
+    text(
+      if = @registry_msg,
+      not_equals = "",
+      class = muted,
+      content = "@registry_msg",
+    )
+
+    column(class = panel_fill, if = @registry_selected_repo, equals = "") {
+      row(class = thead) {
+        text(class = "th col_svc", content = "REPOSITÓRIO")
+        text(class = "th col_proj", content = "TAGS")
+        text(class = "th col_dur", content = "TAMANHO")
+        text(class = "th col_dur", content = "CRIADO")
+        text(class = "th col_act_2", content = "AÇÃO")
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      }
+
+      // Fica com `registry_repos_count` (não vira `empty` em
+      // `registry_repos` como os outros pares lista/count deste plano de
+      // convergência): `registry_repos` é FILTRADO pela busca
+      // (fmt.registry_repos(snap.registry_repos, term) em stream.luau),
+      // enquanto o count é da lista crua. Trocar faria essa mensagem
+      // ("Faça docker push...") aparecer quando a busca só não achou
+      // nada, não quando o registry está genuinamente vazio.
+      scrollable(
+        if = @data_loading,
+        not_equals = true,
+        direction = vertical,
+        class = scroll_fill,
+      ) {
+        column(class = table_body) {
+          each @registry_repos as r (fallback = SemRepositorios) {
+            column(class = row_wrap) {
+              row(class = trow) {
+                text(class = "td_key col_svc", content = "@r.name")
+                text(class = "td col_proj", content = "@r.tag_count")
+                text(class = "muted col_dur", content = "@r.size")
+                text(class = "muted col_dur", content = "@r.created")
+
+                row(class = col_act_2) {
+                  button(
+                    class = copy_btn,
+                    on_click = registry_open_repo:@r.name,
+                    text = "≡",
+                    tooltip = "Ver tags",
+                  )
+
+                  button(
+                    class = env_del,
+                    on_click = registry_rm_repo:@r.name,
+                    text = "✕",
+                    tooltip = Remover,
+                  )
+                }
+              }
+
+              hr
+            }
+          }
+        }
+      }
+
+      text(
+        class = label_cap,
+        content = "TOKENS DE ACESSO (@registry_tokens_count)",
+      )
+
+      row(class = env_head) {
+        text(
+          class = muted_fill,
+          content = """
+            Basic auth (docker login) — o segredo só aparece uma vez, na
+            criação.
+          """,
+        )
+
+        button(
+          class = btn_primary,
+          on_click = registry_open_token_window,
+          text = "+ Novo token",
+        )
+      }
+
+      row(class = thead, if = @registry_tokens, not_empty) {
+        text(class = "th col_svc", content = "NOME")
+        text(class = "th col_proj", content = "ESCOPO")
+        text(class = "th col_dur", content = "CRIADO")
+        text(class = "th col_dur", content = "ÚLTIMO USO")
+        text(class = "th col_act", content = "AÇÃO")
+      }
+
+      each @registry_tokens as tk (fallback = SemTokens) {
+        column(class = table_body) {
+          row(class = trow) {
+            text(class = "td_key col_svc", content = "@tk.name")
+            text(class = "td col_proj", content = "@tk.scope")
+            text(class = "muted col_dur", content = "@tk.created")
+            text(class = "muted col_dur", content = "@tk.last_used")
+
+            row(class = col_act) {
+              button(
+                class = env_del,
+                on_click = registry_rm_token:@tk.name,
+                text = "✕",
+                tooltip = Revogar,
+              )
+            }
+          }
+
+          hr
+        }
+      }
+    }
+
+    column(
+      class = panel_fill,
+      if = @registry_selected_repo,
+      not_equals = "",
+    ) {
+      row(class = env_head) {
+        text(
+          class = muted_fill,
+          content = "@registry_selected_repo — @registry_tags_count tag(s)",
+        )
+
+        button(
+          class = btn_ghost,
+          on_click = registry_close_repo,
+          text = "← Voltar",
+        )
+      }
+
+      row(class = thead) {
+        text(class = "th col_svc", content = "TAG")
+        text(class = "th col_proj", content = "DIGEST")
+        text(class = "th col_dur", content = "TAMANHO")
+        text(class = "th col_dur", content = "ATUALIZADA")
+        text(class = "th col_act", content = "AÇÃO")
+      }
+
+      if @registry_tags_loading == "true" {
+        LoadingRow
+      }
+
+      scrollable(
+        if = @registry_tags_loading,
+        not_equals = true,
+        direction = vertical,
+        class = scroll_fill,
+      ) {
+        column(class = table_body) {
+          column(class = row_wrap, :for-each = registry_tags, var = t) {
+            row(class = trow) {
+              text(class = "td_key col_svc", content = "@t.tag")
+              text(class = "muted col_proj", content = "@t.digest")
+              text(class = "muted col_dur", content = "@t.size")
+              text(class = "muted col_dur", content = "@t.updated")
+
+              row(class = col_act) {
+                button(
+                  class = dk_rm,
+                  on_click = registry_rm_tag:@t.tag,
+                  text = Remover,
+                )
+              }
+            }
+
+            hr
+          }
+        }
+      }
+    }
+  }
+}

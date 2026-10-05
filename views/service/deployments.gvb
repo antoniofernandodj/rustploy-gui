@@ -1,0 +1,110 @@
+// Deployments
+component {
+  resources {
+    component(name = SemDeploysDoServico) {
+      text(class = muted, content = "Nenhum deploy ainda.")
+    }
+  }
+
+  column(class = dep_wrap) {
+    // Webhook de deploy: servido pelo MESMO listener da API (base
+    // derivada de [api] domain/port). Compose não tem webhook.
+    column(
+      if = @svc_webhook_supported,
+      equals = true,
+      class = form_panel,
+    ) {
+      text(class = label_cap, content = "WEBHOOK DE DEPLOY")
+
+      // URL e botões em LINHAS separadas: a URL é longa (~100 chars) e,
+      // com width fill, empurraria os botões para fora do painel. Exibida
+      // TRUNCADA (svc_webhook_url_short) — inteira, ela estoura o card em
+      // janelas estreitas; o valor completo vai no tooltip e no clipboard.
+      column(if = @svc_webhook_url, not_equals = "", class = wh_block) {
+        text(
+          class = wh_url,
+          tooltip = @svc_webhook_url,
+          content = "@svc_webhook_url_short",
+        )
+
+        row(class = wh_actions) {
+          button(
+            class = copy_btn,
+            on_click = clipboard:svc_webhook_url,
+            text = Copiar,
+          )
+
+          button(
+            class = dep_del_btn,
+            on_click = regen_webhook,
+            text = Regenerar,
+          )
+        }
+      }
+
+      text(
+        if = @svc_webhook_url,
+        equals = "",
+        class = muted,
+        content = """
+          O token nasce no primeiro deploy deste serviço — rode um deploy
+          para a URL aparecer.
+        """,
+      )
+
+      text(
+        class = muted,
+        content = """
+          Um POST nesta URL dispara um deploy. O corpo é ignorado: o token
+          na própria URL é a autenticação. Regenerar invalida a URL
+          anterior.
+        """,
+      )
+    }
+
+    text(class = muted, content = "@svc_deployments_count deployments")
+
+    scrollable(direction = vertical, class = dep_list_scroll) {
+      column(class = table_body) {
+        each @svc_deployments as d (fallback = SemDeploysDoServico) {
+          column(class = row_wrap) {
+            row(class = trow) {
+              text(class = "td_key col_dep_id", content = "@d.id")
+              StateCell(kind = @d.state_kind, label = @d.state_label)
+              text(class = "td col_dur", content = "@d.duration")
+              text(class = "muted col_dep_start", content = "@d.start")
+
+              // Ícone + tooltip (eram "Build log ↗" e "Remover" por
+              // extenso): os rótulos quebravam em duas linhas e estouravam a
+              // coluna quando a janela estreitava. Mesmo padrão das linhas de
+              // job e de repo do Registry (home.gv).
+              row(class = dep_actions) {
+                button(
+                  class = dep_logs_btn,
+                  on_click = dep_logs:@d.id_full,
+                  text = "≡",
+                  tooltip = "Ver build log",
+                )
+
+                button(
+                  if = @d.can_delete,
+                  equals = 1,
+                  class = dep_del_btn,
+                  on_click = delete_deployment:@d.id_full,
+                  text = "✕",
+                  tooltip = "Remover deployment",
+                )
+              }
+            }
+
+            text(class = dep_image, content = "@d.image")
+            hr
+          }
+        }
+      }
+    }
+
+    // Build log abre em JANELA isolada (dep_logs → open_window), não inline:
+    // render de milhares de linhas por reavaliação travava a principal.
+  }
+}

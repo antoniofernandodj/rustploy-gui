@@ -1,0 +1,151 @@
+// Healthcheck (editável)
+component {
+  resources {
+    component(name = SemChecks) {
+      text(
+        class = muted,
+        content = "Nenhum check configurado — deploy segue direto.",
+      )
+    }
+  }
+
+  form(
+    class = form_panel,
+    name = healthcheck,
+    on_submit = hc_save,
+  ) {
+    text(class = label_cap, content = "KIND")
+
+    row(class = tabs) {
+      TabButton(
+        label = None,
+        current = @f_hc_kind,
+        target = none,
+        action = hckind:none,
+      )
+
+      TabButton(
+        label = Tcp,
+        current = @f_hc_kind,
+        target = tcp,
+        action = hckind:tcp,
+      )
+
+      TabButton(
+        label = Http,
+        current = @f_hc_kind,
+        target = http,
+        action = hckind:http,
+      )
+
+      TabButton(
+        label = Docker,
+        current = @f_hc_kind,
+        target = docker,
+        action = hckind:docker,
+      )
+    }
+
+    if @f_hc_kind == "http" {
+      text(class = label_cap, content = "HTTP PATH")
+
+      input(
+        class = field_input,
+        form_control = f_hc_path,
+        :value = f_hc_path,
+        on_change = field:f_hc_path,
+        placeholder = "/health",
+      )
+
+      text(class = label_cap, content = "EXPECTED STATUS")
+
+      spinbox(
+        field_class = spin_field,
+        form_control = f_hc_status,
+        :value = f_hc_status,
+        min = 100,
+        max = 599,
+        width = 90,
+        placeholder = 200,
+      )
+
+      // Era um <input> de texto livre com esta linha de erro abaixo:
+      //
+      // <text if="{erro_f_hc_status}" not_equals="" class="err">
+      //   {erro_f_hc_status}
+      // </text>
+      //
+      // `erro_f_hc_status` nunca foi escrita por ninguém (nem Luau nem
+      // Rust) — a validação que ela anunciava não existia, e o handler
+      // engolia lixo em silêncio (`tonumber(...) or 200`). Quem valida
+      // agora é o próprio widget, que satura em min/max. Mesma história
+      // nos outros cinco campos numéricos desta tela.
+    }
+
+    // Os quatro números do health check. A faixa de cada um sai do que
+    // o daemon aceita: intervalo/timeout/start em segundos (1h de teto é
+    // folgado para qualquer check razoável), retries na faixa do Docker.
+    // As linhas `erro_f_hc_*` que ficavam sob cada campo saíram junto —
+    // ver o comentário do EXPECTED STATUS acima.
+    row(class = hc_grid) {
+      column(class = hc_field) {
+        text(class = label_cap, content = "INTERVAL (s)")
+
+        spinbox(
+          field_class = spin_field,
+          form_control = f_hc_interval,
+          :value = f_hc_interval,
+          min = 1,
+          max = 3600,
+          width = 90,
+        )
+      }
+
+      column(class = hc_field) {
+        text(class = label_cap, content = "TIMEOUT (s)")
+
+        spinbox(
+          field_class = spin_field,
+          form_control = f_hc_timeout,
+          :value = f_hc_timeout,
+          min = 1,
+          max = 3600,
+          width = 90,
+        )
+      }
+    }
+
+    row(class = hc_grid) {
+      column(class = hc_field) {
+        text(class = label_cap, content = "RETRIES")
+
+        spinbox(
+          field_class = spin_field,
+          form_control = f_hc_retries,
+          :value = f_hc_retries,
+          min = 1,
+          max = 10,
+          width = 90,
+        )
+      }
+
+      column(class = hc_field) {
+        text(class = label_cap, content = "START PERIOD (s)")
+
+        spinbox(
+          field_class = spin_field,
+          form_control = f_hc_start,
+          :value = f_hc_start,
+          min = 0,
+          max = 3600,
+          width = 90,
+        )
+      }
+    }
+
+    row(class = env_add) {
+      button(class = btn_primary, on_click = hc_save, text = Save)
+      text(class = muted, content = "@svc_action_msg")
+    }
+  }
+}

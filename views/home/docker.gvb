@@ -1,0 +1,77 @@
+// Seção `docker` (view = docker) das telas globais; importada por home.gvb.
+component {
+  resources {
+    link(rel = import, href = "docker/containers.gvb", as = DockerContainersTab)
+    link(rel = import, href = "docker/images.gvb", as = DockerImagesTab)
+    link(rel = import, href = "docker/volumes.gvb", as = DockerVolumesTab)
+    link(rel = import, href = "docker/networks.gvb", as = DockerNetworksTab)
+    link(rel = import, href = "docker/registry.gvb", as = DockerRegistryTab)
+  }
+
+  row(class = header_row) {
+    column(class = header_titles) {
+      text(class = title, content = "Docker")
+
+      text(
+        class = subtitle,
+        content = "Containers, imagens, volumes e networks do host.",
+      )
+    }
+
+    row(class = "stats_row stats_hide_md") {
+      StatCard(label = CONTAINERS, value = @docker_containers_count)
+      StatCard(label = IMAGENS, value = @docker_images_count)
+      StatCard(label = VOLUMES, value = @docker_volumes_count)
+      StatCard(label = NETWORKS, value = @docker_networks_count, accent = 1)
+    }
+  }
+
+  row(class = tabs) {
+    TabButton(
+      label = Containers,
+      current = @docker_tab,
+      target = containers,
+      action = docker_tab:containers,
+    )
+
+    TabButton(
+      label = Images,
+      current = @docker_tab,
+      target = images,
+      action = docker_tab:images,
+    )
+
+    TabButton(
+      label = Volumes,
+      current = @docker_tab,
+      target = volumes,
+      action = docker_tab:volumes,
+    )
+
+    TabButton(
+      label = Networks,
+      current = @docker_tab,
+      target = networks,
+      action = docker_tab:networks,
+    )
+
+    TabButton(
+      label = Registry,
+      current = @docker_tab,
+      target = registry,
+      action = docker_tab:registry,
+    )
+  }
+
+  hr
+
+  DockerContainersTab(if = @docker_tab, equals = containers)
+
+  DockerImagesTab(if = @docker_tab, equals = images)
+
+  DockerVolumesTab(if = @docker_tab, equals = volumes)
+
+  DockerNetworksTab(if = @docker_tab, equals = networks)
+
+  DockerRegistryTab(if = @docker_tab, equals = registry)
+}

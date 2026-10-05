@@ -1,0 +1,187 @@
+// Manutenção: limpeza automática de recursos Docker sem uso (ver
+// docs/plano-limpeza-automatica-docker.md) — mesmas funções dos botões
+// manuais da aba Docker, disparadas por agendamento em vez de clique.
+component {
+  scrollable(direction = vertical, class = scroll_fill) {
+    column(class = form_panel) {
+      text(class = label_cap, content = "LIMPEZA AUTOMÁTICA")
+
+      toggle(
+        :checked = dc_enabled,
+        on_toggle = field:dc_enabled,
+        label = "  Ativar limpeza automática",
+      )
+
+      text(
+        class = muted,
+        content = """
+          Roda sozinha, no horário abaixo, os recursos marcados nesta
+          tela. Desligada por padrão — nada é removido até você marcar
+          pelo menos um recurso e ativar.
+        """,
+      )
+
+      text(class = label_cap, content = "FREQUÊNCIA")
+
+      row(class = tabs) {
+        TabButton(
+          label = "A cada N horas",
+          current = @dc_kind,
+          target = interval,
+          action = dc_kind:interval,
+        )
+
+        TabButton(
+          label = "Todo dia",
+          current = @dc_kind,
+          target = daily,
+          action = dc_kind:daily,
+        )
+
+        TabButton(
+          label = "Toda semana",
+          current = @dc_kind,
+          target = weekly,
+          action = dc_kind:weekly,
+        )
+      }
+
+      row(class = hc_grid, if = @dc_kind, equals = interval) {
+        column(class = hc_field) {
+          text(class = label_cap, content = "A CADA (HORAS)")
+
+          // Teto de 168 = uma semana. Acima disso o usuário quer a
+          // frequência "semanal", que é a aba ao lado.
+          spinbox(
+            field_class = spin_field,
+            form_control = dc_hours,
+            :value = dc_hours,
+            min = 1,
+            max = 168,
+            width = 90,
+            placeholder = 6,
+          )
+        }
+      }
+
+      // Eram sete <TabButton> escritos à mão mais o handler
+      // `dc_weekday` só pra gravar a escolha. O <radiogroup> (glacier-ui
+      // 0.66) grava a chave sozinho, no update dele em Rust, então o
+      // handler foi embora junto. As opções vêm de `weekdays`, semeada em
+      // handlers/connection.luau a partir de fmt.WEEKDAYS_JSON.
+      // Aparência: são radio buttons redondos, não a fileira de pílulas
+      // que o TabButton desenhava.
+      row(class = tabs, if = @dc_kind, equals = weekly) {
+        radiogroup(:value = dc_weekday, :items = weekdays, layout = row)
+      }
+
+      // Era um par de campos de texto livre — "HORA (0-23)" e
+      // "MINUTO (0-59)" —, e a faixa no próprio rótulo era a confissão de
+      // que nada impedia digitar 99: o handler fazia `tonumber(...) or 0`
+      // e agendava a limpeza pra meia-noite sem avisar ninguém. O
+      // <timeedit> (glacier-ui 0.68) é um campo só, editado por seções
+      // (clique na hora, setas ▴▾ mexem nela), onde não dá pra digitar e
+      // portanto não dá pra digitar errado. A chave `dc_time` é "HH:MM";
+      // fmt.hm_join/hm_split fazem a ponte com o `{hour, minute}` que o
+      // daemon espera — o contrato HTTP não mudou.
+      row(class = hc_grid, if = @dc_kind, not_equals = interval) {
+        column(class = hc_field) {
+          text(class = label_cap, content = "HORÁRIO")
+          timeedit(:value = dc_time)
+        }
+      }
+
+      text(
+        class = muted,
+        content = "Próxima execução agendada: @dc_next_run_label",
+      )
+
+      hr
+      text(class = label_cap, content = "O QUE LIMPAR")
+
+      checkbox(
+        :checked = dc_containers,
+        on_toggle = field:dc_containers,
+        label = "Containers parados",
+      )
+
+      checkbox(
+        :checked = dc_images,
+        on_toggle = field:dc_images,
+        label = "Imagens sem uso",
+      )
+
+      checkbox(
+        if = @dc_images,
+        equals = true,
+        :checked = dc_images_all,
+        on_toggle = field:dc_images_all,
+        label = "   incluir todas as não usadas (não só as sem tag)",
+      )
+
+      checkbox(
+        :checked = dc_networks,
+        on_toggle = field:dc_networks,
+        label = "Redes sem uso",
+      )
+
+      checkbox(
+        :checked = dc_build_cache,
+        on_toggle = field:dc_build_cache,
+        label = "Cache de build",
+      )
+
+      hr
+      text(class = "label_cap err", content = "VOLUMES — CUIDADO")
+
+      text(
+        class = muted,
+        content = """
+          Volumes sem uso criados por fora do rustploy (não pelos seus
+          serviços, que só usam bind mount) podem conter dado que ninguém
+          recriaria sozinho. Confirme que sabe o que existe no host antes
+          de ativar.
+        """,
+      )
+
+      checkbox(
+        :checked = dc_volumes,
+        on_toggle = field:dc_volumes,
+        label = "Volumes sem uso",
+      )
+
+      checkbox(
+        if = @dc_volumes,
+        equals = true,
+        :checked = dc_volumes_all,
+        on_toggle = field:dc_volumes_all,
+        label = "   incluir todos os sem uso (não só os anônimos)",
+      )
+
+      row(class = env_add) {
+        button(class = btn_primary, on_click = dc_save, text = Salvar)
+
+        button(
+          class = tab,
+          if = @dc_running,
+          not_equals = true,
+          on_click = dc_run_now,
+          text = "Executar agora",
+        )
+
+        button(
+          class = tab,
+          if = @dc_running,
+          equals = true,
+          text = "Executando…",
+        )
+
+        text(class = muted, content = "@dc_msg")
+      }
+
+      hr
+      text(class = label_cap, content = "ÚLTIMA EXECUÇÃO")
+      text(class = muted, content = "@dc_last_run_text")
+    }
+  }
+}

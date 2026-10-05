@@ -1,0 +1,54 @@
+// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @prov_tab == "zip"` de general.gvb.
+component {
+  text(class = label_cap, content = "ZIP DOCKERFILE")
+
+  input(
+    class = field_input,
+    form_control = f_archive_path,
+    :value = f_archive_path,
+    on_change = field:f_archive_path,
+    placeholder = "/caminho/para/app.zip",
+  )
+
+  text(
+    class = muted,
+    content = """
+      O zip deve conter um Dockerfile na raiz. Depois do envio,
+      o deploy normal usa os arquivos descompactados pelo
+      daemon.
+    """,
+  )
+
+  row(class = hc_grid) {
+    column(class = hc_field) {
+      text(class = label_cap, content = "PORT")
+
+      input(
+        class = field_input,
+        form_control = f_gen_port,
+        :value = f_gen_port,
+        on_change = field:f_gen_port,
+        placeholder = 80,
+      )
+    }
+
+    column(class = hc_field) {
+      text(class = label_cap, content = "STATUS")
+      text(class = muted, content = "@svc_action_msg")
+    }
+  }
+
+  row(class = env_add) {
+    button(
+      class = btn_primary,
+      on_click = archive_upload,
+      text = "Enviar zip",
+    )
+
+    button(
+      class = btn_secondary,
+      on_click = gen_save,
+      text = "Salvar porta",
+    )
+  }
+}

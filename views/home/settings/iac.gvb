@@ -1,0 +1,91 @@
+// Infra as Code: o manifesto é um `.zip` com exatamente rustploy.yml
+// (projetos/serviços, env vars sempre como ${VAR}) + rustploy.vars.toml
+// (os valores reais, aninhados por escopo). Exportar/importar usam os
+// diálogos nativos do SO; o import rejeita um zip que tenha qualquer
+// outra coisa. Ver iac_export/iac_import em handlers/settings.luau.
+component {
+  scrollable(direction = vertical, class = scroll_fill) {
+    column(class = form_panel) {
+      text(class = label_cap, content = "EXPORTAR")
+
+      text(
+        class = muted,
+        content = """
+          Gera um `.zip` com rustploy.yml + rustploy.vars.toml no lugar
+          que você escolher. Os valores das env vars ficam só no TOML;
+          secrets nunca saem do daemon.
+        """,
+      )
+
+      row(class = busy_row) {
+        button(
+          class = btn_primary,
+          on_click = iac_export,
+          text = "Exportar para um .zip…",
+        )
+
+        spinner(class = busy_spin, if = @iac_busy)
+        text(class = muted, content = "@iac_export_msg")
+      }
+
+      hr
+      text(class = label_cap, content = "IMPORTAR")
+
+      text(
+        class = muted,
+        content = """
+          Escolha o `.zip` do manifesto (o mesmo que o Exportar gera). Ele
+          precisa ter exatamente um .yml e um .toml na raiz — nada mais,
+          ou o import é recusado. Falta o valor de alguma variável usada
+          no YAML? Também é cancelado antes de aplicar qualquer coisa (a
+          faltante vem rotulada com o escopo, ex. "Chiquitos/api:
+          APP_PORT").
+        """,
+      )
+
+      row(class = env_add) {
+        checkbox(
+          :checked = iac_prune,
+          on_toggle = field:iac_prune,
+          label = "Remover serviços ausentes do manifesto (prune)",
+        )
+      }
+
+      row(class = env_add) {
+        checkbox(
+          :checked = iac_deploy,
+          on_toggle = field:iac_deploy,
+          label = "Disparar deploy dos serviços criados/alterados",
+        )
+      }
+
+      row(class = busy_row) {
+        button(
+          class = btn_primary,
+          on_click = iac_import,
+          text = "Importar de um .zip…",
+        )
+
+        spinner(class = busy_spin, if = @iac_busy)
+        text(class = muted, content = "@iac_import_msg")
+      }
+
+      if @iac_has_missing == "true" {
+        text(
+          class = err,
+          content = "Variáveis sem valor no TOML: @iac_missing_vars",
+        )
+      }
+
+      if @iac_has_report == "true" {
+        text(class = label_cap, content = "RESULTADO")
+
+        column(class = kv_list) {
+          row(class = kv_row, :for-each = iac_report_lines, var = l) {
+            text(class = muted, content = "@l")
+          }
+        }
+      }
+    }
+  }
+}

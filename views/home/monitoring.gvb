@@ -1,0 +1,71 @@
+// Seção `monitoring` (view = monitoring) das telas globais; importada por home.gvb.
+component {
+  resources {
+    // Vazio das listas Docker/Monitoring e dos repositórios do registry.
+    component(name = SemMetricas) {
+      text(
+        class = muted,
+        content = """
+          Nenhuma métrica ainda — aguardando o primeiro container em execução.
+        """,
+      )
+    }
+  }
+
+  row(class = header_row) {
+    column(class = header_titles) {
+      text(class = title, content = "Monitoring")
+
+      text(
+        class = subtitle,
+        content = "Host and per-container resource usage.",
+      )
+    }
+  }
+
+  row(class = "stats_row stats_hide_md") {
+    StatCard(label = CPU, value = @sys_cpu)
+    StatCard(label = MEMORY, value = @sys_mem, accent = 1)
+    StatCard(label = DISK, value = @sys_disk)
+    StatCard(label = LOAD, value = @sys_load)
+  }
+
+  column(class = panel_fill) {
+    row(class = thead) {
+      text(class = "th col_svc", content = "CONTAINER")
+      text(class = "th col_proj", content = "PROJETO")
+      text(class = "th col_dur", content = "CPU")
+      text(class = "th col_dur", content = "MEM")
+      text(class = "th col_dur", content = "RX")
+      text(class = "th col_start", content = "TX")
+    }
+
+    if @data_loading == "true" {
+      LoadingRow
+    }
+
+    scrollable(
+      if = @data_loading,
+      not_equals = true,
+      direction = vertical,
+      class = scroll_fill,
+    ) {
+      column(class = table_body) {
+        each @monitoring as m (fallback = SemMetricas) {
+          column(class = row_wrap) {
+            row(class = trow) {
+              text(class = "td_key col_svc", content = "@m.name")
+              text(class = "td col_proj", content = "@m.project")
+              text(class = "td col_dur", content = "@m.cpu")
+              text(class = "td col_dur", content = "@m.mem")
+              text(class = "muted col_dur", content = "@m.rx")
+              text(class = "muted col_start", content = "@m.tx")
+            }
+
+            hr
+          }
+        }
+      }
+    }
+  }
+}

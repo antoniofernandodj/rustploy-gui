@@ -1,0 +1,39 @@
+// Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @svc_source_kind == "Compose"` de general.gvb.
+component {
+  text(class = label_cap, content = "DOCKER COMPOSE (YAML)")
+
+  text(
+    class = muted,
+    content = """
+      Edite o compose do serviço. Salvar aplica no próximo deploy.
+    """,
+  )
+
+  // O placeholder abaixo tem quebras de linha LITERAIS: o .gvb não
+  // interpreta `\n` e `"""` dobra linhas em espaços. As linhas de
+  // continuação ficam coladas na margem de propósito — NÃO reindente.
+  textarea(
+    class = env_editor,
+    font = mono,
+    :value = svc_compose,
+    placeholder = "services:
+  app:
+    image: …",
+  )
+
+  row(class = env_add) {
+    button(
+      class = btn_primary,
+      on_click = compose_save,
+      text = "Salvar compose",
+    )
+
+    button(
+      class = btn_ghost,
+      on_click = compose_cancel,
+      text = Cancelar,
+    )
+
+    text(class = muted, content = "@svc_action_msg")
+  }
+}
