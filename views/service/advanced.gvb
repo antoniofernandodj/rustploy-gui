@@ -72,7 +72,7 @@ component {
                 row(class = kv_row_drag) {
                   text(
                     class = "env_drag_handle env_dragging",
-                    dragHandle = true,
+                    drag_handle = true,
                     content = "⋮",
                   )
 
@@ -90,7 +90,7 @@ component {
                 row(class = kv_row) {
                   text(
                     class = env_drag_handle,
-                    dragHandle = true,
+                    drag_handle = true,
                     content = "⋮",
                   )
 

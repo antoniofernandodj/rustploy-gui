@@ -85,7 +85,7 @@ component {
           reorder_key = deployment_id,
         ) {
           row(class = trow) {
-            text(class = env_drag_handle, dragHandle = true, content = "⋮")
+            text(class = env_drag_handle, drag_handle = true, content = "⋮")
             text(class = "td_key col_svc", content = "@q.pos. @q.service")
             text(class = "td col_start", content = "@q.project")
 
