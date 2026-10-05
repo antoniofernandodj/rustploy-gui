@@ -89,7 +89,7 @@ component {
             input(
               placeholder = "Meu Gitea",
               class = field_input,
-              formControl = gp_name,
+              form_control = gp_name,
               :value = gp_name,
               on_change = field:gp_name,
             )
@@ -108,7 +108,7 @@ component {
             input(
               placeholder = "https://gitea.exemplo.com",
               class = field_input,
-              formControl = gp_base_url,
+              form_control = gp_base_url,
               :value = gp_base_url,
               on_change = field:gp_base_url,
             )
@@ -150,7 +150,7 @@ component {
           input(
             placeholder = "",
             class = field_input,
-            formControl = gp_client_id,
+            form_control = gp_client_id,
             :value = gp_client_id,
             on_change = field:gp_client_id,
           )
@@ -161,7 +161,7 @@ component {
             placeholder = "",
             secure = true,
             class = field_input,
-            formControl = gp_client_secret,
+            form_control = gp_client_secret,
             :value = gp_client_secret,
             on_change = field:gp_client_secret,
           )
@@ -211,7 +211,7 @@ component {
             placeholder = "",
             secure = true,
             class = field_input,
-            formControl = gp_pat,
+            form_control = gp_pat,
             :value = gp_pat,
             on_change = field:gp_pat,
           )

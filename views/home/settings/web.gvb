@@ -31,7 +31,7 @@ component {
       input(
         placeholder = voce@@exemplo.com,
         class = field_input,
-        formControl = ss_email,
+        form_control = ss_email,
       )
 
       text(
@@ -57,7 +57,7 @@ component {
       input(
         placeholder = registry.meusite.com,
         class = field_input,
-        formControl = ss_registry_domain,
+        form_control = ss_registry_domain,
       )
 
       text(
