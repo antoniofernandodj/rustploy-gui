@@ -13,19 +13,30 @@ local Util = require("util")
 
 local M = {}
 
--- Nº de colunas da grade de cards (services/projects) conforme a largura da
--- janela — glacier não reestrutura Row↔Column via @media, então o número de
--- colunas tem que ser decidido aqui (recalculado a cada snapshot, ~2s) para
--- não espremer os cards a ponto de sobrepor texto/botões (ver comentário em
--- service_card.gvb). Breakpoints espelham os do app.gss (900/560).
+-- Nº de colunas da grade de cards (services/projects). glacier não reestrutura
+-- Row↔Column via @media, então o número de colunas tem que ser decidido aqui
+-- (recalculado a cada snapshot, ~2s). O que importa é a largura que SOBRA para a
+-- grade, não a da janela: a sidebar-gaveta (264) come espaço enquanto está aberta
+-- (`ctx.menu`, o ☰ da topbar) e o `.content` tem padding lateral — contar só a
+-- janela dava 3 colunas de ~235px numa janela de 1100px, e o card era esmagado
+-- (o `name:`/`id:` do container quebrava em várias linhas). Cada card precisa de
+-- CARD_MIN px; cabem os que couberem, entre 1 e 3.
+local CARD_MIN = 350
+local SIDEBAR = 264
 local function grid_cols(): number
     local w = viewport().width
+    local menu = (ctx :: any).menu
+    local sidebar = if menu == "true" or menu == true then SIDEBAR else 0
+    -- Mesmos breakpoints do app.gss: padding lateral do `.content` e vão entre cards.
+    local pad, gap = 64, 16
     if w < 560 then
-        return 1
+        pad, gap = 20, 10
     elseif w < 900 then
-        return 2
+        pad, gap = 36, 10
     end
-    return 3
+    local disponivel = w - sidebar - pad
+    local cols = math.floor((disponivel + gap) / (CARD_MIN + gap))
+    return math.max(1, math.min(3, cols))
 end
 
 -- Um card VAZIO que preenche a fileira do grid. Os campos vão como string
