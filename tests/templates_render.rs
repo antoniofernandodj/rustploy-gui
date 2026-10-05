@@ -12,11 +12,11 @@ fn boot() -> GlacierUI {
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 
     let mut m = GlacierUI::new();
-    // app.gv itself links app.gss (<link rel="stylesheet">, global since
+    // app.gvb itself links app.gss (<link rel="stylesheet">, global since
     // glacier-ui 0.23), so register_component picks it up — no separate
     // load_stylesheet call needed here.
-    m.register_component("app", "views/app.gv")
-        .expect("app.gv + imports must register (includes app.gss parsing — an unknown property drops the whole sheet)");
+    m.register_app("views/app.gvb")
+        .expect("app.gvb + imports must register (includes app.gss parsing — an unknown property drops the whole sheet)");
     m.set_initial_screen("app");
     m
 }
@@ -28,8 +28,8 @@ fn cd_ws_root() {
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 }
 
-/// A janela "Novo projeto" (`new_project_form.gv` + `new_project_window.luau`) é
-/// um motor à parte, aberto por `open_window`; não passa pelo `app.gv` acima,
+/// A janela "Novo projeto" (`new_project_form.gvb` + `new_project_window.luau`) é
+/// um motor à parte, aberto por `open_window`; não passa pelo `app.gvb` acima,
 /// então validamos que registra e renderiza por conta própria — semeando a
 /// conexão como `open_window({ data = ... })` faria.
 #[test]
@@ -38,15 +38,12 @@ fn new_project_form_window_renders() {
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.register_component(
-        "new_project_form",
-        "views/new_project_form.gv",
-    )
-    .expect("new_project_form.gv must register");
-    m.set_initial_screen("new_project_form");
+    m.register_app_screen("views/app.gvb", "new_project")
+    .expect("new_project_form.gvb must register");
+    m.set_initial_screen("new_project");
     m.reevaluate_all().expect("eval new_project_form");
     assert!(
-        m.render("new_project_form").is_ok(),
+        m.render("new_project").is_ok(),
         "render new_project_form"
     );
 
@@ -64,7 +61,7 @@ fn new_project_form_window_renders() {
         }
         node.children.iter().find_map(|c| find_control(c, name))
     }
-    let ast = m.evaluated("new_project_form").expect("evaluated");
+    let ast = m.evaluated("new_project").expect("evaluated");
     let np_name = find_control(ast, "np_name")
         .expect("o form_control \"np_name\" deve existir na árvore avaliada");
     assert!(
@@ -82,7 +79,7 @@ fn new_project_form_window_renders() {
     );
 }
 
-/// A janela "Novo job" (`new_job_window.gv` + `new_job_window.luau`) é um
+/// A janela "Novo job" (`new_job_window.gvb` + `new_job_window.luau`) é um
 /// motor à parte, aberto por `open_new_job_window` (handlers/jobs.luau).
 /// Semeia projetos/serviços já buscados (como `open_window({ data = ... })`
 /// faria) e valida os três passos (escolher projeto → escolher serviço →
@@ -98,18 +95,15 @@ fn new_job_window_renders() {
         "njob_services",
         r#"[{"id":"svc_1","name":"web","project_id":"prj_1"}]"#,
     );
-    m.register_component(
-        "new_job_window",
-        "views/new_job_window.gv",
-    )
-    .expect("new_job_window.gv must register");
-    m.set_initial_screen("new_job_window");
+    m.register_app_screen("views/app.gvb", "new_job")
+    .expect("new_job_window.gvb must register");
+    m.set_initial_screen("new_job");
 
     m.define_data("njob_step", "pick_project");
     m.reevaluate_all()
         .expect("eval new_job_window/pick_project");
     assert!(
-        m.render("new_job_window").is_ok(),
+        m.render("new_job").is_ok(),
         "render new_job_window/pick_project"
     );
 
@@ -122,7 +116,7 @@ fn new_job_window_renders() {
     m.reevaluate_all()
         .expect("eval new_job_window/pick_service");
     assert!(
-        m.render("new_job_window").is_ok(),
+        m.render("new_job").is_ok(),
         "render new_job_window/pick_service"
     );
 
@@ -141,13 +135,13 @@ fn new_job_window_renders() {
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval new_job_window/form {kind}: {e}"));
         assert!(
-            m.render("new_job_window").is_ok(),
+            m.render("new_job").is_ok(),
             "render new_job_window/form {kind}"
         );
     }
 }
 
-/// A janela de logs ao vivo (`log_window.gv` + `log_window.luau`) é um motor à
+/// A janela de logs ao vivo (`log_window.gvb` + `log_window.luau`) é um motor à
 /// parte, aberto por `open_logs_window`; validamos que registra e renderiza por
 /// conta própria — semeando a conexão + o serviço + o tail como `open_window`.
 #[test]
@@ -162,14 +156,14 @@ fn log_window_renders() {
         "lw_seed",
         r#"[{"stream":"Stdout","line":"hello","timestamp":"2026-07-10T23:00:00Z"}]"#,
     );
-    m.register_component("log_window", "views/log_window.gv")
-        .expect("log_window.gv must register");
-    m.set_initial_screen("log_window");
+    m.register_app_screen("views/app.gvb", "log")
+        .expect("log_window.gvb must register");
+    m.set_initial_screen("log");
     m.reevaluate_all().expect("eval log_window");
-    assert!(m.render("log_window").is_ok(), "render log_window");
+    assert!(m.render("log").is_ok(), "render log_window");
 }
 
-/// O wizard "Novo serviço" (`new_service_window.gv`, que importa `new_service.gv`
+/// O wizard "Novo serviço" (`new_service_window.gvb`, que importa `new_service.gvb`
 /// + `new_service_window.luau`) também é uma janela à parte, aberta por
 /// `open_new_service_window`. Validamos que registra e renderiza cada passo do
 /// wizard como motor isolado — semeando a conexão/projeto como `open_window`.
@@ -181,12 +175,9 @@ fn new_service_wizard_window_renders() {
     m.define_data("api_token", "t");
     m.define_data("selected_project_id", "p1");
     m.define_data("proj_name", "demo");
-    m.register_component(
-        "new_service_window",
-        "views/new_service_window.gv",
-    )
-    .expect("new_service_window.gv must register");
-    m.set_initial_screen("new_service_window");
+    m.register_app_screen("views/app.gvb", "new_service")
+    .expect("new_service_window.gvb must register");
+    m.set_initial_screen("new_service");
 
     // Dados que os passos de banco/template esperam (o init do script tenta o
     // catálogo real, mas o fetch suspende sem executor — semeamos à mão).
@@ -220,7 +211,7 @@ fn new_service_wizard_window_renders() {
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval new_service/{step}: {e}"));
         assert!(
-            m.render("new_service_window").is_ok(),
+            m.render("new_service").is_ok(),
             "render new_service/{step}"
         );
     }
@@ -762,13 +753,13 @@ fn service_actions_collapse_to_icons_when_narrow() {
 
 /// A avaliação do glacier é **escopada** (0.38+): só a tela ativa é construída,
 /// não todo template registrado. Isso importa aqui mais do que na média dos
-/// apps: `app.gv` importa a árvore inteira de views (login, shell, home,
+/// apps: `app.gvb` importa a árvore inteira de views (login, shell, home,
 /// service, componentes), e avaliar um template inlina recursivamente tudo que
 /// ele usa — então a versão antiga reconstruía a UI completa uma vez **por
 /// template importado**, a cada tecla digitada e a cada linha de log que chega
 /// pelo SSE.
 ///
-/// Este teste trava o ganho: registrar `app.gv` (que puxa a dúzia de views) e
+/// Este teste trava o ganho: registrar `app.gvb` (que puxa a dúzia de views) e
 /// ativá-la deve deixar exatamente UMA árvore avaliada.
 #[test]
 fn so_a_tela_ativa_e_avaliada() {
@@ -778,7 +769,7 @@ fn so_a_tela_ativa_e_avaliada() {
     for importado in ["Login", "Shell"] {
         assert!(
             m.is_registered(importado),
-            "{importado} deveria ter sido importado por app.gv"
+            "{importado} deveria ter sido importado por app.gvb"
         );
     }
     // ...mas só a tela ativa está avaliada (as demais são inlinadas dentro dela).
@@ -852,7 +843,7 @@ fn disconnect_limpa_o_contexto_da_sessao() {
 }
 
 /// Regressão: o item "Projects" da sidebar apagava (perdia o fundo azul)
-/// assim que você entrava num projeto ou num serviço — `nav_item.gv`
+/// assim que você entrava num projeto ou num serviço — `nav_item.gvb`
 /// comparava `{view}` contra um `target` de UMA view só (`equals`), e
 /// `project_services`/`service` não são `"projects"`. Corrigido usando
 /// `one_of` (glacier-ui 0.57.8): `target="projects project_services
@@ -868,7 +859,7 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
 
     // `on_click` chega namespaceado pelo componente que o hospeda
     // (`namespace_action` — ver eval.rs no glacier-ui): mesmo com o valor
-    // vindo de um prop (`action="nav_projects"` em shell.gv), o botão vive
+    // vindo de um prop (`action="nav_projects"` em shell.gvb), o botão vive
     // dentro do template do componente `NavItem`, então o dispatch final é
     // "NavItem::nav_projects".
     fn projects_nav_button_lit<'a>(node: &'a glacier_ui::parser::UiNode) -> Option<bool> {
@@ -905,120 +896,83 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
     }
 }
 
-/// Título e tamanho das janelas passaram a morar no `<screen>` do próprio
-/// template (glacier-ui 0.59): saíram do builder Rust, no caso da principal, e
-/// das chamadas `open_window{…}` do Luau, no caso das filhas. Este teste é o que
-/// garante que eles não sumiram no caminho — um cabeçalho apagado por engano não
-/// quebra nenhum render, só faz a janela nascer com o default do iced.
+/// Janela, título e tamanho (glacier-ui 0.117): a janela PRINCIPAL é do `app(...)`
+/// de `views/app.gvb` (tamanho, mínimo, moldura, ícone); o título é da `screen`
+/// (acompanha a navegação); e o tamanho de cada janela FILHA vai na chamada
+/// `open_window{ component = "…", size = "…" }` dos handlers, porque a `screen` é
+/// só conteúdo. Este teste é o que garante que nada disso sumiu no caminho — um
+/// atributo apagado por engano não quebra render nenhum, só faz a janela nascer
+/// com o default do iced.
 #[test]
-fn janelas_declaram_titulo_e_tamanho_no_proprio_template() {
+fn janelas_declaram_titulo_e_tamanho() {
     cd_ws_root();
 
-    // (arquivo, componente, título esperado, tamanho esperado)
-    let janelas = [
-        (
-            "views/app.gv",
-            "app",
-            Some("Rustploy"),
-            (1280.0, 820.0),
-        ),
-        (
-            "views/new_project_form.gv",
-            "new_project_form",
-            Some("Novo projeto — Rustploy"),
-            (460.0, 340.0),
-        ),
-        (
-            "views/new_job_window.gv",
-            "new_job_window",
-            Some("Novo job — Rustploy"),
-            (560.0, 700.0),
-        ),
-        (
-            "views/new_service_window.gv",
-            "new_service_window",
-            Some("Novo serviço — Rustploy"),
-            (560.0, 700.0),
-        ),
-        (
-            "views/new_registry_token_window.gv",
-            "new_registry_token_window",
-            Some("Novo token — Rustploy"),
-            (480.0, 420.0),
-        ),
-        // A janela de logs é a exceção proposital: o título é dinâmico ("Logs —
-        // nginx", "Build — abc123") e continua vindo de quem a abre; só o
-        // tamanho é do arquivo.
-        (
-            "views/log_window.gv",
-            "log_window",
-            None,
-            (900.0, 560.0),
-        ),
-    ];
-
-    for (arquivo, nome, titulo, tamanho) in janelas {
-        let mut m = GlacierUI::new();
-        m.register_component(nome, arquivo)
-            .unwrap_or_else(|e| panic!("{arquivo} deve registrar: {e}"));
-        m.set_initial_screen(nome);
-        let meta = m
-            .current_screen_meta()
-            .unwrap_or_else(|| panic!("{arquivo} deve declarar um <screen>"));
-        assert_eq!(meta.title.as_deref(), titulo, "título de {arquivo}");
-        assert_eq!(meta.size, Some(tamanho), "tamanho de {arquivo}");
-    }
-
-    // A principal também fixa um mínimo — era o `min_size` do `main_window()`.
+    // A principal: tudo vem do `app(...)` e da `screen` inicial.
     let mut m = GlacierUI::new();
-    m.register_component("app", "views/app.gv")
-        .expect("app.gv deve registrar");
-    m.set_initial_screen("app");
-    assert_eq!(
-        m.current_screen_meta().and_then(|s| s.min_size),
-        Some((480.0, 680.0)),
-        "o min-size da janela principal"
-    );
+    m.register_app("views/app.gvb").expect("app.gvb deve registrar");
+    let janela = m.main_window_meta().expect("o app declara a janela principal");
+    assert_eq!(janela.title.as_deref(), Some("Rustploy"), "título da principal");
+    assert_eq!(janela.size, Some((1280.0, 820.0)), "tamanho da principal");
+    assert_eq!(janela.min_size, Some((480.0, 680.0)), "o min_size da principal");
+    assert_eq!(janela.decorations, Some(false), "a principal é borderless");
+    assert!(janela.icon.is_some(), "o app declara o ícone");
+
+    // As filhas: o título é da `screen`; o tamanho, de quem abre.
+    // (tela, título esperado, tamanho esperado no handler)
+    let filhas = [
+        ("new_project", Some("Novo projeto — Rustploy"), "460 340", "handlers/projects.luau"),
+        ("new_job", Some("Novo job — Rustploy"), "560 700", "handlers/jobs.luau"),
+        ("new_service", Some("Novo serviço — Rustploy"), "560 700", "handlers/wizard.luau"),
+        ("new_registry_token", Some("Novo token — Rustploy"), "480 420", "handlers/registry.luau"),
+        // A janela de logs é a exceção proposital: o título é dinâmico ("Logs —
+        // nginx", "Build — abc123") e vem de quem a abre.
+        ("log", None, "900 560", "handlers/services.luau"),
+    ];
+    for (tela, titulo, tamanho, handler) in filhas {
+        let mut c = GlacierUI::new();
+        c.register_app_screen("views/app.gvb", tela)
+            .unwrap_or_else(|e| panic!("a tela {tela} deve registrar: {e}"));
+        let meta = c.current_screen_meta().cloned().unwrap_or_default();
+        assert_eq!(meta.title.as_deref(), titulo, "título de {tela}");
+        assert!(meta.size.is_none(), "{tela}: o tamanho não mora na screen");
+
+        let src = std::fs::read_to_string(format!("views/scripts/{handler}"))
+            .unwrap_or_else(|e| panic!("ler {handler}: {e}"));
+        let chamada = format!("component = \"{tela}\", size = \"{tamanho}\", decorations = false");
+        assert!(src.contains(&chamada), "{handler} deve abrir `{tela}` com `{chamada}`");
+    }
 }
 
-/// Remove os blocos `<!-- … -->` para que "a primeira tag" seja a primeira tag
-/// de verdade: todo template daqui abre com um comentário de cabeçalho.
+/// Remove os comentários (`//` e `/* … */`) para que "a primeira tag" seja a
+/// primeira tag de verdade: todo template daqui abre com um comentário de
+/// cabeçalho.
 fn comentarios_fora(src: &str) -> String {
     let mut out = String::with_capacity(src.len());
     let mut resto = src;
-    while let Some(i) = resto.find("<!--") {
+    while let Some(i) = resto.find("/*") {
         out.push_str(&resto[..i]);
-        resto = match resto[i..].find("-->") {
-            Some(j) => &resto[i + j + 3..],
-            // Comentário não fechado: o parse do glacier reclamaria antes; aqui
-            // só paramos de copiar.
+        resto = match resto[i..].find("*/") {
+            Some(j) => &resto[i + j + 2..],
             None => "",
         };
     }
     out.push_str(resto);
-    out
+    out.lines()
+        .filter(|l| !l.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
-/// Os 21 `.gv` estão 100% na forma com cabeçalho (`<screen>` nas janelas,
-/// `<component>` no resto) e é isto que este teste trava.
+/// Todo `.gvb` abre com a casca certa: `app` no manifesto (`views/app.gvb`),
+/// `screen` nas telas abertas em outra janela e `component` no resto.
 ///
-/// Ele precisa existir porque o glacier-ui aceita a forma antiga (declarações
-/// soltas na raiz, sem cabeçalho) **para sempre**, por compatibilidade — 33 dos
-/// 35 `.gv` dos exemplos do próprio motor ainda estão nela. Então nada no build
-/// reclamaria de um arquivo daqui que voltasse à forma antiga: as duas convergem
-/// na mesma árvore, e o que se perde é silencioso — numa janela, título e
-/// tamanho caem no default do iced; num componente, some a fronteira entre
-/// declaração e layout.
-///
-/// Por que TEXTUAL, e não mais um teste de metadado como
-/// `janelas_declaram_titulo_e_tamanho_no_proprio_template`: aquele pergunta ao
-/// motor o que a tela declarou, e um `<component>` não declara nada por desenho
-/// (o cabeçalho recusa atributos nele). Para 15 dos 21 arquivos não há metadado
-/// a inspecionar — só o texto diz em que forma o arquivo está.
-///
-/// Por que VARRE o diretório, em vez de listar arquivos: o alvo é o `.gv` que
-/// ainda não foi escrito. Uma lista à mão não cobre o arquivo novo, e quem
-/// esquece o cabeçalho nele é a mesma pessoa que esqueceria de atualizar a lista.
+/// Ele precisa existir porque o glacier-ui aceita a forma sem cabeçalho (as
+/// declarações soltas na raiz) por compatibilidade: nada no build reclamaria de um
+/// arquivo daqui que voltasse a ela, e o que se perde é silencioso — numa tela,
+/// título caem no default; num componente, some a fronteira entre declaração e
+/// layout. É TEXTUAL de propósito: um `component` não declara nada por desenho,
+/// então só o texto diz em que forma o arquivo está. E VARRE o diretório, em vez
+/// de listar arquivos: o alvo é o `.gvb` que ainda não foi escrito.
 #[test]
 fn todo_template_comeca_com_cabecalho() {
     cd_ws_root();
@@ -1026,13 +980,13 @@ fn todo_template_comeca_com_cabecalho() {
     let raiz = std::path::Path::new("views");
     let mut vistos = 0;
 
-    // `views/` mistura janelas (<screen>) e views internas (<component>); só
-    // `views/components/` é homogêneo — nada ali é janela.
+    // `views/` mistura o manifesto, telas e views internas (`component`); só
+    // `views/components/` é homogêneo — nada ali é tela.
     for (dir, so_component) in [(raiz.to_path_buf(), false), (raiz.join("components"), true)] {
         let mut arquivos: Vec<_> = std::fs::read_dir(&dir)
             .unwrap_or_else(|e| panic!("ler {}: {e}", dir.display()))
             .map(|e| e.expect("entry").path())
-            .filter(|p| p.extension().is_some_and(|e| e == "gv"))
+            .filter(|p| p.extension().is_some_and(|e| e == "gvb"))
             .collect();
         arquivos.sort();
 
@@ -1040,20 +994,30 @@ fn todo_template_comeca_com_cabecalho() {
             let src = std::fs::read_to_string(&caminho)
                 .unwrap_or_else(|e| panic!("ler {}: {e}", caminho.display()));
             let sem_comentarios = comentarios_fora(&src);
-            let primeira = sem_comentarios.split('<').nth(1).unwrap_or("").trim_start();
+            let primeira: String = sem_comentarios
+                .trim_start()
+                .chars()
+                .take_while(|c| c.is_alphanumeric() || *c == '_')
+                .collect();
 
-            let e_screen = primeira.starts_with("screen");
-            let e_component = primeira.starts_with("component");
+            let e_app = primeira == "app";
+            let e_screen = primeira == "screen";
+            let e_component = primeira == "component";
             assert!(
-                e_screen || e_component,
-                "{}: todo .gv começa com <screen> (uma janela) ou <component> (o resto) — \
-                 o motor aceita a forma antiga sem cabeçalho, então ninguém além deste \
+                e_app || e_screen || e_component,
+                "{}: todo .gvb começa com app (o manifesto), screen (uma tela) ou component \
+                 (o resto) — o motor aceita a forma sem cabeçalho, então ninguém além deste \
                  teste avisaria",
                 caminho.display()
             );
             assert!(
-                !(so_component && e_screen),
-                "{}: um arquivo em views/components/ não é janela — <component>, não <screen>",
+                !(so_component && !e_component),
+                "{}: um arquivo em views/components/ não é tela — component",
+                caminho.display()
+            );
+            assert!(
+                !e_app || caminho.file_name().is_some_and(|n| n == "app.gvb"),
+                "{}: só views/app.gvb é o manifesto (raiz app)",
                 caminho.display()
             );
             vistos += 1;
@@ -1061,8 +1025,8 @@ fn todo_template_comeca_com_cabecalho() {
     }
 
     // Guarda contra o teste passar vazio (um caminho errado torna tudo acima
-    // um no-op). Comparação frouxa de propósito: acrescentar um `.gv` não deve
-    // obrigar a editar este teste — é justamente o atrito que ele elimina.
+    // um no-op). Comparação frouxa de propósito: acrescentar um `.gvb` não deve
+    // obrigar a editar este teste.
     assert!(
         vistos >= 21,
         "o teste não achou os templates: {vistos} arquivos varridos"

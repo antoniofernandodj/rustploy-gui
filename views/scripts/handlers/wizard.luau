@@ -31,7 +31,7 @@ end
 -- é uma ação despachada, então o `fetch` do WizardCatalog resolve normalmente e
 -- a janela abre depois, já com o catálogo. Ao criar, a janela envia
 -- broadcast("service_created") e se fecha (ver ns_create). Substitui o antigo
--- fluxo inline (view=new_service), removido do shell.gv.
+-- fluxo inline (view=new_service), removido do shell.gvb.
 function open_new_service_window(): ()
     local pid = ctx.selected_project_id or ""
     local api = State.api
@@ -46,7 +46,7 @@ function open_new_service_window(): ()
         templates = res.WizardCatalog.templates or "[]"
     end
     open_window{
-        file = "views/new_service_window.gv",
+        component = "new_service", size = "560 700", decorations = false,
         resizable = false,
         data = {
             api_url = ctx.api_url or "",

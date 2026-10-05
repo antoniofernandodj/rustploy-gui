@@ -374,7 +374,7 @@ local function dc_apply_config(cfg: any): ()
     local kind, hours, hour, minute, weekday = dc_unpack_recurrence(cfg.recurrence)
     ctx.dc_kind = kind
     ctx.dc_hours = hours
-    -- Uma chave só, "HH:MM", porque quem edita agora é o <timeedit> em home.gv.
+    -- Uma chave só, "HH:MM", porque quem edita agora é o <timeedit> em home.gvb.
     -- `dc_unpack_recurrence` continua devolvendo hora e minuto separados (é o
     -- formato do daemon); a junção acontece aqui, na fronteira.
     ctx.dc_time = fmt.hm_join(hour, minute)
@@ -403,7 +403,7 @@ function dc_kind(k: string): ()
     ctx.dc_kind = k
 end
 
--- Órfão desde que o seletor de dia da semana virou um <radiogroup> em home.gv:
+-- Órfão desde que o seletor de dia da semana virou um <radiogroup> em home.gvb:
 -- o builtin grava `dc_weekday` sozinho, no update dele em Rust, e ninguém mais
 -- dispara esta ação. Fica comentado porque volta a ser necessário se algum dia
 -- o grupo voltar a ser markup à mão (ex.: para recuperar a fileira de pílulas).

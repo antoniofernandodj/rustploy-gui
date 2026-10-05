@@ -23,7 +23,7 @@ fn boot() -> GlacierUI {
     let mut m = GlacierUI::new();
     m.register_component(
         "compose_host",
-        "tests/fixtures/compose_host.gv",
+        "tests/fixtures/compose_host.gvb",
     )
     .expect("registrar a fixture");
     m.set_initial_screen("compose_host");

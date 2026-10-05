@@ -1,0 +1,16 @@
+// Variante "badge" da célula de estado (mesmo ponto + rótulo, mas com o
+// espaçamento/estilo de crachá — `badge_lbl`). Usada no card de serviço e no
+// cabeçalho/aside do detalhe do serviço.
+component {
+  // Contrato do componente: o que era o comentário "
+  // verificado. Prop passada e não declarada vira erro citando estas.
+  props {
+    prop(name = color)
+    prop(name = label)
+  }
+
+  row(class = badge) {
+    text(class = state_dot, color = @color, content = "●")
+    text(class = badge_lbl, color = @color, content = "@label")
+  }
+}

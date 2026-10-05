@@ -1,0 +1,406 @@
+// Wizard "Novo serviço" (view=new_service): tipo → formulário por tipo,
+// espelhando o fluxo do antigo remote-client (Application / Database /
+// Compose / Template). O passo corrente vive em {ns_step}; os campos são
+// chaves de contexto ns_* (ver os handlers `ns_*` em app/root.rs).
+component {
+  resources {
+    component(name = SemTemplates) {
+      text(class = muted, content = "Nenhum template encontrado.")
+    }
+
+    style """
+      .warn { color: var(--warn); }
+    """
+  }
+
+  column(class = content) {
+    row(class = header_row) {
+      column(class = header_titles) {
+        text(class = title, content = "Novo Serviço — @proj_name")
+
+        text(
+          class = subtitle,
+          content = "Escolha o tipo e configure o serviço antes de criar.",
+        )
+      }
+
+      row(class = env_add) {
+        button(class = btn_ghost, on_click = ns_back, text = "‹ Voltar")
+        button(class = btn_ghost, on_click = ns_cancel, text = Cancelar)
+      }
+    }
+
+    // Status do wizard: spinner enquanto o RPC de criação está no ar
+    // ({ns_busy}); o texto acompanha ({ns_msg} = "criando…" / "erro: …").
+    row(class = busy_row, if = @ns_msg, not_equals = "") {
+      spinner(class = busy_spin, if = @ns_busy)
+      text(class = warn, content = "@ns_msg")
+    }
+
+    // ── Passo 1: tipo de serviço ────────────────────────────────────────
+    if @ns_step == "pick_type" {
+      column(class = form_panel) {
+        text(class = label_cap, content = "ESCOLHA O TIPO DE SERVIÇO")
+
+        column(class = kv_list) {
+          PickerRow(
+            title = Application,
+            subtitle = "Web app via Git ou imagem",
+            button_label = "Selecionar ›",
+            action = ns_kind:application,
+          )
+
+          PickerRow(
+            title = Database,
+            subtitle = "Banco de dados gerenciado",
+            button_label = "Selecionar ›",
+            action = ns_kind:database,
+          )
+
+          PickerRow(
+            title = Broker,
+            subtitle = "Mensageria: Kafka, RabbitMQ, NATS",
+            button_label = "Selecionar ›",
+            action = ns_kind:broker,
+          )
+
+          PickerRow(
+            title = Compose,
+            subtitle = "Stack Docker Compose",
+            button_label = "Selecionar ›",
+            action = ns_kind:compose,
+          )
+
+          PickerRow(
+            title = Template,
+            subtitle = "A partir de um preset",
+            button_label = "Selecionar ›",
+            action = ns_kind:template,
+          )
+        }
+      }
+    }
+
+    // ── Passo 2 (Database): escolha do banco ───────────────────────────
+    if @ns_step == "pick_db" {
+      column(class = form_panel) {
+        text(class = label_cap, content = "ESCOLHA O BANCO DE DADOS")
+
+        column(class = kv_list) {
+          PickerRow(
+            :for-each = ns_dbs,
+            var = d,
+            title = @d.label,
+            subtitle = @d.image,
+            button_label = "Selecionar ›",
+            action = ns_db:@d.id,
+          )
+        }
+      }
+    }
+
+    // ── Passo 2 (Broker): escolha do broker ────────────────────────────
+    if @ns_step == "pick_broker" {
+      column(class = form_panel) {
+        text(class = label_cap, content = "ESCOLHA O BROKER")
+
+        column(class = kv_list) {
+          PickerRow(
+            :for-each = ns_brokers,
+            var = b,
+            title = @b.label,
+            subtitle = @b.image,
+            button_label = "Selecionar ›",
+            action = ns_broker:@b.id,
+          )
+        }
+      }
+    }
+
+    // ── Application ─────────────────────────────────────────────────────
+    if @ns_step == "app_form" {
+      form(name = ns_app, on_submit = ns_create, width = fill) {
+        column(class = form_panel) {
+          text(class = label_cap, content = "NOVA APPLICATION")
+          text(class = label_cap, content = "NOME")
+
+          input(
+            placeholder = minha-app,
+            class = field_input,
+            form_control = ns_name,
+            :value = ns_name,
+            on_change = field:ns_name,
+          )
+
+          text(
+            if = @erro_ns_name,
+            not_equals = "",
+            class = err,
+            content = "@erro_ns_name",
+          )
+
+          text(
+            class = label_cap,
+            content = "APP NAME (OPCIONAL — usado no lugar do nome)",
+          )
+
+          input(
+            placeholder = "(opcional)",
+            class = field_input,
+            form_control = ns_app_name,
+            :value = ns_app_name,
+            on_change = field:ns_app_name,
+          )
+
+          text(
+            class = muted,
+            content = """
+              Configure a origem (Git ou imagem) na aba General do serviço
+              depois de criar.
+            """,
+          )
+
+          row(class = env_add) {
+            button(
+              class = btn_primary,
+              on_click = ns_create,
+              text = "Criar Application",
+            )
+          }
+        }
+      }
+    }
+
+    // ── Compose ─────────────────────────────────────────────────────────
+    if @ns_step == "compose_form" {
+      form(name = ns_compose, on_submit = ns_create, width = fill) {
+        column(class = form_panel) {
+          text(class = label_cap, content = "NOVA COMPOSE STACK")
+          text(class = label_cap, content = "NOME")
+
+          input(
+            placeholder = minha-stack,
+            class = field_input,
+            form_control = ns_name,
+            :value = ns_name,
+            on_change = field:ns_name,
+          )
+
+          text(
+            if = @erro_ns_name,
+            not_equals = "",
+            class = err,
+            content = "@erro_ns_name",
+          )
+
+          text(
+            class = label_cap,
+            content = "APP NAME (OPCIONAL — usado no lugar do nome)",
+          )
+
+          input(
+            placeholder = "(opcional)",
+            class = field_input,
+            form_control = ns_app_name,
+            :value = ns_app_name,
+            on_change = field:ns_app_name,
+          )
+
+          text(
+            class = muted,
+            content = """
+              Configure o compose file dentro do serviço antes de fazer deploy.
+            """,
+          )
+
+          row(class = env_add) {
+            button(
+              class = btn_primary,
+              on_click = ns_create,
+              text = "Criar Compose Stack",
+            )
+          }
+        }
+      }
+    }
+
+    // ── Database (form do banco escolhido) ──────────────────────────────
+    if @ns_step == "db_form" {
+      scrollable(direction = vertical, class = scroll_fill) {
+        form(name = ns_db, on_submit = ns_create, width = fill) {
+          column(class = form_panel) {
+            text(class = label_cap, content = "NOVA @ns_db_label")
+            text(class = label_cap, content = "NOME")
+
+            input(
+              placeholder = meu-banco,
+              class = field_input,
+              form_control = ns_name,
+              :value = ns_name,
+              on_change = field:ns_name,
+            )
+
+            text(
+              if = @erro_ns_name,
+              not_equals = "",
+              class = err,
+              content = "@erro_ns_name",
+            )
+
+            if @ns_db_has_dbname == "true" {
+              text(class = label_cap, content = "DATABASE NAME")
+
+              input(
+                placeholder = app,
+                class = field_input,
+                form_control = ns_db_name,
+                :value = ns_db_name,
+                on_change = field:ns_db_name,
+              )
+            }
+
+            if @ns_db_has_user == "true" {
+              text(class = label_cap, content = "USER")
+
+              input(
+                placeholder = user,
+                class = field_input,
+                form_control = ns_db_user,
+                :value = ns_db_user,
+                on_change = field:ns_db_user,
+              )
+            }
+
+            text(class = label_cap, content = "PASSWORD (gerada — pode trocar)")
+
+            input(
+              placeholder = "(vazio = sem senha, só no Redis)",
+              class = field_input,
+              form_control = ns_db_password,
+              :value = ns_db_password,
+              on_change = field:ns_db_password,
+            )
+
+            if @ns_db_has_rootpw == "true" {
+              text(
+                class = label_cap,
+                content = "ROOT PASSWORD (gerada — pode trocar)",
+              )
+
+              input(
+                placeholder = "",
+                class = field_input,
+                form_control = ns_db_root_password,
+                :value = ns_db_root_password,
+                on_change = field:ns_db_root_password,
+              )
+            }
+
+            checkbox(
+              label = "Use Replica Sets",
+              if = @ns_db_has_replica,
+              equals = true,
+              :checked = ns_use_replica,
+              on_toggle = field:ns_use_replica,
+            )
+
+            checkbox(
+              label = "Gerar URL de conexão externa (porta e firewall automáticos)",
+              :checked = ns_expose_external,
+              on_toggle = field:ns_expose_external,
+            )
+
+            text(
+              if = @ns_expose_external,
+              equals = true,
+              class = muted,
+              content = """
+                O serviço ficará acessível pela internet numa porta alocada pelo
+                rustploy, protegido pela senha acima.
+              """,
+            )
+
+            text(class = label_cap, content = "DOCKER IMAGE")
+
+            row(class = kv_row) {
+              text(class = kv_val_fill, content = "@ns_image")
+            }
+
+            row(class = env_add) {
+              button(
+                class = btn_primary,
+                on_click = ns_create,
+                text = "Criar @ns_db_label",
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // ── Template: catálogo ───────────────────────────────────────────────
+    if @ns_step == "pick_template" {
+      column(class = env_wrap) {
+        column(class = hc_field) {
+          text(class = label_cap, content = "BUSCAR")
+
+          input(
+            placeholder = "buscar templates…",
+            class = field_input,
+            :value = ns_tsearch,
+            on_change = ns_tsearch,
+          )
+        }
+
+        scrollable(direction = vertical, class = scroll_fill) {
+          column(class = kv_list) {
+            each @ns_templates as t (fallback = SemTemplates) {
+              TemplateRow(spread = @t, action = ns_pick_template:@t.id)
+            }
+          }
+        }
+      }
+    }
+
+    // ── Template: configuração ───────────────────────────────────────────
+    if @ns_step == "template_form" {
+      scrollable(direction = vertical, class = scroll_fill) {
+        form(name = ns_template, on_submit = ns_create, width = fill) {
+          column(class = form_panel) {
+            text(class = label_cap, content = "@ns_template_name — CONFIGURAR")
+            text(class = label_cap, content = "NOME DO SERVIÇO")
+
+            input(
+              placeholder = @ns_template_name,
+              class = field_input,
+              form_control = ns_name,
+              :value = ns_name,
+              on_change = field:ns_name,
+            )
+
+            template(:for-each = ns_template_vars, var = v) {
+              column(class = hc_field) {
+                text(class = label_cap, content = "@v.label")
+
+                input(
+                  placeholder = @v.placeholder,
+                  class = field_input,
+                  :value = ns_tv_@v.idx,
+                  on_change = field:ns_tv_@v.idx,
+                )
+              }
+            }
+
+            row(class = env_add) {
+              button(
+                class = btn_primary,
+                on_click = ns_create,
+                text = "Criar @ns_template_name",
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}

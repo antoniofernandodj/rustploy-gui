@@ -1,0 +1,103 @@
+// Tela de login: URL do daemon e token, com a lista de servidores lembrados.
+component {
+  resources {
+    style """
+      /* sem `background: var(--bg)`: é a cor do tema, já pintada na janela
+         inteira — repeti-la era uma camada redobrada em cada pixel (ver
+         PRIMITIVAS.md, "O que custa num quadro"). */
+      .login_wrap       { width: fill; height: fill; align-x: center; align-y: center; }
+      .login_card       { width: fill; max-width: 460; align-x: start; background: var(--surface); border-radius: 4; border-width: 1; border-color: var(--border); padding: 32; spacing: 16; }
+      .login_head       { width: fill; spacing: 14; align-y: center; }
+      .login_brand      { width: fill; spacing: 6; align-x: start; }
+      .field_group      { width: fill; spacing: 6; }
+      .field_row        { width: fill; }
+      .forget_row       { width: fill; align-x: end; padding: 2 0; }
+      .forget_btn       { size: 11; color: var(--border); padding: 5 12; border-radius: 4; }
+      .status_row       { spacing: 14; align-y: center; }
+      .login_title      { size: 30; bold: true; color: #A9C7FF; }
+      .field_label      { size: 11; bold: true; color: var(--muted); }
+      .field_label_fill { size: 11; bold: true; color: var(--muted); width: fill; }
+      .connect_btn      { width: fill; color: var(--spin); padding: 14; text-align: center; border-radius: 3; }
+      .ok               { color: var(--ok); }
+    """
+  }
+
+  container(class = login_wrap) {
+    column(class = login_card) {
+      row(class = login_head) {
+        svg(
+          src = "assets/icons/terminal.svg",
+          color = #2F81F7,
+          width = 34,
+          height = 34,
+        )
+
+        column(class = login_brand) {
+          text(class = login_title, content = "Rustploy")
+
+          text(
+            class = subtitle,
+            content = "Infrastructure management for professional teams",
+          )
+        }
+      }
+
+      form(name = login, on_submit = connect, spacing = 16, width = fill) {
+        column(class = field_group) {
+          row(class = field_row) {
+            text(class = field_label_fill, content = "SERVER URL")
+            text(class = field_label, content = "ENDPOINT")
+          }
+
+          ComboEdit(
+            :options = saved_servers,
+            :value = url,
+            placeholder = "https://rustploy.domain.com",
+            class = field_input,
+            onChange = servidor_escolhido,
+            onSelect = servidor_escolhido,
+            width = fill,
+          )
+
+          text(
+            if = @erro_url,
+            not_equals = "",
+            class = err,
+            content = "@erro_url",
+          )
+
+          row(class = forget_row) {
+            button(
+              class = forget_btn,
+              on_click = esquecer_servidor,
+              text = "Esquecer este servidor",
+            )
+          }
+        }
+
+        column(class = field_group) {
+          row(class = field_row) {
+            text(class = field_label_fill, content = "ACCESS TOKEN")
+            text(class = field_label, content = "SECURE")
+          }
+
+          input(
+            placeholder = "token de acesso",
+            class = field_input,
+            form_control = token,
+          )
+        }
+
+        button(class = connect_btn, on_click = connect, text = Connect)
+      }
+
+      text(if = @error, not_equals = "", class = err, content = "⚠ @error")
+      hr
+
+      row(class = status_row) {
+        text(class = ok, size = 10, content = "●")
+        text(class = muted, content = "@status_line")
+      }
+    }
+  }
+}

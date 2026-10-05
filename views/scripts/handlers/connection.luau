@@ -14,12 +14,12 @@ local Settings = require("settings")
 -- Antes era um único par com dois checkboxes "lembrar"; agora toda conexão
 -- bem-sucedida salva/atualiza sozinha (ver `connect()`), sem checkbox nenhum,
 -- e quem administra mais de um daemon tem a lista inteira num
--- `<ComboEdit>` (login.gv): escolher um servidor já conhecido preenche o
+-- `<ComboEdit>` (login.gvb): escolher um servidor já conhecido preenche o
 -- token sozinho; digitar um novo deixa o campo livre pra um par ainda não
 -- salvo. `storage` grava num arquivo local que sobrevive a restart (fora do
 -- `ctx`, que é só memória), em
 -- `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida por
--- `<app id="rustploy">` do `views/app.gv`).
+-- `app(id = rustploy)` de `views/app.gvb`).
 local saved_servers: { { url: string, token: string } } = {}
 
 -- Publica só as URLs (o `<ComboEdit>` não precisa do token pra montar a
@@ -92,7 +92,7 @@ function init(): ()
     ctx.status_line = ctx.status_line or "pronto para conectar"
     ctx.error = ctx.error or ""
     ctx.search = ctx.search or ""
-    -- Sidebar-gaveta (<drawer> em shell.gv): começa aberta; o ☰ da topbar
+    -- Sidebar-gaveta (<drawer> em shell.gvb): começa aberta; o ☰ da topbar
     -- alterna via `drawer::toggle:menu`.
     ctx.menu = ctx.menu or "true"
     -- Checkboxes do Infra as Code (Settings → aba IaC): semeados aqui pra o

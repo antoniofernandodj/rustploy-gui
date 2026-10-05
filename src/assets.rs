@@ -2,9 +2,9 @@
 //!
 //! Every KDL template, stylesheet, icon and blueprint logo is referenced by a
 //! path relative to the process' current working directory — both from Rust
-//! (`views/styles/app.gss`, `views/app.gv`,
+//! (`views/styles/app.gss`, `views/app.gvb`,
 //! `assets/blueprint-logos/<id>/<logo>`) and from *inside* the KDL
-//! themselves (`import ... from="views/service.gv"`,
+//! themselves (`import ... from="views/service.gvb"`,
 //! `theme "views/styles/theme.json"`, `Svg "assets/icons/…"`).
 //!
 //! Rather than rewrite every literal, we locate the directory that holds those
@@ -17,7 +17,7 @@
 use std::path::{Path, PathBuf};
 
 /// A file that must exist under any valid asset base — used as the probe.
-const MARKER: &str = "views/app.gv";
+const MARKER: &str = "views/app.gvb";
 
 /// System-wide install prefix used by the Debian package (see the `deb`
 /// metadata in `Cargo.toml`).

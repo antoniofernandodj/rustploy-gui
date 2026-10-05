@@ -19,7 +19,7 @@
 //!
 //! | prefixo de runtime | árvore embutida |
 //! |---|---|
-//! | `views/…` | [`VIEWS`] (`.gv`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau`) |
+//! | `views/…` | [`VIEWS`] (`.gvb`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau`) |
 //! | `assets/icons/…` | [`ICONS`] (ícones SVG) |
 //! | `assets/blueprint-logos/…` | [`BLUEPRINTS`] (logos dos templates) |
 
@@ -30,7 +30,7 @@ use std::time::SystemTime;
 use glacier_ui::AssetSource;
 use include_dir::{Dir, File, include_dir};
 
-/// `views/`: templates `.gv`, estilos `styles/*.gss`, `styles/theme.json` e os
+/// `views/`: templates `.gvb`, estilos `styles/*.gss`, `styles/theme.json` e os
 /// scripts Luau em `scripts/**/*.luau` (resolvidos por `require`/`<script src>`).
 static VIEWS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/views");
 /// `assets/icons/`: ícones SVG referenciados por `<svg src="assets/icons/…">`.
@@ -149,7 +149,7 @@ mod tests {
         let a = EmbeddedAssets;
         // views: template, estilo, tema, scripts (entrada + módulo `require`d).
         for p in [
-            "views/app.gv",
+            "views/app.gvb",
             "views/styles/app.gss",
             "views/styles/theme.json",
             "views/scripts/app.luau",
@@ -167,9 +167,9 @@ mod tests {
             assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}");
         }
         // Ausente → NotFound / exists=false.
-        assert!(!a.exists("views/nao_existe.gv"));
+        assert!(!a.exists("views/nao_existe.gvb"));
         assert!(
-            a.read_to_string("views/nao_existe.gv")
+            a.read_to_string("views/nao_existe.gvb")
                 .is_err()
         );
     }
@@ -184,9 +184,8 @@ mod tests {
         use std::sync::Arc;
         let mut motor = glacier_ui::GlacierUI::new().with_asset_source(Arc::new(EmbeddedAssets));
         motor
-            .register_component("app", "views/app.gv")
-            .expect("registrar 'app' a partir dos assets embutidos");
-        motor.set_initial_screen("app");
+            .register_app("views/app.gvb")
+            .expect("registrar o app a partir dos assets embutidos");
         assert!(
             motor.render_current().is_ok(),
             "render do app embutido falhou"

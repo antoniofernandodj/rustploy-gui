@@ -3,21 +3,21 @@
 //! rede vive em Luau (`views/scripts/app.luau`), falando HTTP/JSON + SSE com o
 //! daemon; este módulo Rust é só a casca da janela.
 //!
-//! Desde glacier-ui 0.107 a configuração de janela e de aplicativo mora no
-//! **markup** de `views/app.gv`: `<screen decorations icon>` (chrome borderless e
-//! ícone, também nas janelas-filhas), `<app id single_instance
-//! remember_geometry>` (instância única, geometria lembrada e diretório de dados
-//! do `storage` do Luau) e `<tray>` (menu da bandeja). O runner
-//! [`GlacierDaemon`] os lê antes de abrir qualquer janela.
+//! A configuração de janela, de aplicativo e as telas moram no **markup** de
+//! `views/app.gvb`, cuja raiz é o `app(...)` (glacier-ui 0.117+): `id`,
+//! `single_instance`, `remember_geometry` (instância única, geometria lembrada e
+//! diretório de dados do `storage` do Luau), a janela principal (`size`,
+//! `min_size`, `decorations`, `icon`), a `tray` (menu da bandeja) e as `screen`s —
+//! a principal e as cinco janelas auxiliares, abertas por
+//! `open_window{ component = "…", size = "…" }`. O runner [`GlacierDaemon`] lê isso
+//! antes de abrir qualquer janela.
 //!
 //! Sobra aqui só o que o markup não expressa: as fontes embutidas, o
 //! antialiasing, o período dos toasts, a extensão Luau do `.zip`, o espelho da
-//! sessão para a API de agente, o `application_id` do Linux e a fonte de assets
-//! embutida em release.
+//! sessão para a API de agente, o `application_id` do Linux e a fonte de assets embutida em release.
 //!
-//! Atenção: um `.main(|motor| …)` escrito à mão **desliga** a leitura de `<app>`
-//! e `<tray>` (o runner não sabe qual template ele abre) — por isso a principal
-//! é registrada por `.main_template(…)`.
+//! O `.main_template(…)` carrega o manifesto; um `.main(|motor| …)` só serviria
+//! para registrar um `impl Component` em Rust, que este app não tem.
 
 use std::time::Duration;
 
@@ -42,12 +42,11 @@ pub(crate) fn run() -> iced::Result {
     let ui_agente = glacier_ui::external::sender();
 
     let daemon = GlacierDaemon::new()
-        // Título, tamanho, decorations e ícone: `<screen>` de `views/app.gv`.
-        // Instância única, geometria e diretório de dados: `<app>`. Bandeja:
-        // `<tray>`. O `.main_template` (e não `.main`) mantém o `<app>`/`<tray>`
-        // lidos; o caminho é relativo ao workspace, onde `assets::locate_and_chdir`
-        // deixa o CWD.
-        .main_template("views/app.gv")
+        // Título, tamanho, decorations e ícone da principal, instância única,
+        // geometria, diretório de dados, bandeja e as telas: o `app(...)` de
+        // `views/app.gvb`. O caminho é relativo ao workspace, onde
+        // `assets::locate_and_chdir` deixa o CWD.
+        .main_template("views/app.gvb")
         .font(FONT_REGULAR)
         .font(FONT_BOLD)
         .default_font(Font::with_name("JetBrains Mono"))
@@ -76,12 +75,15 @@ pub(crate) fn run() -> iced::Result {
             }
         })
         // Só o `application_id` (Linux) mora aqui: o glacier não o lê do
-        // markup. O resto do chrome (borderless, ícone) vem do `<screen>`, que
-        // se aplica por cima destas settings.
+        // markup. O resto do chrome da principal (borderless, ícone) vem do
+        // `app(...)`, que se aplica por cima destas settings.
         .main_window(window::Settings {
             platform_specific: platform_specific(),
             ..Default::default()
         })
+        // As cinco janelas auxiliares herdam o ícone do `app(...)` e pedem a
+        // moldura (`decorations = false`) e o tamanho no `open_window{…}` dos
+        // handlers; aqui só o `application_id`.
         .child_window(|_spec, settings| {
             settings.platform_specific = platform_specific();
         })

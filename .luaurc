@@ -11,6 +11,16 @@
         "confirm",
         "toast",
         "storage",
-        "date"
+        "date",
+        "open_window",
+        "broadcast",
+        "close_window",
+        "manifest_zip_read",
+        "open_file",
+        "save_file",
+        "manifest_zip_write",
+        "notify",
+        "append_textarea",
+        "viewport"
     ]
 }

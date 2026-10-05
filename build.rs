@@ -3,7 +3,7 @@
 //!    `src/embedded.rs` os embute daí no binário standalone de release. Os logos
 //!    **raster** são reduzidos (Lanczos3) para no máx [`LOGO_MAX_DIM`]px na
 //!    maior dimensão e re-codificados como PNG: os originais são ~512×512 e
-//!    aparecem a ~30px (`template_row.gv`), então sem isto a GPU faria um
+//!    aparecem a ~30px (`template_row.gvb`), então sem isto a GPU faria um
 //!    downscale de ~17x por quadro (serrilhado) e o binário carregaria ~12 MB de
 //!    logo. SVGs são vetor — copiados intactos.
 //! 2. Embeds the Windows application icon, manifest and version metadata into
@@ -26,7 +26,7 @@ const LOGO_EXTS: &[&str] = &[
 
 /// Alvo do redimensionamento dos logos raster: a maior dimensão é reduzida para
 /// no máximo isto, preservando a proporção. Os logos aparecem a ~30px lógicos
-/// (`template_row.gv`); 96px cobre telas HiDPI (até ~3x) e ainda corta os 512×512
+/// (`template_row.gvb`); 96px cobre telas HiDPI (até ~3x) e ainda corta os 512×512
 /// originais em ordens de grandeza. Só **reduz** — imagens já menores (ou vetor)
 /// passam intactas, para não borrar quem já é pequeno.
 const LOGO_MAX_DIM: u32 = 96;

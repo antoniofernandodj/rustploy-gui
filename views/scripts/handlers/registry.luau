@@ -158,10 +158,10 @@ end
 M.refresh_tokens = registry_refresh_tokens
 
 -- Abre a janela separada de criação (segredo só aparece lá, uma vez — ver
--- new_registry_token_window.gv/.luau).
+-- new_registry_token_window.gvb/.luau).
 function registry_open_token_window(): ()
     open_window{
-        file = "views/new_registry_token_window.gv",
+        component = "new_registry_token", size = "480 420", decorations = false,
         resizable = false,
         data = {
             api_url = ctx.api_url or "",

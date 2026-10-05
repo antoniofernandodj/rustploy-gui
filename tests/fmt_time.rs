@@ -23,7 +23,7 @@ fn boot() -> GlacierUI {
     }
 
     let mut m = GlacierUI::new();
-    m.register_component("tempo", "tests/fixtures/tempo.gv")
+    m.register_component("tempo", "tests/fixtures/tempo.gvb")
         .expect("registrar a fixture");
     m.set_initial_screen("tempo");
     m

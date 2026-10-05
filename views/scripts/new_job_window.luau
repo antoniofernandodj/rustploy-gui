@@ -89,7 +89,7 @@ function init(): ()
     ctx.njob_kind = "manual"
     ctx.njob_hours = "6"
     -- Uma chave só, "HH:MM": quem edita o horário agora é o <timeedit> do
-    -- .gv. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
+    -- .gvb. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
     -- formato do daemon) e fmt.hm_join/hm_split fazem a ponte.
     ctx.njob_time = "03:00"
     ctx.njob_weekday = "0"

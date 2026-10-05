@@ -1,0 +1,904 @@
+// Casca do app conectado: sidebar, topbar e as views de projeto (Deployments,
+// Projects, serviços de um projeto, detalhe de serviço); importa home.gv para
+// as telas globais.
+component {
+  resources {
+    component(name = SemDeployments) {
+      text(class = muted, content = "Nenhum deployment ainda.")
+    }
+
+    component(name = SemProjetos) {
+      text(class = muted, content = "Nenhum projeto ainda.")
+    }
+
+    component(name = SemServicosNoProjeto) {
+      text(class = muted, content = "Nenhum serviço neste projeto ainda.")
+    }
+
+    component(name = SemVariaveis) {
+      text(class = muted, content = "Nenhuma variável.")
+    }
+
+    // Estados vazios das abas Secrets e Jobs do projeto (`fallback` do <foreach>).
+    component(name = SemSecretsNoProjeto) {
+      text(class = muted, content = "Nenhum secret neste projeto ainda.")
+    }
+
+    component(name = SemJobsNoProjeto) {
+      text(class = muted, content = "Nenhum job cadastrado ainda.")
+    }
+
+    // ── Imports ────────────────────────────────────────────────────
+    link(rel = import, href = service.gvb, as = ServiceDetail)
+    link(rel = import, href = home.gvb, as = HomeViews)
+    link(rel = import, href = "components/project_card.gvb", as = ProjectCard)
+    link(rel = import, href = "components/service_card.gvb", as = ServiceCard)
+    link(rel = import, href = "components/stat_card.gvb", as = StatCard)
+    link(rel = import, href = "components/state_cell.gvb", as = StateCell)
+    link(rel = import, href = "components/badge.gvb", as = rp-badge)
+    link(rel = import, href = "components/nav_item.gvb", as = NavItem)
+    link(rel = import, href = "components/tab_button.gvb", as = TabButton)
+    link(rel = import, href = "components/loading_row.gvb", as = LoadingRow)
+    link(rel = import, href = "components/picker_row.gvb", as = PickerRow)
+    link(rel = import, href = "components/template_row.gvb", as = TemplateRow)
+
+    style """
+      /* A sidebar é uma <drawer> (glacier-ui 0.92+, Onda 2 da reforma — ver
+        docs/plano-reforma-gui-glacier-0.102.md): largura/padding/spacing vêm
+        das props do `<drawer>` no markup; aqui fica só a cor (o painel carrega
+        `drawer-panel` + `sidebar`). */
+      .sidebar { background: var(--surface); }
+      .menu_btn       { color: var(--border); text-color: var(--text); padding: 9 13; border-radius: 5; }
+      .brand_box      { spacing: 2; padding: 0 8 18 8; }
+      .brand          { size: 21; bold: true; color: var(--text); }
+      .brand_sub      { size: 11; color: var(--faint); }
+      .nav_section    { size: 11; bold: true; color: var(--faint); padding: 16 8 6 8; }
+      .nav_spacer     { height: fill; }
+      .main_col       { width: fill; height: fill; }
+      /* Top bar */
+      .topbar     { width: fill; padding: 18 28; spacing: 18; align-y: center; }
+      .search     { width: fill; padding: 11 14; }
+      /* Ações do cabeçalho do projeto (variantes compactas, à direita) */
+      .btn_sm_primary { color: var(--green); padding: 7 13; border-radius: 4; size: 12 }
+      .btn_sm_ghost   { color: var(--border); padding: 7 12; border-radius: 4; size: 12 }
+      .btn_sm_danger  { color: var(--danger); padding: 7 13; border-radius: 4; size: 12 }
+      .proj_topbar    { width: fill; align-y: center; }
+      .proj_actions   { spacing: 8; align-y: center; }
+      .hspacer        { width: fill; }
+      /* Grid de cards (projetos / serviços) */
+      .grid           { width: fill; spacing: 16; }
+      .card_row       { width: fill; spacing: 16; }
+      /* Responsivo (glacier-ui 0.9.0+): a sidebar-gaveta FECHA pelo ☰ da topbar
+        em janela estreita (o motor anima a largura 264→0), em vez do antigo
+        trilho de ícones. Sobra só o aperto da própria topbar. */
+      @media (max-width: 900) {
+        .topbar { padding: 12 16; spacing: 10; }
+      }
+
+      @media (max-width: 560) {
+        .topbar { padding: 10 10; spacing: 8; }
+        /* Sem largura pra tudo na topbar: some com a busca e o status do daemon
+          (baixa prioridade) pra ☰ / Stop All / Disconnect não serem cortados. */
+        .search        { hidden: true; }
+        .topbar_status { hidden: true; }
+      }
+    """
+  }
+
+  row(class = screen) {
+    // ── Sidebar (gaveta) ─────────────────────────────────────────────────
+    // `<drawer>` empurra o conteúdo (não cobre); não desenha gatilho — o ☰ mora
+    // na topbar e `drawer::toggle:menu` funciona de qualquer lugar. `init()`
+    // (connection.luau) semeia `menu = "true"` pra começar aberta.
+    drawer(
+      :value = menu,
+      open = @menu,
+      size = 264,
+      padding = "28 20",
+      spacing = 6,
+      panel_class = sidebar,
+    ) {
+      column(class = brand_box) {
+        text(class = brand, content = "Rustploy")
+        text(class = brand_sub, content = "PRODUCTION CLUSTER")
+      }
+
+      text(class = nav_section, content = "DEPLOYMENT OPS")
+
+      NavItem(
+        label = Deployments,
+        icon = "▶",
+        target = deployments,
+        action = nav_deployments,
+      )
+
+      NavItem(
+        label = "Deploy Engine",
+        icon = "⚡",
+        target = deploy_engine,
+        action = nav_deploy_engine,
+      )
+
+      NavItem(
+        label = Monitoring,
+        icon = "◔",
+        target = monitoring,
+        action = nav_monitoring,
+      )
+
+      NavItem(
+        label = Schedules,
+        icon = "◫",
+        target = schedules,
+        action = nav_schedules,
+      )
+
+      NavItem(
+        label = Ingress,
+        icon = "↦",
+        target = ingress,
+        action = nav_ingress,
+      )
+
+      NavItem(label = Docker, icon = "◉", target = docker, action = nav_docker)
+      text(class = nav_section, content = "MANAGEMENT")
+
+      NavItem(
+        label = "Projects (@projects_count)",
+        icon = "◧",
+        target = "projects project_services service",
+        action = nav_projects,
+      )
+
+      column(class = nav_spacer)
+      hr
+
+      NavItem(
+        label = Settings,
+        icon = "⌥",
+        target = settings,
+        action = nav_settings,
+      )
+
+      NavItem(
+        label = Support,
+        icon = "◊",
+        target = support,
+        action = nav_support,
+      )
+    }
+
+    // ── Main column ────────────────────────────────────────────────────
+    column(class = main_col) {
+      // Top bar
+      row(class = topbar) {
+        // `app:` tira o prefixo de dono (`Shell::…`) que o motor poria numa
+        // ação escrita dentro de um <component> — sem ele a ação não chegaria
+        // ao builtin `drawer`. Sai `drawer::toggle:menu`, que o dispatch roteia
+        // pro <drawer> (o alias minúsculo é um componente registrado).
+        button(
+          class = menu_btn,
+          text = "☰",
+          on_click = app:drawer::toggle:menu,
+          tooltip = "Mostrar/ocultar o menu",
+        )
+
+        input(
+          class = search,
+          :value = search,
+          on_change = search_changed,
+          placeholder = "Search deployments, nodes…",
+        )
+
+        text(
+          class = "muted topbar_status",
+          content = "● daemon v@daemon_version",
+        )
+
+        button(class = btn_danger, on_click = stop_all, text = "Stop All")
+        button(class = btn_ghost, on_click = disconnect, text = Disconnect)
+      }
+
+      hr
+
+      // Content
+      if @view == "deployments" {
+        column(class = content) {
+          row(class = header_row) {
+            column(class = header_titles) {
+              text(class = title, content = "Deployments")
+
+              text(
+                class = subtitle,
+                content = "Real-time status of services in the cluster.",
+              )
+            }
+
+            row(class = "stats_row stats_hide_lg") {
+              StatCard(label = STATUS, value = @services_label, accent = 1)
+              StatCard(label = UPTIME, value = @daemon_uptime)
+            }
+
+            button(
+              class = btn_danger,
+              on_click = deployments_clear_finished,
+              text = "Limpar parados/falhos",
+            )
+          }
+
+          text(
+            if = @deployments_msg,
+            not_equals = "",
+            class = muted,
+            content = "@deployments_msg",
+          )
+
+          column(class = panel_fill) {
+            row(class = thead) {
+              text(class = "th col_svc", content = "SERVIÇO")
+              text(class = "th col_proj", content = "PROJETO")
+              text(class = "th col_state", content = "ESTADO")
+              text(class = "th col_dur", content = "DURAÇÃO")
+              text(class = "th col_start", content = "INÍCIO")
+            }
+
+            if @data_loading == "true" {
+              LoadingRow
+            }
+
+            scrollable(
+              if = @data_loading,
+              not_equals = true,
+              direction = vertical,
+              class = scroll_fill,
+            ) {
+              column(class = table_body) {
+                each @deployments as d (fallback = SemDeployments) {
+                  column(class = row_wrap) {
+                    row(class = trow) {
+                      text(class = "td_key col_svc", content = "@d.service")
+                      text(class = "td col_proj", content = "@d.project")
+                      StateCell(kind = @d.state_kind, label = @d.state_label)
+                      text(class = "td col_dur", content = "@d.duration")
+                      text(class = "muted col_start", content = "@d.start")
+                    }
+
+                    hr
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else if @view == "projects" {
+        // ── Projects (lista de projetos) ──────────────────────────────
+        column(class = content) {
+          row(class = header_row) {
+            column(class = header_titles) {
+              text(class = title, content = "Projects")
+
+              text(
+                class = subtitle,
+                content = "Projetos do cluster e a contagem de serviços de cada um.",
+              )
+            }
+
+            row(class = stats_row) {
+              StatCard(label = SERVICES, value = @services_count)
+              StatCard(label = PROJECTS, value = @projects_count, accent = 1)
+            }
+          }
+
+          // Criar projeto agora abre uma JANELA à parte (new_project_form.gv,
+          // motor Glacier próprio); ao concluir, ela envia um broadcast
+          // "project_created" que `on_broadcast` (handlers/projects.luau) recebe
+          // para atualizar a grade. Ver open_new_project_window.
+          row(class = env_add) {
+            button(
+              class = btn_primary,
+              on_click = open_new_project_window,
+              text = "+ Novo projeto",
+            )
+          }
+
+          if @data_loading == "true" {
+            LoadingRow
+          }
+
+          scrollable(
+            if = @data_loading,
+            not_equals = true,
+            direction = vertical,
+            class = scroll_fill,
+          ) {
+            column(class = grid) {
+              template(
+                :for-each = project_rows,
+                var = r,
+                foreach_fallback = SemProjetos,
+              ) {
+                row(class = card_row) {
+                  template(:for-each = r.cards, var = c) {
+                    ProjectCard(spread = @c)
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else if @view == "project_services" {
+        // ── Projeto: serviços de um projeto ──────────────────────────
+        column(class = content) {
+          row(class = header_row) {
+            column(class = header_titles) {
+              // Barra superior: voltar à esquerda, ações do projeto
+              // empurradas para a extremidade direita (hspacer = width:fill).
+              // Em modo de edição as ações somem (o form tem Salvar/Cancelar).
+              row(class = proj_topbar) {
+                button(
+                  class = btn_ghost,
+                  on_click = nav_projects,
+                  text = "‹ Projetos",
+                )
+
+                column(class = hspacer)
+
+                if @editing_project != "true" {
+                  row(class = proj_actions) {
+                    button(
+                      class = btn_sm_primary,
+                      on_click = open_new_service_window,
+                      text = "+ Novo serviço",
+                    )
+
+                    button(
+                      class = btn_sm_ghost,
+                      on_click = edit_project_toggle,
+                      text = "Editar projeto",
+                    )
+
+                    if @proj_can_delete == "1" {
+                      button(
+                        class = btn_sm_danger,
+                        on_click = delete_project:@selected_project_id,
+                        text = "Remover projeto",
+                      )
+                    }
+                  }
+                }
+              }
+
+              if @editing_project == "true" {
+                form(
+                  name = edit_project,
+                  on_submit = save_project_edit,
+                  on_validation_error = proj_edit_apontar,
+                  spacing = 6,
+                  width = fill,
+                ) {
+                  input(
+                    class = field_input,
+                    form_control = edit_proj_name,
+                    rules = required,
+                    msg = "informe um nome",
+                    placeholder = "Nome do projeto",
+                  )
+
+                  text(
+                    class = err,
+                    if = @erro_edit_proj_name,
+                    not_empty,
+                    content = "@erro_edit_proj_name",
+                  )
+
+                  input(
+                    class = field_input,
+                    form_control = edit_proj_desc,
+                    placeholder = "Descrição (opcional)",
+                  )
+
+                  row(class = env_add) {
+                    button(type = submit, class = btn_primary, text = Salvar)
+
+                    button(
+                      class = btn_ghost,
+                      on_click = cancel_project_edit,
+                      text = Cancelar,
+                    )
+
+                    text(class = muted, content = "@proj_action_msg")
+                  }
+                }
+              } else {
+                text(class = title, content = "@proj_name")
+                text(class = subtitle, content = "@proj_description")
+
+                text(
+                  if = @proj_action_msg,
+                  not_equals = "",
+                  class = muted,
+                  content = "@proj_action_msg",
+                )
+              }
+            }
+          }
+
+          // Sub-abas do projeto
+          row(class = tabs) {
+            TabButton(
+              label = Serviços,
+              current = @proj_tab,
+              target = services,
+              action = proj_tab:services,
+            )
+
+            TabButton(
+              label = "Variáveis (@proj_env_count)",
+              current = @proj_tab,
+              target = env,
+              action = proj_tab:env,
+            )
+
+            TabButton(
+              label = "Secrets (@proj_secrets_count)",
+              current = @proj_tab,
+              target = secrets,
+              action = proj_tab:secrets,
+            )
+
+            TabButton(
+              label = "Jobs (@proj_jobs_count)",
+              current = @proj_tab,
+              target = jobs,
+              action = proj_tab:jobs,
+            )
+          }
+
+          hr
+
+          if @proj_loading == "true" {
+            LoadingRow
+          }
+
+          if @proj_tab == "env" {
+            // ── Variáveis de ambiente do projeto ──────────────────────
+            column(class = env_wrap, if = @proj_loading, not_equals = true) {
+              row(class = env_head) {
+                text(
+                  class = muted_fill,
+                  content = """
+                    Herdadas por todos os serviços deste projeto no deploy — as
+                    do serviço têm precedência.
+                  """,
+                )
+
+                button(
+                  class = btn_export,
+                  on_click = penv_export,
+                  text = Exportar,
+                )
+
+                text(content = " ")
+
+                if @penv_text_open == "true" {
+                  button(
+                    class = btn_export_on,
+                    on_click = penv_text_toggle,
+                    text = Fechar,
+                  )
+                } else {
+                  button(class = tab, on_click = penv_text_toggle, text = .env)
+                }
+              }
+
+              form(
+                name = penv_add,
+                on_submit = penv_add,
+                on_validation_error = penv_apontar,
+                width = fill,
+                spacing = 8,
+              ) {
+                row(class = env_add) {
+                  input(
+                    class = env_in_key,
+                    form_control = penv_new_key,
+                    rules = required,
+                    msg = "chave vazia",
+                    placeholder = KEY,
+                  )
+                }
+
+                // Modo secret: o campo valor passa a receber o NOME de um
+                // secret do projeto (a referência, não o conteúdo), que o
+                // daemon decifra no deploy. Vários filhos condicionais →
+                // `<template>`, não `if=` atributo.
+                if @penv_new_is_secret == "true" {
+                  row(class = env_add) {
+                    input(
+                      class = env_in_val,
+                      form_control = penv_new_val,
+                      placeholder = "nome do secret",
+                    )
+
+                    button(
+                      class = btn_export_on,
+                      on_click = penv_secret_toggle,
+                      text = "usar secret",
+                    )
+                  }
+
+                  text(
+                    if = @proj_secrets,
+                    empty = "",
+                    class = muted,
+                    content = "Nenhum secret cadastrado — crie um na aba Secrets.",
+                  )
+
+                  row(class = env_add, if = @proj_secrets, not_empty) {
+                    text(class = muted, content = "Secrets do projeto: ")
+
+                    button(
+                      class = copy_btn,
+                      :for-each = proj_secrets,
+                      var = s,
+                      on_click = secret_use:@s.name,
+                      text = @s.name_display,
+                    )
+                  }
+                } else {
+                  row(class = env_add) {
+                    input(
+                      class = env_in_val,
+                      form_control = penv_new_val,
+                      placeholder = value,
+                    )
+
+                    button(
+                      class = tab,
+                      on_click = penv_secret_toggle,
+                      text = "usar secret",
+                    )
+                  }
+                }
+
+                row {
+                  button(type = submit, class = btn_primary, text = Adicionar)
+                }
+              }
+
+              text(
+                class = err,
+                if = @erro_penv_new_key,
+                not_empty,
+                content = "@erro_penv_new_key",
+              )
+
+              scrollable(direction = vertical, class = env_list_scroll) {
+                column(class = kv_list) {
+                  template(
+                    :for-each = proj_env,
+                    foreach_fallback = SemVariaveis,
+                    var = e,
+                    on_reorder = penv_reorder,
+                    reorder_key = key,
+                  ) {
+                    // Comentários (# ...) do .env: arrastáveis como as vars
+                    // (reancoram na var seguinte da nova ordem), mas sem
+                    // delete — removem-se editando o .env.
+                    if @e.__dragging == "true" {
+                      if @e.kind == "comment" {
+                        row(class = kv_row_drag) {
+                          text(
+                            class = "env_drag_handle env_dragging",
+                            dragHandle = true,
+                            content = "⋮ ",
+                          )
+
+                          text(class = muted, content = "@e.value")
+                        }
+                      } else {
+                        row(class = kv_row_drag) {
+                          text(
+                            class = "env_drag_handle env_dragging",
+                            dragHandle = true,
+                            content = "⋮ ",
+                          )
+
+                          button(
+                            class = env_del,
+                            on_click = penv_del:@e.key,
+                            text = "✕",
+                          )
+
+                          text(class = env_sep)
+                          text(class = env_key, content = "@e.key_display")
+                          text(class = kv_val_fill, content = "@e.value")
+                        }
+                      }
+                    } else {
+                      if @e.kind == "comment" {
+                        row(class = kv_row) {
+                          text(
+                            class = env_drag_handle,
+                            dragHandle = true,
+                            content = "⋮ ",
+                          )
+
+                          text(class = muted, content = "@e.value")
+                        }
+                      } else {
+                        row(class = kv_row) {
+                          text(
+                            class = env_drag_handle,
+                            dragHandle = true,
+                            content = "⋮ ",
+                          )
+
+                          button(
+                            class = env_del,
+                            on_click = penv_del:@e.key,
+                            text = "✕",
+                          )
+
+                          text(class = env_sep)
+                          text(class = env_key, content = "@e.key_display")
+                          text(class = kv_val_fill, content = "@e.value")
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              // Editor .env: vários filhos condicionais → `<template>` (o atributo
+              // if= só esconderia o Text, deixando TextArea/botões sempre
+              // visíveis).
+              if @penv_text_open == "true" {
+                text(
+                  class = muted,
+                  content = "Cole/edite no formato KEY=VALUE (# comentário).",
+                )
+
+                textarea(
+                  class = env_editor,
+                  font = mono,
+                  :value = proj_env_text,
+                  placeholder = "KEY=VALUE   (# comentário)",
+                )
+
+                row(class = env_add) {
+                  button(
+                    class = btn_primary,
+                    on_click = penv_import,
+                    text = Salvar,
+                  )
+
+                  button(
+                    class = btn_ghost,
+                    on_click = penv_text_cancel,
+                    text = Cancelar,
+                  )
+                }
+              }
+            }
+          }
+
+          if @proj_tab == "secrets" {
+            // ── Secrets do projeto ──────────────────────────────────────
+            // Write-only: o daemon só devolve os nomes (o valor é cifrado
+            // com a chave mestre do servidor), então não há coluna de valor
+            // nem edição — sobrescrever é salvar de novo com o mesmo nome.
+            // Ver handlers/secrets.luau e docs/secrets.md.
+            column(class = env_wrap, if = @proj_loading, not_equals = true) {
+              column(class = wh_block) {
+                text(
+                  class = muted_fill,
+                  content = """
+                    Valores sensíveis (tokens, senhas, chaves de API) cifrados
+                    com a chave mestre do servidor. Depois de salvo, o valor
+                    nunca mais é exibido — para trocá-lo, salve um novo com o
+                    mesmo nome.
+                  """,
+                )
+
+                text(
+                  class = muted_fill,
+                  content = """
+                    Para usar num serviço: na aba Variáveis, ligue "usar secret"
+                    e escolha o nome; ou escreva <secret:NOME> (ou secret:NOME)
+                    como valor, no editor .env do projeto ou do serviço. Para
+                    clonar um repositório Git privado, use o nome do secret
+                    puro, sem prefixo, no campo Credentials da aba General do
+                    serviço.
+                  """,
+                )
+
+                text(
+                  class = muted_fill,
+                  content = """
+                    O valor real só é decifrado em memória, na hora do deploy.
+                  """,
+                )
+              }
+
+              form(
+                name = secret_add,
+                on_submit = secret_add,
+                on_validation_error = secret_add_apontar,
+                width = fill,
+                spacing = 8,
+              ) {
+                row(class = env_add) {
+                  input(
+                    class = env_in_key,
+                    form_control = sec_new_name,
+                    rules = required,
+                    msg = "informe um nome",
+                    placeholder = NOME,
+                  )
+                }
+
+                text(
+                  class = err,
+                  if = @erro_sec_new_name,
+                  not_empty,
+                  content = "@erro_sec_new_name",
+                )
+
+                row(class = env_add) {
+                  input(
+                    class = env_in_val,
+                    form_control = sec_new_val,
+                    rules = required,
+                    msg = "informe um valor",
+                    placeholder = "valor (cifrado ao salvar)",
+                  )
+                }
+
+                text(
+                  class = err,
+                  if = @erro_sec_new_val,
+                  not_empty,
+                  content = "@erro_sec_new_val",
+                )
+
+                row {
+                  button(
+                    type = submit,
+                    class = btn_primary,
+                    text = "Salvar secret",
+                  )
+                }
+              }
+
+              hr
+
+              scrollable(direction = vertical, class = env_list_scroll) {
+                column(class = kv_list) {
+                  each @proj_secrets as s (fallback = SemSecretsNoProjeto) {
+                    row(class = kv_row) {
+                      button(
+                        class = env_del,
+                        on_click = secret_del:@s.name,
+                        text = "✕",
+                      )
+
+                      text(class = env_sep)
+                      text(class = env_key, content = "@s.name_display")
+                      text(class = kv_val_fill, content = "cifrado")
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          if @proj_tab == "jobs" {
+            row(class = env_head) {
+              text(class = muted_fill, content = "@proj_jobs_count job(s)")
+
+              button(
+                class = btn_sm_primary,
+                on_click = open_new_job_window,
+                text = "+ Novo job",
+              )
+            }
+
+            scrollable(direction = vertical, class = env_list_scroll) {
+              column(class = kv_list) {
+                each @proj_jobs as j (fallback = SemJobsNoProjeto) {
+                  row(class = kv_row) {
+                    text(class = env_key, content = "@j.name")
+                    text(class = "muted col_dur", content = "@j.recurrence")
+
+                    StateCell(
+                      kind = @j.last_run_kind,
+                      label = @j.last_run_label,
+                    )
+
+                    text(
+                      class = "muted kv_val_fill",
+                      content = "→ @j.next_run_at",
+                    )
+
+                    button(
+                      class = copy_btn,
+                      if = @j.running,
+                      not_equals = true,
+                      on_click = job_run_now:@j.id,
+                      text = "Rodar agora",
+                    )
+
+                    button(
+                      class = env_del,
+                      if = @j.running,
+                      equals = true,
+                      on_click = job_run_cancel:@j.last_run_id,
+                      text = Cancelar,
+                    )
+
+                    button(
+                      class = copy_btn,
+                      if = @j.last_run_id,
+                      not_equals = "",
+                      on_click = open_job_logs_window:@j.last_run_id,
+                      text = "Ver logs",
+                    )
+
+                    button(
+                      class = copy_btn,
+                      on_click = job_toggle:@j.id,
+                      text = @j.enabled_label,
+                    )
+
+                    button(
+                      class = copy_btn,
+                      on_click = open_edit_job_window:@j.id,
+                      text = Editar,
+                    )
+
+                    button(
+                      class = env_del,
+                      on_click = job_del:@j.id,
+                      text = "✕",
+                    )
+                  }
+                }
+              }
+            }
+          }
+
+          if @proj_tab == "services" {
+            scrollable(
+              if = @proj_loading,
+              not_equals = true,
+              direction = vertical,
+              class = scroll_fill,
+            ) {
+              // `virtualize` = altura de UMA fileira de cartões: só as
+              // fileiras visíveis são montadas, e as de fora viram um vão do
+              // tamanho exato (glacier-ui 0.77, ver PRIMITIVAS.md). O valor é
+              // a altura do card; o `spacing: 10` da .grid o motor soma
+              // sozinho. Errar desalinha a barra de rolagem, não quebra.
+              column(class = grid) {
+                each @project_services as r (fallback = SemServicosNoProjeto) {
+                  row(class = card_row) {
+                    ServiceCard(:for-each = r.cards, var = c, spread = @c)
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else if @view == "service" {
+        // ── Service detail / demais views ────────────────────────────
+        // O wizard "Novo serviço" saiu daqui (view=new_service): agora abre
+        // numa JANELA à parte (new_service_window.gv), disparada por
+        // open_new_service_window.
+        ServiceDetail
+      } else {
+        HomeViews
+      }
+    }
+  }
+}
