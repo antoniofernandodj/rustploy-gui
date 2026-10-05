@@ -15,12 +15,25 @@ app(
   min_size = "480 680",
   icon = "views/assets/rustploy.png",
   decorations = false,
+  // Fonte padrão de todas as janelas (declarada abaixo), `application_id` do
+  // Linux (casa a janela com o rustploy-gui.desktop), e os ajustes do daemon: o
+  // MSAAx4 default do iced custa caro num fallback 100% por software (sem GPU
+  // compatível — o `wgpu` recusa adapters não-Vulkan-compliant e cai pra CPU), e
+  // telas de formulário/lista não perdem legibilidade sem ele.
+  font = "JetBrains Mono",
+  application_id = "rustploy-gui",
+  antialiasing = false,
+  toast_period = 250,
 ) {
   // Declarações GLOBAIS: valem para todas as janelas (cada janela é um motor
   // isolado e as carrega).
   resources {
     link(rel = theme, href = "views/styles/theme.json")
     link(rel = stylesheet, href = "views/styles/app.gss")
+
+    // JetBrains Mono, embutida no binário de release (src/embedded.rs).
+    font(src = "assets/fonts/JetBrainsMono-Regular.ttf", family = "JetBrains Mono")
+    font(src = "assets/fonts/JetBrainsMono-Bold.ttf")
 
     tray(icon = "views/assets/rustploy.png", tooltip = Rustploy) {
       item(label = "Open Rustploy", on_click = tray:open)

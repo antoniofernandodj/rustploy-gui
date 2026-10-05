@@ -12,21 +12,16 @@
 //! `open_window{ component = "…", size = "…" }`. O runner [`GlacierDaemon`] lê isso
 //! antes de abrir qualquer janela.
 //!
-//! Sobra aqui só o que o markup não expressa: as fontes embutidas, o
-//! antialiasing, o período dos toasts, a extensão Luau do `.zip`, o espelho da
-//! sessão para a API de agente, o `application_id` do Linux e a fonte de assets embutida em release.
+//! Também no `app(...)` (glacier-ui 0.119+): as fontes (`font(src, family)` e
+//! `font = …`), o `antialiasing`, o `toast_period` e o `application_id` do Linux.
+//!
+//! Sobra aqui só o que o markup não expressa: a extensão Luau do `.zip`, o
+//! espelho da sessão para a API de agente e a fonte de assets embutida em release.
 //!
 //! O `.main_template(…)` carrega o manifesto; um `.main(|motor| …)` só serviria
 //! para registrar um `impl Component` em Rust, que este app não tem.
 
-use std::time::Duration;
-
-use glacier_ui::{Font, GlacierDaemon, window};
-
-/// Fontes embutidas (JetBrains Mono): registradas no builder do daemon e usadas
-/// como `default_font` de todas as janelas.
-const FONT_REGULAR: &[u8] = include_bytes!("../../assets/fonts/JetBrainsMono-Regular.ttf");
-const FONT_BOLD: &[u8] = include_bytes!("../../assets/fonts/JetBrainsMono-Bold.ttf");
+use glacier_ui::GlacierDaemon;
 
 /// Sobe o daemon multi-janela e roda o loop do iced até a última janela fechar.
 /// Chamado por `main` depois de `assets::locate_and_chdir()`.
@@ -47,9 +42,6 @@ pub(crate) fn run() -> iced::Result {
         // `views/app.gvb`. O caminho é relativo ao workspace, onde
         // `assets::locate_and_chdir` deixa o CWD.
         .main_template("views/app.gvb")
-        .font(FONT_REGULAR)
-        .font(FONT_BOLD)
-        .default_font(Font::with_name("JetBrains Mono"))
         // Extensão da camada Luau: `manifest_zip_read` / `manifest_zip_write`,
         // usadas pelo Infra as Code (Settings). O motor tem `zip_dir` mas não o
         // inverso, e a camada Lua não abre um `.zip` — ver `src/manifest_zip.rs`.
@@ -73,26 +65,7 @@ pub(crate) fn run() -> iced::Result {
                 crate::agent::spawn(sessao.clone(), ui.clone());
                 sessao.sync_from_context(motor.context());
             }
-        })
-        // Só o `application_id` (Linux) mora aqui: o glacier não o lê do
-        // markup. O resto do chrome da principal (borderless, ícone) vem do
-        // `app(...)`, que se aplica por cima destas settings.
-        .main_window(window::Settings {
-            platform_specific: platform_specific(),
-            ..Default::default()
-        })
-        // As cinco janelas auxiliares herdam o ícone do `app(...)` e pedem a
-        // moldura (`decorations = false`) e o tamanho no `open_window{…}` dos
-        // handlers; aqui só o `application_id`.
-        .child_window(|_spec, settings| {
-            settings.platform_specific = platform_specific();
-        })
-        .toast_period(Duration::from_millis(250))
-        // O MSAAx4 default do iced custa caro num fallback 100% por software
-        // (sem GPU compatível — `wgpu` recusa adapters não-Vulkan-compliant e
-        // cai pra CPU). Telas de formulário/lista não perdem em legibilidade
-        // sem antialiasing, então o custo não compensa aqui.
-        .antialiasing(false);
+        });
 
     // Release: injeta a fonte de assets embutida — o motor passa a ler
     // templates/estilos/scripts/binários de dentro do binário, e nada do disco.
@@ -107,20 +80,4 @@ pub(crate) fn run() -> iced::Result {
     let resultado = daemon.run();
     crate::agent::cleanup();
     resultado
-}
-
-/// `application_id` only exists on the Linux (X11/Wayland) variant of
-/// `PlatformSpecific`; other platforms expose different fields, so the whole
-/// block is gated per target to keep the Windows build compiling.
-#[cfg(target_os = "linux")]
-fn platform_specific() -> window::settings::PlatformSpecific {
-    window::settings::PlatformSpecific {
-        application_id: "rustploy-gui".to_string(),
-        ..Default::default()
-    }
-}
-
-#[cfg(not(target_os = "linux"))]
-fn platform_specific() -> window::settings::PlatformSpecific {
-    window::settings::PlatformSpecific::default()
 }

@@ -22,6 +22,7 @@
 //! | `views/…` | [`VIEWS`] (`.gvb`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau`) |
 //! | `assets/icons/…` | [`ICONS`] (ícones SVG) |
 //! | `assets/blueprint-logos/…` | [`BLUEPRINTS`] (logos dos templates) |
+//! | `assets/fonts/…` | [`FONTS`] (JetBrains Mono, declarada no `app(...)` de `views/app.gvb`) |
 
 use std::borrow::Cow;
 use std::io;
@@ -35,6 +36,9 @@ use include_dir::{Dir, File, include_dir};
 static VIEWS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/views");
 /// `assets/icons/`: ícones SVG referenciados por `<svg src="assets/icons/…">`.
 static ICONS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/icons");
+
+/// `assets/fonts/`: as fontes que o `app(...)` declara com `font(src = …)`.
+static FONTS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/fonts");
 /// Logos dos blueprints, referenciados via o `{logo}` data-driven do catálogo
 /// do daemon (`assets/blueprint-logos/<id>/<arquivo>`). Apenas as
 /// **imagens** são embutidas, espelhadas em `<id>/<arquivo>` pelo `build.rs`
@@ -80,6 +84,7 @@ fn route(path: &str) -> Option<&'static File<'static>> {
     const ROUTES: &[(&str, &Dir<'static>)] = &[
         ("views/", &VIEWS),
         ("assets/icons/", &ICONS),
+        ("assets/fonts/", &FONTS),
         ("assets/blueprint-logos/", &BLUEPRINTS),
     ];
     for (prefix, dir) in ROUTES {
@@ -161,6 +166,7 @@ mod tests {
         // binários: ícone SVG estático + um logo de blueprint (data-driven).
         for p in [
             "assets/icons/terminal.svg",
+            "assets/fonts/JetBrainsMono-Regular.ttf",
             "assets/blueprint-logos/ackee/logo.png",
         ] {
             assert!(a.exists(p), "faltou embutir (binário): {p}");

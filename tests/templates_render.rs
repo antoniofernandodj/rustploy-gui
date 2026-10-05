@@ -943,6 +943,28 @@ fn janelas_declaram_titulo_e_tamanho() {
     }
 }
 
+/// O `app(...)` declara os ajustes do daemon que saíram de `app/mod.rs`
+/// (glacier-ui 0.119): fontes, fonte padrão, antialiasing, período dos toasts e
+/// `application_id`. Um atributo apagado por engano não quebra render nenhum — o
+/// app só passa a abrir sem a fonte e com MSAA ligado, em silêncio.
+#[test]
+fn app_declara_fontes_e_ajustes_do_daemon() {
+    cd_ws_root();
+    let src = std::fs::read_to_string("views/app.gvb").expect("ler app.gvb");
+    let xml = glacier_ui::gvb::desugar(&src).expect("desugar app.gvb");
+    let m = glacier_ui::parse_app_manifest(&xml, Some("views/app.gvb"))
+        .expect("app.gvb parseia")
+        .expect("app.gvb tem raiz app");
+    assert_eq!(m.app.font.as_deref(), Some("JetBrains Mono"));
+    assert_eq!(m.app.antialiasing, Some(false));
+    assert_eq!(m.app.toast_period, Some(250));
+    assert_eq!(m.app.application_id.as_deref(), Some("rustploy-gui"));
+    assert_eq!(m.app.fonts.len(), 2, "regular + bold");
+    for f in &m.app.fonts {
+        assert!(std::path::Path::new(&f.src).is_file(), "a fonte {} deve existir", f.src);
+    }
+}
+
 /// Remove os comentários (`//` e `/* … */`) para que "a primeira tag" seja a
 /// primeira tag de verdade: todo template daqui abre com um comentário de
 /// cabeçalho.
