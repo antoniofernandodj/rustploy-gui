@@ -1,15 +1,4 @@
 //! `GET /agent/schema` — o documento de descoberta.
-//!
-//! Sem isto, montar a primeira chamada exige ler `src/protocol.rs` do rustploy-shared
-//! e `models.rs` e deduzir a codificação serde na mão — viável para quem tem o
-//! repositório aberto, inviável para um agente diante de um daemon remoto. É o
-//! atrito mais caro relatado em `docs/plano-erro-de-deploy-invisivel.md` (2.1).
-//!
-//! **Este catálogo é curado, não gerado.** As rotas desta API estão descritas
-//! por inteiro; a lista de `Command` cobre o que aparece em runbook, não as ~90
-//! variantes do enum. A fonte da verdade continua sendo `protocol.rs`, e o
-//! passthrough (`POST /agent/rpc`) aceita qualquer comando, esteja ele listado
-//! aqui ou não — inclusive os que forem adicionados depois deste arquivo.
 
 use serde_json::{Value, json};
 
@@ -279,8 +268,7 @@ mod tests {
     use super::*;
 
     /// O catálogo é escrito à mão; um `json!` malformado só apareceria em
-    /// runtime. Este teste garante que ele ao menos existe e cita cada rota que
-    /// o roteador realmente serve.
+    /// runtime.
     #[test]
     fn catalogo_descreve_todas_as_rotas() {
         let s = schema();

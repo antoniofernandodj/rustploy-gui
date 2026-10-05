@@ -1,17 +1,5 @@
 //! A sessão da GUI (URL + token do daemon remoto), compartilhada com o servidor
 //! da API de agente.
-//!
-//! Quem escreve é a thread da UI, pelo gancho `on_message` do `GlacierDaemon`:
-//! toda mensagem despachada na janela principal passa por lá com o motor no
-//! estado resultante, e o contexto do motor é onde a camada Luau guarda
-//! `api_url`/`api_token`/`connected` ao conectar (`handlers/connection.luau`).
-//! Quem lê é a thread do servidor, a cada requisição.
-//!
-//! Não há um "evento de login" no glacier para assinar, e nem faz falta: o
-//! `on_message` roda depois de cada dispatch, então observar o contexto ali é
-//! equivalente — e cobre de graça o logout (que apaga o contexto inteiro) e a
-//! troca de servidor sem que este módulo precise conhecer nenhum dos dois
-//! fluxos.
 
 use glacier_ui::ContextMap;
 use std::sync::{Arc, RwLock};
@@ -21,7 +9,7 @@ use std::sync::{Arc, RwLock};
 pub(crate) struct Session {
     /// Base sem barra final, ex.: `https://rustploy.exemplo.com`.
     pub base_url: String,
-    /// Bearer do daemon. `None` quando o daemon roda sem token.
+    /// Bearer do daemon.
     pub token: Option<String>,
 }
 
@@ -31,23 +19,10 @@ pub(crate) struct Session {
 struct Espelho {
     session: Option<Session>,
     /// Cópia do contexto do motor, refeita a cada dispatch da janela principal.
-    ///
-    /// Existe porque o contexto só é legível de dentro do gancho `on_message`,
-    /// na thread do iced — e a thread da API precisa dele para responder "em
-    /// que tela a GUI está?", "qual serviço está selecionado?", "qual foi o
-    /// erro do último login?". Copiar em vez de referenciar é o que permite às
-    /// duas threads seguirem sem trava compartilhada.
-    ///
-    /// O custo é um clone do mapa por dispatch (~120 chaves, algumas com JSON
-    /// de dezenas de KB), a cada 2s no ritmo do snapshot do SSE. Numa aplicação
-    /// de desktop isso é ruído; a alternativa (comparar campo a campo para só
-    /// copiar o que mudou) custaria a mesma ordem de trabalho.
     context: ContextMap,
 }
 
-/// Handle compartilhado. Sessão `None` = a janela não está conectada a daemon
-/// nenhum (tela de login, ou logout) — e aí a API de agente responde 503
-/// dizendo exatamente isso, em vez de falhar de um jeito que pareça bug de rede.
+/// Handle compartilhado.
 #[derive(Clone, Default)]
 pub(crate) struct SharedSession(Arc<RwLock<Espelho>>);
 
@@ -67,11 +42,6 @@ impl SharedSession {
     }
 
     /// Relê o contexto do motor, espelha-o e atualiza a sessão se algo mudou.
-    ///
-    /// Devolve `true` quando a SESSÃO mudou — o chamador usa isso para regravar
-    /// o arquivo de handoff sem escrever em disco a cada tick de snapshot do
-    /// SSE (que dispara um dispatch a cada 2s, e portanto uma chamada aqui). O
-    /// espelho do contexto é atualizado sempre, mudando ou não a sessão.
     pub(crate) fn sync_from_context(&self, ctx: &ContextMap) -> bool {
         let nova = Session::from_context(ctx);
 
@@ -89,11 +59,6 @@ impl SharedSession {
 
 impl Session {
     /// Extrai a sessão do contexto do motor, ou `None` se não houver conexão.
-    ///
-    /// `connected` é o que a camada Luau usa para dizer que o `DaemonStatus` de
-    /// validação passou (`handlers/connection.luau::connect`); sem esse gate a
-    /// API de agente aceitaria requisições enquanto a tela de login ainda
-    /// mostra credenciais que o usuário está digitando.
     fn from_context(ctx: &ContextMap) -> Option<Self> {
         if ctx.get("connected").map(String::as_str) != Some("true") {
             return None;
@@ -127,8 +92,6 @@ mod tests {
 
     #[test]
     fn sem_conexao_nao_ha_sessao() {
-        // Tela de login: o usuário já digitou a URL, mas o Connect ainda não
-        // validou nada. A API de agente não pode usar isso.
         let s = SharedSession::default();
         s.sync_from_context(&ctx(&[("api_url", "https://x.dev"), ("api_token", "t")]));
         assert!(s.get().is_none());

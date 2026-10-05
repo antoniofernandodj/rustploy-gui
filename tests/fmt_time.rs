@@ -1,13 +1,4 @@
 //! O `fmt/time.luau` rodando no motor de verdade.
-//!
-//! Existe desde que esse arquivo deixou de fazer a aritmética de fuso à mão e
-//! passou a chamar o global `date` da glacier-ui 0.73. A conversão UTC -> hora
-//! local é o tipo de coisa que quebra em silêncio — um timestamp errado por
-//! três horas ainda parece um timestamp —, então vale um teste próprio.
-//!
-//! Toda asserção aqui é INDEPENDENTE DO FUSO da máquina que roda o teste. A
-//! que carrega o peso é a primeira: o mesmo instante escrito como `...Z` e como
-//! `...-03:00` tem de renderizar igual, seja qual for o fuso local.
 
 use glacier_ui::GlacierUI;
 
@@ -16,8 +7,6 @@ fn boot() -> GlacierUI {
     let ws_root = std::path::Path::new(crate_dir);
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 
-    // A fixture mora fora da árvore de scripts do app (para não virar script
-    // do app), então o `require("fmt/time")` dela precisa desta raiz extra.
     unsafe {
         std::env::set_var("GLACIER_LUAU_PATH", "views/scripts");
     }
@@ -36,17 +25,13 @@ fn time_luau_converte_utc_para_hora_local() {
 
     let z = g("hms_z");
     assert_eq!(z.len(), 8, "HH:MM:SS, deu {z:?}");
-    // O núcleo do teste: duas escritas do MESMO instante, um resultado só.
     assert_eq!(
         z,
         g("hms_off"),
         "`...Z` e `...-03:00` do mesmo instante têm de renderizar igual"
     );
-    // Fração de segundo é aceita e descartada, não muda o horário.
     assert_eq!(z, g("hms_frac"));
 
-    // E a conversão realmente aconteceu: o horário exibido é o UTC deslocado
-    // pelo offset local, não o UTC cru (a menos que a máquina esteja em UTC).
     let offset = offset_local_segundos();
     let esperado = hora_deslocada("12:34:56", offset);
     assert_eq!(z, esperado, "offset local de {offset}s não foi aplicado");
@@ -61,10 +46,8 @@ fn time_luau_formata_data_e_hora_e_tolera_vazio() {
     assert_eq!(dm_hm.len(), 11, "dd/mm HH:MM, deu {dm_hm:?}");
     assert!(dm_hm.contains('/') && dm_hm.contains(':'));
     assert_eq!(g("dm_hms").len(), 14, "dd/mm HH:MM:SS");
-    // O prefixo de data e hora tem de ser o mesmo nas duas.
     assert!(g("dm_hms").starts_with(&dm_hm));
 
-    // Ausente ou malformado vira "", que é o que os templates esperam.
     assert_eq!(g("vazio_nil"), "");
     assert_eq!(g("vazio_lixo"), "");
 }
@@ -75,7 +58,6 @@ fn time_luau_mede_duracao_entre_instantes_com_fuso() {
     let g = |k: &str| m.context().get(k).cloned().unwrap_or_default();
 
     assert_eq!(g("dur"), "1m 30s");
-    // Sem `finished_at` conta até agora — o valor varia, o formato não.
     assert!(
         g("dur_aberta").ends_with('s'),
         "duração aberta: {:?}",
@@ -85,8 +67,7 @@ fn time_luau_mede_duracao_entre_instantes_com_fuso() {
 }
 
 /// Offset local em segundos, perguntado ao sistema — a mesma fonte que o
-/// `localtime` do Luau consulta. Vem do `date +%z` (que devolve `-0300`) para o
-/// teste não precisar de crate de data só para conferir uma subtração.
+/// `localtime` do Luau consulta.
 fn offset_local_segundos() -> i64 {
     let saida = std::process::Command::new("date")
         .arg("+%z")

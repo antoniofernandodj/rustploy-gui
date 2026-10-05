@@ -1,28 +1,4 @@
 //! Assets embutidos no binário — modo standalone (só em builds de release).
-//!
-//! Em **release** (`cfg(not(debug_assertions))`) toda a árvore de assets que o
-//! motor lê em runtime é embutida no executável via `include_dir!`, e uma
-//! [`EmbeddedAssets`] é injetada no [`glacier_ui::GlacierDaemon`] (ver
-//! `app::run`). O binário fica **100% desacoplado dos arquivos**: pode ser
-//! copiado sozinho para qualquer lugar e rodar, sem as árvores `views/` e `assets/` ao lado
-//! nem o `chdir` de `assets.rs`.
-//!
-//! Em **debug** este módulo nem é compilado: o dev continua lendo do disco (com
-//! hot-reload) através do [`glacier_ui::DiskAssets`] default, depois do
-//! `assets::locate_and_chdir()`.
-//!
-//! ## Convenções de caminho
-//!
-//! Os caminhos que chegam aqui são os mesmos que o motor resolve hoje
-//! (relativos ao CWD antes do modo standalone), roteados por prefixo para a
-//! árvore embutida correspondente:
-//!
-//! | prefixo de runtime | árvore embutida |
-//! |---|---|
-//! | `views/…` | [`VIEWS`] (`.gvb`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau`) |
-//! | `assets/icons/…` | [`ICONS`] (ícones SVG) |
-//! | `assets/blueprint-logos/…` | [`BLUEPRINTS`] (logos dos templates) |
-//! | `assets/fonts/…` | [`FONTS`] (JetBrains Mono, declarada no `app(...)` de `views/app.gvb`) |
 
 use std::borrow::Cow;
 use std::io;
@@ -40,17 +16,10 @@ static ICONS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/icons");
 /// `assets/fonts/`: as fontes que o `app(...)` declara com `font(src = …)`.
 static FONTS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/fonts");
 /// Logos dos blueprints, referenciados via o `{logo}` data-driven do catálogo
-/// do daemon (`assets/blueprint-logos/<id>/<arquivo>`). Apenas as
-/// **imagens** são embutidas, espelhadas em `<id>/<arquivo>` pelo `build.rs`
-/// (que filtra o `docker-compose.yml`/`template.toml` — ver `stage_blueprint_logos`).
+/// do daemon (`assets/blueprint-logos/<id>/<arquivo>`).
 static BLUEPRINTS: Dir<'static> = include_dir!("$OUT_DIR/blueprint_logos");
 
 /// Fontes Luau embutidas, como `(caminho relativo, conteúdo)`.
-///
-/// Serve ao índice de ações da API de agente (`agent::actions`): as ações
-/// dispatcháveis da UI são as funções globais desses arquivos, e um binário de
-/// release não tem a árvore `views/` no disco para varrer. Em debug o índice lê
-/// do disco e nem passa por aqui.
 pub(crate) fn luau_sources() -> Vec<(String, &'static str)> {
     fn recolhe(dir: &'static Dir<'static>, out: &mut Vec<(String, &'static str)>) {
         for f in dir.files() {
@@ -76,8 +45,6 @@ pub(crate) fn luau_sources() -> Vec<(String, &'static str)> {
 /// Roteia um caminho lógico para a árvore embutida + o caminho relativo a ela
 /// (a chave que `include_dir` usa, relativa à raiz do `#[folder]`).
 fn route(path: &str) -> Option<&'static File<'static>> {
-    // Normaliza separadores (`\`→`/`) e um eventual `./` inicial; as chaves do
-    // `include_dir` são sempre relativas com `/`.
     let norm = path.replace('\\', "/");
     let norm = norm.strip_prefix("./").unwrap_or(&norm);
 
@@ -128,20 +95,14 @@ impl AssetSource for EmbeddedAssets {
     }
 
     fn modified(&self, _path: &str) -> Option<SystemTime> {
-        // Embutido não muda sob o processo → desliga o hot-reload no motor.
         None
     }
 
     fn supports_reload(&self) -> bool {
-        // Sem isto o daemon manteria o ticker de hot-reload rodando pra
-        // sempre (redesenha a tela inteira a cada tick) sem nunca ter
-        // trabalho de verdade a fazer — `modified` já é `None` sempre aqui.
         false
     }
 }
 
-// Estes testes só existem em build de release (o módulo inteiro é
-// `cfg(not(debug_assertions))`); rode-os com `cargo test --release -p rustploy-gui`.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -152,7 +113,6 @@ mod tests {
     #[test]
     fn resolve_os_assets_referenciados() {
         let a = EmbeddedAssets;
-        // views: template, estilo, tema, scripts (entrada + módulo `require`d).
         for p in [
             "views/app.gvb",
             "views/styles/app.gss",
@@ -163,7 +123,6 @@ mod tests {
             assert!(a.exists(p), "faltou embutir (texto): {p}");
             assert!(a.read_to_string(p).is_ok(), "não leu (texto): {p}");
         }
-        // binários: ícone SVG estático + um logo de blueprint (data-driven).
         for p in [
             "assets/icons/terminal.svg",
             "assets/fonts/JetBrainsMono-Regular.ttf",
@@ -172,7 +131,6 @@ mod tests {
             assert!(a.exists(p), "faltou embutir (binário): {p}");
             assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}");
         }
-        // Ausente → NotFound / exists=false.
         assert!(!a.exists("views/nao_existe.gvb"));
         assert!(
             a.read_to_string("views/nao_existe.gvb")
@@ -183,8 +141,7 @@ mod tests {
     /// Prova de ponta a ponta, headless (sem janela e **sem `chdir`**): o motor
     /// carrega o app inteiro só da árvore embutida — template + `<link>`
     /// (estilo/tema) + `<script src>` Luau + a cadeia de `require` dos handlers
-    /// + render. Se qualquer asset (incl. um módulo `require`d) faltasse, o
-    /// `register_component`/`render` falharia.
+    /// + render.
     #[test]
     fn motor_sobe_o_app_so_do_binario() {
         use std::sync::Arc;

@@ -1,6 +1,5 @@
 //! Headless validation: every template parses, every screen/tab evaluates and
-//! builds an iced element tree without error. Catches malformed KDL and unknown
-//! `.gss` properties (which would drop a whole stylesheet) without a display.
+//! builds an iced element tree without error.
 
 use glacier_ui::GlacierUI;
 
@@ -12,9 +11,6 @@ fn boot() -> GlacierUI {
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 
     let mut m = GlacierUI::new();
-    // app.gvb itself links app.gss (<link rel="stylesheet">, global since
-    // glacier-ui 0.23), so register_component picks it up — no separate
-    // load_stylesheet call needed here.
     m.register_app("views/app.gvb")
         .expect("app.gvb + imports must register (includes app.gss parsing — an unknown property drops the whole sheet)");
     m.set_initial_screen("app");
@@ -28,10 +24,7 @@ fn cd_ws_root() {
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 }
 
-/// A janela "Novo projeto" (`new_project_form.gvb` + `new_project_window.luau`) é
-/// um motor à parte, aberto por `open_window`; não passa pelo `app.gvb` acima,
-/// então validamos que registra e renderiza por conta própria — semeando a
-/// conexão como `open_window({ data = ... })` faria.
+/// A janela "Novo projeto" (`new_project_form.gvb` + `new_project_window.luau`) é um motor à parte, aberto por `open_window`.
 #[test]
 fn new_project_form_window_renders() {
     cd_ws_root();
@@ -47,11 +40,6 @@ fn new_project_form_window_renders() {
         "render new_project_form"
     );
 
-    // Onda 1 da reforma: o campo NOME usa a validação declarada no <form>
-    // (glacier-ui 0.102+). Na árvore avaliada, o `form_control` "np_name" deve
-    // carregar `rules` com `required` e ter o `on_validation_error` do <form>
-    // propagado (form_error_action) — é o que garante que um envio vazio
-    // roteia pro `np_apontar` em vez do `submit_project`.
     fn find_control<'a>(
         node: &'a glacier_ui::parser::UiNode,
         name: &str,
@@ -81,9 +69,6 @@ fn new_project_form_window_renders() {
 
 /// A janela "Novo job" (`new_job_window.gvb` + `new_job_window.luau`) é um
 /// motor à parte, aberto por `open_new_job_window` (handlers/jobs.luau).
-/// Semeia projetos/serviços já buscados (como `open_window({ data = ... })`
-/// faria) e valida os três passos (escolher projeto → escolher serviço →
-/// formulário, com cada tipo de recorrência).
 #[test]
 fn new_job_window_renders() {
     cd_ws_root();
@@ -122,9 +107,6 @@ fn new_job_window_renders() {
 
     m.define_data("njob_step", "form");
     m.define_data("njob_service_name", "web");
-    // Chave única "HH:MM" do <timeedit> e a coleção do <radiogroup> de dia da
-    // semana — as duas semeadas pelo init() de new_job_window.luau na janela
-    // real; aqui o teste faz o papel dele.
     m.define_data("njob_time", "03:00");
     m.define_data(
         "weekdays",
@@ -165,8 +147,7 @@ fn log_window_renders() {
 
 /// O wizard "Novo serviço" (`new_service_window.gvb`, que importa `new_service.gvb`
 /// + `new_service_window.luau`) também é uma janela à parte, aberta por
-/// `open_new_service_window`. Validamos que registra e renderiza cada passo do
-/// wizard como motor isolado — semeando a conexão/projeto como `open_window`.
+/// `open_new_service_window`.
 #[test]
 fn new_service_wizard_window_renders() {
     cd_ws_root();
@@ -179,8 +160,6 @@ fn new_service_wizard_window_renders() {
     .expect("new_service_window.gvb must register");
     m.set_initial_screen("new_service");
 
-    // Dados que os passos de banco/template esperam (o init do script tenta o
-    // catálogo real, mas o fetch suspende sem executor — semeamos à mão).
     m.define_data("ns_db_has_dbname", "true");
     m.define_data("ns_db_has_user", "true");
     m.define_data("ns_db_has_rootpw", "true");
@@ -221,11 +200,9 @@ fn new_service_wizard_window_renders() {
 fn all_screens_and_service_tabs_render() {
     let mut m = boot();
 
-    // Login screen.
     m.reevaluate_all().expect("eval login");
     assert!(m.render("app").is_ok(), "login render");
 
-    // Shell views.
     for view in [
         "deployments",
         "projects",
@@ -244,8 +221,6 @@ fn all_screens_and_service_tabs_render() {
         assert!(m.render("app").is_ok(), "render view {view}");
     }
 
-    // Deploy Engine → painel "NA FILA" (fila global): itens enfileirados
-    // (arrastáveis) + estado pausado + botão de retomar.
     m.define_data("view", "deploy_engine");
     m.define_data("eng_queued_count", "2");
     m.define_data("eng_paused", "true");
@@ -257,7 +232,6 @@ fn all_screens_and_service_tabs_render() {
         .unwrap_or_else(|e| panic!("eval deploy_engine: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine com fila");
 
-    // Ingress → tabela de portas TCP de host (separada das rotas de domínio).
     m.define_data("view", "ingress");
     m.define_data("host_ports_count", "1");
     m.define_data(
@@ -268,9 +242,6 @@ fn all_screens_and_service_tabs_render() {
         .unwrap_or_else(|e| panic!("eval ingress/host_ports: {e}"));
     assert!(m.render("app").is_ok(), "render ingress/host_ports");
 
-    // Docker → as 5 sub-abas (o loop de views acima só renderiza o default
-    // "containers"; containers/images/volumes/networks/registry têm cada
-    // uma seu próprio painel escopado por docker_tab, nunca exercitados).
     m.define_data("view", "docker");
     m.define_data("docker_containers_count", "1");
     m.define_data(
@@ -315,8 +286,6 @@ fn all_screens_and_service_tabs_render() {
             .unwrap_or_else(|e| panic!("eval docker/{tab}: {e}"));
         assert!(m.render("app").is_ok(), "render docker/{tab}");
     }
-    // Registry: também o branch "repo selecionado" (lista de tags), não só a
-    // lista de repos.
     m.define_data("registry_selected_repo", "acme/api");
     m.define_data("registry_tags_count", "1");
     m.define_data(
@@ -330,7 +299,6 @@ fn all_screens_and_service_tabs_render() {
         "render docker/registry com repo selecionado"
     );
 
-    // Schedules → tabela global de jobs one-shot (todos os projetos).
     m.define_data("view", "schedules");
     m.define_data("jobs_count", "1");
     m.define_data(
@@ -341,11 +309,6 @@ fn all_screens_and_service_tabs_render() {
         .unwrap_or_else(|e| panic!("eval schedules: {e}"));
     assert!(m.render("app").is_ok(), "render schedules com dados");
 
-    // Projeto aberto (project_services): grid de serviços e a aba de
-    // variáveis de ambiente de nível de projeto.
-    // Nome de env var absurdamente longo: exercita o truncamento de
-    // `key_display` (env_var_row em fmt/service_detail.luau) sem quebrar o
-    // `key` completo usado por delete/reorder/.env.
     m.define_data(
         "proj_env",
         r##"[{"key":"__c0","value":"# comentário","kind":"comment"},{"key":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_THAT_SHOULD_BE_TRUNCATED","key_display":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_TH…","value":"x","kind":"plain"}]"##,
@@ -372,8 +335,6 @@ fn all_screens_and_service_tabs_render() {
         );
     }
 
-    // Aba Variáveis no modo "usar secret" (o form troca o campo valor pelo nome
-    // do secret e lista os chips) e a lista de secrets vazia (estado inicial).
     m.define_data("proj_tab", "env");
     m.define_data("penv_new_is_secret", "true");
     m.reevaluate_all()
@@ -392,7 +353,6 @@ fn all_screens_and_service_tabs_render() {
     }
     m.define_data("penv_new_is_secret", "false");
 
-    // Settings → Git sub-tab (provider list + connect form, both methods).
     m.define_data("view", "settings");
     m.define_data("gitea_count", "1");
     for mode in ["oauth", "pat"] {
@@ -403,17 +363,12 @@ fn all_screens_and_service_tabs_render() {
         assert!(m.render("app").is_ok(), "render settings/git {mode}");
     }
 
-    // Settings → Web Server (default tab). A URL pública é derivada pelo daemon
-    // (`DaemonSettings.public_base_url`) e exibida só-leitura — não há mais campo
-    // de domínio editável aqui.
     m.define_data("settings_tab", "web");
     m.define_data("ss_public_base", "https://rustploy.meusite.com");
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval settings/web: {e}"));
     assert!(m.render("app").is_ok(), "render settings/web");
 
-    // Settings → Infra as Code: export panel (yaml+dotenv textareas), the
-    // missing-vars error branch, and the applied-report branch.
     m.define_data("settings_tab", "iac");
     m.define_data("iac_has_export", "true");
     m.define_data("iac_yaml", "apiVersion: rustploy/v1\nprojects: []\n");
@@ -429,18 +384,11 @@ fn all_screens_and_service_tabs_render() {
         .unwrap_or_else(|e| panic!("eval settings/iac: {e}"));
     assert!(m.render("app").is_ok(), "render settings/iac");
 
-    // Settings → Manutenção (limpeza automática de Docker): as 3 recorrências
-    // (cada uma mostra campos diferentes: HOURS pra interval, HORÁRIO pra
-    // daily, +WEEKDAY pra weekly) e o toggle geral + os 6 sub-toggles do que
-    // limpar.
     m.define_data("settings_tab", "maintenance");
     m.define_data("dc_enabled", "true");
     m.define_data("dc_hours", "6");
-    // Chave única "HH:MM" do <timeedit> — antes eram dc_hour + dc_minute.
     m.define_data("dc_time", "03:00");
     m.define_data("dc_weekday", "0");
-    // Coleção de opções do <radiogroup> de dia da semana; sem ela o grupo
-    // renderiza vazio (é o mesmo contrato do for-each: lê chave, não texto).
     m.define_data(
         "weekdays",
         r#"[{"id":"0","label":"Seg"},{"id":"1","label":"Ter"},{"id":"2","label":"Qua"},{"id":"3","label":"Qui"},{"id":"4","label":"Sex"},{"id":"5","label":"Sáb"},{"id":"6","label":"Dom"}]"#,
@@ -469,7 +417,6 @@ fn all_screens_and_service_tabs_render() {
         );
     }
 
-    // Service detail tabs (the editable forms + log views).
     for tab in [
         "general",
         "connection",
@@ -483,17 +430,12 @@ fn all_screens_and_service_tabs_render() {
         m.define_data("screen", "shell");
         m.define_data("view", "service");
         m.define_data("tab", tab);
-        // Exercise the env editor + build-log panel + Gitea sub-tab branches too.
         m.define_data("env_text_open", "true");
-        // Lista de env com um comentário (linha display-only), uma var normal e
-        // um nome absurdamente longo (exercita o truncamento de `key_display`).
         m.define_data(
             "svc_env",
             r##"[{"key":"__c0","value":"# comentário","kind":"comment"},{"key":"OLA","key_display":"OLA","value":"mundo","kind":"plain"},{"key":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_THAT_SHOULD_BE_TRUNCATED","key_display":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_TH…","value":"x","kind":"plain"}]"##,
         );
         m.define_data("dep_selected", "abc123");
-        // Aba Deployments: bloco de webhook com a URL já emitida (o serviço tem
-        // token, ou seja, já foi deployado ao menos uma vez).
         m.define_data("svc_webhook_supported", "true");
         m.define_data(
             "svc_webhook_url",
@@ -503,7 +445,6 @@ fn all_screens_and_service_tabs_render() {
             "svc_webhook_url_short",
             "https://rustploy.meusite.com/webhook/svc_01ABC…",
         );
-        // Show the Gitea sub-tab and render its picker body.
         m.define_data("gitea_count", "1");
         m.define_data("prov_tab", "gitea");
         m.reevaluate_all()
@@ -511,9 +452,6 @@ fn all_screens_and_service_tabs_render() {
         assert!(m.render("app").is_ok(), "render tab {tab}");
     }
 
-    // General → provider da origem: as sub-abas Git e Zip do bloco
-    // Provider (só "gitea" era exercitada acima) + o editor de Compose
-    // (svc_source_kind="Compose" troca o bloco inteiro pelo textarea).
     m.define_data("tab", "general");
     m.define_data("svc_source_kind", "Git");
     m.define_data("erro_f_gen_port", "");
@@ -529,8 +467,6 @@ fn all_screens_and_service_tabs_render() {
     m.reevaluate_all().expect("eval general/compose");
     assert!(m.render("app").is_ok(), "render general/compose");
 
-    // Webhook, os outros dois estados: serviço ainda sem token (nunca deployado,
-    // mostra o aviso em vez da URL) e serviço Compose (sem webhook nenhum).
     m.define_data("tab", "deployments");
     m.define_data("svc_webhook_url", "");
     m.reevaluate_all()
@@ -550,15 +486,7 @@ fn all_screens_and_service_tabs_render() {
 }
 
 /// Onda 2 da reforma (docs/plano-reforma-gui-glacier-0.102.md): a sidebar é uma
-/// `<drawer>`, não mais um trilho de ícones colapsável por `@media`. O contrato
-/// que este teste trava:
-///   1. o `<drawer>` (um `<Reveal axis="x">` após o eval) reflete `{menu}` no
-///      seu `open` — `"true"` abre, vazio fecha;
-///   2. o gatilho `☰` da topbar dispara `drawer::toggle:menu` (a ação que o
-///      builtin `Drawer` consome, de qualquer lugar da tela);
-///   3. abaixo de 900px os rótulos dos NavItem **não** são forçados a `hidden`
-///      por um `@media` (era o bug antigo: o trilho de ícones sumia o rótulo;
-///      agora a gaveta inteira fecha pelo ☰, e quando aberta cabe em 264px).
+/// `<drawer>`, não mais um trilho de ícones colapsável por `@media`.
 #[test]
 fn sidebar_is_a_drawer_bound_to_menu_key() {
     use glacier_ui::widget::EngineMessage;
@@ -567,7 +495,6 @@ fn sidebar_is_a_drawer_bound_to_menu_key() {
     m.define_data("view", "deployments");
     m.define_data("menu", "true");
     m.reevaluate_all().expect("eval shell");
-    // Largura estreita: a que reproduziu o bug original de layout.
     let _ = m.dispatch(&EngineMessage::Viewport {
         width: 731.0,
         height: 680.0,
@@ -586,7 +513,6 @@ fn sidebar_is_a_drawer_bound_to_menu_key() {
         }
     }
 
-    // (2) o gatilho ☰ → drawer::toggle:menu
     let ast = m.evaluated("app").expect("app evaluated");
     let mut triggers = Vec::new();
     find(
@@ -606,7 +532,6 @@ fn sidebar_is_a_drawer_bound_to_menu_key() {
         "esperava um botão on_click=\"drawer::toggle:menu\" (o ☰ da topbar)"
     );
 
-    // (1) o <Reveal axis="x"> da gaveta reflete {menu}
     let mut reveals = Vec::new();
     find(
         ast,
@@ -624,7 +549,6 @@ fn sidebar_is_a_drawer_bound_to_menu_key() {
         "esperava o <Reveal axis=\"x\"> da <drawer> com open=\"true\" quando menu=true"
     );
 
-    // (3) rótulos dos NavItem NÃO forçados a hidden abaixo de 900px
     let mut labels = Vec::new();
     find(
         ast,
@@ -651,7 +575,6 @@ fn sidebar_is_a_drawer_bound_to_menu_key() {
         );
     }
 
-    // Gaveta fechada: o <Reveal> passa a open vazio.
     m.define_data("menu", "");
     m.reevaluate_all().expect("eval shell menu fechado");
     let ast = m.evaluated("app").expect("app evaluated");
@@ -674,18 +597,11 @@ fn sidebar_is_a_drawer_bound_to_menu_key() {
 }
 
 /// Regressão: as ações da tela de serviço (Deploy/Reload/Rebuild/Stop) têm duas
-/// fileiras que se alternam por largura. Acima de 1080px vale a de texto; abaixo,
-/// a compacta (ícone + tooltip) — senão os 4 rótulos por extenso não cabem e o
-/// título de 30px transborda por baixo deles ("Deploy por cima do nome"). Ambas
-/// existem sempre no AST; o que muda é qual está `hidden`.
+/// fileiras que se alternam por largura.
 #[test]
 fn service_actions_collapse_to_icons_when_narrow() {
     use glacier_ui::widget::EngineMessage;
 
-    // O rótulo de um botão é `Button { text }`, não um nó Text filho. Conta os
-    // botões de ação visíveis por fileira: (n_full, n_compact). Só as 4 ações
-    // (svc_deploy/reload/rebuild/stop) usam esses textos, então não há colisão
-    // com ícones da sidebar (que são nós <text>, não botões).
     fn count_visible(
         node: &glacier_ui::parser::UiNode,
         full: &mut u32,
@@ -714,7 +630,6 @@ fn service_actions_collapse_to_icons_when_narrow() {
     m.define_data("tab", "general");
     m.reevaluate_all().expect("eval service");
 
-    // Largo: fileira de texto visível, compacta oculta.
     let _ = m.dispatch(&EngineMessage::Viewport {
         width: 1400.0,
         height: 820.0,
@@ -732,7 +647,6 @@ fn service_actions_collapse_to_icons_when_narrow() {
         "em 1400px espera 4 botões de texto e 0 ícones"
     );
 
-    // Estreito: inverte.
     let _ = m.dispatch(&EngineMessage::Viewport {
         width: 980.0,
         height: 820.0,
@@ -752,27 +666,17 @@ fn service_actions_collapse_to_icons_when_narrow() {
 }
 
 /// A avaliação do glacier é **escopada** (0.38+): só a tela ativa é construída,
-/// não todo template registrado. Isso importa aqui mais do que na média dos
-/// apps: `app.gvb` importa a árvore inteira de views (login, shell, home,
-/// service, componentes), e avaliar um template inlina recursivamente tudo que
-/// ele usa — então a versão antiga reconstruía a UI completa uma vez **por
-/// template importado**, a cada tecla digitada e a cada linha de log que chega
-/// pelo SSE.
-///
-/// Este teste trava o ganho: registrar `app.gvb` (que puxa a dúzia de views) e
-/// ativá-la deve deixar exatamente UMA árvore avaliada.
+/// não todo template registrado.
 #[test]
 fn so_a_tela_ativa_e_avaliada() {
     let m = boot();
 
-    // As views importadas estão todas registradas...
     for importado in ["Login", "Shell"] {
         assert!(
             m.is_registered(importado),
             "{importado} deveria ter sido importado por app.gvb"
         );
     }
-    // ...mas só a tela ativa está avaliada (as demais são inlinadas dentro dela).
     assert!(m.render("app").is_ok(), "a tela ativa renderiza");
     assert!(
         matches!(
@@ -786,14 +690,10 @@ fn so_a_tela_ativa_e_avaliada() {
 /// Logout tem que zerar a RAM da sessão: nada do daemon anterior pode continuar
 /// no contexto (nomes de projeto, linhas de log, o próprio api_token) — foi um
 /// bug real, porque o `disconnect` antigo limpava só quatro chaves à mão.
-/// Hoje ele apaga o `ctx` inteiro e deixa o `init()` semear os defaults, então
-/// este teste dispara a ação de verdade (`UiClick`, o mesmo caminho do botão
-/// Disconnect) e inspeciona o contexto do motor.
 #[test]
 fn disconnect_limpa_o_contexto_da_sessao() {
     let mut m = boot();
 
-    // Estado de uma sessão conectada, do trivial ao sensível.
     for (k, v) in [
         ("connected", "true"),
         ("screen", "shell"),
@@ -832,7 +732,6 @@ fn disconnect_limpa_o_contexto_da_sessao() {
             ctx.get(k)
         );
     }
-    // O que o init() repõe: volta ao estado de boot, não ao da sessão.
     assert_eq!(ctx.get("connected").map(String::as_str), Some("false"));
     assert_eq!(ctx.get("screen").map(String::as_str), Some("login"));
     assert_eq!(
@@ -845,23 +744,11 @@ fn disconnect_limpa_o_contexto_da_sessao() {
 /// Regressão: o item "Projects" da sidebar apagava (perdia o fundo azul)
 /// assim que você entrava num projeto ou num serviço — `nav_item.gvb`
 /// comparava `{view}` contra um `target` de UMA view só (`equals`), e
-/// `project_services`/`service` não são `"projects"`. Corrigido usando
-/// `one_of` (glacier-ui 0.57.8): `target="projects project_services
-/// service"` casa com qualquer uma das três. `nav_row_on` é a classe que dá
-/// o fundo azul — só que o widget `<button>` do glacier-ui lê a propriedade
-/// `color:` do GSS pro fundo (não `background:`, que é ignorada em botões;
-/// ver `widget.rs` do glacier-ui, `NodeType::Button { color, .. }`), então o
-/// campo que importa é `node.kind`'s `color`, não o `node.background`
-/// genérico (esse é para containers/rows).
+/// `project_services`/`service` não são `"projects"`.
 #[test]
 fn nav_item_projects_fica_aceso_nas_sub_telas() {
     use glacier_ui::parser::NodeType;
 
-    // `on_click` chega namespaceado pelo componente que o hospeda
-    // (`namespace_action` — ver eval.rs no glacier-ui): mesmo com o valor
-    // vindo de um prop (`action="nav_projects"` em shell.gvb), o botão vive
-    // dentro do template do componente `NavItem`, então o dispatch final é
-    // "NavItem::nav_projects".
     fn projects_nav_button_lit<'a>(node: &'a glacier_ui::parser::UiNode) -> Option<bool> {
         if let NodeType::Button {
             on_click, color, ..
@@ -900,14 +787,11 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
 /// de `views/app.gvb` (tamanho, mínimo, moldura, ícone); o título é da `screen`
 /// (acompanha a navegação); e o tamanho de cada janela FILHA vai na chamada
 /// `open_window{ component = "…", size = "…" }` dos handlers, porque a `screen` é
-/// só conteúdo. Este teste é o que garante que nada disso sumiu no caminho — um
-/// atributo apagado por engano não quebra render nenhum, só faz a janela nascer
-/// com o default do iced.
+/// só conteúdo.
 #[test]
 fn janelas_declaram_titulo_e_tamanho() {
     cd_ws_root();
 
-    // A principal: tudo vem do `app(...)` e da `screen` inicial.
     let mut m = GlacierUI::new();
     m.register_app("views/app.gvb").expect("app.gvb deve registrar");
     let janela = m.main_window_meta().expect("o app declara a janela principal");
@@ -917,15 +801,11 @@ fn janelas_declaram_titulo_e_tamanho() {
     assert_eq!(janela.decorations, Some(false), "a principal é borderless");
     assert!(janela.icon.is_some(), "o app declara o ícone");
 
-    // As filhas: o título é da `screen`; o tamanho, de quem abre.
-    // (tela, título esperado, tamanho esperado no handler)
     let filhas = [
         ("new_project", Some("Novo projeto — Rustploy"), "460 340", "handlers/projects.luau"),
         ("new_job", Some("Novo job — Rustploy"), "560 700", "handlers/jobs.luau"),
         ("new_service", Some("Novo serviço — Rustploy"), "560 700", "handlers/wizard.luau"),
         ("new_registry_token", Some("Novo token — Rustploy"), "480 420", "handlers/registry.luau"),
-        // A janela de logs é a exceção proposital: o título é dinâmico ("Logs —
-        // nginx", "Build — abc123") e vem de quem a abre.
         ("log", None, "900 560", "handlers/services.luau"),
     ];
     for (tela, titulo, tamanho, handler) in filhas {
@@ -945,8 +825,7 @@ fn janelas_declaram_titulo_e_tamanho() {
 
 /// O `app(...)` declara os ajustes do daemon que saíram de `app/mod.rs`
 /// (glacier-ui 0.119): fontes, fonte padrão, antialiasing, período dos toasts e
-/// `application_id`. Um atributo apagado por engano não quebra render nenhum — o
-/// app só passa a abrir sem a fonte e com MSAA ligado, em silêncio.
+/// `application_id`.
 #[test]
 fn app_declara_fontes_e_ajustes_do_daemon() {
     cd_ws_root();
@@ -987,14 +866,6 @@ fn comentarios_fora(src: &str) -> String {
 
 /// Todo `.gvb` abre com a casca certa: `app` no manifesto (`views/app.gvb`),
 /// `screen` nas telas abertas em outra janela e `component` no resto.
-///
-/// Ele precisa existir porque o glacier-ui aceita a forma sem cabeçalho (as
-/// declarações soltas na raiz) por compatibilidade: nada no build reclamaria de um
-/// arquivo daqui que voltasse a ela, e o que se perde é silencioso — numa tela,
-/// título caem no default; num componente, some a fronteira entre declaração e
-/// layout. É TEXTUAL de propósito: um `component` não declara nada por desenho,
-/// então só o texto diz em que forma o arquivo está. E VARRE o diretório, em vez
-/// de listar arquivos: o alvo é o `.gvb` que ainda não foi escrito.
 #[test]
 fn todo_template_comeca_com_cabecalho() {
     cd_ws_root();
@@ -1002,8 +873,6 @@ fn todo_template_comeca_com_cabecalho() {
     let raiz = std::path::Path::new("views");
     let mut vistos = 0;
 
-    // `views/` mistura o manifesto, telas e views internas (`component`); só
-    // `views/components/` é homogêneo — nada ali é tela.
     for (dir, so_component) in [(raiz.to_path_buf(), false), (raiz.join("components"), true)] {
         let mut arquivos: Vec<_> = std::fs::read_dir(&dir)
             .unwrap_or_else(|e| panic!("ler {}: {e}", dir.display()))
@@ -1046,9 +915,6 @@ fn todo_template_comeca_com_cabecalho() {
         }
     }
 
-    // Guarda contra o teste passar vazio (um caminho errado torna tudo acima
-    // um no-op). Comparação frouxa de propósito: acrescentar um `.gvb` não deve
-    // obrigar a editar este teste.
     assert!(
         vistos >= 21,
         "o teste não achou os templates: {vistos} arquivos varridos"
@@ -1056,26 +922,13 @@ fn todo_template_comeca_com_cabecalho() {
 }
 
 /// As grades de cards (projetos e serviços) passam o item INTEIRO ao componente
-/// via `spread="{c}"` (glacier-ui 0.62). Isso troca um atributo por campo por um
-/// só — e move a checagem do contrato para o **dado**: um campo que o
-/// `fmt/dashboard.luau` não emitir vira `MissingProp` e derruba a tela inteira,
-/// não um `{placeholder}` vazio como antes.
-///
-/// O caso perigoso é o **filler** (o card vazio que completa a fileira do grid):
-/// ele nasce de um único `FILLER` compartilhado pelas duas grades, e em Lua um
-/// campo `= nil` simplesmente não existe. Por isso ele carrega a união dos dois
-/// contratos como string vazia — e é isto que este teste tranca.
+/// via `spread="{c}"` (glacier-ui 0.62).
 #[test]
 fn grades_de_cards_renderizam_com_spread() {
     let mut m = boot();
     m.define_data("screen", "shell");
-    // connection.luau semeia data_loading="true" no init, e o <scrollable> da
-    // grade fica escondido atrás dele — sem isto o for-each nunca roda e o
-    // teste passa sem ter avaliado um card sequer.
     m.define_data("data_loading", "false");
 
-    // Uma fileira com um card real + um filler, exatamente a forma que
-    // `M.project_rows` produz quando há 1 projeto numa grade de 2 colunas.
     m.define_data("view", "projects");
     m.define_data(
         "project_rows",

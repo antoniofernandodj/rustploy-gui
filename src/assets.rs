@@ -1,18 +1,4 @@
 //! Runtime asset location.
-//!
-//! Every KDL template, stylesheet, icon and blueprint logo is referenced by a
-//! path relative to the process' current working directory — both from Rust
-//! (`views/styles/app.gss`, `views/app.gvb`,
-//! `assets/blueprint-logos/<id>/<logo>`) and from *inside* the KDL
-//! themselves (`import ... from="views/service.gvb"`,
-//! `theme "views/styles/theme.json"`, `Svg "assets/icons/…"`).
-//!
-//! Rather than rewrite every literal, we locate the directory that holds those
-//! `views/` and `assets/` trees once at startup and
-//! `chdir` into it. After that, every relative path resolves no matter how the
-//! app was launched: `cargo run` from the workspace root, the Windows `.zip`
-//! (assets sit next to the `.exe`), or the Debian package (assets under
-//! `/usr/share/rustploy`).
 
 use std::path::{Path, PathBuf};
 
@@ -24,18 +10,7 @@ const MARKER: &str = "views/app.gvb";
 const SYSTEM_PREFIX: &str = "/usr/share/rustploy";
 
 /// Finds the asset base directory and `chdir`s into it so all the
-/// CWD-relative asset paths resolve. Resolution order:
-///
-/// 1. `$RUSTPLOY_UI_ASSETS` — explicit override.
-/// 2. The executable's own directory — portable / Windows `.zip` layout.
-/// 3. The current directory, if it already contains the assets — `cargo run`
-///    from the workspace root during development (no `chdir` needed). Checked
-///    *before* [`SYSTEM_PREFIX`] so an installed `.deb` doesn't shadow the
-///    working tree during a dev run.
-/// 4. [`SYSTEM_PREFIX`] — Debian package layout.
-///
-/// Best-effort: if none match, the CWD is left as-is and the app will surface
-/// a "stylesheet/template not found" error, which is the clearest signal.
+/// CWD-relative asset paths resolve.
 pub fn locate_and_chdir() {
     if let Some(base) = find_base() {
         if let Err(e) = std::env::set_current_dir(&base) {
@@ -60,10 +35,6 @@ fn find_base() -> Option<PathBuf> {
         }
     }
 
-    // Dev run from the workspace root: the CWD already holds the assets. Prefer
-    // it over SYSTEM_PREFIX so an installed `.deb` under /usr/share/rustploy
-    // doesn't shadow the working tree during `cargo run`. No chdir needed —
-    // returning None leaves the CWD as-is.
     if let Ok(cwd) = std::env::current_dir() {
         if has_marker(&cwd) {
             return None;

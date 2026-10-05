@@ -1,13 +1,4 @@
 //! Servidor hyper da API de agente e os handlers de cada rota.
-//!
-//! Servidor **e** cliente são hyper (ver `client.rs`): o daemon do rustploy já
-//! serve a própria API assim, e não faz sentido carregar um segundo framework
-//! HTTP dentro do app de desktop só para servir sete rotas em loopback.
-//!
-//! Todas as rotas devolvem JSON, inclusive os erros — um agente não deveria
-//! precisar distinguir "corpo de erro em texto" de "corpo de resposta em JSON"
-//! no meio de um fluxo. O formato de erro é sempre
-//! `{"error": {"code": "...", "message": "..."}}`.
 
 use std::convert::Infallible;
 use std::net::SocketAddr;
@@ -30,9 +21,7 @@ use super::session::Session;
 use super::ui::ConnectOutcome;
 use super::{SharedSession, actions, catalog, handoff, servers, ui};
 
-/// Teto do corpo de uma requisição. Generoso porque um `ManifestApply` ou um
-/// `ServiceUpdate` de fonte Compose carrega YAML de verdade (dezenas de KB), e
-/// mesquinho o bastante para um cliente maluco não comer a RAM do app.
+/// Teto do corpo de uma requisição.
 const MAX_BODY: usize = 32 * 1024 * 1024;
 
 /// De quanto em quanto tempo o `wait` de um deploy reconsulta o daemon.
@@ -45,8 +34,7 @@ const MAX_WAIT: Duration = Duration::from_secs(3600);
 struct Ctx {
     session: SharedSession,
     remote: Remote,
-    /// Canal para injetar ações no motor da janela (glacier-ui 0.58.6+). É o
-    /// que torna a GUI dirigível: sem ele, login/navegação só por clique.
+    /// Canal para injetar ações no motor da janela (glacier-ui 0.58.6+).
     ui: ExternalSender,
     /// Token exigido no `Authorization` das rotas desta API (não o do daemon).
     token: String,
@@ -69,9 +57,7 @@ impl ApiFail {
         }
     }
 
-    /// A janela não está conectada a daemon nenhum. Vale um status próprio
-    /// (503) e uma mensagem que diz o que fazer, porque é o erro que um agente
-    /// mais vai encontrar: o app abriu, mas ninguém logou ainda.
+    /// A janela não está conectada a daemon nenhum.
     fn desconectado() -> Self {
         Self::new(
             StatusCode::SERVICE_UNAVAILABLE,
@@ -96,8 +82,6 @@ impl ApiFail {
 impl From<RemoteError> for ApiFail {
     fn from(e: RemoteError) -> Self {
         match e {
-            // 502: quem falhou foi o salto daqui para o daemon, não o pedido do
-            // agente — a distinção importa para ele saber se adianta repetir.
             RemoteError::Transport(msg) => {
                 ApiFail::new(StatusCode::BAD_GATEWAY, "daemon_unreachable", msg)
             }
@@ -119,8 +103,6 @@ impl From<RemoteError> for ApiFail {
     }
 }
 
-// ── servidor ────────────────────────────────────────────────────────────────
-
 /// Sobe o listener e serve até o processo morrer.
 pub(super) async fn serve(
     addr: SocketAddr,
@@ -141,8 +123,6 @@ pub(super) async fn serve(
     });
 
     if let Err(e) = handoff::write(addr, &ctx.token, remote_url(&ctx).as_deref()) {
-        // Sem handoff a API sobe do mesmo jeito, mas ninguém a descobre — vale
-        // um aviso alto, não um encerramento.
         eprintln!(
             "[agent-api] no ar em http://{addr}, mas falhou ao gravar {}: {e}",
             handoff::path().display()
@@ -177,7 +157,6 @@ async fn accept_loop(listener: tokio::net::TcpListener, ctx: Arc<Ctx>) -> Result
                 .serve_connection(TokioIo::new(stream), svc)
                 .await
             {
-                // Cliente que desiste no meio é rotina; nada a relatar.
                 let _ = e;
             }
         });
@@ -186,7 +165,7 @@ async fn accept_loop(listener: tokio::net::TcpListener, ctx: Arc<Ctx>) -> Result
 
 /// Tenta o endereço pedido; se a porta estiver ocupada (outro app, ou uma
 /// instância anterior ainda encerrando), cai para uma porta efêmera no mesmo
-/// IP. O handoff é que diz onde a API realmente ficou — por isso ele existe.
+/// IP.
 async fn bind(preferido: SocketAddr) -> Result<(tokio::net::TcpListener, SocketAddr), String> {
     match tokio::net::TcpListener::bind(preferido).await {
         Ok(l) => {
@@ -210,10 +189,6 @@ fn remote_url(ctx: &Ctx) -> Option<String> {
 }
 
 /// Mantém o campo `remote_url`/`connected` do handoff em dia.
-///
-/// A sessão muda na thread da UI (login, logout, troca de servidor) e o handoff
-/// é escrito aqui, na thread da API — um poll curto é o acoplamento mais barato
-/// entre as duas, e não há nada a perder em detectar a mudança 2s depois.
 async fn watch_session(ctx: Arc<Ctx>) {
     let mut ultimo = remote_url(&ctx);
     loop {
@@ -226,8 +201,6 @@ async fn watch_session(ctx: Arc<Ctx>) {
     }
 }
 
-// ── roteamento ──────────────────────────────────────────────────────────────
-
 /// Roteia uma requisição da API de agente: liveness sem token, depois o gate de
 /// token, as rotas de dados (repassadas ao daemon) e as de controle da janela.
 async fn handle(
@@ -238,9 +211,6 @@ async fn handle(
     let caminho = req.uri().path().to_owned();
     let query = req.uri().query().unwrap_or_default().to_owned();
 
-    // Liveness fica FORA do gate de token: serve para um agente saber se o app
-    // está no ar antes de ter lido o handoff, e não revela nada — nem o
-    // endereço do daemon remoto, que é dado do usuário.
     if metodo == Method::GET && caminho == "/agent/health" {
         return Ok(json_response(
             StatusCode::OK,
@@ -266,7 +236,6 @@ async fn handle(
         (&Method::POST, "/agent/ingress/reconcile") => ingress_reconcile(&ctx, req).await,
         (&Method::POST, "/agent/rpc") => rpc_passthrough(&ctx, req).await,
 
-        // ── controle da própria janela (ver `ui.rs`) ──────────────────────
         (&Method::GET, "/agent/servers") => Ok(json_response(StatusCode::OK, &servers::as_json())),
         (&Method::POST, "/agent/connect") => connect(&ctx, req).await,
         (&Method::POST, "/agent/disconnect") => disconnect(&ctx),
@@ -320,9 +289,7 @@ fn archive_path(p: &str) -> Option<String> {
     Some(resto.to_owned())
 }
 
-/// Bearer da API de agente (não o do daemon). Comparação em tempo constante:
-/// o token é curto e local, mas comparar segredo com `==` é o tipo de detalhe
-/// que não vale economizar.
+/// Bearer da API de agente (não o do daemon).
 fn check_token(req: &Request<Incoming>, esperado: &str) -> Result<(), ApiFail> {
     let recebido = req
         .headers()
@@ -353,8 +320,6 @@ fn ct_eq(a: &[u8], b: &[u8]) -> bool {
     a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
-// ── handlers ────────────────────────────────────────────────────────────────
-
 /// Executa um `Command` no daemon e já converte `Response::Err` em falha.
 async fn rpc(ctx: &Ctx, cmd: Value) -> Result<Value, ApiFail> {
     let session: Session = ctx.session.get().ok_or_else(ApiFail::desconectado)?;
@@ -372,7 +337,7 @@ async fn rpc(ctx: &Ctx, cmd: Value) -> Result<Value, ApiFail> {
 }
 
 /// Como [`rpc`], mas exige que a resposta seja a variante esperada e devolve o
-/// payload dela. Uma variante inesperada é bug de protocolo, não do agente.
+/// payload dela.
 async fn rpc_expect(ctx: &Ctx, cmd: Value, variante: &str) -> Result<Value, ApiFail> {
     let resposta = rpc(ctx, cmd).await?;
 
@@ -407,11 +372,6 @@ async fn status(ctx: &Ctx) -> Result<Response<Full<Bytes>>, ApiFail> {
 }
 
 /// `GET /agent/services` — índice achatado projeto→serviço.
-///
-/// Existe porque o caminho cru para "qual é o id do serviço chamado X?" é
-/// `ProjectList` seguido de um `ServiceList` por projeto, e a alternativa de uma
-/// chamada só (`Snapshot`) devolve o dashboard inteiro — Docker, jobs, registry,
-/// métricas. Aqui vai só o que identifica um serviço.
 async fn services(ctx: &Ctx) -> Result<Response<Full<Bytes>>, ApiFail> {
     let snapshot = snapshot(ctx).await?;
     let lista = service_index(&snapshot);
@@ -423,7 +383,7 @@ async fn services(ctx: &Ctx) -> Result<Response<Full<Bytes>>, ApiFail> {
 }
 
 /// `Snapshot` devolve `Response::Snapshot(String)` — JSON **dentro** de uma
-/// string, não um objeto. Este helper desembrulha as duas camadas.
+/// string, não um objeto.
 async fn snapshot(ctx: &Ctx) -> Result<Value, ApiFail> {
     let cru = rpc_expect(ctx, json!("Snapshot"), "Snapshot").await?;
     let texto = cru.as_str().ok_or_else(|| {
@@ -467,12 +427,6 @@ async fn deploys(ctx: &Ctx, query: &str) -> Result<Response<Full<Bytes>>, ApiFai
 
 /// `POST /agent/deploys` — dispara um deploy e, com `wait`, só responde quando
 /// ele terminou.
-///
-/// É a rota que motivou este módulo. Sem ela, "o deploy funcionou?" custa ao
-/// agente um `DeployStart`, um laço de `DeployHistory` filtrando por id, um
-/// `GetBuildLogs` inteiro e o conhecimento de que a causa da falha mora no
-/// `states_log` e não no estado — que é exatamente o conhecimento que ninguém
-/// tem na primeira vez.
 async fn start_deploy(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<Bytes>>, ApiFail> {
     let corpo = read_json(req).await?;
 
@@ -542,9 +496,6 @@ async fn start_deploy(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full
 }
 
 /// Descobre o `service_id` do corpo: aceita o id direto ou o nome do serviço.
-///
-/// Aceitar nome é o que faz a rota utilizável de cabeça — o nome é o que o
-/// usuário diz ("sobe o stand-imob"), o ULID não.
 async fn resolve_service(ctx: &Ctx, corpo: &Value) -> Result<String, ApiFail> {
     if let Some(id) = corpo.get("service_id").and_then(Value::as_str) {
         let id = id.trim();
@@ -582,8 +533,6 @@ async fn resolve_service(ctx: &Ctx, corpo: &Value) -> Result<String, ApiFail> {
             "no_such_service",
             format!("nenhum serviço chamado {nome:?} — veja GET /agent/services"),
         )),
-        // Nome de serviço é único por projeto, não globalmente: com ambiguidade
-        // a rota não escolhe por conta própria.
         varios => Err(ApiFail::bad_request(format!(
             "{:?} existe em {} projetos — mande \"service_id\". Candidatos: {}",
             nome,
@@ -604,10 +553,6 @@ async fn resolve_service(ctx: &Ctx, corpo: &Value) -> Result<String, ApiFail> {
 }
 
 /// Poll até o deployment chegar a um estado terminal (ou o prazo acabar).
-///
-/// Poll, e não SSE: manter uma conexão de eventos aberta aqui significaria
-/// consumir e reemitir o firehose do daemon só para observar um id. O deploy
-/// mais rápido leva segundos; 2s de granularidade não custam nada.
 async fn wait_for_outcome(
     ctx: &Ctx,
     service_id: &str,
@@ -639,9 +584,6 @@ async fn wait_for_outcome(
         }
 
         if comeco.elapsed() >= limite {
-            // Expirou: devolve o último estado conhecido em vez de erro seco —
-            // "ainda em BuildingImage depois de 15 min" é informação útil, e o
-            // agente decide se espera mais ou investiga.
             let dep = ultimo.unwrap_or_else(
                 || json!({ "id": deployment_id, "service_id": service_id, "state": "Unknown" }),
             );
@@ -653,12 +595,6 @@ async fn wait_for_outcome(
 }
 
 /// `GET /agent/deploys/<id>/logs` — build log com cursor.
-///
-/// O daemon só sabe devolver o log inteiro (`GetBuildLogs` não tem cursor), e um
-/// build de verdade passa de mil linhas. A fatia acontece aqui: o tráfego caro
-/// é o desta ponte para o agente, não o da ponte para o daemon na mesma sessão.
-/// `after` é o índice da última linha já vista — a tabela do daemon só recebe
-/// append e é ordenada por timestamp, então o índice é um cursor estável.
 async fn build_logs(
     ctx: &Ctx,
     deployment_id: &str,
@@ -704,16 +640,7 @@ async fn build_log_lines(ctx: &Ctx, deployment_id: &str) -> Result<Vec<String>, 
         .unwrap_or_default())
 }
 
-/// `POST /agent/rpc` — qualquer `Command` do protocolo, sem tradução.
-///
-/// A válvula de escape que mantém as rotas de conveniência honestas: elas
-/// existem para os caminhos frequentes, não para virarem a única porta. Tudo o
-/// que a GUI faz, um agente faz por aqui.
 /// `GET /agent/ingress` — a tabela de rotas viva do proxy reverso.
-///
-/// A pergunta que isto responde é a de um domínio que devolve 502: existe rota
-/// para ele, e para qual `ip:porta` ela aponta? Um `backends` vazio, ou
-/// apontando para a porta errada, é a resposta.
 async fn ingress_routes(ctx: &Ctx) -> Result<Response<Full<Bytes>>, ApiFail> {
     let tabela = rpc_expect(ctx, json!("IngressRoutes"), "IngressRoutes").await?;
     Ok(json_response(StatusCode::OK, &tabela))
@@ -721,13 +648,10 @@ async fn ingress_routes(ctx: &Ctx) -> Result<Response<Full<Bytes>>, ApiFail> {
 
 /// `POST /agent/ingress/reconcile` — recalcula as rotas a partir dos containers
 /// que existem de fato, sem redeployar, e devolve a tabela já corrigida.
-///
-/// Corpo opcional: `{"service_id":"svc_…"}`.
 async fn ingress_reconcile(
     ctx: &Ctx,
     req: Request<Incoming>,
 ) -> Result<Response<Full<Bytes>>, ApiFail> {
-    // Corpo vazio é válido: reconcilia tudo.
     let corpo = read_json(req).await.unwrap_or(Value::Null);
     let service_id = corpo.get("service_id").and_then(Value::as_str);
     let tabela = rpc_expect(
@@ -739,6 +663,7 @@ async fn ingress_reconcile(
     Ok(json_response(StatusCode::OK, &tabela))
 }
 
+/// `POST /agent/rpc` — qualquer `Command` do protocolo, sem tradução.
 async fn rpc_passthrough(
     ctx: &Ctx,
     req: Request<Incoming>,
@@ -748,16 +673,7 @@ async fn rpc_passthrough(
     Ok(json_response(StatusCode::OK, &resposta))
 }
 
-// ── controle da janela ──────────────────────────────────────────────────────
-
 /// `POST /agent/connect` — entra na sessão pela própria tela de login.
-///
-/// Era o último ponto cego de verdade: sem isto, a ponte só servia depois que
-/// um humano tivesse clicado Connect, e um agente numa máquina sem ninguém na
-/// frente ficava preso no 503.
-///
-/// O `token` é opcional: omitido, a ponte busca o salvo para aquela URL
-/// (`servers.rs`), de modo que o segredo nunca precisa atravessar a rede.
 async fn connect(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<Bytes>>, ApiFail> {
     let corpo = read_json(req).await?;
 
@@ -783,8 +699,6 @@ async fn connect(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<Byte
             StatusCode::OK,
             &json!({ "connected": true, "remote_url": remote_url }),
         )),
-        // 502: quem recusou foi o daemon do outro lado (token errado, host
-        // inalcançável), não o pedido do agente.
         ConnectOutcome::Recusado { motivo } => Err(ApiFail::new(
             StatusCode::BAD_GATEWAY,
             "connect_refused",
@@ -802,8 +716,6 @@ async fn connect(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<Byte
 /// `POST /agent/disconnect` — sai da sessão.
 fn disconnect(ctx: &Ctx) -> Result<Response<Full<Bytes>>, ApiFail> {
     ui::disconnect(&ctx.ui);
-    // Sem esperar: `disconnect()` na Luau é síncrono e não tem como falhar, e a
-    // consequência (sessão sumindo) fica visível em `GET /agent/ui`.
     Ok(json_response(
         StatusCode::ACCEPTED,
         &json!({ "ok": true, "hint": "confirme com GET /agent/ui" }),
@@ -822,11 +734,6 @@ fn ui_state(ctx: &Ctx, query: &str) -> Response<Full<Bytes>> {
 }
 
 /// `POST /agent/ui/action` — dispara qualquer ação da UI pelo nome.
-///
-/// A chave-mestra: todo botão, aba e formulário da GUI é uma função Luau global
-/// (`views/scripts/handlers/*.luau`), e este endpoint chama qualquer uma delas
-/// pelo mesmo caminho de um clique. Cobre as ~154 ações existentes e as futuras
-/// sem precisar de uma lista aqui — que envelheceria na primeira tela nova.
 async fn ui_action(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<Bytes>>, ApiFail> {
     let corpo = read_json(req).await?;
 
@@ -837,9 +744,6 @@ async fn ui_action(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<By
         .filter(|a| !a.is_empty())
         .ok_or_else(|| ApiFail::bad_request("informe \"action\" (o nome da função Luau)"))?;
 
-    // Com valor = `onChange` de um campo; sem valor = clique de botão. A
-    // distinção é a mesma que os templates fazem, então a ação recebe
-    // exatamente o que receberia da UI.
     let enviado = match corpo.get("value").and_then(Value::as_str) {
         Some(v) => ctx.ui.action(acao, v),
         None => ctx.ui.click(acao),
@@ -853,8 +757,6 @@ async fn ui_action(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<By
         ));
     }
 
-    // 202, não 200: a ação foi ENTREGUE ao motor, e o efeito dela é assíncrono
-    // (várias fazem RPC). Prometer que "deu certo" aqui seria mentira.
     Ok(json_response(
         StatusCode::ACCEPTED,
         &json!({
@@ -865,10 +767,6 @@ async fn ui_action(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<By
 }
 
 /// `POST /agent/ui/context` — escreve chaves no contexto da janela.
-///
-/// O par de baixo nível do `ui/action`: preenche campo de formulário, marca
-/// seleção, muda de aba. Útil quando a ação que você quer disparar espera algo
-/// já escrito no contexto.
 async fn ui_context(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<Bytes>>, ApiFail> {
     let corpo = read_json(req).await?;
 
@@ -883,8 +781,6 @@ async fn ui_context(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<B
     let pares: Vec<(String, String)> = obj
         .iter()
         .map(|(k, v)| {
-            // Número/booleano viram texto: o contexto do motor é sempre
-            // chave→string, e recusar por tipo seria pedantismo inútil.
             let texto = match v {
                 Value::String(s) => s.clone(),
                 outro => outro.to_string(),
@@ -909,10 +805,6 @@ async fn ui_context(ctx: &Ctx, req: Request<Incoming>) -> Result<Response<Full<B
 }
 
 /// `POST /agent/services/<id>/archive` — sobe um zip local para o serviço.
-///
-/// Recebe o CAMINHO do arquivo, não os bytes: quem chama está na mesma máquina
-/// (a ponte é loopback), e mandar dezenas de MB em base64 por HTTP para depois
-/// a ponte remontar seria custo puro. O corpo é `{"path": "/caminho/app.zip"}`.
 async fn upload_archive(
     ctx: &Ctx,
     service_id: &str,
@@ -961,8 +853,6 @@ async fn upload_archive(
     ))
 }
 
-// ── moldagem das respostas do daemon ────────────────────────────────────────
-
 /// `DeploymentSummary` → linha compacta com o desfecho resolvido.
 fn compact_summary(sum: &Value) -> Value {
     let dep = sum.get("deployment").unwrap_or(&Value::Null);
@@ -998,10 +888,6 @@ fn compact_deployment(dep: &Value) -> Value {
 }
 
 /// `true` = no ar, `false` = falhou, `null` = ainda não decidiu.
-///
-/// `Stopped`/`Pruning` são terminais sem serem desfecho: o primeiro é o serviço
-/// derrubado de propósito, o segundo é um deployment antigo que outro mais novo
-/// substituiu. Chamar qualquer um dos dois de "falha" seria mentira.
 fn outcome_ok(estado: &str) -> Value {
     match estado {
         "Live" => json!(true),
@@ -1018,11 +904,6 @@ fn is_terminal(dep: &Value) -> bool {
 }
 
 /// A causa da falha, tirada do `states_log`.
-///
-/// É onde o daemon a grava: a transição que ENTROU em `RollingBack` carrega a
-/// mensagem do step que quebrou (o texto do `docker build`, o healthcheck que
-/// não passou…). Mensagens de outras transições são ignoradas de propósito —
-/// `Pruning` traz "superseded by newer deployment", que não é erro nenhum.
 fn failure_reason(dep: &Value) -> Value {
     let Some(log) = dep.get("states_log").and_then(Value::as_array) else {
         return Value::Null;
@@ -1067,8 +948,7 @@ fn service_index(snapshot: &Value) -> Vec<Value> {
 }
 
 /// `ServiceStatus` é externally-tagged e só a variante `Error` tem campo — vira
-/// `"Running"` ou `"Error: <causa>"`. Depois da correção do log de deploy essa
-/// causa é o motivo real da falha, não mais a string fixa "deploy failed".
+/// `"Running"` ou `"Error: <causa>"`.
 fn status_label(status: Option<&Value>) -> Value {
     match status {
         Some(Value::String(s)) => json!(s),
@@ -1114,8 +994,6 @@ fn source_label(source: Option<&Value>) -> Value {
     }
 }
 
-// ── utilidades de HTTP ──────────────────────────────────────────────────────
-
 async fn read_json(req: Request<Incoming>) -> Result<Value, ApiFail> {
     let bytes = req
         .into_body()
@@ -1148,9 +1026,7 @@ fn json_response(status: StatusCode, body: &Value) -> Response<Full<Bytes>> {
         .unwrap_or_else(|_| Response::new(Full::new(Bytes::from_static(b"{}"))))
 }
 
-/// Parâmetro numérico da query string. Sem percent-decoding porque nenhum
-/// parâmetro numérico precisa — os campos que aceitam texto livre (nome de
-/// serviço) vão no corpo, justamente para não dependerem disso.
+/// Parâmetro numérico da query string.
 fn num_param(query: &str, chave: &str) -> Option<usize> {
     query.split('&').find_map(|par| {
         let (k, v) = par.split_once('=')?;
@@ -1158,9 +1034,7 @@ fn num_param(query: &str, chave: &str) -> Option<usize> {
     })
 }
 
-/// Parâmetro textual da query string. Sem percent-decoding: os únicos usos são
-/// listas de nomes de chave (`keys=screen,view`) e flags (`all=1`), nenhum dos
-/// quais precisa de escape.
+/// Parâmetro textual da query string.
 fn str_param(query: &str, chave: &str) -> Option<String> {
     query.split('&').find_map(|par| {
         let (k, v) = par.split_once('=')?;
@@ -1219,8 +1093,7 @@ mod tests {
         assert_eq!(num_param("", "after"), None);
     }
 
-    /// O desfecho: só `Live` e `Failed` decidem. Um deployment substituído por
-    /// outro mais novo (`Pruning`) não é falha.
+    /// O desfecho: só `Live` e `Failed` decidem.
     #[test]
     fn desfecho_so_e_decidido_por_live_ou_failed() {
         assert_eq!(outcome_ok("Live"), json!(true));
@@ -1283,7 +1156,6 @@ mod tests {
         })));
         assert_eq!(git.get("kind").unwrap(), "Git");
         assert_eq!(git.get("branch").unwrap(), "main");
-        // Credencial não vaza para uma listagem.
         assert!(git.get("credentials").is_none());
 
         let compose = source_label(Some(
@@ -1332,11 +1204,6 @@ mod tests {
 
 /// Teste ponta a ponta da ponte: um daemon rustploy de mentira de um lado, a
 /// API de agente no meio, um cliente HTTP cru do outro.
-///
-/// É o que separa "compila" de "funciona": exercita o roteamento, o gate de
-/// token, o gate de sessão e — o principal — o `POST /agent/deploys` com
-/// `wait`, que é a rota que existe para responder "funcionou ou falhou, e por
-/// quê" numa chamada só.
 #[cfg(test)]
 mod e2e_tests {
     use super::*;
@@ -1354,8 +1221,6 @@ mod e2e_tests {
 
     /// Responde o subconjunto do protocolo que estas rotas usam.
     fn fake_daemon_reply(cmd: &Value) -> Value {
-        // Variante unitária chega como string nua; a com campos, como objeto de
-        // uma chave. Igualzinho ao daemon de verdade.
         if let Some(nome) = cmd.as_str() {
             return match nome {
                 "DaemonStatus" => json!({ "DaemonStatus": {
@@ -1477,10 +1342,6 @@ mod e2e_tests {
         let ctx = Arc::new(Ctx {
             session,
             remote: Remote::new().unwrap(),
-            // O canal externo dos testes não tem motor do outro lado: as
-            // mensagens caem num receptor que ninguém drena, o que é
-            // exatamente o certo aqui — estes testes exercitam o HTTP e a
-            // conversa com o daemon, não o efeito na janela.
             ui: glacier_ui::external::sender(),
             token: token.clone(),
             addr,
@@ -1550,8 +1411,6 @@ mod e2e_tests {
         let (errado, _) = call(&bridge, Method::GET, "/agent/deploys", Some("outro"), None).await;
         assert_eq!(errado, StatusCode::UNAUTHORIZED);
 
-        // Com o token certo, o que barra agora é a falta de sessão — prova que
-        // passou do gate.
         let (certo, body) = call(&bridge, Method::GET, "/agent/deploys", Some(&token), None).await;
         assert_eq!(certo, StatusCode::SERVICE_UNAVAILABLE);
         assert_eq!(body.pointer("/error/code").unwrap(), "not_connected");
@@ -1585,7 +1444,6 @@ mod e2e_tests {
             Method::POST,
             "/agent/deploys",
             Some(&token),
-            // Por NOME, não por id: o daemon de mentira resolve via Snapshot.
             Some(json!({ "service": "web", "wait": true, "timeout_s": 30, "log_tail": 3 })),
         )
         .await;
@@ -1597,14 +1455,11 @@ mod e2e_tests {
         assert_eq!(body.get("error").unwrap(), CAUSA);
         assert_eq!(body.get("timed_out").unwrap(), &json!(false));
 
-        // log_tail traz só o fim, e o cursor diz onde continuar.
         let log = body.get("log_tail").and_then(Value::as_array).unwrap();
         assert_eq!(log.len(), 3);
         assert_eq!(log[2], "linha 4");
         assert_eq!(body.get("log_cursor").unwrap(), &json!(5));
 
-        // Passou pelo caminho de espera: o primeiro DeployHistory ainda estava
-        // em BuildingImage.
         assert!(HISTORY_HITS.load(Ordering::SeqCst) >= 2);
     }
 
@@ -1707,7 +1562,6 @@ mod e2e_tests {
     /// a distinção diz ao agente se adianta repetir.
     #[tokio::test]
     async fn daemon_inalcancavel_vira_502() {
-        // Porta fechada de propósito.
         let (bridge, token) = spawn_bridge(Some("http://127.0.0.1:1")).await;
 
         let (status, body) = call(

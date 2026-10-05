@@ -1,12 +1,4 @@
 //! Cliente HTTP para o daemon rustploy remoto.
-//!
-//! hyper cru (via o `Client` legado do `hyper-util`), não reqwest: é a mesma
-//! regra que vale no daemon — um cliente HTTP só no workspace, e ele é o hyper.
-//! O que precisamos aqui é pequeno e conhecido: um POST de JSON com bearer.
-//!
-//! O daemon comprime a resposta do `/api/rpc` com gzip **quando o cliente pede**
-//! (`Accept-Encoding: gzip`). Este cliente não pede de propósito: o ganho é de
-//! link remoto lento e o custo seria carregar um descompressor aqui para nada.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -22,9 +14,7 @@ use hyper_util::rt::TokioExecutor;
 
 use super::session::Session;
 
-/// Teto por requisição ao daemon. Um `Command` pesado (o `Snapshot` faz várias
-/// idas ao Docker) leva segundos; o que este limite protege é o caso do daemon
-/// inalcançável, para o agente receber um erro em vez de pendurar.
+/// Teto por requisição ao daemon.
 const TIMEOUT: Duration = Duration::from_secs(60);
 
 type HttpsClient = Client<HttpsConnector<HttpConnector>, Full<Bytes>>;
@@ -61,20 +51,13 @@ pub(crate) struct Remote {
 }
 
 impl Remote {
-    /// Monta o cliente. Falha só se o provider de cripto do rustls não puder ser
-    /// configurado, o que na prática não acontece.
+    /// Monta o cliente.
     pub(crate) fn new() -> Result<Self, String> {
-        // O glacier-ui já instala o provider `ring` como default do processo,
-        // mas depender dessa ordem seria frágil: passamos o provider
-        // explicitamente, e aí tanto faz quem instalou o quê antes.
         let provider = Arc::new(rustls::crypto::ring::default_provider());
 
         let tls = hyper_rustls::HttpsConnectorBuilder::new()
             .with_provider_and_webpki_roots(provider)
             .map_err(|e| format!("TLS: {e}"))?
-            // `https_or_http`, não `https_only`: um rustploy de laboratório na
-            // rede local roda em HTTP puro, e é a GUI que decide isso ao
-            // conectar — não cabe a esta ponte recusar o que a janela aceitou.
             .https_or_http()
             .enable_http1()
             .build();
@@ -84,9 +67,7 @@ impl Remote {
         })
     }
 
-    /// Executa um `Command` no daemon: `POST /api/rpc`. Devolve a `Response`
-    /// como JSON cru — quem chama decide o que fazer com `{"Err":{…}}`, que é
-    /// resposta 200 do ponto de vista HTTP.
+    /// Executa um `Command` no daemon: `POST /api/rpc`.
     pub(crate) async fn rpc(
         &self,
         session: &Session,
@@ -134,11 +115,6 @@ impl Remote {
     }
 
     /// Sobe um zip para `POST /api/services/<id>/archive`.
-    ///
-    /// Merece método próprio porque **não é um `Command`**: é rota HTTP com
-    /// corpo binário, e um agente que só leu `protocol.rs` não descobre que ela
-    /// existe. Era o último caminho do fluxo "criar serviço Archive → deployar"
-    /// que a ponte não alcançava.
     pub(crate) async fn upload_archive(
         &self,
         session: &Session,
@@ -152,8 +128,6 @@ impl Remote {
             .method(Method::POST)
             .uri(&uri)
             .header(CONTENT_TYPE, "application/zip")
-            // O daemon lê o nome original daqui (não há multipart): é o que
-            // aparece depois na aba do serviço.
             .header("X-Rustploy-Filename", filename);
 
         if let Some(token) = &session.token {
@@ -164,9 +138,6 @@ impl Remote {
             .body(Full::new(Bytes::from(zip)))
             .map_err(|e| RemoteError::Transport(format!("requisição inválida para {uri}: {e}")))?;
 
-        // Sem o timeout curto do `rpc`: um zip de projeto pode levar bem mais
-        // que uma chamada de protocolo, e o custo aqui é de rede, não de espera
-        // por um daemon travado.
         let resp = tokio::time::timeout(Duration::from_secs(600), self.http.request(req))
             .await
             .map_err(|_| RemoteError::Transport("timeout no upload do zip".into()))?
@@ -193,11 +164,6 @@ impl Remote {
 
 /// Nome da variante de uma `Response` externamente tagueada (`{"Projects":[…]}`
 /// → `"Projects"`), ou da forma nua de variante unitária (`"Ok"` → `"Ok"`).
-///
-/// O protocolo do rustploy é serde externally-tagged, então "que resposta é
-/// essa?" é sempre a única chave do objeto — menos quando a variante não tem
-/// campos, que o serde serializa como string pura. Esquecer o segundo caso é o
-/// erro clássico de quem escreve cliente para esta API.
 pub(crate) fn response_kind(v: &serde_json::Value) -> Option<&str> {
     match v {
         serde_json::Value::String(s) => Some(s.as_str()),

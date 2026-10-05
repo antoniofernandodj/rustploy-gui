@@ -1,13 +1,4 @@
 //! Os servidores que o usuário já usou nesta máquina.
-//!
-//! A camada Luau salva todo login bem-sucedido no `storage` do glacier-ui — um
-//! JSON no data dir do usuário (`handlers/connection.luau`, `remember_server`).
-//! É de lá que o formulário de login nasce preenchido.
-//!
-//! Para a API de agente isso resolve um problema concreto: conectar sem
-//! precisar do token. O agente pede a URL, a ponte encontra o token salvo e
-//! preenche o formulário — o segredo nunca atravessa a rede em nenhum sentido,
-//! nem na ida (o agente não o manda) nem na volta (a listagem só diz se existe).
 
 use std::path::PathBuf;
 
@@ -26,9 +17,7 @@ fn storage_path() -> PathBuf {
         .join("app.json")
 }
 
-/// Lê a lista salva. Vazia quando o arquivo não existe (nenhum login ainda),
-/// está corrompido ou mudou de formato — nunca é erro fatal: a consequência é
-/// só o agente ter de informar o token, que é o caminho normal mesmo.
+/// Lê a lista salva.
 pub(super) fn list() -> Vec<Saved> {
     let Ok(texto) = std::fs::read_to_string(storage_path()) else {
         return Vec::new();

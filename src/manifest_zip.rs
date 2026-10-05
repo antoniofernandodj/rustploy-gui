@@ -1,15 +1,4 @@
 //! Ponte Lua ↔ Rust para o `.zip` do Infra as Code.
-//!
-//! O motor glacier-ui traz `zip_dir` (compacta um diretório) mas **não** o
-//! inverso, e a camada Lua não tem como abrir um `.zip`. O Infra as Code precisa
-//! dos dois sentidos: exportar grava um `.zip` com dois arquivos e nada mais;
-//! importar lê um `.zip` e exige **exatamente** um `.yml`/`.yaml` e um `.toml`,
-//! na raiz, sem mais nada.
-//!
-//! Estas duas funções entram como globais de todo `<script>` via
-//! [`glacier_ui::GlacierDaemon::lua_extension`] (ver `app::run`), implementadas
-//! com o mesmo crate `zip` que o glacier já usa — então o cargo deduplica e não
-//! há uma segunda cópia do crate no binário.
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -37,8 +26,7 @@ fn write_manifest_zip(path: &str, yaml: &str, toml: &str) -> std::io::Result<()>
 }
 
 /// Valida e lê o `.zip` importado: **exatamente** um `*.yml`/`*.yaml` e um
-/// `*.toml`, na raiz, e nada mais. Devolve `(yaml, toml)` ou uma mensagem de
-/// erro pronta para exibir.
+/// `*.toml`, na raiz, e nada mais.
 fn read_manifest_zip(path: &str) -> Result<(String, String), String> {
     let file = File::open(path).map_err(|e| format!("não consegui abrir o zip: {e}"))?;
     let mut zip = zip::ZipArchive::new(file).map_err(|e| format!("zip inválido: {e}"))?;
@@ -53,7 +41,6 @@ fn read_manifest_zip(path: &str) -> Result<(String, String), String> {
             .map_err(|e| format!("erro ao ler a entrada {i} do zip: {e}"))?;
         let name = entry.name().to_string();
 
-        // "sem nada a mais": diretórios e qualquer subpasta contam como extra.
         if entry.is_dir() || name.contains('/') {
             extras.push(name);
             continue;
@@ -92,10 +79,6 @@ fn read_manifest_zip(path: &str) -> Result<(String, String), String> {
 }
 
 /// Instala os globais `manifest_zip_write` e `manifest_zip_read` na VM Luau.
-/// Passada a `GlacierDaemon::lua_extension` em [`crate::app::run`].
-///
-/// - `manifest_zip_write(zip_path, yaml, toml) -> (ok: boolean, err: string?)`
-/// - `manifest_zip_read(zip_path) -> { ok: boolean, yaml: string?, toml: string?, error: string? }`
 pub(crate) fn install(lua: &Lua) -> mlua::Result<()> {
     let write = lua.create_function(|_, (path, yaml, toml): (String, String, String)| {
         match write_manifest_zip(&path, &yaml, &toml) {

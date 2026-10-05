@@ -1,20 +1,4 @@
 //! Índice das ações dispatcháveis da UI.
-//!
-//! `POST /agent/ui/action` dispara qualquer ação da GUI pelo nome — é a
-//! chave-mestra que cobre toda a superfície da janela. Mas uma chave-mestra sem
-//! chaveiro só serve a quem já sabe os nomes, e saber os nomes exigia ter o
-//! repositório aberto (`grep "^function " views/scripts/handlers/*.luau`). Isso
-//! deixaria a rota mais poderosa da ponte fora do alcance de um agente que só
-//! tem a máquina do usuário e o arquivo de handoff.
-//!
-//! Este módulo devolve a lista em runtime, lida da mesma árvore de scripts que
-//! o motor executa: do disco em debug, da árvore embutida no binário em release
-//! — nunca de uma lista escrita à mão, que envelheceria na primeira tela nova.
-//!
-//! **O que conta como ação**: uma função global do Luau, escrita na coluna 1
-//! (`function nome(...)`), que é exatamente o que os templates referenciam em
-//! `on_click`/`onChange`/`on_submit`. Funções `local` são auxiliares do módulo
-//! e ficam de fora, como devem.
 
 use serde_json::{Value, json};
 
@@ -26,10 +10,6 @@ struct Acao {
 }
 
 /// Nome da função global declarada nesta linha, se houver.
-///
-/// Só linhas que começam em `function ` na coluna 1: `local function` (auxiliar
-/// do módulo) e métodos (`function M:algo`) não são dispatcháveis, e um
-/// `function` indentado está dentro de outro bloco.
 fn nome_da_acao(linha: &str) -> Option<&str> {
     let resto = linha.strip_prefix("function ")?;
     let nome = resto.split('(').next()?.trim();
@@ -53,10 +33,6 @@ fn do_arquivo(origem: &str, conteudo: &str) -> Vec<Acao> {
 }
 
 /// Todos os pares `(caminho, conteúdo)` dos scripts Luau.
-///
-/// Em debug os assets são lidos do disco pelo motor (com hot-reload), e o CWD
-/// já é a base dos assets (`assets::locate_and_chdir`), então a varredura segue
-/// o mesmo caminho. Em release não há árvore no disco: vem do binário.
 #[cfg(debug_assertions)]
 fn fontes() -> Vec<(String, String)> {
     fn recolhe(dir: &std::path::Path, base: &std::path::Path, out: &mut Vec<(String, String)>) {
@@ -91,8 +67,6 @@ fn fontes() -> Vec<(String, String)> {
     crate::embedded::luau_sources()
         .into_iter()
         .map(|(caminho, texto)| {
-            // O caminho embutido vem relativo a `views/` (`scripts/x.luau`);
-            // normaliza para o mesmo formato do modo debug.
             let rel = caminho
                 .strip_prefix("scripts/")
                 .unwrap_or(&caminho)
@@ -109,8 +83,6 @@ pub(super) fn index() -> Value {
         .flat_map(|(origem, texto)| do_arquivo(origem, texto))
         .collect();
 
-    // Ordena por nome: a lista é para ser lida e procurada, não para preservar
-    // a ordem de declaração de cada arquivo.
     acoes.sort_by(|a, b| a.nome.cmp(&b.nome));
     acoes.dedup_by(|a, b| a.nome == b.nome);
 

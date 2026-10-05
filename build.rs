@@ -1,20 +1,4 @@
-//! Build script:
-//! 1. Stages os **logos** dos blueprints (só imagens) para `$OUT_DIR` — o
-//!    `src/embedded.rs` os embute daí no binário standalone de release. Os logos
-//!    **raster** são reduzidos (Lanczos3) para no máx [`LOGO_MAX_DIM`]px na
-//!    maior dimensão e re-codificados como PNG: os originais são ~512×512 e
-//!    aparecem a ~30px (`template_row.gvb`), então sem isto a GPU faria um
-//!    downscale de ~17x por quadro (serrilhado) e o binário carregaria ~12 MB de
-//!    logo. SVGs são vetor — copiados intactos.
-//! 2. Embeds the Windows application icon, manifest and version metadata into
-//!    the `.exe`.
-//!
-//! Build scripts run on the *host*, so we detect the **target** OS via the
-//! `CARGO_CFG_TARGET_OS` variable Cargo sets — `cfg!(windows)` would reflect
-//! the host and stay false during the Linux→Windows cross build. The resource
-//! is compiled by whatever RC tool `embed-resource` finds; for the cross build
-//! that is `llvm-rc` (our `assets/rustploy.rc` has no `#include`s, so no
-//! Windows SDK headers are needed).
+//! Build script: logos dos blueprints para o release e recursos do `.exe` no Windows.
 
 use std::path::Path;
 
@@ -25,10 +9,7 @@ const LOGO_EXTS: &[&str] = &[
 ];
 
 /// Alvo do redimensionamento dos logos raster: a maior dimensão é reduzida para
-/// no máximo isto, preservando a proporção. Os logos aparecem a ~30px lógicos
-/// (`template_row.gvb`); 96px cobre telas HiDPI (até ~3x) e ainda corta os 512×512
-/// originais em ordens de grandeza. Só **reduz** — imagens já menores (ou vetor)
-/// passam intactas, para não borrar quem já é pequeno.
+/// no máximo isto, preservando a proporção.
 const LOGO_MAX_DIM: u32 = 96;
 
 fn main() {
@@ -42,9 +23,6 @@ fn main() {
         return;
     }
 
-    // Deriva as macros do VERSIONINFO a partir de CARGO_PKG_VERSION (ex.:
-    // "0.1.0" -> comma "0,1,0,0" e string "0.1.0"), passadas como defines para
-    // o RC. Assim a versão do .exe nunca sai do lugar em relação ao Cargo.toml.
     let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".into());
 
     let mut parts: Vec<String> = version
@@ -59,8 +37,6 @@ fn main() {
 
     let comma = parts[..4].join(",");
 
-    // llvm-rc recebe os defines via macros do embed-resource. A string precisa
-    // das aspas escapadas para chegar como literal entre aspas no .rc.
     let macros = [
         format!("RUSTPLOY_VER_COMMA={comma}"),
         format!("RUSTPLOY_VER_STR=\"{version}\""),
@@ -72,21 +48,15 @@ fn main() {
 /// Leva os logos de `assets/blueprint-logos/**` para
 /// `$OUT_DIR/blueprint_logos/**`, **espelhando a estrutura `<id>/<arquivo>`** (o
 /// caminho por onde o `EmbeddedAssets` os serve) e **reduzindo os raster** (ver
-/// [`copy_images`]/[`downscale_png`]). Assim o binário de release embute só os
-/// logos — já encolhidos —, e não os `docker-compose.yml`/`template.toml` (que a
-/// GUI nunca lê e vivem no `rustploy-shared`).
+/// [`copy_images`]/[`downscale_png`]).
 fn stage_blueprint_logos() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
     let out = std::env::var("OUT_DIR").expect("OUT_DIR");
-    // Os logos moram aqui (saíram do crate `rustploy-shared`, que não os carrega
-    // mais); o nome de cada um vem do catálogo do shared (`templates/logos.txt`).
     let src = Path::new(&manifest).join("assets/blueprint-logos");
     let dst = Path::new(&out).join("blueprint_logos");
 
-    // Re-stage quando a árvore de blueprints mudar.
     println!("cargo:rerun-if-changed={}", src.display());
 
-    // Limpa o staging anterior (para não reter logos de blueprints removidos).
     let _ = std::fs::remove_dir_all(&dst);
     std::fs::create_dir_all(&dst).expect("criar staging de logos");
 
@@ -94,8 +64,7 @@ fn stage_blueprint_logos() {
 }
 
 /// Percorre recursivamente `src` e leva os logos para `dst`, preservando o
-/// caminho relativo. Raster passa por [`stage_raster`] (reduz + re-encoda);
-/// vetor (`.svg`) é copiado intacto.
+/// caminho relativo.
 fn copy_images(src: &Path, dst: &Path) {
     let entries = match std::fs::read_dir(src) {
         Ok(e) => e,
@@ -107,19 +76,11 @@ fn copy_images(src: &Path, dst: &Path) {
             copy_images(&path, &dst.join(entry.file_name()));
             continue;
         }
-        // O nome do arquivo no staging tem de ser IDÊNTICO ao original: o daemon
-        // devolve o caminho `<id>/<arquivo>` e o `EmbeddedAssets` o serve por
-        // essa chave. Re-encodar um raster para PNG mantendo, digamos, um nome
-        // `.jpg` é inofensivo — o iced/`image` decodifica por conteúdo (magic
-        // bytes), não pela extensão.
         let out = dst.join(entry.file_name());
         if is_raster(&path) {
             std::fs::create_dir_all(dst).expect("criar diretório de staging");
             stage_raster(&path, &out);
         } else if is_logo(&path) {
-            // Vetor (`.svg`) e formatos que o `image` não cobre (`.ico`/`.avif`):
-            // copiados intactos — svg é crisp em qualquer tamanho e os demais
-            // ainda são logos válidos, só não passam pelo resize.
             std::fs::create_dir_all(dst).expect("criar diretório de staging");
             std::fs::copy(&path, &out)
                 .unwrap_or_else(|e| panic!("copiando {}: {e}", path.display()));
@@ -128,8 +89,7 @@ fn copy_images(src: &Path, dst: &Path) {
 }
 
 /// Lê um logo raster, reduz para no máx [`LOGO_MAX_DIM`] (Lanczos3) re-encodando
-/// como PNG, e grava em `dst`. Degrada: se não conseguir decodificar (ou a
-/// imagem já for pequena), copia os bytes originais em vez de derrubar o build.
+/// como PNG, e grava em `dst`.
 fn stage_raster(src: &Path, dst: &Path) {
     let bytes = std::fs::read(src).unwrap_or_else(|e| panic!("lendo {}: {e}", src.display()));
     let staged = downscale_png(&bytes).unwrap_or(bytes);
@@ -137,9 +97,7 @@ fn stage_raster(src: &Path, dst: &Path) {
 }
 
 /// Decodifica `bytes`, e — se a maior dimensão passar de [`LOGO_MAX_DIM`] —
-/// reduz preservando a proporção (Lanczos3) e re-encoda como PNG. Devolve `None`
-/// (→ mantém o original) quando não decodifica ou quando a imagem já é pequena
-/// (re-encodar não valeria o custo/risco de mexer no que já está bom).
+/// reduz preservando a proporção (Lanczos3) e re-encoda como PNG.
 fn downscale_png(bytes: &[u8]) -> Option<Vec<u8>> {
     let img = image::load_from_memory(bytes).ok()?;
     if img.width().max(img.height()) <= LOGO_MAX_DIM {
@@ -164,14 +122,13 @@ fn ext_lower(path: &Path) -> Option<String> {
 }
 
 /// Qualquer arquivo de logo (raster, vetor ou os formatos raros) — decide o que
-/// entra no staging. Os que não são [`is_raster`] são copiados intactos.
+/// entra no staging.
 fn is_logo(path: &Path) -> bool {
     ext_lower(path).is_some_and(|e| LOGO_EXTS.contains(&e.as_str()))
 }
 
 /// Um logo raster que o `image` sabe decodificar (as features habilitadas no
-/// `Cargo.toml`). `ico`/`avif` ficam de fora do resize e caem no ramo de cópia
-/// intacta — continuam sendo logos válidos.
+/// `Cargo.toml`).
 fn is_raster(path: &Path) -> bool {
     matches!(
         ext_lower(path).as_deref(),
