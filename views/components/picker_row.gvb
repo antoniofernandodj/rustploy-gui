@@ -1,6 +1,5 @@
 // Linha de escolha do wizard "Novo serviço": título + subtítulo à esquerda e um
-// botão de ação à direita. Usada nos passos de escolha de tipo, de banco e de
-// template.
+// botão de ação à direita.
 component {
   props {
     prop(name = title)

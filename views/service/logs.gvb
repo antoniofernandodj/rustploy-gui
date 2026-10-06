@@ -1,10 +1,4 @@
-// Aba Logs do detalhe do serviço (importada por service.gvb). A condição de
-// visibilidade vai na CHAMADA — `ServiceLogsTab(if = @tab, equals = logs)` —
-// e não na raiz deste componente: lá o `if` não é aplicado e o painel
-// apareceria em todas as abas.
-// Logs de runtime: vivem numa JANELA isolada (motor leve), não inline —
-// renderizar o stream aqui reavaliaria a árvore inteira da janela principal
-// por linha e a travava. A aba é só o launcher.
+// Aba Logs do detalhe do serviço (importada por service.gvb).
 component {
   column(class = log_panel) {
     text(

@@ -9,9 +9,6 @@ component {
     """,
   )
 
-  // O placeholder abaixo tem quebras de linha LITERAIS: o .gvb não
-  // interpreta `\n` e `"""` dobra linhas em espaços. As linhas de
-  // continuação ficam coladas na margem de propósito — NÃO reindente.
   textarea(
     class = env_editor,
     font = mono,

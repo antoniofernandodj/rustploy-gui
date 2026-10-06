@@ -23,10 +23,6 @@ component {
       }
     }
 
-    // Criar projeto agora abre uma JANELA à parte (new_project_form.gv,
-    // motor Glacier próprio); ao concluir, ela envia um broadcast
-    // "project_created" que `on_broadcast` (handlers/projects.luau) recebe
-    // para atualizar a grade. Ver open_new_project_window.
     row(class = env_add) {
       button(
         class = btn_primary,

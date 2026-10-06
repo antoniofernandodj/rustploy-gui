@@ -1,11 +1,6 @@
 // Janela "Novo projeto": motor Glacier próprio, aberto por open_window a partir
 // do app principal (handlers/projects.luau → open_new_project_window), que semeia
-// a conexão (api_url/api_token) via open_window({ data = ... }). Ao concluir,
-// o script (scripts/new_project_window.luau) emite broadcast("project_created")
-// e chama close_window(). O tema e o app.gss vêm do `app` (app.gvb), que cada janela
-// (motor isolado) carrega. Borderless
-// (a janela é aberta com decorations=false, como a principal): o titlebar abaixo
-// é custom, e suas ações window:* são tratadas no runtime (app/mod.rs).
+// a conexão (api_url/api_token) via open_window({ data = ...
 screen(title = "Novo projeto — Rustploy") {
   resources {
     style """
@@ -17,9 +12,6 @@ screen(title = "Novo projeto — Rustploy") {
       .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
       .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
 
-      /* sem `background: var(--bg)`: é a cor do tema, já pintada na janela
-         inteira — repeti-la era uma camada redobrada em cada pixel (ver
-         PRIMITIVAS.md, "O que custa num quadro"). */
       .np_screen  { width: fill; height: fill; }
       .np_wrap    { width: fill; height: fill; padding: 24; spacing: 18; }
       .np_head    { width: fill; spacing: 5; }
@@ -35,8 +27,6 @@ screen(title = "Novo projeto — Rustploy") {
   }
 
   column(class = np_screen) {
-    // Titlebar custom (janela borderless). window:drag/minimize/close tratados
-    // no runtime contra o id desta janela; sem maximize (é um diálogo fixo).
     row(class = titlebar) {
       row(class = titlebar_drag, on_press = window:drag) {
         text(class = titlebar_dot, content = "●")
@@ -57,10 +47,6 @@ screen(title = "Novo projeto — Rustploy") {
         )
       }
 
-      // Validação declarada no <form> (glacier-ui 0.102+): as regras moram no
-      // campo (`rules=`), o motor valida ao enviar e roteia `on_submit` (tudo
-      // certo) ou `on_validation_error` (algo falhou). O `<button type="submit">`
-      // dispara sem `on_click`; o `.np_input:invalid` (app.gss) acende sozinho.
       form(
         name = np_form,
         on_submit = submit_project,

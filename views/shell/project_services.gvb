@@ -1,5 +1,5 @@
 // Projeto aberto (view = project_services): cabeçalho/edição, sub-abas e grade de
-// serviços; cada sub-aba pesada mora em seu arquivo. Importada por shell.gvb.
+// serviços; cada sub-aba pesada mora em seu arquivo.
 component {
   resources {
     link(rel = import, href = "project_env.gvb", as = ProjectEnvTab)
@@ -14,9 +14,6 @@ component {
   column(class = content) {
     row(class = header_row) {
       column(class = header_titles) {
-        // Barra superior: voltar à esquerda, ações do projeto
-        // empurradas para a extremidade direita (hspacer = width:fill).
-        // Em modo de edição as ações somem (o form tem Salvar/Cancelar).
         row(class = proj_topbar) {
           button(
             class = btn_ghost,
@@ -150,10 +147,6 @@ component {
 
     if @proj_tab == "secrets" {
       // ── Secrets do projeto ──────────────────────────────────────
-      // Write-only: o daemon só devolve os nomes (o valor é cifrado
-      // com a chave mestre do servidor), então não há coluna de valor
-      // nem edição — sobrescrever é salvar de novo com o mesmo nome.
-      // Ver handlers/secrets.luau e docs/secrets.md.
     ProjectSecretsTab(if = @proj_loading, not_equals = true)
     }
 
@@ -168,11 +161,6 @@ component {
         direction = vertical,
         class = scroll_fill,
       ) {
-        // `virtualize` = altura de UMA fileira de cartões: só as
-        // fileiras visíveis são montadas, e as de fora viram um vão do
-        // tamanho exato (glacier-ui 0.77, ver PRIMITIVAS.md). O valor é
-        // a altura do card; o `spacing: 10` da .grid o motor soma
-        // sozinho. Errar desalinha a barra de rolagem, não quebra.
         column(class = grid) {
           each @project_services as r (fallback = SemServicosNoProjeto) {
             row(class = card_row) {

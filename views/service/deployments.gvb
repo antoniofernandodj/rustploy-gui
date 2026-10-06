@@ -16,10 +16,6 @@ component {
     ) {
       text(class = label_cap, content = "WEBHOOK DE DEPLOY")
 
-      // URL e botões em LINHAS separadas: a URL é longa (~100 chars) e,
-      // com width fill, empurraria os botões para fora do painel. Exibida
-      // TRUNCADA (svc_webhook_url_short) — inteira, ela estoura o card em
-      // janelas estreitas; o valor completo vai no tooltip e no clipboard.
       column(if = @svc_webhook_url, not_equals = "", class = wh_block) {
         text(
           class = wh_url,
@@ -74,10 +70,6 @@ component {
               text(class = "td col_dur", content = "@d.duration")
               text(class = "muted col_dep_start", content = "@d.start")
 
-              // Ícone + tooltip (eram "Build log ↗" e "Remover" por
-              // extenso): os rótulos quebravam em duas linhas e estouravam a
-              // coluna quando a janela estreitava. Mesmo padrão das linhas de
-              // job e de repo do Registry (home.gv).
               row(class = dep_actions) {
                 button(
                   class = dep_logs_btn,
@@ -103,8 +95,5 @@ component {
         }
       }
     }
-
-    // Build log abre em JANELA isolada (dep_logs → open_window), não inline:
-    // render de milhares de linhas por reavaliação travava a principal.
   }
 }

@@ -62,10 +62,6 @@ component {
       content = "@erro_env_new_key",
     )
 
-    // scrollable só renderiza o PRIMEIRO filho (glacier-ui
-    // widget.rs: NodeType::Scrollable usa node.children.first()) —
-    // por isso a lista e o editor .env vivem dentro de UM único
-    // <column>, nunca como irmãos diretos do <scrollable>.
     scrollable(direction = vertical, class = env_list_scroll) {
       column(class = kv_list) {
         template(
@@ -75,11 +71,6 @@ component {
           reorder_key = key,
           foreach_fallback = SemVariaveisDoServico,
         ) {
-          // Comentários (# ...) do .env: arrastáveis como as vars (ao
-          // soltar, reancoram na var seguinte da nova ordem), mas sem
-          // delete — removem-se editando o .env. A classe da linha muda
-          // para `kv_row_drag` no item agarrado ({e.__dragging} vem do
-          // glacier-ui durante o arrasto).
           if @e.__dragging == "true" {
             row(class = kv_row_drag, if = @e.kind, equals = comment) {
               text(
@@ -139,13 +130,6 @@ component {
           }
         }
 
-        // Editor .env: vários filhos condicionais → `<template>` (o atributo
-        // if= só esconderia o Text, deixando TextArea/botões sempre
-        // visíveis). Vive dentro do mesmo <column> da lista (e não
-        // como irmão dela) para que os botões Salvar/Cancelar nunca
-        // fiquem fora da área visível da janela (antes eram irmãos
-        // fixos após um scrollable height:fill, e podiam ser
-        // cortados/escondidos em janelas mais baixas).
         if @env_text_open == "true" {
           text(
             class = muted,

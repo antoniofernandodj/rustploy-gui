@@ -1,7 +1,5 @@
 // Containers — um por serviço gerido pelo Rustploy (ligação com
 // projeto/serviço é direta, já que o container nasce de um Service).
-// Containers — todos do host (rodando + parados). Remover é oferecido só
-// nos PARADOS (o Docker recusa `rm` de um rodando sem force).
 component {
   resources {
     component(name = SemContainersDocker) {

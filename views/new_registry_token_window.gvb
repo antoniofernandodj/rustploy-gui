@@ -1,16 +1,4 @@
-// Janela "Novo token do registry": motor Glacier próprio, aberto por
-// open_window a partir do app principal (handlers/registry.luau →
-// registry_open_token_window), que semeia a conexão + o host do registry já
-// conhecidos pela janela principal — nada é buscado aqui dentro: um `fetch`
-// rodado no `init()` é descartado pelo motor (só ações despachadas chegam ao
-// executor), mesma razão de `new_job_window.luau`.
-//
-// Fluxo: formulário (nome + escopo pull/push) → RegistryTokenCreate → o
-// segredo aparece em texto UMA VEZ, com botão copiar — a janela NÃO fecha
-// sozinha (diferente da de job), porque o usuário precisa copiar antes de
-// perder o valor. O broadcast("registry_token_created") já dispara na hora da
-// criação (não só ao fechar), pra lista da janela principal atualizar mesmo
-// se o usuário nunca clicar em "Fechar".
+// Janela "Novo token do registry": motor Glacier próprio, aberto por open_window a partir do app principal.
 screen(title = "Novo token — Rustploy") {
   resources {
     link(rel = import, href = "components/tab_button.gvb", as = TabButton)
@@ -24,9 +12,6 @@ screen(title = "Novo token — Rustploy") {
       .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
       .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
 
-      /* sem `background: var(--bg)`: é a cor do tema, já pintada na janela
-         inteira — repeti-la era uma camada redobrada em cada pixel (ver
-         PRIMITIVAS.md, "O que custa num quadro"). */
       .ntok_screen { width: fill; height: fill; }
       .ntok_body   { width: fill; height: fill; }
 

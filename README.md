@@ -1,11 +1,12 @@
 # rustploy-gui por dentro
 
-Este documento explica o código Rust do `rustploy-gui`. Ele existe porque o
-código foi deliberadamente enxugado: cada item público ou relevante tem **uma
-frase** de documentação (a que o `make index` usa como descrição) e nenhum
-comentário `//`. Tudo o que é *porquê*, *contexto* e *decisão descartada* mora
-aqui. Os nomes entre crases (`arquivo.rs::função`) apontam para onde cada
-assunto vive no código.
+Este documento explica o código do `rustploy-gui`: o **Rust** (`src/`, `build.rs`,
+`tests/`) e os **templates de markup** (`views/**/*.gvb`). Ele existe porque o código
+foi deliberadamente enxugado. No Rust, cada item tem **uma frase** de documentação (a que
+o `make index` usa como descrição) e nenhum comentário `//`. Nos `.gvb`, cada arquivo
+guarda só a primeira frase do cabeçalho e comentários discretos de uma linha (divisores,
+rótulos). Tudo o que é *porquê*, *contexto* e *decisão descartada* mora aqui. Os nomes
+entre crases (`arquivo.rs::função`, `views/x.gvb`) apontam para onde cada assunto vive.
 
 Os assuntos, na ordem em que fazem sentido para quem chega agora:
 
@@ -14,6 +15,7 @@ Os assuntos, na ordem em que fazem sentido para quem chega agora:
 3. [A ponte do zip do Infra as Code](#3-a-ponte-do-zip-do-infra-as-code)
 4. [A API de agente](#4-a-api-de-agente)
 5. [Os testes e o que cada um trava](#5-os-testes-e-o-que-cada-um-trava)
+6. [Os templates `.gvb` por dentro](#6-os-templates-gvb-por-dentro)
 
 Documentos relacionados: `docs/api-agente-no-gui.md` (desenho da API de agente),
 `docs/plano-erro-de-deploy-invisivel.md` (de onde veio a motivação da rota de
@@ -932,3 +934,439 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   passaria sem ter avaliado um card sequer. A fileira de teste é um card real mais
   um filler, exatamente a forma que `M.project_rows` produz com 1 projeto numa grade
   de 2 colunas.
+
+---
+
+## 6. Os templates `.gvb` por dentro
+
+Os templates descrevem a interface; o comportamento mora em Luau (`views/scripts/`).
+Esta seção reúne o que antes estava nos comentários dos `.gvb`, agrupado por assunto.
+A estrutura de arquivos (um roteador fino por tela, um arquivo por view ou aba) e as
+regras de divisão estão no `AGENTS.md`, em "Dividir um template grande em arquivos".
+
+### 6.1 Regras que valem para todos os templates
+
+**Um só script, um só contexto.** Toda a lógica de rede e de estado (login, navegação,
+busca, stream SSE e ações) vive em Luau, no script que o `app.gvb` carrega
+(`scripts/app.luau`, sucessor de `app/root.rs` + `app/net/*`). É o único script ativo.
+Como o contexto do glacier é **global**, os templates importados (login, shell, home,
+service) só têm markup, e os handlers deles resolvem para as funções desse script.
+`require("net/api")` e `require("fmt")` resolvem em `scripts/`, relativo ao diretório do
+script. As janelas auxiliares são a exceção: cada uma tem o próprio script e o próprio
+motor.
+
+**Janelas isoladas para o que é caro.** O glacier reavalia **todos** os templates
+registrados a cada reavaliação. Na janela principal (shell + home + service + wizard, com
+dezenas de `for-each`) isso é caro, e sob um stream de logs verborrágico satura a UI,
+mesmo coalescido a 30 fps. Por isso os logs (runtime e build) abrem em janela própria:
+lá o motor só tem um template minúsculo, cada reavaliação é trivial e o log rola liso
+independente da taxa de chegada. O mesmo vale para a aba Logs do serviço, que é só um
+*launcher* (ver [6.5](#65-o-detalhe-do-serviço)), e para o build log de um deployment
+(`dep_logs` → `open_window`): renderizar milhares de linhas por reavaliação travava a
+principal.
+
+**A condição vai na chamada, não na raiz do componente.** Num componente extraído, o `if`
+do nó raiz não é aplicado: o conteúdo apareceria sempre. Por isso as abas se escrevem
+`ServiceLogsTab(if = @tab, equals = logs)` e as abas de projeto
+`ProjectEnvTab(if = @proj_loading, not_equals = true)`, com o `if` no ponto de uso. O
+mesmo raciocínio vale para o `LoadingRow` (ver [6.7](#67-os-componentes)).
+
+**Vários filhos condicionais pedem `if @x { … }`, não `if=` como atributo.** O atributo
+`if=` num elemento condiciona **só aquele elemento**. Um bloco com vários filhos
+(o editor `.env`, o modo *secret*, os blocos de cada view) usa o bloco `if`/`<template>`.
+No editor `.env`, por exemplo, o atributo só esconderia o `Text` e deixaria o
+`TextArea` e os botões sempre visíveis.
+
+**`scrollable` só renderiza o primeiro filho** (`NodeType::Scrollable` usa
+`node.children.first()`, em `widget.rs` do glacier-ui). Por isso a lista e o editor `.env`
+vivem dentro de **uma única** `column`, nunca como irmãos diretos do `scrollable`. Foi
+também o que corrigiu os botões Salvar/Cancelar do editor, que antes eram irmãos fixos
+depois de um `scrollable` com `height: fill` e podiam ficar cortados em janelas baixas.
+
+**Listas vazias são `fallback`.** Cada lista tem um componente `Sem…` que o `fallback` do
+`for-each` (e o `foreach_fallback` do `<template>`) desenha no lugar dela. Eles moram no
+arquivo que os usa.
+
+**Janelas sem `background: var(--bg)`.** As telas das janelas auxiliares (e o login) não
+repetem o fundo no CSS: `var(--bg)` é a cor do tema, já pintada na janela inteira, e
+repeti-la era uma camada redobrada em cada pixel (ver `PRIMITIVAS.md`, "O que custa num
+quadro").
+
+**Ícone + tooltip em vez de rótulo por extenso** onde a coluna é estreita. As linhas de
+job (Schedules), de repositório (Registry) e de deployment (aba do serviço) trocaram
+"Rodar agora", "Ver logs", "Pausar", "Build log ↗" e "Remover" por ícones com tooltip: os
+rótulos quebravam em duas linhas e estouravam a coluna quando a janela estreitava, e uma
+linha de 360 px pensada para rótulos por extenso empurrava o botão de remover para fora
+da largura visível (sem scroll horizontal).
+
+**Validação declarada no `<form>`** (glacier-ui 0.102+). As regras moram no campo
+(`rules=`); o motor valida ao enviar e roteia `on_submit` (tudo certo) ou
+`on_validation_error` (algo falhou). O `<button type="submit">` dispara sem `on_click`, e
+o `.np_input:invalid` (em `app.gss`) acende sozinho. `form` não aninha: um formulário
+próprio tem de ficar **fora** de outro.
+
+**Entradas numéricas são widgets, não texto livre.** O `<spinbox>` e o `<timeedit>`
+validam por construção; ver "Healthcheck" e "Manutenção" abaixo para o que deu errado
+antes.
+
+**Estilo e responsividade.** O estilo inline fica no `<style>` de cada arquivo; o que é
+compartilhado e responsivo (as regras de `@media`) vive em `app.gss`, não nos
+templates: cruzar arquivo com o inline deixaria a precedência ambígua. A cor de um estado
+vem da camada GSS, nunca de hex vindos do Rust.
+
+### 6.2 O manifesto (`views/app.gvb`)
+
+A raiz do arquivo é o `app(...)` e as telas — a janela principal e as cinco auxiliares —
+são filhas dele (glacier-ui 0.117+).
+
+- **`id`** nomeia o diretório de dados (`~/.local/share/rustploy`, onde moram o `storage`
+  do Luau — o login lembrado — e a geometria da janela) e é a chave da **instância
+  única**. Com a bandeja declarada, fechar a janela recolhe o app em vez de encerrá-lo, e
+  uma segunda execução foca a primeira.
+- **`size`, `min_size`, `icon`, `decorations`** são da janela **principal**. O ícone as
+  filhas herdam; o tamanho de cada uma vai no `open_window("tela", { size = … })` dos
+  handlers.
+- **Fonte e daemon.** A fonte padrão vale para todas as janelas (declarada no próprio
+  `app(...)`); o `application_id` do Linux casa a janela com o `rustploy-gui.desktop`.
+  O **MSAA x4** padrão do iced custa caro num fallback 100% por software (sem GPU
+  compatível: o `wgpu` recusa adapters não-Vulkan-compliant e cai para a CPU), e telas de
+  formulário e de lista não perdem legibilidade sem ele — por isso o `antialiasing` é
+  declarado desligado.
+- **Janela borderless.** Com `decorations = false`, uma moldura de 6 px de *handles* de
+  resize envolve o conteúdo. Cada handle define o cursor de hover e inicia um resize
+  interativo ao pressionar (`window:resize:<dir>`), tratado no runtime contra o id da
+  janela em cache. O glacier não tem overlay/z-stack, então a moldura é montada como
+  linha de cima / faixa do meio (bordas esquerda e direita + corpo) / linha de baixo.
+- **Titlebar custom.** `titlebar_drag` (`width: fill`) é a alça de arraste e empurra os
+  controles para a borda direita; as ações `on_press`/`on_click` `window:*` são tratadas
+  no runtime contra o id da janela.
+- **As janelas auxiliares** (`log`, `new_job`, `new_service`, `new_project`,
+  `new_registry_token`): cada uma é um motor isolado que abre **só** a tela pedida
+  (`open_window("log", …)`), com o próprio script — o `init` delas não roda na principal.
+  Os tamanhos estão nos handlers.
+
+### 6.3 O shell (`views/shell.gvb` e `views/shell/`)
+
+O shell é a casca do app conectado: sidebar, topbar e as views de projeto (Deployments,
+Projects, serviços de um projeto, detalhe de serviço); delega as telas globais ao
+`home.gvb`.
+
+- **A sidebar é uma `<drawer>`** (glacier-ui 0.92+, Onda 2 da reforma,
+  `docs/plano-reforma-gui-glacier-0.102.md`). Largura, padding e spacing vêm das props do
+  `<drawer>` no markup; o CSS só dá a cor (o painel carrega `drawer-panel` + `sidebar`). A
+  gaveta **empurra** o conteúdo (não cobre) e não desenha gatilho: o ☰ mora na topbar e
+  `drawer::toggle:menu` funciona de qualquer lugar. O `init()` (`connection.luau`) semeia
+  `menu = "true"` para começar aberta.
+- **Responsivo** (glacier-ui 0.9.0+): em janela estreita a sidebar-gaveta **fecha** pelo ☰
+  (o motor anima a largura 264→0), em vez do antigo trilho de ícones. Sobra só o aperto da
+  própria topbar; abaixo de 560 px somem a busca e o status do daemon (baixa prioridade)
+  para o ☰, o *Stop All* e o *Disconnect* não serem cortados.
+- **`app:` no ☰.** O prefixo `app:` tira o prefixo de dono (`Shell::…`) que o motor poria
+  numa ação escrita dentro de um `<component>`; sem ele a ação não chegaria ao builtin
+  `drawer`. Sai `drawer::toggle:menu`, que o dispatch roteia para o `<drawer>` (o alias
+  minúsculo é um componente registrado).
+- **Detalhe de serviço e o wizard.** O wizard "Novo serviço" saiu do shell
+  (`view = new_service`): agora abre numa janela à parte (`new_service_window.gvb`),
+  disparada por `open_new_service_window`.
+- **Projects.** Criar projeto abre uma janela à parte (`new_project_form.gvb`, motor
+  Glacier próprio); ao concluir, ela envia um `broadcast("project_created")` que o
+  `on_broadcast` (`handlers/projects.luau`) recebe para atualizar a grade. Ver
+  `open_new_project_window`.
+- **Projeto aberto (`project_services.gvb`).** Barra superior com *voltar* à esquerda e as
+  ações do projeto empurradas para a extremidade direita (`hspacer` = `width: fill`); em
+  modo de edição as ações somem (o form tem Salvar/Cancelar). A grade de serviços usa
+  `virtualize` = a altura de **uma** fileira de cartões: só as fileiras visíveis são
+  montadas e as de fora viram um vão do tamanho exato (glacier-ui 0.77, ver
+  `PRIMITIVAS.md`). O valor é a altura do card; o `spacing: 10` da `.grid` o motor soma
+  sozinho. Errar desalinha a barra de rolagem, não quebra.
+- **Aba Variáveis (`project_env.gvb`).** No modo *secret* o campo valor passa a receber o
+  **nome** de um secret do projeto (a referência, não o conteúdo), que o daemon decifra no
+  deploy. Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar,
+  reancoram na variável seguinte da nova ordem), mas sem delete — removem-se editando o
+  `.env`. O editor `.env` é um bloco condicional com vários filhos.
+- **Aba Secrets.** É *write-only*: o daemon só devolve os nomes (o valor é cifrado com a
+  chave mestre do servidor), então não há coluna de valor nem edição — sobrescrever é salvar
+  de novo com o mesmo nome. Ver `handlers/secrets.luau` e `docs/secrets.md`.
+
+### 6.4 As telas globais (`views/home.gvb` e `views/home/`)
+
+Cada tela é uma seção por valor de `view`: Monitoring, Ingress, Deploy Engine, Docker (e
+Registry), Settings, Schedules e Suporte.
+
+- **Monitoring.** Bloco com vários filhos condicionais: precisa de bloco `if`/`<template>`,
+  não do atributo `if=`.
+- **Deploy Engine.** KPIs + deploys em andamento + histórico das últimas 24 h. Tudo vem do
+  `Command::DeployEngineStatus` (ver os `eng_*`); sem backend novo. A fila é **global** (um
+  deploy por vez): o primeiro é o próximo a rodar. Arrasta-se pela alça (⋮) para reordenar,
+  ↑ fura a fila, ✕ cancela, e pausar/retomar interrompe o worker de puxar o próximo (o que já
+  está rodando segue). Tudo em `handlers/deploy_queue.luau`. As três seções são irmãs e de
+  tamanhos diferentes: fila e "executando agora" crescem com o conteúdo (uma fila vazia não
+  tem por que ocupar um terço da janela) e só o histórico recebe o espaço que sobra, porque é
+  a única lista que cresce sem limite. "Executando agora" tem no máximo um deploy (a fila é
+  serial), então também encolhe para o conteúdo.
+- **Docker.** Sub-abas Containers / Images / Volumes / Networks / Registry. As três do meio
+  listam **todo** o host Docker (não só os recursos geridos pelo Rustploy; ver
+  `docker_inventory` no daemon), com indicação de uso e botão de limpar as que estão sem uso.
+  - *Containers:* o container nasce de um `Service`, então a ligação com projeto/serviço é
+    direta. A lista mostra todos do host (rodando + parados); remover só é oferecido nos
+    **parados** (o Docker recusa `rm` de um rodando sem `force`).
+  - *Images:* a lista já vem ordenada por tag (`docker_images_json`); o checkbox "Somente em
+    uso" só esconde as linhas sem uso, sem *round-trip*.
+  - *Volumes:* o Rustploy só usa *bind mounts*, então os volumes nomeados aqui são sempre
+    externos a ele (criados à mão ou por `VOLUME` da imagem).
+  - *Registry:* repositórios/tags do registry OCI embutido (Fase 1: só push/pull via docker
+    CLI; sem auth ainda). Leitura + delete (metadados) + GC (libera do disco blobs/manifests
+    órfãos). As tags de um repositório são buscadas **sob demanda**, ao clicar "Ver tags" —
+    não vêm no snapshot periódico, diferente das outras sub-abas. `registry_repos` chega
+    **filtrado** pela busca (`fmt.registry_repos(snap.registry_repos, term)` em
+    `stream.luau`), enquanto o `registry_repos_count` é da lista crua; por isso a mensagem de
+    "Faça `docker push`…" usa o count (trocar pelo `empty` de `registry_repos`, como nos
+    outros pares lista/count, a faria aparecer quando a busca só não achou nada, não quando o
+    registry está genuinamente vazio), e o `fallback` distingue "registry vazio" de "busca sem
+    resultado".
+- **CSS compartilhado das colunas de ação.** `align-x` só afeta como um container de
+  linha/coluna posiciona seus **filhos**; não alinha o texto de um elemento dentro da própria
+  caixa (isso é `text-align`). Como a classe `.col_act` é reaproveitada no texto do cabeçalho e
+  no container dos botões, sem `text-align` o rótulo "AÇÃO" ficava colado à esquerda enquanto
+  os botões (`align-x: end`) ficavam colados à direita. `.col_act_2` é a linha de repositório
+  do Registry (2 ícones: ver tags/remover, com tooltip), `.col_act_4` a de job em Schedules (4
+  controles: rodar/logs/pausar-ativar/remover) e `.col_act_5` a mesma com um controle a mais
+  (editar).
+- **Ingress.** Os estados vazios das listas usam o `fallback`. As portas TCP de host são
+  exposição direta de porta, fora do proxy HTTP por domínio: um serviço pode ter as duas, só
+  uma, ou nenhuma.
+- **Settings → Git.** OAuth: o Luau não abre o navegador; guarda a URL em `gp_oauth_url` e o
+  built-in `open:<chave>` do glacier abre no navegador padrão.
+- **Settings → Infra as Code.** O manifesto é um `.zip` com exatamente `rustploy.yml`
+  (projetos/serviços; variáveis de ambiente sempre como `${VAR}`) + `rustploy.vars.toml` (os
+  valores reais, aninhados por escopo). Exportar/importar usam os diálogos nativos do SO, e o
+  import rejeita um zip que tenha qualquer outra coisa. Ver `iac_export`/`iac_import` em
+  `handlers/settings.luau` e a ponte do zip na [seção 3](#3-a-ponte-do-zip-do-infra-as-code).
+- **Settings → Manutenção.** Limpeza automática de recursos Docker sem uso (ver
+  `docs/plano-limpeza-automatica-docker.md`): as mesmas funções dos botões manuais da aba
+  Docker, disparadas por agendamento em vez de clique.
+  - O **dia da semana** eram sete `<TabButton>` escritos à mão mais o handler `dc_weekday` só
+    para gravar a escolha. O `<radiogroup>` (glacier-ui 0.66) grava a chave sozinho, no update
+    dele em Rust, então o handler foi embora junto. As opções vêm de `weekdays`, semeada em
+    `handlers/connection.luau` a partir de `fmt.WEEKDAYS_JSON`; a aparência agora é de radio
+    buttons redondos, não da fileira de pílulas.
+  - O **horário** era um par de campos de texto livre ("HORA (0-23)" e "MINUTO (0-59)"), e a
+    faixa no próprio rótulo era a confissão de que nada impedia digitar 99: o handler fazia
+    `tonumber(...) or 0` e agendava a limpeza para a meia-noite sem avisar ninguém. O
+    `<timeedit>` (glacier-ui 0.68) é um campo só, editado por seções (clique na hora, setas ▴▾
+    mexem nela), onde não dá para digitar e portanto não dá para digitar errado. A chave
+    `dc_time` é `"HH:MM"`; `fmt.hm_join`/`fmt.hm_split` fazem a ponte com o `{hour, minute}`
+    que o daemon espera — o contrato HTTP não mudou.
+
+### 6.5 O detalhe do serviço (`views/service.gvb` e `views/service/`)
+
+O cabeçalho tem as ações (deploy, stop, reload), e as abas são General (fonte), Connection,
+Domains, Environment, Deployments, Logs e Advanced (mais Databases, Migrar e Healthcheck
+conforme o serviço).
+
+- **Status numa sub-linha.** Status + timer ficam numa **sub-linha** abaixo do nome, nunca na
+  mesma linha do título. Antes o badge ficava inline e, quando o nome quebrava em duas linhas,
+  o "Running" era desenhado por cima da segunda: um elemento de texto do iced não corta ao
+  ultrapassar a caixa `fill`, e o badge (posicionado logo após a caixa estreita) caía sobre o
+  texto vazado. Descê-lo elimina qualquer disputa horizontal com o nome.
+- **Timer de deploy.** O "1s, 2s, 3s…" só aparece enquanto um deploy iniciado por este painel
+  (Deploy/Rebuild) está em andamento. É incrementado uma vez por segundo pela subscription de
+  poll (`sec_tick`, em `net::poll_stream`) e some quando o deploy termina; o desfecho e o
+  tempo total aparecem então em `svc_action_msg`, logo abaixo.
+- **Ações responsivas.** As ações compactas (ícones) ficam **empilhadas** abaixo do título e
+  só valem até 1240 px; ficam dentro da coluna do título de propósito: quando aperta, a
+  fileira de rótulos à direita some (`@media`) e `header_titles` passa a ocupar a largura toda,
+  então os ícones descem para cá — título e ações nunca dividem a mesma linha em janela
+  estreita, e por isso nada sobrepõe o nome. A fileira de rótulos por extenso fica à **direita**
+  do título, só acima de 1240 px; abaixo disso ela some (`@media` em `app.gss`) e entram os
+  ícones. O `.svc_actions_full`/`.svc_actions_compact` e o swap por `@media` vivem em
+  `app.gss`, junto das outras regras responsivas.
+- **O nome é o elemento flexível da linha do título** (`.svc_title { width: fill }`): ele
+  absorve a folga e quebra dentro da coluna quando aperta. Sem isso, o botão de voltar, o nome
+  e o badge são todos `shrink` (largura natural) e, quando a soma passa da largura da coluna, o
+  iced **não** encolhe — transborda para a direita e o nome/badge invadem os botões de ação (o
+  "Deploy/▶ por cima do nome").
+- **Abas com scroll horizontal.** São 8 abas e, em janela estreita, as últimas
+  ("Healthcheck"/"Logs"/"Advanced") saíam da tela sem como alcançá-las. A viewport
+  (`.tabs_scroll`) é `width: fill`; a fileira interna (`.tabs_main`) é `width: shrink` (largura
+  natural), então quando as abas não cabem ela transborda a viewport e a barra de rolagem
+  aparece.
+- **Painel lateral.** Mostra o status. O log ao vivo saiu dali: era um `for-each` sempre
+  renderizado que a reavaliação processava a cada tick; agora é janela.
+- **CSS.** `.btn_export`/`.btn_export_on`/`.env_editor` vivem em `app.gss` (compartilhados com o
+  shell). `.dep_actions` são 2 botões-ícone (ver build log / remover) com o rótulo no tooltip;
+  o padding era `7 15`, dimensionado para "Build log ↗" e "Remover" por extenso, que estouravam
+  a coluna em janela estreita.
+- **General.** Enquanto o fetch do detalhe (spec + listas conta/repo/branch do Gitea) não
+  completa, mostra-se um loading — os `Select` só aparecem depois, já populados, em vez de
+  piscarem vazios. Renomear é um **form próprio**, fora do form `general` (form não aninha); o
+  nome é só de exibição para Compose (stack e volumes ficam gravados), e em Application o alias
+  de rede acompanha o nome no próximo deploy — o aviso abaixo do campo diz qual dos dois vale. A
+  aba "Gitea/GitHub" vale para qualquer conta conectada em Settings → Git; o `target`/`action`
+  seguem `gitea` por ser a chave de estado (`prov_tab`), não o nome do provedor. O `placeholder`
+  do editor Compose tem quebras de linha **literais** (o `.gvb` não interpreta `\n`, e `"""`
+  dobra linhas em espaços), com as linhas de continuação coladas na margem de propósito — não
+  reindente.
+- **Environment.** Valem as regras de `scrollable` e do editor `.env` de [6.1](#61-regras-que-valem-para-todos-os-templates).
+  Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar, reancoram na
+  seguinte), mas sem delete; a classe da linha muda para `kv_row_drag` no item agarrado
+  (`{e.__dragging}` vem do glacier-ui durante o arrasto).
+- **Deployments.** A URL do webhook e os botões ficam em **linhas separadas**: a URL é longa
+  (~100 caracteres) e, com `width: fill`, empurraria os botões para fora do painel. Ela é exibida
+  **truncada** (`svc_webhook_url_short`), porque inteira estoura o card em janelas estreitas; o
+  valor completo vai no tooltip e no clipboard. As ações da linha são ícone + tooltip (ver
+  [6.1](#61-regras-que-valem-para-todos-os-templates)), e o build log abre em janela isolada.
+- **Domains.** Lista de rotas HTTP (domínio → porta de container, TLS por rota), mais o form de
+  adição e a porta TCP crua do host.
+- **Advanced.** O teto de 20 réplicas é arbitrário mas deliberado: um número acima disso num
+  single-node é quase sempre engano de digitação, e o widget não deixa mais chegar lá. O piso de
+  1 substitui o `if r < 1 then r = 1` do `adv_save`, que fica como rede redundante. A **fila de
+  pré-deploy** é editável com efeito imediato (como Domains, não passa pelo Save do form acima):
+  cada item roda em **ordem** antes do deploy, e a primeira falha para a fila inteira.
+- **Healthcheck.** O *expected status* era um `<input>` de texto livre com uma linha de erro
+  abaixo, `<text if="{erro_f_hc_status}" …>`. Só que `erro_f_hc_status` **nunca foi escrita por
+  ninguém** (nem Luau nem Rust): a validação que ela anunciava não existia, e o handler engolia
+  lixo em silêncio (`tonumber(...) or 200`). Quem valida agora é o próprio widget, que satura em
+  mínimo/máximo; o mesmo vale para os outros cinco campos numéricos da tela, e as linhas
+  `erro_f_hc_*` saíram junto. A faixa dos quatro números do health check sai do que o daemon
+  aceita: intervalo/timeout/start em segundos (1 h de teto é folgado para qualquer check
+  razoável) e *retries* na faixa do Docker.
+- **Logs.** A aba é só o *launcher*: os logs de runtime vivem numa janela isolada (motor leve),
+  não inline, porque renderizar o stream aqui reavaliaria a árvore inteira da janela principal
+  por linha e a travaria. A condição de visibilidade vai na **chamada** (ver 6.1).
+
+### 6.6 As janelas auxiliares
+
+Cada uma é um motor Glacier **isolado** e abre só a própria tela. O tema e o `app.gss` são
+declarações globais do `app` (`app.gvb`), que cada janela carrega. Todas são *borderless*
+(`decorations = false`, como a principal): a titlebar é custom e as ações `window:*`
+(`drag`/`minimize`/`close`) são tratadas no runtime contra o id da janela; as de diálogo não têm
+*maximize*.
+
+**O que elas têm em comum.** O app principal as abre com `open_window` e **semeia** a conexão
+(`api_url`/`api_token`) e o que já tem à mão via `open_window({ data = … })`. Nada é buscado ali
+dentro: um `fetch` rodado no `init()` é descartado pelo motor (só ações despachadas chegam ao
+executor), a mesma razão de `new_service_window.luau`. A `screen` é só conteúdo — o tamanho vai
+no `open_window{ size = … }`.
+
+- **Logs (`log_window.gvb`).** Janela de **logs ao vivo** (runtime ou build), aberta por
+  `handlers/services.luau` (`open_logs_window`/`open_build_logs_window`). É genérica: o script
+  decide o tipo pelos dados semeados — `api_url`/`api_token`, `lw_title`, `lw_stream_url`
+  (endpoint SSE dedicado) e `lw_seed` (histórico inicial); ver `scripts/log_window.luau`. O motivo
+  da janela está em [6.1](#61-regras-que-valem-para-todos-os-templates). Não tem `title` no
+  cabeçalho de propósito: o título é dinâmico ("Logs — nginx", "Build — abc123", "Job — …") e
+  quem o sabe é quem a abre, no `open_window{ title = … }`; o tamanho (900×560) vai no
+  `open_window{ size = … }`. O corpo é um `<textarea readonly>` (`text_editor` do iced): texto
+  **selecionável** e copiável (arrastar + Ctrl+C), mas não editável (`readonly` ignora
+  digitação, apagar e colar; seleção e scroll seguem funcionando). Cada linha nova é
+  **appendada** no fim via `append_textarea` (o motor insere sem recriar o buffer, preservando o
+  scroll). O botão ↓ rola até o fundo (`textarea_end:`) sem precisar arrastar a roda. O
+  `textarea` do glacier-ui desenha a própria barra de rolagem (arraste o *thumb*, clique na
+  trilha) e rola também por roda, teclado e pelos botões ↑/↓.
+- **Novo job (`new_job_window.gvb`).** Aberta por `handlers/jobs.luau` (`open_new_job_window`), que
+  semeia a conexão + os catálogos de projetos/serviços já buscados pela janela principal. Passos:
+  escolher projeto → escolher serviço gatilho (rede + env vars de base) → formulário (nome,
+  compose, `main_service`, recorrência). Ao concluir emite `broadcast("job_created")` e fecha.
+  - *Passo 2:* o serviço gatilho é opcional — só traz env vars de base; a rede Docker já vem do
+    projeto escolhido no passo 1.
+  - *Passo 3:* o formulário também é o **único** passo em modo edição (`open_edit_job_window`,
+    sem passos 1/2: projeto e serviço gatilho não são editáveis via `JobUpdate`).
+  - *Aba Git:* o mesmo picker conta→repo→branch da aba Gitea do serviço; o repo escolhido
+    precisa já ter um `docker-compose.yml` no caminho informado — o job clona e roda esse
+    arquivo a cada execução, em vez do colado acima.
+  - *Env vars:* as próprias do job têm a **maior precedência** na resolução (por cima de projeto +
+    serviço gatilho); formato `.env` colado, igual ao editor de projeto/serviço, parseado em
+    `njob_create`.
+  - *Recorrência diária:* os pares HORA/MINUTO de texto livre viraram um `<timeedit>` só (chave
+    `njob_time`, `"HH:MM"`) — a mesma troca e o mesmo motivo da limpeza automática (ver 6.4).
+- **Novo projeto (`new_project_form.gvb`).** Aberta por `handlers/projects.luau`
+  (`open_new_project_window`). Ao concluir, o script (`scripts/new_project_window.luau`) emite
+  `broadcast("project_created")` e chama `close_window()`. A validação é declarada no `<form>` (ver
+  6.1).
+- **Novo token do registry (`new_registry_token_window.gvb`).** Aberta por
+  `handlers/registry.luau` (`registry_open_token_window`), que semeia a conexão + o host do
+  registry. Fluxo: formulário (nome + escopo pull/push) → `RegistryTokenCreate` → o segredo
+  aparece em texto **uma vez**, com botão copiar. A janela **não** fecha sozinha (diferente da de
+  job), porque o usuário precisa copiar antes de perder o valor. O
+  `broadcast("registry_token_created")` dispara na hora da criação (não só ao fechar), para a
+  lista da janela principal atualizar mesmo se o usuário nunca clicar em "Fechar".
+- **Novo serviço (`new_service_window.gvb` + `new_service.gvb`).** A janela é aberta por
+  `handlers/wizard.luau` (`open_new_service_window`), que semeia a conexão + o projeto-alvo, e
+  reaproveita o corpo do wizard (`new_service.gvb`, importado como `<NewServiceWizard/>`); a
+  lógica vem de `handlers/wizard.luau`, carregada pelo script de entrada. Ao criar, o wizard emite
+  `broadcast("service_created")` e chama `close_window()`. O wizard espelha o fluxo do antigo
+  remote-client (Application / Database / Compose / Template): tipo → formulário por tipo; o passo
+  corrente vive em `{ns_step}` e os campos são chaves de contexto `ns_*` (os handlers `ns_*`). O
+  status do wizard mostra um spinner enquanto o RPC de criação está no ar (`{ns_busy}`), e o
+  texto acompanha `{ns_msg}` ("criando…" / "erro: …").
+
+### 6.7 Os componentes
+
+Os componentes de `views/components/` são pequenos e sem estado próprio; o que mudam vem por
+props.
+
+- **`badge`** — variante da célula de estado (mesmo ponto + rótulo, com o espaçamento e o estilo
+  de crachá, `badge_lbl`). Usada no card de serviço e no cabeçalho/aside do detalhe do serviço.
+- **`loading_row`** — linha "Carregando dados…" com spinner. A **condição** de exibição fica no
+  chamador (`if cond="{flag}" equals="true" { LoadingRow }`), não aqui dentro: um componente
+  instanciado direto (fora de `for-each`) tem a prop resolvida **uma vez** e não re-avalia quando
+  o flag muda — um `if` interno à prop ficava preso em `"true"` e o spinner nunca sumia. O `if`
+  inline do chamador é re-avaliado ao vivo (mesmo padrão do `if` que esconde/mostra a grid).
+  `note` sobrescreve o texto padrão quando fornecido (prop ausente → vazio) e é a única prop,
+  opcional; o `default = ""` reproduz exatamente o comportamento antigo, só que agora declarado. O
+  indicador é o `<spinner>` do motor (glacier-ui 0.66+): um anel girando de verdade, não o glifo
+  `⟳` estático de antes; o diâmetro sai do `width`/`height` do nó (o `size:` do GSS é corpo de
+  fonte e não vale aqui) e a cor cai no `color` da classe.
+- **`nav_item`** — item de navegação da sidebar: ícone + rótulo. Fica "ligado" (pílula azul)
+  quando a view atual (`{view}`) casa com `target` via **`one_of`** (glacier-ui 0.57.8), não
+  `equals`: `target` pode ser mais de uma view separada por espaço (ex.: `"projects
+  project_services service"`), para o item continuar aceso nas sub-telas dele; um `target` de uma
+  view só funciona igual (`one_of` com um token é comparação de igualdade). Antes da 0.57.8 isso
+  não dava para fazer sem inventar gramática de expressão, e o item "Projects" apagava assim que
+  se entrava num projeto. Histórico: era um botão-texto puro (`Button` com o rótulo em `text`),
+  mas até a 0.57.5 o botão não suportava filhos, então não dava para pôr ícone + texto lado a
+  lado; tinha virado uma `row` com `on_press` (o mesmo mecanismo de clique dos handles de
+  resize/drag — qualquer nó com `on_press`/cursor vira um `mouse_area`), hack removido na 0.57.6
+  (`<Button>` com filhos: um filho vira o conteúdo direto, mais de um vira uma `Row` implícita
+  respeitando `spacing`/`align-y` do próprio nó). O `tooltip="{label}"` (glacier-ui 0.37.5)
+  mostra o rótulo completo ao pairar o mouse; o *wrap* acontece depois do `mouse_area` em
+  `widget.rs`, então o hover funciona na linha inteira, não só no ícone. A prop `view` **não**
+  entra em `props`: ela vem do contexto global, não de quem instancia o item, e declarar só o
+  que é prop é o que mantém a leitura do contexto funcionando. Não há `@media` de colapso: a
+  sidebar virou `<drawer>` (ver 6.3); em janela estreita a gaveta fecha pelo ☰ e, aberta, tem
+  sempre 264 px e o rótulo cabe.
+- **`picker_row`** — linha de escolha do wizard "Novo serviço": título + subtítulo à esquerda e
+  um botão de ação à direita, usada nos passos de tipo, de banco e de template.
+- **`project_card` e `service_card`** — são templates **fragment** com dois nós de topo (o *slot*
+  vazio e o card): o glacier-ui (0.4.12+) embrulha múltiplas raízes num `Fragment` e aplica os
+  filhos no pai, então o par `if`/`else` vira dois irmãos do grid, sem nó *wrapper*. Todas as
+  props são obrigatórias, inclusive no modo `filler` (o card vazio que completa a fileira): quem
+  chama passa o conjunto inteiro e o próprio template decide o que renderizar pelo `{filler}`. A
+  descrição é sempre renderizada (mesmo vazia) para reservar a linha, mantendo os cards da
+  fileira mais próximos em altura mesmo quando só um tem descrição. O `service_card` é o análogo do
+  `project_card` na aba "Serviços" de um projeto, e o crachá de estado reaproveita o `rp-badge`.
+  As regras `.card_ctr_id`/`.card_ctr_extra` (cor `--text-3`) ficaram desativadas.
+- **`stat_card`** — tile de KPI do cabeçalho (STATUS/UPTIME/SERVICES/CPU/…). Com `accent = "1"` o
+  número usa o realce verde (`stat_num_g`); sem `accent`, o neutro (`stat_num`). A prop ausente
+  vira string vazia, então `!= "1"` → neutro; por isso `accent` é opcional com `default = ""`.
+- **`state_cell`** — a célula de estado das tabelas: o ponto colorido "●" + o rótulo, ambos na
+  mesma cor. Usada em Deployments, Docker (containers/images/volumes/networks) e na lista de
+  deployments do serviço. A cor vem da camada GSS: `kind` é um token semântico
+  (`ok`/`bad`/`info`/`warn`/`muted`) e a classe `state_<kind>` define a cor (ver `.state_*` em
+  `app.gss`), de modo que a paleta fica centralizada no estilo. A largura vem de `.col_state`
+  (`app.gss`), junto com a coluna ESTADO do `thead` — inclusive os ajustes de `@media`
+  (170/130/110); antes era 170 fixo aqui e a célula desalinhava do cabeçalho em janela estreita.
+- **`tab_button`** — botão de aba genérico: "ligado" (`tab_on`) quando o valor atual da aba
+  (`{current}`, passado pelo chamador, ex.: `"{docker_tab}"`) é igual ao `target` desta aba;
+  caso contrário neutro (`tab`). O `equals` é interpolado, então compara os dois valores
+  dinâmicos.
+- **`template_row`** — linha do catálogo de templates de aplicação: logo à esquerda (vetor ou
+  raster conforme `logo_kind`), nome + descrição e o botão "Escolher" à direita. Os logos vêm de
+  `assets/blueprint-logos/<id>/<arquivo>`, pelo `{logo}` data-driven do catálogo do daemon (ver a
+  [seção 2](#2-onde-estão-os-assets)). A
+  caixa do logo é **quadrada, fixa e centralizada**: os logos têm proporções diferentes (quadrado,
+  largo, estreito), então reserva-se sempre o mesmo espaço e centraliza-se o logo dentro dele, o
+  que mantém a coluna de texto alinhada. A origem da imagem vem no atributo `src` (interpolado do
+  `{logo}`): o parser lê o *source* de `<svg>`/`<image>` só de atributo, nunca do conteúdo entre as
+  tags. A descrição só é renderizada quando existe — uma linha vazia empurraria o nome para cima e
+  o desalinharia do logo (`align-y: center` da linha).

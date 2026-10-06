@@ -1,12 +1,7 @@
 // Janela "Novo job": motor Glacier próprio, aberto por open_window a partir
 // do app principal (handlers/jobs.luau → open_new_job_window), que semeia a
 // conexão + os catálogos de projetos/serviços já buscados pela janela
-// principal (open_window({ data = ... }) — nada é buscado aqui dentro: um
-// `fetch` rodado no `init()` é descartado pelo motor, só ações despachadas
-// chegam ao executor; mesma razão de `new_service_window.luau`). Passos:
-// escolher projeto → escolher serviço gatilho (rede + env vars de base) →
-// formulário (nome, compose, main_service, recorrência). Ao concluir, emite
-// broadcast("job_created") e fecha.
+// principal (open_window({ data = ...
 screen(title = "Novo job — Rustploy") {
   resources {
     component(name = SemProjetosParaJob) {
@@ -25,9 +20,6 @@ screen(title = "Novo job — Rustploy") {
       .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
       .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
 
-      /* sem `background: var(--bg)`: é a cor do tema, já pintada na janela
-         inteira — repeti-la era uma camada redobrada em cada pixel (ver
-         PRIMITIVAS.md, "O que custa num quadro"). */
       .njob_screen { width: fill; height: fill; }
       .njob_body   { width: fill; height: fill; }
 
@@ -83,8 +75,6 @@ screen(title = "Novo job — Rustploy") {
           }
         }
 
-        // Passo 2: escolher o serviço gatilho (opcional — só env vars de
-        // base; a rede Docker já vem do projeto escolhido no passo 1).
         if @njob_step == "pick_service" {
           text(
             class = label_cap,
@@ -133,9 +123,6 @@ screen(title = "Novo job — Rustploy") {
           }
         }
 
-        // Passo 3: formulário do job (também o único passo em modo edição —
-        // aberto por open_edit_job_window, sem passos 1/2: projeto/serviço
-        // gatilho não são editáveis via JobUpdate).
         if @njob_step == "form" {
           if @njob_edit_id != "" {
             text(class = label_cap, content = "EDITAR JOB — @njob_name")
@@ -194,10 +181,6 @@ screen(title = "Novo job — Rustploy") {
               )
             }
 
-            // Aba Git: mesmo picker conta→repo→branch da aba Gitea de
-            // serviço (service.gv); o repo escolhido precisa já ter um
-            // docker-compose.yml no caminho informado — o job clona e roda
-            // esse arquivo a cada execução, em vez do colado acima.
             if @njob_source == "git" {
               text(
                 class = muted,
@@ -273,9 +256,6 @@ screen(title = "Novo job — Rustploy") {
               placeholder = "ex.: job",
             )
 
-            // Env vars próprias do job — maior precedência na resolução
-            // (por cima de projeto + serviço gatilho). Formato .env colado,
-            // igual ao editor de projeto/serviço; parseado em njob_create.
             text(class = np_label, content = "VARIÁVEIS DE AMBIENTE (opcional)")
 
             text(
@@ -341,9 +321,6 @@ screen(title = "Novo job — Rustploy") {
               )
             }
 
-            // Os pares HORA/MINUTO de texto livre viraram um <timeedit> só
-            // (chave `njob_time`, "HH:MM") — mesma troca e mesmo motivo da
-            // limpeza automática em home.gv.
             if @njob_kind == "daily" {
               row(class = env_add) {
                 column(class = np_group) {

@@ -2,9 +2,6 @@
 // (0.4.12+) embrulha múltiplas raízes num Fragment e aplica os filhos no pai,
 // then o par if/else vira dois irmãos do grid, sem nó wrapper.
 component {
-  // Todas obrigatórias, inclusive no modo `filler`: quem chama passa o
-  // conjunto inteiro e o próprio template decide o que renderizar pelo
-  // `{filler}`.
   props {
     prop(name = id)
     prop(name = name)
@@ -29,9 +26,6 @@ component {
         content = "@service_count serviço(s) · @running_count rodando",
       )
 
-      // Sempre renderizado (mesmo vazio) para reservar a linha da
-      // descrição, mantendo os cards da fileira mais próximos em
-      // altura mesmo quando só um tem descrição.
       text(class = muted, content = "@description")
       hr
 

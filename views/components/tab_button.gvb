@@ -1,7 +1,4 @@
-// Botão de aba genérico. "Ligado" (`tab_on`) quando o valor atual da aba
-// ({current}, passado pelo chamador — ex.: "{docker_tab}") é igual ao `target`
-// desta aba; caso contrário neutro (`tab`). `equals` é interpolado, então
-// compara os dois valores dinâmicos.
+// Botão de aba genérico.
 component {
   props {
     prop(name = label)

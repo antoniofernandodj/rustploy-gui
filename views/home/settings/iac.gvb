@@ -1,8 +1,6 @@
 // Infra as Code: o manifesto é um `.zip` com exatamente rustploy.yml
 // (projetos/serviços, env vars sempre como ${VAR}) + rustploy.vars.toml
-// (os valores reais, aninhados por escopo). Exportar/importar usam os
-// diálogos nativos do SO; o import rejeita um zip que tenha qualquer
-// outra coisa. Ver iac_export/iac_import em handlers/settings.luau.
+// (os valores reais, aninhados por escopo).
 component {
   scrollable(direction = vertical, class = scroll_fill) {
     column(class = form_panel) {

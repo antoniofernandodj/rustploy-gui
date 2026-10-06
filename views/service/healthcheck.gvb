@@ -68,25 +68,8 @@ component {
         width = 90,
         placeholder = 200,
       )
-
-      // Era um <input> de texto livre com esta linha de erro abaixo:
-      //
-      // <text if="{erro_f_hc_status}" not_equals="" class="err">
-      //   {erro_f_hc_status}
-      // </text>
-      //
-      // `erro_f_hc_status` nunca foi escrita por ninguém (nem Luau nem
-      // Rust) — a validação que ela anunciava não existia, e o handler
-      // engolia lixo em silêncio (`tonumber(...) or 200`). Quem valida
-      // agora é o próprio widget, que satura em min/max. Mesma história
-      // nos outros cinco campos numéricos desta tela.
     }
 
-    // Os quatro números do health check. A faixa de cada um sai do que
-    // o daemon aceita: intervalo/timeout/start em segundos (1h de teto é
-    // folgado para qualquer check razoável), retries na faixa do Docker.
-    // As linhas `erro_f_hc_*` que ficavam sob cada campo saíram junto —
-    // ver o comentário do EXPECTED STATUS acima.
     row(class = hc_grid) {
       column(class = hc_field) {
         text(class = label_cap, content = "INTERVAL (s)")

@@ -13,19 +13,12 @@ component {
   ) {
     // O scrollable só renderiza o PRIMEIRO filho: os forms ficam numa coluna.
     column(width = fill, spacing = 12) {
-      // Enquanto o fetch do detalhe (spec + listas conta/repo/branch do
-      // Gitea) não completa, mostramos um loading — os Selects só aparecem
-      // depois, já populados, em vez de piscarem vazios.
       column(class = form_panel, if = @svc_loading, equals = true) {
         if @svc_loading == "true" {
           LoadingRow(note = "Carregando dados do serviço…")
         }
       }
 
-      // Renomear: form próprio, FORA do form "general" (form não aninha).
-      // O nome é só de exibição para Compose (stack e volumes ficam
-      // gravados); em Application o alias de rede acompanha o nome no
-      // próximo deploy — o aviso abaixo diz qual dos dois vale.
       form(
         class = form_panel,
         if = @svc_loading,
@@ -85,9 +78,6 @@ component {
             )
 
             template(if = @gitea_providers, not_empty) {
-              // Vale para qualquer conta conectada em Settings → Git —
-              // Gitea *e* GitHub. O `target`/`action` seguem "gitea" por
-              // ser a chave de estado (prov_tab), não o nome do provedor.
               TabButton(
                 label = "Gitea/GitHub",
                 current = @prov_tab,

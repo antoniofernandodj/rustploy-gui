@@ -1,8 +1,6 @@
 // Seção `ingress` (view = ingress) das telas globais; importada por home.gvb.
 component {
   resources {
-    // Estados vazios das listas: o `fallback` do <foreach> (e o
-    // `foreach_fallback` do <template>) desenha um destes no lugar da lista.
     component(name = SemPortasDeHost) {
       text(
         class = muted,
@@ -61,8 +59,6 @@ component {
       }
     }
 
-    // Portas TCP de host: exposição direta de porta (fora do proxy HTTP
-    // por domínio acima) — um serviço pode ter as duas, só uma, ou nenhuma.
     text(
       class = label_cap,
       content = "PORTAS TCP DE HOST (@host_ports_count)",

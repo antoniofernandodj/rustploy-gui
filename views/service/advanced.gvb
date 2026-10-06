@@ -7,10 +7,6 @@ component {
       form(name = advanced, on_submit = adv_save, class = form_panel) {
         text(class = label_cap, content = "REPLICAS")
 
-        // O teto de 20 é arbitrário mas deliberado: um número acima disso
-        // num single-node é quase sempre engano de digitação, e o widget não
-        // deixa mais chegar lá. O piso de 1 substitui o `if r < 1 then r = 1`
-        // do adv_save, que fica como rede redundante.
         spinbox(
           field_class = spin_field,
           form_control = f_replicas,
@@ -39,9 +35,6 @@ component {
         }
       }
 
-      // Fila de pré-deploy (editável, efeito imediato — como Domains, não
-      // passa pelo Save do form acima): cada item roda em ORDEM antes do
-      // deploy; a primeira falha para a fila inteira.
       column(class = form_panel) {
         text(
           class = label_cap,

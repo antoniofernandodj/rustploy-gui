@@ -1,12 +1,7 @@
 // Registry — repositórios/tags do registry OCI embutido (Fase 1: só
-// push/pull via docker CLI; sem auth ainda). Leitura + delete
-// (metadados) + GC (libera do disco blobs/manifests órfãos). Tags de um
-// repositório são buscadas sob demanda ao clicar "Ver tags" — não
-// vêm no snapshot periódico, diferente das outras sub-abas Docker.
+// push/pull via docker CLI; sem auth ainda).
 component {
   resources {
-    // `registry_repos` chega FILTRADO pela busca; o count é da lista crua.
-    // Por isso o fallback distingue "registry vazio" de "busca sem resultado".
     component(name = SemRepositorios) {
       text(
         if = @registry_repos_count,
@@ -75,13 +70,6 @@ component {
         LoadingRow
       }
 
-      // Fica com `registry_repos_count` (não vira `empty` em
-      // `registry_repos` como os outros pares lista/count deste plano de
-      // convergência): `registry_repos` é FILTRADO pela busca
-      // (fmt.registry_repos(snap.registry_repos, term) em stream.luau),
-      // enquanto o count é da lista crua. Trocar faria essa mensagem
-      // ("Faça docker push...") aparecer quando a busca só não achou
-      // nada, não quando o registry está genuinamente vazio.
       scrollable(
         if = @data_loading,
         not_equals = true,

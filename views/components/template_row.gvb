@@ -1,7 +1,5 @@
 // Linha do catálogo de templates de aplicação: logo à esquerda (vetor ou
 // raster conforme logo_kind), nome + descrição, e o botão "Escolher" à direita.
-// Os logos vêm de assets/blueprint-logos/<id>/<arquivo> (ver
-// `templates_json` em app/wizard.rs).
 component {
   props {
     prop(name = name)
@@ -35,13 +33,7 @@ component {
   }
 
   row(class = tpl_row) {
-    // Caixa quadrada fixa e centralizada: os logos têm proporções diferentes
-    // (quadrado, largo, estreito), então reservamos sempre o mesmo espaço e
-    // centralizamos o logo dentro dele — mantém a coluna de texto alinhada.
     column(class = tpl_logo_box) {
-      // A origem da imagem vem no atributo `src` (interpolado do `{logo}`) — o
-      // parser lê o source de `<svg>`/`<image>` só de atributo, nunca do conteúdo
-      // entre as tags. Ver o `<svg src="…"/>` do login.gv.
       svg(class = tpl_logo, src = @logo, if = @logo_kind, equals = svg)
       image(class = tpl_logo, src = @logo, if = @logo_kind, equals = img)
     }
@@ -49,8 +41,6 @@ component {
     column(class = header_titles) {
       text(class = env_key, content = "@name")
 
-      // Só renderiza a descrição quando existe — uma linha vazia empurraria o
-      // nome pra cima e o desalinharia do logo (align-y center da linha).
       text(
         class = muted,
         if = @description,

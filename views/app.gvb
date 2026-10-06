@@ -1,12 +1,5 @@
 // O app Rustploy: a raiz do arquivo é o `app(...)`, e as telas — a janela
 // principal e as cinco janelas auxiliares — são filhas dele (glacier-ui 0.117+).
-//
-// `id` nomeia o diretório de dados (`~/.local/share/rustploy`, onde moram o
-// `storage` do Luau — login lembrado — e a geometria da janela) e é a chave da
-// instância única. Com a bandeja abaixo, fechar a janela recolhe o app em vez de
-// encerrá-lo; uma segunda execução foca a primeira. `size`/`min_size`/`icon`/
-// `decorations` são da janela PRINCIPAL; o ícone as filhas herdam, e o tamanho de
-// cada uma vai no `open_window("tela", { size = … })` dos handlers.
 app(
   id = rustploy,
   single_instance = true,
@@ -15,11 +8,6 @@ app(
   min_size = "480 680",
   icon = "views/assets/rustploy.png",
   decorations = false,
-  // Fonte padrão de todas as janelas (declarada abaixo), `application_id` do
-  // Linux (casa a janela com o rustploy-gui.desktop), e os ajustes do daemon: o
-  // MSAAx4 default do iced custa caro num fallback 100% por software (sem GPU
-  // compatível — o `wgpu` recusa adapters não-Vulkan-compliant e cai pra CPU), e
-  // telas de formulário/lista não perdem legibilidade sem ele.
   font = "JetBrains Mono",
   application_id = "rustploy-gui",
   antialiasing = false,
@@ -50,11 +38,6 @@ app(
       link(rel = import, href = login.gvb, as = Login)
       link(rel = import, href = shell.gvb, as = Shell)
 
-      // Borderless window (decorations=false): a 6px frame of resize handles wraps
-      // the content. Each handle sets its hover cursor and starts an interactive
-      // resize on press (window:resize:<dir>), handled in main.rs against the cached
-      // window id. glacier has no overlay/z-stack, so the frame is laid out as
-      // top row / middle band / bottom row.
       style """
         /* ── Resize handles (6px frame around the borderless window) ───────────── */
         .rz_top    { width: fill; height: 6; }
@@ -78,12 +61,6 @@ app(
         .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
       """
 
-      // Toda a lógica de rede/estado (login, navegação, busca, stream SSE e ações)
-      // vive em Luau, no script abaixo: sucessor de app/root.rs + app/net/*. É o
-      // único script ativo; como o contexto do glacier é global, os templates
-      // importados (login/shell/home/service) só têm markup e seus handlers resolvem
-      // para as funções deste script. require("net/api") e require("fmt") resolvem em
-      // scripts/ (relativo a este diretório).
       script(src = "scripts/app.luau")
     }
 
@@ -101,9 +78,6 @@ app(
 
         column(class = rz_body) {
           // ── Custom titlebar ───────────────────────────────────────────
-          // titlebar_drag (width:fill) is the drag handle and pushes the
-          // controls to the right edge. on_press/on_click window:* actions are
-          // handled in main.rs against the cached window id.
           row(class = titlebar) {
             row(
               class = titlebar_drag,
@@ -138,9 +112,6 @@ app(
     }
   }
 
-  // As janelas auxiliares: cada uma é um motor isolado que abre SÓ a tela pedida
-  // (`open_window("log", …)`), com o próprio script — o `init` delas não roda na
-  // principal. Os tamanhos estão nos handlers.
   screen(name = log, src = "log_window.gvb")
   screen(name = new_job, src = "new_job_window.gvb")
   screen(name = new_service, src = "new_service_window.gvb")

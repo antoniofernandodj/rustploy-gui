@@ -1,7 +1,6 @@
 // Wizard "Novo serviço" (view=new_service): tipo → formulário por tipo,
 // espelhando o fluxo do antigo remote-client (Application / Database /
-// Compose / Template). O passo corrente vive em {ns_step}; os campos são
-// chaves de contexto ns_* (ver os handlers `ns_*` em app/root.rs).
+// Compose / Template).
 component {
   resources {
     component(name = SemTemplates) {
@@ -30,8 +29,6 @@ component {
       }
     }
 
-    // Status do wizard: spinner enquanto o RPC de criação está no ar
-    // ({ns_busy}); o texto acompanha ({ns_msg} = "criando…" / "erro: …").
     row(class = busy_row, if = @ns_msg, not_equals = "") {
       spinner(class = busy_spin, if = @ns_busy)
       text(class = warn, content = "@ns_msg")

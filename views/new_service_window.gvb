@@ -1,11 +1,6 @@
 // Janela do wizard "Novo serviço": motor Glacier próprio, aberto por
 // open_window (handlers/wizard.luau → open_new_service_window), que semeia a
-// conexão + o projeto-alvo via open_window({ data = ... }). Reaproveita o corpo
-// do wizard (new_service.gv, importado como <NewServiceWizard/>); a lógica vem
-// de handlers/wizard.luau, carregada pelo script de entrada abaixo. Ao criar, o
-// wizard emite broadcast("service_created") e chama close_window(). Borderless
-// (aberta com decorations=false, como as demais): titlebar custom abaixo. Tema
-// e app.gss vêm do `app` (app.gvb), declarados uma vez.
+// conexão + o projeto-alvo via open_window({ data = ...
 screen(title = "Novo serviço — Rustploy") {
   resources {
     link(rel = import, href = new_service.gvb, as = NewServiceWizard)
@@ -24,9 +19,6 @@ screen(title = "Novo serviço — Rustploy") {
       .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
       .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
 
-      /* sem `background: var(--bg)`: é a cor do tema, já pintada na janela
-         inteira — repeti-la era uma camada redobrada em cada pixel (ver
-         PRIMITIVAS.md, "O que custa num quadro"). */
       .nsw_screen { width: fill; height: fill; }
       .nsw_body   { width: fill; height: fill; }
     """
@@ -35,8 +27,6 @@ screen(title = "Novo serviço — Rustploy") {
   }
 
   column(class = nsw_screen) {
-    // Titlebar custom (janela borderless). window:drag/minimize/close tratados
-    // no runtime contra o id desta janela; sem maximize (é um diálogo).
     row(class = titlebar) {
       row(class = titlebar_drag, on_press = window:drag) {
         text(class = titlebar_dot, content = "●")

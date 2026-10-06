@@ -1,5 +1,4 @@
-// Aba Variáveis do projeto. A condição (`if` de carregamento) vai na CHAMADA em
-// project_services.gvb, não na raiz daqui (lá o `if` não é aplicado).
+// Aba Variáveis do projeto.
 component {
   resources {
     component(name = SemVariaveis) {
@@ -53,10 +52,6 @@ component {
         )
       }
 
-      // Modo secret: o campo valor passa a receber o NOME de um
-      // secret do projeto (a referência, não o conteúdo), que o
-      // daemon decifra no deploy. Vários filhos condicionais →
-      // `<template>`, não `if=` atributo.
       if @penv_new_is_secret == "true" {
         row(class = env_add) {
           input(
@@ -127,9 +122,6 @@ component {
           on_reorder = penv_reorder,
           reorder_key = key,
         ) {
-          // Comentários (# ...) do .env: arrastáveis como as vars
-          // (reancoram na var seguinte da nova ordem), mas sem
-          // delete — removem-se editando o .env.
           if @e.__dragging == "true" {
             if @e.kind == "comment" {
               row(class = kv_row_drag) {
@@ -195,9 +187,6 @@ component {
       }
     }
 
-    // Editor .env: vários filhos condicionais → `<template>` (o atributo
-    // if= só esconderia o Text, deixando TextArea/botões sempre
-    // visíveis).
     if @penv_text_open == "true" {
       text(
         class = muted,

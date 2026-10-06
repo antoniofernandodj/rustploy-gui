@@ -57,8 +57,6 @@ component {
       class = scroll_fill,
     ) {
       column(class = table_body) {
-        // Sub-aba já vem ordenada por tag (docker_images_json); o checkbox
-        // "Somente em uso" só esconde as linhas SEM USO, sem round-trip.
         if @docker_images_only_used == "true" {
           each @docker_images as i (fallback = SemImagens) {
             column(

@@ -18,23 +18,12 @@ component {
       /* Cabeçalho + ações */
       .svc_head      { width: fill; align-y: start; }
       .svc_title_row { width: fill; spacing: 14; align-y: center; }
-      /* O nome do serviço é o elemento FLEXÍVEL da linha do título (width: fill): ele
-        absorve a folga e quebra dentro da coluna quando aperta. Sem isso, o back-button,
-        o nome e o badge são todos `shrink` (largura natural) e, quando a soma passa da
-        largura da coluna, o iced NÃO encolhe — transborda para a direita e o nome/badge
-        invadem os botões de ação (o "Deploy/▶ por cima do nome"). Deixar o nome `fill`
-        garante que a linha nunca ultrapasse os próprios limites. */
       .svc_title     { width: fill; }
       /* Sub-linha de status (badge + timer) logo abaixo do nome. */
       .svc_substatus { spacing: 10; align-y: center; }
-      /* Abas com scroll horizontal: a viewport ocupa a largura toda; a fileira interna
-        fica na largura natural (shrink) para poder transbordar e rolar. */
       .tabs_scroll   { width: fill; }
       .tabs_main     { width: shrink; spacing: 4; }
       .svc_actions   { spacing: 10; align-y: center; }
-      /* .svc_actions_full / .svc_actions_compact e o swap por @media vivem em app.gss
-        (junto das outras regras responsivas — cruzar arquivo com o inline daqui
-        deixaria a precedência ambígua). */
       .btn_blue      { color: var(--blue); padding: 11 22; border-radius: 5 }
       /* Corpo: conteúdo da aba + painel lateral */
       .svc_body      { width: fill; height: fill; spacing: 20; }
@@ -44,8 +33,6 @@ component {
       /* Connection (pares chave/valor) */
       .kv_key        { width: fill; size: 13; color: var(--muted); }
       .kv_val        { size: 16; bold: true; color: var(--text); }
-      /* Environment / General (editores) — .btn_export/.btn_export_on/.env_editor
-        agora vivem em app.gss (compartilhados com shell.gv). */
       .select        { width: fill; padding: 12 14; background: var(--raised); border-radius: 4; border-width: 1; border-color: #30363D; color: var(--text-2); }
       /* Deployments (lista + build log) */
       .col_dep_id    { width: 130; }
@@ -53,9 +40,6 @@ component {
       .dep_image     { size: 11; color: var(--faint); padding: 2 0 0 0; }
       .dep_wrap      { width: fill; height: fill; spacing: 8; }
       .dep_list_scroll { width: fill; height: 240; }
-      /* Ações da linha de deployment: 2 botões-ícone (ver build log / remover), com o
-        rótulo no tooltip. O padding era 7 15 — dimensionado para "Build log ↗" e
-        "Remover" escritos por extenso, que estouravam a coluna em janela estreita. */
       .dep_actions   { spacing: 8; align-y: center; }
       .dep_logs_btn  { color: var(--border); padding: 5 12; border-radius: 3 }
       .dep_del_btn   { color: var(--danger); padding: 5 12; border-radius: 3 }
@@ -94,20 +78,9 @@ component {
           text(class = "title svc_title", content = "@svc_name")
         }
 
-        // Status + timer numa SUB-LINHA abaixo do nome — nunca na mesma linha do
-        // título. Antes o badge ficava inline no título e, quando o nome quebrava
-        // em duas linhas, o "Running" era desenhado por cima da 2ª linha: um
-        // elemento de texto do iced não corta ao ultrapassar sua caixa `fill`, e o
-        // badge (posicionado logo após a caixa estreita) caía sobre o texto vazado.
-        // Descê-lo elimina qualquer disputa horizontal com o nome.
         row(class = svc_substatus) {
           rp-badge(color = @svc_status_color, label = @svc_status_label)
 
-          // Live "1s, 2s, 3s…" deploy timer: shown only while a deploy started
-          // from this panel (Deploy/Rebuild) is in flight. Ticked once a second
-          // by the poll subscription (see `net::poll_stream`'s `sec_tick`), and
-          // hidden once the deploy finishes — the outcome (success/failure) and
-          // its total elapsed time then show in `svc_action_msg` below instead.
           row(class = badge, if = @svc_deploy_running, equals = true) {
             text(class = state_dot, color = #58A6FF, content = "⏱")
 
@@ -127,11 +100,6 @@ component {
           content = "@svc_action_msg",
         )
 
-        // Ações compactas EMPILHADAS abaixo do título (só ≤1240px). Ficam dentro
-        // da coluna do título de propósito: quando aperta, a fileira de rótulos à
-        // direita some (@media) e header_titles passa a ocupar a largura toda,
-        // então os ícones descem para cá — título e ações nunca dividem a mesma
-        // linha em janela estreita, e por isso nada sobrepõe o nome.
         row(class = "svc_actions svc_actions_compact") {
           button(
             class = btn_primary,
@@ -163,9 +131,6 @@ component {
         }
       }
 
-      // Fileira de rótulos por extenso à DIREITA do título — só >1240px, onde há
-      // espaço de sobra. Abaixo disso ela some (@media em app.gss) e entram os
-      // ícones empilhados acima.
       row(class = "svc_actions svc_actions_full") {
         button(class = btn_primary, on_click = svc_deploy, text = Deploy)
         button(class = btn_blue, on_click = svc_reload, text = Reload)
@@ -175,11 +140,6 @@ component {
     }
 
     // ── Abas ───────────────────────────────────────────────────────────
-    // Scroll horizontal: são 8 abas e, em janela estreita, as últimas
-    // ("Healthcheck"/"Logs"/"Advanced") saíam da tela sem como alcançá-las.
-    // A viewport (`.tabs_scroll`) é `width: fill`; a fileira interna
-    // (`.tabs_main`) é `width: shrink` (largura natural), então quando as abas
-    // não cabem ela transborda a viewport e a barra de rolagem aparece.
     scroll(class = tabs_scroll, direction = horizontal) {
       row(class = tabs_main) {
         TabButton(
@@ -281,8 +241,6 @@ component {
         ServiceAdvancedTab(if = @tab, equals = advanced)
       }
 
-      // Painel lateral: status. O log ao vivo saiu daqui (era um for-each sempre
-      // renderizado que a reavaliação processava a cada tick) — agora é janela.
       column(class = svc_aside) {
         column(class = aside_panel) {
           text(class = label_cap, content = "STATUS")

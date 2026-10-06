@@ -66,8 +66,6 @@ component {
         content = "@gp_msg",
       )
 
-      // OAuth: o Luau não abre o navegador; guarda a URL em gp_oauth_url e
-      // o built-in open:<chave> do glacier abre no navegador padrão.
       button(
         if = @gp_oauth_url,
         not_equals = "",

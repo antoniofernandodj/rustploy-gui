@@ -38,15 +38,6 @@ component {
     }
   }
 
-  // Na fila: fila GLOBAL de deploys (um por vez). O primeiro é o próximo a
-  // rodar. Arraste pela alça (⋮) para reordenar; ↑ fura fila; ✕ cancela.
-  // Pausar/retomar interrompe o worker de puxar o próximo (o que já está
-  // rodando segue). Tudo em handlers/deploy_queue.luau.
-  //
-  // As três seções desta tela são irmãs e de tamanhos diferentes: fila e
-  // "executando agora" crescem com o conteúdo (uma fila vazia não tem por
-  // que ocupar um terço da janela) e só o histórico recebe o espaço que
-  // sobra, porque é a única lista que cresce sem limite.
   column(class = section) {
     row(class = section_head) {
       text(class = section_title, content = "NA FILA (@eng_queued_count)")
@@ -108,9 +99,6 @@ component {
     }
   }
 
-  // Executando agora: no máximo um deploy por vez (a fila é serial), então
-  // esta seção também encolhe para o conteúdo em vez de reservar meia
-  // tela para uma linha.
   column(class = section) {
     row(class = section_head) {
       text(

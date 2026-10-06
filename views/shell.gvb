@@ -4,8 +4,8 @@
 component {
   resources {
     // ── Imports ────────────────────────────────────────────────────
-    link(rel = import, href = service.gvb, as = ServiceDetail)
-    link(rel = import, href = home.gvb, as = HomeViews)
+    link(rel = import, href = "service.gvb", as = ServiceDetail)
+    link(rel = import, href = "home.gvb", as = HomeViews)
     link(rel = import, href = "shell/deployments.gvb", as = DeploymentsView)
     link(rel = import, href = "shell/projects.gvb", as = ProjectsView)
     link(rel = import, href = "shell/project_services.gvb", as = ProjectServicesView)
@@ -21,10 +21,6 @@ component {
     link(rel = import, href = "components/template_row.gvb", as = TemplateRow)
 
     style """
-      /* A sidebar é uma <drawer> (glacier-ui 0.92+, Onda 2 da reforma — ver
-        docs/plano-reforma-gui-glacier-0.102.md): largura/padding/spacing vêm
-        das props do `<drawer>` no markup; aqui fica só a cor (o painel carrega
-        `drawer-panel` + `sidebar`). */
       .sidebar { background: var(--surface); }
       .menu_btn       { color: var(--border); text-color: var(--text); padding: 9 13; border-radius: 5; }
       .brand_box      { spacing: 2; padding: 0 8 18 8; }
@@ -46,17 +42,12 @@ component {
       /* Grid de cards (projetos / serviços) */
       .grid           { width: fill; spacing: 16; }
       .card_row       { width: fill; spacing: 16; }
-      /* Responsivo (glacier-ui 0.9.0+): a sidebar-gaveta FECHA pelo ☰ da topbar
-        em janela estreita (o motor anima a largura 264→0), em vez do antigo
-        trilho de ícones. Sobra só o aperto da própria topbar. */
       @media (max-width: 900) {
         .topbar { padding: 12 16; spacing: 10; }
       }
 
       @media (max-width: 560) {
         .topbar { padding: 10 10; spacing: 8; }
-        /* Sem largura pra tudo na topbar: some com a busca e o status do daemon
-          (baixa prioridade) pra ☰ / Stop All / Disconnect não serem cortados. */
         .search        { hidden: true; }
         .topbar_status { hidden: true; }
       }
@@ -65,9 +56,6 @@ component {
 
   row(class = screen) {
     // ── Sidebar (gaveta) ─────────────────────────────────────────────────
-    // `<drawer>` empurra o conteúdo (não cobre); não desenha gatilho — o ☰ mora
-    // na topbar e `drawer::toggle:menu` funciona de qualquer lugar. `init()`
-    // (connection.luau) semeia `menu = "true"` pra começar aberta.
     drawer(
       :value = menu,
       open = @menu,
@@ -150,10 +138,6 @@ component {
     column(class = main_col) {
       // Top bar
       row(class = topbar) {
-        // `app:` tira o prefixo de dono (`Shell::…`) que o motor poria numa
-        // ação escrita dentro de um <component> — sem ele a ação não chegaria
-        // ao builtin `drawer`. Sai `drawer::toggle:menu`, que o dispatch roteia
-        // pro <drawer> (o alias minúsculo é um componente registrado).
         button(
           class = menu_btn,
           text = "☰",
@@ -188,9 +172,6 @@ component {
         ProjectServicesView
       } else if @view == "service" {
         // ── Service detail / demais views ────────────────────────────
-        // O wizard "Novo serviço" saiu daqui (view=new_service): agora abre
-        // numa JANELA à parte (new_service_window.gv), disparada por
-        // open_new_service_window.
         ServiceDetail
       } else {
         HomeViews
