@@ -22,7 +22,6 @@ M.date_dm_hms = Time.date_dm_hms
 M.fmt_secs = Time.fmt_secs
 M.fmt_uptime = Time.fmt_uptime
 M.fmt_bytes = Time.fmt_bytes
-M.progress_bar = Time.progress_bar
 M.hm_join = Time.hm_join
 M.hm_split = Time.hm_split
 M.WEEKDAYS_JSON = Time.WEEKDAYS_JSON
@@ -51,6 +50,8 @@ M.ingress = Dashboard.ingress
 M.host_ports = Dashboard.host_ports
 M.monitoring = Dashboard.monitoring
 M.eng_active = Dashboard.eng_active
+M.eng_detail = Dashboard.eng_detail
+M.eng_detail_steps = Dashboard.eng_detail_steps
 M.eng_queued = Dashboard.eng_queued
 M.eng_recent = Dashboard.eng_recent
 

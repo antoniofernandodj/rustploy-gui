@@ -86,6 +86,18 @@
 .col_state  { width: 170; }
 .col_dur    { width: 150; }
 .col_start  { width: fill; }
+.col_act    { width: 120; }
+.stepper    { width: fill; padding: 0 18 12 18; spacing: 14; align-y: center; }
+.step       { size: 12; }
+.step_done    { color: var(--ok); }
+.step_current { color: var(--accent); bold: true; }
+.step_failed  { color: var(--error); bold: true; }
+.step_pending { color: var(--muted); }
+.painel       { background: var(--surface); border-width: 1; border-color: var(--border); border-radius: 7; }
+.detail_panel { width: 760; height: 480; padding: 14 18; spacing: 12; }
+.detail_head  { width: fill; align-y: center; }
+.detail_title { width: fill; size: 14; bold: true; color: var(--text); }
+.detail_scroll { width: fill; height: fill; }
 /* Coluna IMAGEM da sub-aba Containers (Docker): mais larga que col_proj porque
    uma referência de imagem (registry/repo:tag ou sha256:<digest>) é tipicamente
    mais longa que "projeto/serviço" — e, sem espaços, não quebra linha (ver

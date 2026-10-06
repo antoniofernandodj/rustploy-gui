@@ -125,6 +125,24 @@ local function refresh_jobs_summary_local(): ()
 end
 M.refresh_jobs_summary_local = refresh_jobs_summary_local
 
+local function refresh_eng_detail(active: {any}?): ()
+    local id = (ctx :: any).eng_detail_id
+    if id == nil or id == "" then
+        return
+    end
+    for _, info in ipairs(active or {}) do
+        if info.service_id == id then
+            ctx.eng_detail_title = info.service_name
+            ctx.eng_detail_steps = fmt.eng_detail_steps(info)
+            ctx.eng_detail_rows = fmt.eng_detail(info)
+            return
+        end
+    end
+    ctx.eng_detail_id = ""
+    ctx.eng_detail_open = "false"
+end
+M.refresh_eng_detail = refresh_eng_detail
+
 local function apply_snapshot(msg: any): ()
     State.snap = msg
     State.last_pairs = fmt.pair_list(msg.services)
@@ -150,13 +168,7 @@ local function apply_snapshot(msg: any): ()
         ctx.eng_total_24h = tostring(eng.total_24h or 0)
         ctx.eng_uptime = fmt.fmt_uptime(eng.uptime_secs)
         ctx.eng_active = fmt.eng_active(eng.active)
-        -- Materializa o percentual de cada deploy ativo numa chave própria do
-        -- contexto (`eng_pct_<service_id>`) — o `<progressbar>` do glacier-ui
-        -- lê `value` como o NOME de uma chave, não como um valor interpolado
-        -- de item de `for-each` (ver `pct_key` em fmt/dashboard.luau).
-        for _, info in ipairs(eng.active or {}) do
-            ctx["eng_pct_" .. tostring(info.service_id)] = tostring(info.percent)
-        end
+        M.refresh_eng_detail(eng.active)
         ctx.eng_recent = fmt.eng_recent(eng.recent)
         ctx.eng_recent_count = tostring(#(eng.recent or {}))
         -- Fila global (um por vez): itens esperando + estado pausado.

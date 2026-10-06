@@ -47,7 +47,7 @@ include_dir = "0.7"
 # cargo deduplicar — sem uma segunda cópia do crate no binário.
 zip = { version = "8", default-features = false, features = ["deflate-flate2"] }
 
-shared = { package = "rustploy-shared", version = "0.1.0" }
+shared = { package = "rustploy-shared", version = "0.1.1" }
 
 # GUI — features must stay compatible with glacier-ui's iced.
 iced = { version = "0.14", features = ["image", "svg", "tokio"] }

@@ -1,5 +1,5 @@
 --!strict
--- fmt/time.luau — timestamps, durações e barra de progresso.
+-- fmt/time.luau — timestamps e durações.
 --
 -- Os timestamps chegam do daemon em RFC 3339 UTC ("2026-07-06T12:34:56Z") e a
 -- tela mostra hora local. Desde a glacier-ui 0.73 essa tradução é do motor: o
@@ -124,16 +124,6 @@ function M.hm_split(hm: any): (number, number)
     if hora < 0 or hora > 23 then hora = 0 end
     if minuto < 0 or minuto > 59 then minuto = 0 end
     return hora, minuto
-end
-
--- Barra de progresso em blocos.
-function M.progress_bar(percent: any, width: number?): string
-    local p = tonumber(percent) or 0
-    local w = width or 12
-    local filled = math.floor(p * w / 100)
-    if filled > w then filled = w end
-    if filled < 0 then filled = 0 end
-    return string.rep("█", filled) .. string.rep("░", w - filled)
 end
 
 return M

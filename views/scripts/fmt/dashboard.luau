@@ -440,6 +440,94 @@ function M.monitoring(pairs_: {ServicePair}, metrics: MetricsMap?): string
     return Util.enc_array(rows)
 end
 
+local DEPLOY_STEPS = {
+    { label = "Fila", states = { "Pending" } },
+    { label = "Checks", states = { "PreDeployCheck" } },
+    { label = "Deps", states = { "ResolvingDeps" } },
+    { label = "Obter", states = { "PullingImage", "CloningRepo", "BuildingImage", "ComposingUp" } },
+    { label = "Staging", states = { "Staging" } },
+    { label = "Health", states = { "HealthcheckPolling" } },
+    { label = "Swap", states = { "SwappingIn", "Draining", "Promoting" } },
+    { label = "Live", states = { "Live" } },
+}
+
+local STEP_ICON = { done = "✓ ", current = "● ", failed = "✕ ", pending = "○ " }
+
+local function step_of(state: any): number
+    for i, st in ipairs(DEPLOY_STEPS) do
+        if table.find(st.states, state) then
+            return i
+        end
+    end
+    return 0
+end
+
+local function deploy_stepper(info: any): {any}
+    local state = info.state
+    local cur = step_of(state)
+    local failed = 0
+    if state == "Live" or state == "Stopped" or state == "Pruning" then
+        cur = #DEPLOY_STEPS + 1
+    elseif state == "Failed" or state == "RollingBack" then
+        local log = info.states or {}
+        for i = #log, 1, -1 do
+            local idx = step_of(log[i].from)
+            if idx > 0 then
+                failed = idx
+                break
+            end
+        end
+        cur = failed
+    end
+    local out = {}
+    for i, st in ipairs(DEPLOY_STEPS) do
+        local status = "pending"
+        if i == failed then
+            status = "failed"
+        elseif i < cur then
+            status = "done"
+        elseif i == cur then
+            status = "current"
+        end
+        table.insert(out, { text = STEP_ICON[status] .. st.label, status = status })
+    end
+    return out
+end
+
+local function iso_epoch(iso: string?): number
+    local y, mo, d, h, mi, s = string.match(iso or "", "^(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
+    if not y then
+        return 0
+    end
+    return os.time({ year = tonumber(y), month = tonumber(mo), day = tonumber(d), hour = tonumber(h), min = tonumber(mi), sec = tonumber(s) } :: any)
+end
+
+function M.eng_detail(info: any): string
+    local log = info.states or {}
+    local rows = {}
+    for i, t in ipairs(log) do
+        local last = i == #log
+        local dur = "—"
+        if i < #log then
+            dur = Time.fmt_secs(math.max(0, iso_epoch(log[i + 1].at) - iso_epoch(t.at)))
+        elseif not (t.to == "Failed" or t.to == "Live" or t.to == "Stopped") then
+            dur = Time.fmt_secs(info.current_state_secs)
+        end
+        local kind = "ok"
+        if t.to == "Failed" then
+            kind = "bad"
+        elseif last and info.state == t.to then
+            kind = "info"
+        end
+        table.insert(rows, { label = t.to, kind = kind, dur = dur, msg = Util.short_reason(t.message) })
+    end
+    return Util.enc_array(rows)
+end
+
+function M.eng_detail_steps(info: any): string
+    return Util.enc_array(deploy_stepper(info))
+end
+
 -- Deploy Engine: "Executando agora".
 function M.eng_active(active: {any}?): string
     local B = Util.col_budgets()
@@ -451,12 +539,7 @@ function M.eng_active(active: {any}?): string
             project = Util.ellipsis(info.project_name, B.proj),
             state_label = label,
             state_kind = Util.state_kind(info.state),
-            -- Nome da chave onde o percentual mora no contexto global — ver
-            -- handlers/stream.luau. O `<progressbar>` do glacier-ui lê seu
-            -- `value` como o NOME de uma chave de contexto (não um valor
-            -- interpolado), então um item de `for-each` não pode passar o
-            -- número direto: precisa apontar para uma chave real.
-            pct_key = "eng_pct_" .. tostring(info.service_id),
+            steps = deploy_stepper(info),
             total = Time.fmt_secs(info.elapsed_secs),
             phase = Time.fmt_secs(info.current_state_secs),
             service_id = info.service_id,

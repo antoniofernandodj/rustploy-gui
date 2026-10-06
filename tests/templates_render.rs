@@ -232,6 +232,25 @@ fn all_screens_and_service_tabs_render() {
         .unwrap_or_else(|e| panic!("eval deploy_engine: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine com fila");
 
+    m.define_data("eng_active_count", "1");
+    m.define_data(
+        "eng_active",
+        r#"[{"service":"api","project":"acme","state_label":"BUILDING","state_kind":"info","steps":[{"text":"✓ Fila","status":"done"},{"text":"● Obter","status":"current"},{"text":"○ Live","status":"pending"}],"total":"10s","phase":"4s","service_id":"svc_1"}]"#,
+    );
+    m.define_data("eng_detail_open", "true");
+    m.define_data("eng_detail_title", "api");
+    m.define_data(
+        "eng_detail_steps",
+        r#"[{"text":"✓ Fila","status":"done"},{"text":"✕ Obter","status":"failed"}]"#,
+    );
+    m.define_data(
+        "eng_detail_rows",
+        r#"[{"label":"Pending","kind":"ok","dur":"2s","msg":""},{"label":"Failed","kind":"bad","dur":"—","msg":"build quebrou"}]"#,
+    );
+    m.reevaluate_all()
+        .unwrap_or_else(|e| panic!("eval deploy_engine ativo+detalhe: {e}"));
+    assert!(m.render("app").is_ok(), "render deploy_engine com stepper e popup");
+
     m.define_data("view", "ingress");
     m.define_data("host_ports_count", "1");
     m.define_data(

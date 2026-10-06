@@ -71,3 +71,15 @@ function queue_toggle_pause(): ()
     end
     Stream.refresh_now()
 end
+
+function eng_open_detail(service_id: string): ()
+    local snap = State.snap
+    ctx.eng_detail_id = service_id
+    ctx.eng_detail_open = "true"
+    Stream.refresh_eng_detail(snap and snap.engine and snap.engine.active)
+end
+
+function eng_close_detail(): ()
+    ctx.eng_detail_id = ""
+    ctx.eng_detail_open = "false"
+end
