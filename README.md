@@ -1204,9 +1204,11 @@ conforme o serviço).
   de rede acompanha o nome no próximo deploy — o aviso abaixo do campo diz qual dos dois vale. A
   aba "Gitea/GitHub" vale para qualquer conta conectada em Settings → Git; o `target`/`action`
   seguem `gitea` por ser a chave de estado (`prov_tab`), não o nome do provedor. O `placeholder`
-  do editor Compose tem quebras de linha **literais** (o `.gvb` não interpreta `\n`, e `"""`
-  dobra linhas em espaços), com as linhas de continuação coladas na margem de propósito — não
-  reindente.
+  do editor Compose é um `l"""…"""` (glacier-ui 0.119+): um texto em que a quebra de linha é
+  conteúdo. `"…"` não interpreta `\n` e só aceitaria a quebra literal, com as linhas de
+  continuação coladas na margem; `"""` dobra as linhas em espaços. O `l"""` (de *linhas*, não de
+  *raw*) mantém as quebras, tira o recuo comum e continua interpolando `@nome`; o mesmo vale para
+  o placeholder do compose em `new_job_window.gvb`.
 - **Environment.** Valem as regras de `scrollable` e do editor `.env` de [6.1](#61-regras-que-valem-para-todos-os-templates).
   Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar, reancoram na
   seguinte), mas sem delete; a classe da linha muda para `kv_row_drag` no item agarrado

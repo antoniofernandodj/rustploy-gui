@@ -174,10 +174,12 @@ screen(title = "Novo job — Rustploy") {
                 class = env_editor,
                 font = mono,
                 :value = njob_compose,
-                placeholder = "services:
-  job:
-    image: busybox
-    command: [\"sh\", \"-c\", \"echo ok\"]",
+                placeholder = l"""
+                  services:
+                    job:
+                      image: busybox
+                      command: ["sh", "-c", "echo ok"]
+                """,
               )
             }
 

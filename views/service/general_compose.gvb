@@ -13,9 +13,11 @@ component {
     class = env_editor,
     font = mono,
     :value = svc_compose,
-    placeholder = "services:
-  app:
-    image: …",
+    placeholder = l"""
+      services:
+        app:
+          image: …
+    """,
   )
 
   row(class = env_add) {
