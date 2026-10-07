@@ -110,6 +110,21 @@ volta quando o app encerra de verdade. A ordem das peças importa:
 
 ---
 
+### Instalação por `cargo install` e o menu de aplicativos (`desktop.rs`)
+
+`cargo install rustploy-gui` só copia o binário para `~/.cargo/bin`: o cargo não
+tem hook de pós-instalação, então o `.desktop` e os ícones (que o `.deb` instala)
+não chegam. Para ter o app no menu/dock no Linux, rode **uma vez**:
+
+```
+rustploy-gui --install-desktop
+```
+
+Grava `rustploy-gui.desktop` e os ícones hicolor em `$XDG_DATA_HOME` (padrão
+`~/.local/share`), com `Exec=` apontando para o executável que rodou o comando
+(rode de novo se mover o binário). Os arquivos vão embutidos no binário. Nunca é
+automático — o app não escreve fora de si sem o usuário pedir.
+
 ## 2. Onde estão os assets
 
 Todo template, folha de estilo, ícone e logo de blueprint é referenciado por um

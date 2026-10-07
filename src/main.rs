@@ -8,6 +8,7 @@
 
 mod agent;
 mod app;
+mod desktop;
 mod manifest_zip;
 #[cfg(debug_assertions)]
 mod assets;
@@ -15,6 +16,10 @@ mod assets;
 mod embedded;
 
 fn main() -> iced::Result {
+    if let Some(code) = desktop::handle_args() {
+        std::process::exit(code);
+    }
+
     #[cfg(debug_assertions)]
     assets::locate_and_chdir();
 
