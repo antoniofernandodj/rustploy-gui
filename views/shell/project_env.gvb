@@ -184,34 +184,34 @@ component {
             }
           }
         }
-      }
-    }
 
-    if @penv_text_open == "true" {
-      text(
-        class = muted,
-        content = "Cole/edite no formato KEY=VALUE (# comentário).",
-      )
+        if @penv_text_open == "true" {
+          text(
+            class = muted,
+            content = "Cole/edite no formato KEY=VALUE (# comentário).",
+          )
 
-      textarea(
-        class = env_editor,
-        font = mono,
-        :value = proj_env_text,
-        placeholder = "KEY=VALUE   (# comentário)",
-      )
+          textarea(
+            class = env_editor,
+            font = mono,
+            :value = proj_env_text,
+            placeholder = "KEY=VALUE   (# comentário)",
+          )
 
-      row(class = env_add) {
-        button(
-          class = btn_primary,
-          on_click = penv_import,
-          text = Salvar,
-        )
+          row(class = env_add) {
+            button(
+              class = btn_primary,
+              on_click = penv_import,
+              text = Salvar,
+            )
 
-        button(
-          class = btn_ghost,
-          on_click = penv_text_cancel,
-          text = Cancelar,
-        )
+            button(
+              class = btn_ghost,
+              on_click = penv_text_cancel,
+              text = Cancelar,
+            )
+          }
+        }
       }
     }
   }
