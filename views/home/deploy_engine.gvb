@@ -67,33 +67,35 @@ component {
         content = "Fila pausada — deploys esperam até você retomar.",
       )
 
-      column(class = table_body) {
-        template(
-          :for-each = eng_queued,
-          foreach_fallback = FilaVazia,
-          var = q,
-          on_reorder = queue_reorder,
-          reorder_key = deployment_id,
-        ) {
-          row(class = trow) {
-            text(class = env_drag_handle, drag_handle = true, content = "⋮")
-            text(class = "td_key col_svc", content = "@q.pos. @q.service")
-            text(class = "td col_start", content = "@q.project")
+      scrollable(direction = vertical, class = queue_scroll) {
+        column(class = table_body) {
+          template(
+            :for-each = eng_queued,
+            foreach_fallback = FilaVazia,
+            var = q,
+            on_reorder = queue_reorder,
+            reorder_key = deployment_id,
+          ) {
+            row(class = trow) {
+              text(class = env_drag_handle, drag_handle = true, content = "⋮")
+              text(class = "td_key col_svc", content = "@q.pos. @q.service")
+              text(class = "td col_start", content = "@q.project")
 
-            button(
-              class = copy_btn,
-              on_click = queue_promote:@q.deployment_id,
-              text = "↑ topo",
-            )
+              button(
+                class = copy_btn,
+                on_click = queue_promote:@q.deployment_id,
+                text = "↑ topo",
+              )
 
-            button(
-              class = env_del,
-              on_click = queue_cancel:@q.deployment_id,
-              text = "✕",
-            )
+              button(
+                class = env_del,
+                on_click = queue_cancel:@q.deployment_id,
+                text = "✕",
+              )
+            }
+
+            hr
           }
-
-          hr
         }
       }
     }

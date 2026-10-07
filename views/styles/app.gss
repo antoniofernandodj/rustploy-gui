@@ -133,6 +133,7 @@
 /* Corpo: padding nas laterais e embaixo — o cabeçalho de tabela encosta no
    topo do corpo, como nas outras telas. */
 .section_body  { width: fill; padding: 0 6 6 6; }
+.queue_scroll  { width: fill; height: shrink; max_height: 232; }
 .section_scroll{ width: fill; height: fill; padding: 0 6 6 6; }
 /* Vazio: centralizado e com respiro, em vez de uma frase solta no canto
    superior esquerdo de um painel de 300px de altura. */
