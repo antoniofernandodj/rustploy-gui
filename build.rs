@@ -14,6 +14,7 @@ const LOGO_MAX_DIM: u32 = 96;
 
 fn main() {
     stage_blueprint_logos();
+    install_desktop_entry();
 
     println!("cargo:rerun-if-changed=assets/rustploy.rc");
     println!("cargo:rerun-if-changed=assets/rustploy.ico");
@@ -134,4 +135,120 @@ fn is_raster(path: &Path) -> bool {
         ext_lower(path).as_deref(),
         Some("png" | "webp" | "jpg" | "jpeg" | "gif" | "bmp")
     )
+}
+
+// ── Integração com o desktop no `cargo install` (Linux) ──────────────────────
+//
+// O cargo não tem hook de pós-instalação, e o `.desktop`/ícones só chegavam via
+// `.deb`. O `build.rs` roda na máquina do usuário durante o `cargo install`, então
+// é onde dá para gravá-los em `~/.local/share`. Só faz isso quando o build É um
+// `cargo install` — o cargo compila num diretório temporário `cargo-install*`, e
+// é isso que `is_cargo_install` reconhece (detalhe interno do cargo; se mudar, só
+// deixa de instalar sozinho e `rustploy-gui --install-desktop` continua valendo).
+// Nunca falha o build: qualquer erro vira só um `cargo:warning`.
+//
+// `RUSTPLOY_INSTALL_DESKTOP=0` desliga; `=1` força (útil p/ testar).
+
+fn install_desktop_entry() {
+    println!("cargo:rerun-if-env-changed=RUSTPLOY_INSTALL_DESKTOP");
+    println!("cargo:rerun-if-changed=packaging/rustploy-gui.desktop");
+    println!("cargo:rerun-if-changed=packaging/icons");
+
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("linux") || !cfg!(target_os = "linux")
+    {
+        return;
+    }
+    let forced = std::env::var("RUSTPLOY_INSTALL_DESKTOP").ok();
+    match forced.as_deref() {
+        Some("0") => return,
+        Some("1") => {}
+        _ if is_cargo_install() => {}
+        _ => return,
+    }
+    if let Err(e) = write_desktop_entry() {
+        println!("cargo:warning=rustploy-gui: não instalei o .desktop ({e}); use `rustploy-gui --install-desktop`");
+    }
+}
+
+fn is_cargo_install() -> bool {
+    std::env::var("OUT_DIR").is_ok_and(|out| {
+        Path::new(&out)
+            .components()
+            .any(|c| c.as_os_str().to_string_lossy().starts_with("cargo-install"))
+    })
+}
+
+fn write_desktop_entry() -> Result<(), String> {
+    let manifest = std::env::var("CARGO_MANIFEST_DIR").map_err(|e| e.to_string())?;
+    let pkg = Path::new(&manifest).join("packaging");
+    let home = std::env::var_os("HOME").filter(|h| !h.is_empty()).ok_or("HOME não definido")?;
+    let home = std::path::PathBuf::from(home);
+
+    let data = match std::env::var_os("XDG_DATA_HOME").filter(|v| !v.is_empty()) {
+        Some(x) => std::path::PathBuf::from(x),
+        None => home.join(".local/share"),
+    };
+
+    // Onde o `cargo install` vai pôr o binário: --root não chega aqui, então
+    // vale CARGO_INSTALL_ROOT, CARGO_HOME ou ~/.cargo (o padrão do cargo).
+    let bin_dir = if let Some(r) = std::env::var_os("CARGO_INSTALL_ROOT").filter(|v| !v.is_empty()) {
+        std::path::PathBuf::from(r).join("bin")
+    } else if let Some(c) = std::env::var_os("CARGO_HOME").filter(|v| !v.is_empty()) {
+        std::path::PathBuf::from(c).join("bin")
+    } else {
+        home.join(".cargo/bin")
+    };
+    let exe = bin_dir.join("rustploy-gui");
+    let exe = exe.to_str().ok_or("caminho do executável não é UTF-8")?;
+
+    let desktop = std::fs::read_to_string(pkg.join("rustploy-gui.desktop")).map_err(|e| e.to_string())?;
+    let apps = data.join("applications");
+    write_file(&apps.join("rustploy-gui.desktop"), exec_com(&desktop, exe).as_bytes())?;
+
+    // Espelha packaging/icons/hicolor/** em $data/icons/hicolor/**.
+    let src = pkg.join("icons/hicolor");
+    let dst = data.join("icons/hicolor");
+    copy_tree(&src, &dst)?;
+
+    let _ = std::process::Command::new("update-desktop-database").arg("-q").arg(&apps).status();
+    let _ = std::process::Command::new("gtk-update-icon-cache").arg("-qtf").arg(&dst).status();
+    Ok(())
+}
+
+/// Mesmo escape de `src/desktop.rs::exec_com` (duplicado: o build script não
+/// enxerga o crate). Aspas + `\` dobrado antes de `\`, `"`, `` ` `` e `$`.
+fn exec_com(desktop: &str, exe: &str) -> String {
+    let mut quoted = String::from("\"");
+    for c in exe.chars() {
+        if matches!(c, '\\' | '"' | '`' | '$') {
+            quoted.push_str("\\\\");
+        }
+        quoted.push(c);
+    }
+    quoted.push('"');
+    desktop
+        .lines()
+        .map(|l| if l.starts_with("Exec=") { format!("Exec={quoted}") } else { l.to_string() })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n"
+}
+
+fn write_file(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| format!("criar {}: {e}", dir.display()))?;
+    }
+    std::fs::write(path, bytes).map_err(|e| format!("gravar {}: {e}", path.display()))
+}
+
+fn copy_tree(src: &Path, dst: &Path) -> Result<(), String> {
+    for entry in std::fs::read_dir(src).map_err(|e| format!("ler {}: {e}", src.display()))?.flatten() {
+        let (from, to) = (entry.path(), dst.join(entry.file_name()));
+        if from.is_dir() {
+            copy_tree(&from, &to)?;
+        } else {
+            write_file(&to, &std::fs::read(&from).map_err(|e| e.to_string())?)?;
+        }
+    }
+    Ok(())
 }

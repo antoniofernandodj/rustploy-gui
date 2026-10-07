@@ -110,20 +110,24 @@ volta quando o app encerra de verdade. A ordem das peças importa:
 
 ---
 
-### Instalação por `cargo install` e o menu de aplicativos (`desktop.rs`)
+### Instalação por `cargo install` e o menu de aplicativos (`build.rs` + `desktop.rs`)
 
-`cargo install rustploy-gui` só copia o binário para `~/.cargo/bin`: o cargo não
-tem hook de pós-instalação, então o `.desktop` e os ícones (que o `.deb` instala)
-não chegam. Para ter o app no menu/dock no Linux, rode **uma vez**:
+O cargo não tem hook de pós-instalação, mas o `build.rs` roda na máquina do
+usuário. Num `cargo install rustploy-gui` (Linux), o `build.rs` grava
+`rustploy-gui.desktop` e os ícones hicolor em `$XDG_DATA_HOME` (padrão
+`~/.local/share`), com `Exec=` apontando para `$CARGO_INSTALL_ROOT/bin`,
+`$CARGO_HOME/bin` ou `~/.cargo/bin`.
 
-```
-rustploy-gui --install-desktop
-```
+Como o `build.rs` sabe que é um install: o cargo compila instalações do
+registro/git num diretório temporário `cargo-install*`, e é isso que ele procura
+no `OUT_DIR`. Detalhe interno do cargo — se mudar, só deixa de instalar sozinho.
+`cargo install --path .` e `cargo build` **não** instalam (compilam no `target/`
+do projeto). Nunca falha o build: erro vira `cargo:warning`.
+`RUSTPLOY_INSTALL_DESKTOP=0` desliga; `=1` força.
 
-Grava `rustploy-gui.desktop` e os ícones hicolor em `$XDG_DATA_HOME` (padrão
-`~/.local/share`), com `Exec=` apontando para o executável que rodou o comando
-(rode de novo se mover o binário). Os arquivos vão embutidos no binário. Nunca é
-automático — o app não escreve fora de si sem o usuário pedir.
+Reparo manual (binário movido, `--root` fora do padrão, build local): rode
+`rustploy-gui --install-desktop` — grava os mesmos arquivos com o `Exec=` do
+executável que rodou o comando (os arquivos vão embutidos no binário).
 
 ## 2. Onde estão os assets
 
