@@ -22,29 +22,21 @@ pub fn locate_and_chdir() {
 fn find_base() -> Option<PathBuf> {
     if let Ok(dir) = std::env::var("RUSTPLOY_UI_ASSETS") {
         let p = PathBuf::from(dir);
-        if has_marker(&p) {
-            return Some(p);
-        }
+        if has_marker(&p) { return Some(p); }
     }
 
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
-            if has_marker(dir) {
-                return Some(dir.to_path_buf());
-            }
+            if has_marker(dir) { return Some(dir.to_path_buf()); }
         }
     }
 
     if let Ok(cwd) = std::env::current_dir() {
-        if has_marker(&cwd) {
-            return None;
-        }
+        if has_marker(&cwd) { return None; }
     }
 
     let system = PathBuf::from(SYSTEM_PREFIX);
-    if has_marker(&system) {
-        return Some(system);
-    }
+    if has_marker(&system) { return Some(system); }
 
     None
 }
