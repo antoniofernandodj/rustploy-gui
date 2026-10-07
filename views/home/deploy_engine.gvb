@@ -1,20 +1,9 @@
 // Seção `deploy_engine` (view = deploy_engine) das telas globais; importada por home.gvb.
 component {
   resources {
-    component(name = FilaVazia) {
-      text(class = empty_state, content = "Nenhum deploy na fila.")
-    }
-
-    component(name = SemDeployAtivo) {
-      text(class = empty_state, content = "Nenhum deploy em andamento.")
-    }
-
-    component(name = SemDeployRecente) {
-      text(
-        class = empty_state,
-        content = "Nenhum deploy concluído nas últimas 24h.",
-      )
-    }
+    link(rel = import, href = "deploy_engine/fila.gvb", as = EngineFilaTab)
+    link(rel = import, href = "deploy_engine/executando.gvb", as = EngineExecutandoTab)
+    link(rel = import, href = "deploy_engine/historico.gvb", as = EngineHistoricoTab)
   }
 
   row(class = header_row) {
@@ -38,198 +27,34 @@ component {
     }
   }
 
-  column(class = section) {
-    row(class = section_head) {
-      text(class = section_title, content = "NA FILA (@eng_queued_count)")
+  row(class = tabs) {
+    TabButton(
+      label = "Fila (@eng_queued_count)",
+      current = @eng_tab,
+      target = fila,
+      action = eng_tab:fila,
+    )
 
-      button(
-        if = @eng_paused,
-        equals = true,
-        class = copy_btn,
-        on_click = queue_toggle_pause,
-        text = "Retomar fila",
-      )
+    TabButton(
+      label = "Executando (@eng_active_count)",
+      current = @eng_tab,
+      target = executando,
+      action = eng_tab:executando,
+    )
 
-      button(
-        if = @eng_paused,
-        not_equals = true,
-        class = copy_btn,
-        on_click = queue_toggle_pause,
-        text = "Pausar fila",
-      )
-    }
-
-    column(class = section_body) {
-      text(
-        if = @eng_paused,
-        equals = true,
-        class = banner_warn,
-        content = "Fila pausada — deploys esperam até você retomar.",
-      )
-
-      scrollable(direction = vertical, class = queue_scroll) {
-        column(class = table_body) {
-          template(
-            :for-each = eng_queued,
-            foreach_fallback = FilaVazia,
-            var = q,
-            on_reorder = queue_reorder,
-            reorder_key = deployment_id,
-          ) {
-            row(class = trow) {
-              text(class = env_drag_handle, drag_handle = true, content = "⋮")
-              text(class = "td_key col_svc", content = "@q.pos. @q.service")
-              text(class = "td col_start", content = "@q.project")
-
-              button(
-                class = copy_btn,
-                on_click = queue_promote:@q.deployment_id,
-                text = "↑ topo",
-              )
-
-              button(
-                class = env_del,
-                on_click = queue_cancel:@q.deployment_id,
-                text = "✕",
-              )
-            }
-
-            hr
-          }
-        }
-      }
-    }
+    TabButton(
+      label = "Histórico 24h (@eng_recent_count)",
+      current = @eng_tab,
+      target = historico,
+      action = eng_tab:historico,
+    )
   }
 
-  column(class = section) {
-    row(class = section_head) {
-      text(
-        class = section_title,
-        content = "EXECUTANDO AGORA (@eng_active_count)",
-      )
-    }
+  hr
 
-    column(class = section_body) {
-      row(class = thead, if = @eng_active, not_empty) {
-        text(class = "th col_svc", content = "SERVIÇO")
-        text(class = "th col_proj", content = "PROJETO")
-        text(class = "th col_state", content = "ESTADO")
-        text(class = "th col_dur", content = "TOTAL")
-        text(class = "th col_start", content = "FASE")
-        text(class = "th col_act")
-      }
+  EngineFilaTab(if = @eng_tab, equals = fila)
 
-      if @data_loading == "true" {
-        LoadingRow
-      }
+  EngineExecutandoTab(if = @eng_tab, equals = executando)
 
-      column(if = @data_loading, not_equals = true, class = table_body) {
-        each @eng_active as a (fallback = SemDeployAtivo) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td_key col_svc", content = "@a.service")
-              text(class = "td col_proj", content = "@a.project")
-              StateCell(kind = @a.state_kind, label = @a.state_label)
-
-              text(class = "muted col_dur", content = "@a.total")
-              text(class = "muted col_start", content = "@a.phase")
-
-              button(
-                class = copy_btn,
-                on_click = eng_open_detail:@a.service_id,
-                text = Detalhes,
-              )
-            }
-
-            row(class = stepper) {
-              each @a.steps as st {
-                text(class = "step step_@st.status", content = "@st.text")
-              }
-            }
-
-            hr
-          }
-        }
-      }
-    }
-  }
-
-  // Histórico 24h: a única lista que cresce sem limite — é ela que fica
-  // com o espaço restante da tela e com o scroll.
-  column(class = section_fill) {
-    row(class = section_head) {
-      text(
-        class = section_title,
-        content = "HISTÓRICO 24H (@eng_recent_count)",
-      )
-    }
-
-    column(class = section_body) {
-      row(class = thead, if = @eng_recent, not_empty) {
-        text(class = "th col_icon")
-        text(class = "th col_svc", content = "SERVIÇO")
-        text(class = "th col_proj", content = "PROJETO")
-        text(class = "th col_state", content = "ESTADO")
-        text(class = "th col_dur", content = "DURAÇÃO")
-        text(class = "th col_start", content = "INÍCIO")
-      }
-    }
-
-    scrollable(direction = vertical, class = section_scroll) {
-      column(class = table_body) {
-        each @eng_recent as r (fallback = SemDeployRecente) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td col_icon", content = "@r.icon")
-              text(class = "td_key col_svc", content = "@r.service")
-              text(class = "td col_proj", content = "@r.project")
-              StateCell(kind = @r.state_kind, label = @r.state_label)
-              text(class = "muted col_dur", content = "@r.duration")
-              text(class = "muted col_start", content = "@r.start")
-            }
-
-            hr
-          }
-        }
-      }
-    }
-  }
-
-  popup(value = eng_detail_open, trigger = none, onClose = eng_close_detail) {
-    column(class = "painel detail_panel") {
-      row(class = detail_head) {
-        text(class = detail_title, content = "Deploy · @eng_detail_title")
-
-        button(class = copy_btn, on_click = eng_close_detail, text = Fechar)
-      }
-
-      row(class = stepper) {
-        each @eng_detail_steps as st {
-          text(class = "step step_@st.status", content = "@st.text")
-        }
-      }
-
-      row(class = thead) {
-        text(class = "th col_state", content = "ESTADO")
-        text(class = "th col_dur", content = "DURAÇÃO")
-        text(class = "th col_start", content = "MENSAGEM")
-      }
-
-      scrollable(direction = vertical, class = detail_scroll) {
-        column(class = table_body) {
-          each @eng_detail_rows as d {
-            column(class = row_wrap) {
-              row(class = trow) {
-                text(class = "state_lbl state_@d.kind col_state", content = "@d.label")
-                text(class = "muted col_dur", content = "@d.dur")
-                text(class = "muted col_start", content = "@d.msg")
-              }
-
-              hr
-            }
-          }
-        }
-      }
-    }
-  }
+  EngineHistoricoTab(if = @eng_tab, equals = historico)
 }

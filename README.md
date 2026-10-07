@@ -1099,13 +1099,9 @@ Registry), Settings, Schedules e Suporte.
   `Command::DeployEngineStatus` (ver os `eng_*`); sem backend novo. A fila é **global** (um
   deploy por vez): o primeiro é o próximo a rodar. Arrasta-se pela alça (⋮) para reordenar,
   ↑ fura a fila, ✕ cancela, e pausar/retomar interrompe o worker de puxar o próximo (o que já
-  está rodando segue). Tudo em `handlers/deploy_queue.luau`. As três seções são irmãs e de
-  tamanhos diferentes: fila e "executando agora" crescem com o conteúdo (uma fila vazia não
-  tem por que ocupar um terço da janela) e só o histórico recebe o espaço que sobra, porque é
-  a única lista que cresce sem limite. "Executando agora" tem no máximo um deploy (a fila é
-  serial), então também encolhe para o conteúdo. A fila tem teto de altura (`.queue_scroll`, 2 linhas;
-  `max_height`) e rola por dentro: sem isso uma fila grande empurrava "executando agora" para
-  fora da tela.
+  está rodando segue). Tudo em `handlers/deploy_queue.luau`. São três abas (`eng_tab`: fila, executando, histórico; handler `eng_tab` em `handlers/nav.luau`),
+  cada uma num arquivo de `views/home/deploy_engine/`. Separadas, cada lista tem a tela toda:
+  quando eram três seções empilhadas, uma fila grande empurrava as outras para fora da janela.
 - **Docker.** Sub-abas Containers / Images / Volumes / Networks / Registry. As três do meio
   listam **todo** o host Docker (não só os recursos geridos pelo Rustploy; ver
   `docker_inventory` no daemon), com indicação de uso e botão de limpar as que estão sem uso.

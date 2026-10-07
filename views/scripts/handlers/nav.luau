@@ -17,6 +17,9 @@ end
 
 function nav_deploy_engine(): ()
     goto_view("deploy_engine")
+    if (ctx.eng_tab or "") == "" then
+        ctx.eng_tab = "fila"
+    end
 end
 
 function nav_monitoring(): ()
@@ -75,6 +78,10 @@ function docker_tab(t: string): ()
     if t == "registry" then
         Registry.refresh_tokens()
     end
+end
+
+function eng_tab(t: string): ()
+    ctx.eng_tab = t
 end
 
 function deploy_tab(t: string): ()

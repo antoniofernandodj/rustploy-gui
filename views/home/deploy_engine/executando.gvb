@@ -1,0 +1,99 @@
+// Aba "Executando" do Deploy Engine; importada por deploy_engine.gvb.
+component {
+  resources {
+    component(name = SemDeployAtivo) {
+      text(class = empty_state, content = "Nenhum deploy em andamento.")
+    }
+  }
+
+  column(class = section) {
+    row(class = section_head) {
+      text(
+        class = section_title,
+        content = "EXECUTANDO AGORA (@eng_active_count)",
+      )
+    }
+
+    column(class = section_body) {
+      row(class = thead, if = @eng_active, not_empty) {
+        text(class = "th col_svc", content = "SERVIÇO")
+        text(class = "th col_proj", content = "PROJETO")
+        text(class = "th col_state", content = "ESTADO")
+        text(class = "th col_dur", content = "TOTAL")
+        text(class = "th col_start", content = "FASE")
+        text(class = "th col_act")
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      }
+
+      column(if = @data_loading, not_equals = true, class = table_body) {
+        each @eng_active as a (fallback = SemDeployAtivo) {
+          column(class = row_wrap) {
+            row(class = trow) {
+              text(class = "td_key col_svc", content = "@a.service")
+              text(class = "td col_proj", content = "@a.project")
+              StateCell(kind = @a.state_kind, label = @a.state_label)
+
+              text(class = "muted col_dur", content = "@a.total")
+              text(class = "muted col_start", content = "@a.phase")
+
+              button(
+                class = copy_btn,
+                on_click = eng_open_detail:@a.service_id,
+                text = Detalhes,
+              )
+            }
+
+            row(class = stepper) {
+              each @a.steps as st {
+                text(class = "step step_@st.status", content = "@st.text")
+              }
+            }
+
+            hr
+          }
+        }
+      }
+    }
+  }
+
+  popup(value = eng_detail_open, trigger = none, onClose = eng_close_detail) {
+    column(class = "painel detail_panel") {
+      row(class = detail_head) {
+        text(class = detail_title, content = "Deploy · @eng_detail_title")
+
+        button(class = copy_btn, on_click = eng_close_detail, text = Fechar)
+      }
+
+      row(class = stepper) {
+        each @eng_detail_steps as st {
+          text(class = "step step_@st.status", content = "@st.text")
+        }
+      }
+
+      row(class = thead) {
+        text(class = "th col_state", content = "ESTADO")
+        text(class = "th col_dur", content = "DURAÇÃO")
+        text(class = "th col_start", content = "MENSAGEM")
+      }
+
+      scrollable(direction = vertical, class = detail_scroll) {
+        column(class = table_body) {
+          each @eng_detail_rows as d {
+            column(class = row_wrap) {
+              row(class = trow) {
+                text(class = "state_lbl state_@d.kind col_state", content = "@d.label")
+                text(class = "muted col_dur", content = "@d.dur")
+                text(class = "muted col_start", content = "@d.msg")
+              }
+
+              hr
+            }
+          }
+        }
+      }
+    }
+  }
+}

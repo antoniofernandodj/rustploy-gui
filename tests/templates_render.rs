@@ -222,6 +222,7 @@ fn all_screens_and_service_tabs_render() {
     }
 
     m.define_data("view", "deploy_engine");
+    m.define_data("eng_tab", "fila");
     m.define_data("eng_queued_count", "2");
     m.define_data("eng_paused", "true");
     m.define_data(
@@ -232,6 +233,7 @@ fn all_screens_and_service_tabs_render() {
         .unwrap_or_else(|e| panic!("eval deploy_engine: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine com fila");
 
+    m.define_data("eng_tab", "executando");
     m.define_data("eng_active_count", "1");
     m.define_data(
         "eng_active",
@@ -250,6 +252,11 @@ fn all_screens_and_service_tabs_render() {
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval deploy_engine ativo+detalhe: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine com stepper e popup");
+
+    m.define_data("eng_tab", "historico");
+    m.reevaluate_all()
+        .unwrap_or_else(|e| panic!("eval deploy_engine histórico: {e}"));
+    assert!(m.render("app").is_ok(), "render deploy_engine histórico");
 
     m.define_data("view", "ingress");
     m.define_data("host_ports_count", "1");
