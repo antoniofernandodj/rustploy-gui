@@ -1103,7 +1103,7 @@ Registry), Settings, Schedules e Suporte.
   tamanhos diferentes: fila e "executando agora" crescem com o conteúdo (uma fila vazia não
   tem por que ocupar um terço da janela) e só o histórico recebe o espaço que sobra, porque é
   a única lista que cresce sem limite. "Executando agora" tem no máximo um deploy (a fila é
-  serial), então também encolhe para o conteúdo. A fila tem teto de altura (`.queue_scroll`,
+  serial), então também encolhe para o conteúdo. A fila tem teto de altura (`.queue_scroll`, 2 linhas;
   `max_height`) e rola por dentro: sem isso uma fila grande empurrava "executando agora" para
   fora da tela.
 - **Docker.** Sub-abas Containers / Images / Volumes / Networks / Registry. As três do meio

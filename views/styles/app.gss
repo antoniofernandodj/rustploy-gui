@@ -123,7 +123,7 @@
    da altura: três caixas enormes e vazias quando não há deploy nenhum. Aqui
    a altura vem do conteúdo (`shrink`) e só o histórico recebe `fill`. */
 .section       { width: fill; height: shrink; background: var(--surface); border-radius: 7; border-width: 1; border-color: var(--border); }
-.section_fill  { width: fill; height: fill; background: var(--surface); border-radius: 7; border-width: 1; border-color: var(--border); }
+.section_fill  { width: fill; height: fill; min_height: 150; background: var(--surface); border-radius: 7; border-width: 1; border-color: var(--border); }
 /* Cabeçalho da seção: título à esquerda, ação à direita. O `width: fill` no
    TÍTULO é o que empurra o botão — o iced não tem `justify-content`, e sem
    isso o botão encosta no rótulo (era o caso do "⏸ Pausar fila", que saía
@@ -133,7 +133,7 @@
 /* Corpo: padding nas laterais e embaixo — o cabeçalho de tabela encosta no
    topo do corpo, como nas outras telas. */
 .section_body  { width: fill; padding: 0 6 6 6; }
-.queue_scroll  { width: fill; height: shrink; max_height: 232; }
+.queue_scroll  { width: fill; height: shrink; max_height: 116; }
 .section_scroll{ width: fill; height: fill; padding: 0 6 6 6; }
 /* Vazio: centralizado e com respiro, em vez de uma frase solta no canto
    superior esquerdo de um painel de 300px de altura. */
