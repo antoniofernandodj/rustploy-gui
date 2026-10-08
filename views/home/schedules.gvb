@@ -31,96 +31,104 @@ component {
   }
 
   column(class = panel_fill) {
-    row(class = thead) {
-      text(class = "th col_svc", content = "NOME")
-      text(class = "th col_proj", content = "PROJETO / GATILHO")
-      text(class = "th col_state", content = "ÚLTIMA EXECUÇÃO")
-      text(class = "th col_dur", content = "RECORRÊNCIA")
-      text(class = "th col_dur", content = "PRÓXIMA EXECUÇÃO")
-      text(class = "th col_act_5", content = "AÇÕES")
-    }
+    tableview(
+      :items = jobs_summary,
+      :sort = jobs_sort,
+      var = j,
+      header_class = "thead th",
+      row_class = "trow td tv_row",
+      class = scroll_fill,
+    ) {
+      tablecolumn(key = name, label = NOME, class = col_svc) {
+        text(class = td_key, content = "@j.name")
+      }
 
-    scrollable(direction = vertical, class = scroll_fill) {
-      column(class = table_body) {
-        template(
-          :for-each = jobs_summary,
-          var = j,
-          foreach_fallback = SemJobs,
-        ) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td_key col_svc", content = "@j.name")
-              text(class = "td col_proj", content = "@j.owner")
-              StateCell(kind = @j.last_run_kind, label = @j.last_run_label)
-              text(class = "muted col_dur", content = "@j.recurrence")
-              text(class = "muted col_dur", content = "@j.next_run_at")
+      tablecolumn(key = owner, label = "PROJETO / GATILHO", class = col_proj)
 
-              row(class = col_act_5) {
-                button(
-                  class = copy_btn,
-                  if = @j.running,
-                  not_equals = true,
-                  on_click = job_run_now:@j.id,
-                  text = "▶",
-                  tooltip = "Rodar agora",
-                )
+      tablecolumn(
+        key = last_run_label,
+        label = "ÚLTIMA EXECUÇÃO",
+        class = col_state,
+      ) {
+        StateCell(kind = @j.last_run_kind, label = @j.last_run_label)
+      }
 
-                button(
-                  class = env_del,
-                  if = @j.running,
-                  equals = true,
-                  on_click = job_run_cancel:@j.last_run_id,
-                  text = "■",
-                  tooltip = Cancelar,
-                )
+      tablecolumn(key = recurrence, label = "RECORRÊNCIA", class = col_dur) {
+        text(class = muted, content = "@j.recurrence")
+      }
 
-                button(
-                  class = copy_btn,
-                  if = @j.last_run_id,
-                  not_equals = "",
-                  on_click = open_job_logs_window:@j.last_run_id,
-                  text = "≡",
-                  tooltip = "Ver logs",
-                )
+      tablecolumn(
+        key = next_run_at,
+        label = "PRÓXIMA EXECUÇÃO",
+        class = col_dur,
+      ) {
+        text(class = muted, content = "@j.next_run_at")
+      }
 
-                button(
-                  class = copy_btn,
-                  if = @j.enabled,
-                  equals = true,
-                  on_click = job_toggle:@j.id,
-                  text = "‖",
-                  tooltip = Pausar,
-                )
+      tablecolumn(label = "AÇÕES", class = col_act_5, align = right) {
+        row(class = col_act_5) {
+          button(
+            class = copy_btn,
+            if = @j.running,
+            not_equals = true,
+            on_click = job_run_now:@j.id,
+            text = "▶",
+            tooltip = "Rodar agora",
+          )
 
-                button(
-                  class = copy_btn,
-                  if = @j.enabled,
-                  not_equals = true,
-                  on_click = job_toggle:@j.id,
-                  text = "▶",
-                  tooltip = Ativar,
-                )
+          button(
+            class = env_del,
+            if = @j.running,
+            equals = true,
+            on_click = job_run_cancel:@j.last_run_id,
+            text = "■",
+            tooltip = Cancelar,
+          )
 
-                button(
-                  class = copy_btn,
-                  on_click = open_edit_job_window:@j.id,
-                  text = "✎",
-                  tooltip = Editar,
-                )
+          button(
+            class = copy_btn,
+            if = @j.last_run_id,
+            not_equals = "",
+            on_click = open_job_logs_window:@j.last_run_id,
+            text = "≡",
+            tooltip = "Ver logs",
+          )
 
-                button(
-                  class = env_del,
-                  on_click = job_del:@j.id,
-                  text = "✕",
-                  tooltip = Remover,
-                )
-              }
-            }
+          button(
+            class = copy_btn,
+            if = @j.enabled,
+            equals = true,
+            on_click = job_toggle:@j.id,
+            text = "‖",
+            tooltip = Pausar,
+          )
 
-            hr
-          }
+          button(
+            class = copy_btn,
+            if = @j.enabled,
+            not_equals = true,
+            on_click = job_toggle:@j.id,
+            text = "▶",
+            tooltip = Ativar,
+          )
+
+          button(
+            class = copy_btn,
+            on_click = open_edit_job_window:@j.id,
+            text = "✎",
+            tooltip = Editar,
+          )
+
+          button(
+            class = env_del,
+            on_click = job_del:@j.id,
+            text = "✕",
+            tooltip = Remover,
+          )
         }
       }
+
+      SemJobs
     }
   }
 }

@@ -19,31 +19,51 @@ component {
       )
     }
 
-    column(class = section_body) {
-      row(class = thead, if = @eng_recent, not_empty) {
-        text(class = "th col_icon")
-        text(class = "th col_svc", content = "SERVIÇO")
-        text(class = "th col_proj", content = "PROJETO")
-        text(class = "th col_state", content = "ESTADO")
-        text(class = "th col_dur", content = "DURAÇÃO")
-        text(class = "th col_start", content = "INÍCIO")
+    // O cabeçalho só aparece com algum deploy — sem nenhum, só o aviso.
+    if @eng_recent is empty {
+      column(class = section_body) {
+        SemDeployRecente
       }
-    }
+    } else {
+      column(class = section_scroll) {
+        tableview(
+          :items = eng_recent,
+          :sort = eng_recent_sort,
+          var = r,
+          header_class = "thead th",
+          row_class = "trow td tv_row",
+          class = scroll_fill,
+        ) {
+          tablecolumn(label = " ", class = col_icon) {
+            text(class = td, content = "@r.icon")
+          }
 
-    scrollable(direction = vertical, class = section_scroll) {
-      column(class = table_body) {
-        each @eng_recent as r (fallback = SemDeployRecente) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td col_icon", content = "@r.icon")
-              text(class = "td_key col_svc", content = "@r.service")
-              text(class = "td col_proj", content = "@r.project")
-              StateCell(kind = @r.state_kind, label = @r.state_label)
-              text(class = "muted col_dur", content = "@r.duration")
-              text(class = "muted col_start", content = "@r.start")
-            }
+          tablecolumn(key = service, label = "SERVIÇO", class = col_svc) {
+            text(class = td_key, content = "@r.service")
+          }
 
-            hr
+          tablecolumn(key = project, label = PROJETO, class = col_proj)
+
+          tablecolumn(key = state_label, label = ESTADO, class = col_state) {
+            StateCell(kind = @r.state_kind, label = @r.state_label)
+          }
+
+          tablecolumn(
+            key = duration,
+            sort_key = elapsed_secs,
+            label = "DURAÇÃO",
+            class = col_dur,
+          ) {
+            text(class = muted, content = "@r.duration")
+          }
+
+          tablecolumn(
+            key = start,
+            sort_key = start_iso,
+            label = "INÍCIO",
+            class = col_start,
+          ) {
+            text(class = muted, content = "@r.start")
           }
         }
       }

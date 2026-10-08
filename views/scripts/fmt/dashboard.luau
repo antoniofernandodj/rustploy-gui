@@ -82,6 +82,7 @@ function M.deployments(list: {any}?, term: string?): string
                 state_kind = Util.state_kind(d.state),
                 duration = Time.fmt_duration(d),
                 start = Time.date_dm_hms(d.started_at),
+                start_iso = d.started_at or "", -- `sort_key` da coluna INÍCIO
             })
         end
     end
@@ -244,7 +245,9 @@ function M.docker_rows(pairs_: {ServicePair}, term: string?): string
     return Util.enc_array(rows)
 end
 
-function M.docker_images(list: {any}?, term: string?): string
+-- `only_used`: o "Somente em uso" da aba — filtrado aqui porque a tabela
+-- (tableview) desenha toda linha que recebe.
+function M.docker_images(list: {any}?, term: string?, only_used: boolean?): string
     local B = Util.col_budgets()
     local sorted = {}
     for _, img in ipairs(list or {}) do table.insert(sorted, img) end
@@ -254,8 +257,9 @@ function M.docker_images(list: {any}?, term: string?): string
     local rows = {}
     for _, img in ipairs(sorted) do
         local tagstr = table.concat(img.tags or {}, " ")
-        if Util.matches(term, { tagstr, img.project or "", img.service or "" }) then
-            local in_use = (img.containers or 0) > 0
+        local in_use = (img.containers or 0) > 0
+        if Util.matches(term, { tagstr, img.project or "", img.service or "" })
+            and (in_use or not only_used) then
             -- Trunca por caractere (não por palavra): uma tag sem espaços mais
             -- longa que a coluna estoura e sobrepõe as vizinhas (o Row não clipa
             -- filhos) — mesmo caso do sha256 em docker_containers.
@@ -268,6 +272,10 @@ function M.docker_images(list: {any}?, term: string?): string
                 id_full = id, -- sem "sha256:" (o `:` quebraria a ação nome:sufixo)
                 tags = tags,
                 size = Time.fmt_bytes(img.size_bytes),
+                -- Crus, para o `sort_key` da coluna: "1.2 GB" e "08/10 14:03"
+                -- não ordenam como texto.
+                size_bytes = img.size_bytes or 0,
+                created_iso = img.created or "",
                 created = Time.date_dm_hm(img.created),
                 project = img.project or "—",
                 service = img.service or "—",
@@ -282,14 +290,14 @@ function M.docker_images(list: {any}?, term: string?): string
     return Util.enc_array(rows)
 end
 
-function M.docker_volumes(list: {any}?, term: string?): string
+function M.docker_volumes(list: {any}?, term: string?, only_used: boolean?): string
     local B = Util.col_budgets()
     local sorted = {}
     for _, v in ipairs(list or {}) do table.insert(sorted, v) end
     table.sort(sorted, function(a: any, b: any) return a.name < b.name end)
     local rows = {}
     for _, v in ipairs(sorted) do
-        if Util.matches(term, { v.name, v.driver }) then
+        if Util.matches(term, { v.name, v.driver }) and (v.in_use or not only_used) then
             table.insert(rows, {
                 -- Nome truncado só pra exibição; a ação de remover usa v.name
                 -- completo via `name_full`.
@@ -298,6 +306,7 @@ function M.docker_volumes(list: {any}?, term: string?): string
                 driver = v.driver,
                 mountpoint = v.mountpoint,
                 size = (v.size_bytes and v.size_bytes >= 0) and Time.fmt_bytes(v.size_bytes) or "—",
+                size_bytes = v.size_bytes or -1,
                 in_use_label = v.in_use and "EM USO" or "SEM USO",
                 in_use_kind = Util.in_use_kind(v.in_use),
             })
@@ -306,14 +315,14 @@ function M.docker_volumes(list: {any}?, term: string?): string
     return Util.enc_array(rows)
 end
 
-function M.docker_networks(list: {any}?, term: string?): string
+function M.docker_networks(list: {any}?, term: string?, only_used: boolean?): string
     local B = Util.col_budgets()
     local sorted = {}
     for _, n in ipairs(list or {}) do table.insert(sorted, n) end
     table.sort(sorted, function(a: any, b: any) return a.name < b.name end)
     local rows = {}
     for _, n in ipairs(sorted) do
-        if Util.matches(term, { n.name, n.project or "" }) then
+        if Util.matches(term, { n.name, n.project or "" }) and (n.in_use or not only_used) then
             table.insert(rows, {
                 name = Util.ellipsis(n.name, B.svc),
                 id_full = n.id or "",
@@ -434,6 +443,11 @@ function M.monitoring(pairs_: {ServicePair}, metrics: MetricsMap?): string
                 mem = Time.fmt_bytes(m.mem_used_bytes),
                 rx = Time.fmt_bytes(m.net_rx_bytes),
                 tx = Time.fmt_bytes(m.net_tx_bytes),
+                -- Crus, para o `sort_key` das colunas (o texto não ordena).
+                cpu_n = m.cpu_percent or 0,
+                mem_n = m.mem_used_bytes or 0,
+                rx_n = m.net_rx_bytes or 0,
+                tx_n = m.net_tx_bytes or 0,
             })
         end
     end
@@ -581,6 +595,9 @@ function M.eng_recent(recent: {any}?): string
             state_kind = Util.state_kind(info.state),
             duration = Time.fmt_secs(info.elapsed_secs),
             start = Time.time_hms(info.started_at),
+            -- Crus, para o `sort_key` das colunas DURAÇÃO e INÍCIO.
+            elapsed_secs = info.elapsed_secs or 0,
+            start_iso = info.started_at or "",
         })
     end
     return Util.enc_array(rows)

@@ -26,36 +26,27 @@ component {
   }
 
   column(class = panel_fill) {
-    row(class = thead) {
-      text(class = "th col_svc", content = "DOMÍNIO")
-      text(class = "th col_proj", content = "SERVIÇO")
-      text(class = "th col_dur", content = "UPSTREAM")
-      text(class = "th col_start", content = "TLS")
-    }
-
-    if @data_loading == "true" {
-      LoadingRow
-    }
-
-    scrollable(
-      if = @data_loading,
-      not_equals = true,
-      direction = vertical,
+    tableview(
+      :items = ingress,
+      :sort = ingress_sort,
+      var = i,
+      header_class = "thead th",
+      row_class = "trow td tv_row",
       class = scroll_fill,
     ) {
-      column(class = table_body) {
-        template(:for-each = ingress, var = i) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td_key col_svc", content = "@i.domain")
-              text(class = "td col_proj", content = "@i.service")
-              text(class = "td col_dur", content = "@i.upstream")
-              text(class = "muted col_start", content = "@i.tls")
-            }
+      tablecolumn(key = domain, label = "DOMÍNIO", class = col_svc) {
+        text(class = td_key, content = "@i.domain")
+      }
 
-            hr
-          }
-        }
+      tablecolumn(key = service, label = "SERVIÇO", class = col_proj)
+      tablecolumn(key = upstream, label = UPSTREAM, class = col_dur)
+
+      tablecolumn(key = tls, label = TLS, class = col_start) {
+        text(class = muted, content = "@i.tls")
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
       }
     }
 
@@ -64,30 +55,31 @@ component {
       content = "PORTAS TCP DE HOST (@host_ports_count)",
     )
 
-    row(class = thead) {
-      text(class = "th col_svc", content = "SERVIÇO")
-      text(class = "th col_proj", content = "PROJETO")
-      text(class = "th col_dur", content = "PORTA HOST")
-      text(class = "th col_start", content = "PORTA CONTAINER")
-    }
-
-    column(class = table_body) {
-      template(
-        :for-each = host_ports,
-        var = hp,
-        foreach_fallback = SemPortasDeHost,
-      ) {
-        column(class = row_wrap) {
-          row(class = trow) {
-            text(class = "td_key col_svc", content = "@hp.service")
-            text(class = "td col_proj", content = "@hp.project")
-            text(class = "td col_dur", content = "@hp.host_port")
-            text(class = "muted col_start", content = "@hp.container_port")
-          }
-
-          hr
-        }
+    // Sem `height`: a lista é curta e cresce com a página, sem rolagem própria.
+    tableview(
+      :items = host_ports,
+      :sort = host_ports_sort,
+      var = hp,
+      header_class = "thead th",
+      row_class = "trow td tv_row",
+      width = fill,
+    ) {
+      tablecolumn(key = service, label = "SERVIÇO", class = col_svc) {
+        text(class = td_key, content = "@hp.service")
       }
+
+      tablecolumn(key = project, label = PROJETO, class = col_proj)
+      tablecolumn(key = host_port, label = "PORTA HOST", class = col_dur)
+
+      tablecolumn(
+        key = container_port,
+        label = "PORTA CONTAINER",
+        class = col_start,
+      ) {
+        text(class = muted, content = "@hp.container_port")
+      }
+
+      SemPortasDeHost
     }
   }
 }

@@ -37,38 +37,42 @@ component {
     )
 
     column(class = panel_fill) {
-      row(class = thead) {
-        text(class = "th col_svc", content = "SERVIÇO")
-        text(class = "th col_proj", content = "PROJETO")
-        text(class = "th col_state", content = "ESTADO")
-        text(class = "th col_dur", content = "DURAÇÃO")
-        text(class = "th col_start", content = "INÍCIO")
-      }
-
-      if @data_loading == "true" {
-        LoadingRow
-      }
-
-      scrollable(
-        if = @data_loading,
-        not_equals = true,
-        direction = vertical,
+      tableview(
+        :items = deployments,
+        :sort = deployments_sort,
+        var = d,
+        header_class = "thead th",
+        row_class = "trow td tv_row",
         class = scroll_fill,
       ) {
-        column(class = table_body) {
-          each @deployments as d (fallback = SemDeployments) {
-            column(class = row_wrap) {
-              row(class = trow) {
-                text(class = "td_key col_svc", content = "@d.service")
-                text(class = "td col_proj", content = "@d.project")
-                StateCell(kind = @d.state_kind, label = @d.state_label)
-                text(class = "td col_dur", content = "@d.duration")
-                text(class = "muted col_start", content = "@d.start")
-              }
+        tablecolumn(key = service, label = "SERVIÇO", class = col_svc) {
+          text(class = td_key, content = "@d.service")
+        }
 
-              hr
-            }
-          }
+        tablecolumn(key = project, label = PROJETO, class = col_proj)
+
+        tablecolumn(key = state_label, label = ESTADO, class = col_state) {
+          StateCell(kind = @d.state_kind, label = @d.state_label)
+        }
+
+        // Sem `key`: "2m 3s" não ordena como texto, e o valor cru não vem.
+        tablecolumn(label = "DURAÇÃO", class = col_dur) {
+          text(class = td, content = "@d.duration")
+        }
+
+        tablecolumn(
+          key = start,
+          sort_key = start_iso,
+          label = "INÍCIO",
+          class = col_start,
+        ) {
+          text(class = muted, content = "@d.start")
+        }
+
+        if @data_loading == "true" {
+          LoadingRow
+        } else {
+          SemDeployments
         }
       }
     }

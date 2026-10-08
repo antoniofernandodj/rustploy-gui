@@ -17,6 +17,18 @@ fn boot() -> GlacierUI {
     m
 }
 
+/// Todo texto de uma árvore avaliada, em ordem.
+fn textos_avaliados(n: &glacier_ui::UiNode) -> Vec<String> {
+    let mut out = Vec::new();
+    if let glacier_ui::parser::NodeType::Text { content, .. } = &n.kind {
+        out.push(content.clone());
+    }
+    for f in n.children.iter() {
+        out.extend(textos_avaliados(f));
+    }
+    out
+}
+
 /// Cd's to the workspace root (idempotent — safe alongside `boot`).
 fn cd_ws_root() {
     let crate_dir = env!("CARGO_MANIFEST_DIR");
@@ -312,6 +324,15 @@ fn all_screens_and_service_tabs_render() {
             .unwrap_or_else(|e| panic!("eval docker/{tab}: {e}"));
         assert!(m.render("app").is_ok(), "render docker/{tab}");
     }
+    // As tabelas são `tableview` + `tablecolumn`: a célula com corpo sai do
+    // eval já avaliada com a linha (`@c.name`), e não só o cabeçalho.
+    m.define_data("docker_tab", "containers");
+    m.reevaluate_all().expect("eval docker/containers");
+    let textos = textos_avaliados(m.evaluated("app").expect("app avaliado"));
+    assert!(
+        textos.iter().any(|t| t == "rp_api_live"),
+        "a célula NOME da linha não foi avaliada: {textos:?}"
+    );
     m.define_data("registry_selected_repo", "acme/api");
     m.define_data("registry_tags_count", "1");
     m.define_data(

@@ -31,40 +31,34 @@ component {
   }
 
   column(class = panel_fill) {
-    row(class = thead) {
-      text(class = "th col_svc", content = "CONTAINER")
-      text(class = "th col_proj", content = "PROJETO")
-      text(class = "th col_dur", content = "CPU")
-      text(class = "th col_dur", content = "MEM")
-      text(class = "th col_dur", content = "RX")
-      text(class = "th col_start", content = "TX")
-    }
-
-    if @data_loading == "true" {
-      LoadingRow
-    }
-
-    scrollable(
-      if = @data_loading,
-      not_equals = true,
-      direction = vertical,
+    tableview(
+      :items = monitoring,
+      :sort = monitoring_sort,
+      var = m,
+      header_class = "thead th",
+      row_class = "trow td tv_row",
       class = scroll_fill,
     ) {
-      column(class = table_body) {
-        each @monitoring as m (fallback = SemMetricas) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td_key col_svc", content = "@m.name")
-              text(class = "td col_proj", content = "@m.project")
-              text(class = "td col_dur", content = "@m.cpu")
-              text(class = "td col_dur", content = "@m.mem")
-              text(class = "muted col_dur", content = "@m.rx")
-              text(class = "muted col_start", content = "@m.tx")
-            }
+      tablecolumn(key = name, label = CONTAINER, class = col_svc) {
+        text(class = td_key, content = "@m.name")
+      }
 
-            hr
-          }
-        }
+      tablecolumn(key = project, label = PROJETO, class = col_proj)
+      tablecolumn(key = cpu, sort_key = cpu_n, label = CPU, class = col_dur)
+      tablecolumn(key = mem, sort_key = mem_n, label = MEM, class = col_dur)
+
+      tablecolumn(key = rx, sort_key = rx_n, label = RX, class = col_dur) {
+        text(class = muted, content = "@m.rx")
+      }
+
+      tablecolumn(key = tx, sort_key = tx_n, label = TX, class = col_start) {
+        text(class = muted, content = "@m.tx")
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      } else {
+        SemMetricas
       }
     }
   }

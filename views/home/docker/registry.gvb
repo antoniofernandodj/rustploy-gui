@@ -58,53 +58,50 @@ component {
     )
 
     column(class = panel_fill, if = @registry_selected_repo, equals = "") {
-      row(class = thead) {
-        text(class = "th col_svc", content = "REPOSITÓRIO")
-        text(class = "th col_proj", content = "TAGS")
-        text(class = "th col_dur", content = "TAMANHO")
-        text(class = "th col_dur", content = "CRIADO")
-        text(class = "th col_act_2", content = "AÇÃO")
-      }
-
-      if @data_loading == "true" {
-        LoadingRow
-      }
-
-      scrollable(
-        if = @data_loading,
-        not_equals = true,
-        direction = vertical,
+      tableview(
+        :items = registry_repos,
+        :sort = registry_repos_sort,
+        var = r,
+        header_class = "thead th",
+        row_class = "trow td tv_row",
         class = scroll_fill,
       ) {
-        column(class = table_body) {
-          each @registry_repos as r (fallback = SemRepositorios) {
-            column(class = row_wrap) {
-              row(class = trow) {
-                text(class = "td_key col_svc", content = "@r.name")
-                text(class = "td col_proj", content = "@r.tag_count")
-                text(class = "muted col_dur", content = "@r.size")
-                text(class = "muted col_dur", content = "@r.created")
+        tablecolumn(key = name, label = "REPOSITÓRIO", class = col_svc) {
+          text(class = td_key, content = "@r.name")
+        }
 
-                row(class = col_act_2) {
-                  button(
-                    class = copy_btn,
-                    on_click = registry_open_repo:@r.name,
-                    text = "≡",
-                    tooltip = "Ver tags",
-                  )
+        tablecolumn(key = tag_count, label = TAGS, class = col_proj)
 
-                  button(
-                    class = env_del,
-                    on_click = registry_rm_repo:@r.name,
-                    text = "✕",
-                    tooltip = Remover,
-                  )
-                }
-              }
+        tablecolumn(key = size, label = TAMANHO, class = col_dur) {
+          text(class = muted, content = "@r.size")
+        }
 
-              hr
-            }
+        tablecolumn(key = created, label = CRIADO, class = col_dur) {
+          text(class = muted, content = "@r.created")
+        }
+
+        tablecolumn(label = "AÇÃO", class = col_act_2, align = right) {
+          row(class = col_act_2) {
+            button(
+              class = copy_btn,
+              on_click = registry_open_repo:@r.name,
+              text = "≡",
+              tooltip = "Ver tags",
+            )
+
+            button(
+              class = env_del,
+              on_click = registry_rm_repo:@r.name,
+              text = "✕",
+              tooltip = Remover,
+            )
           }
+        }
+
+        if @data_loading == "true" {
+          LoadingRow
+        } else {
+          SemRepositorios
         }
       }
 
@@ -129,33 +126,40 @@ component {
         )
       }
 
-      row(class = thead, if = @registry_tokens, not_empty) {
-        text(class = "th col_svc", content = "NOME")
-        text(class = "th col_proj", content = "ESCOPO")
-        text(class = "th col_dur", content = "CRIADO")
-        text(class = "th col_dur", content = "ÚLTIMO USO")
-        text(class = "th col_act", content = "AÇÃO")
-      }
-
-      each @registry_tokens as tk (fallback = SemTokens) {
-        column(class = table_body) {
-          row(class = trow) {
-            text(class = "td_key col_svc", content = "@tk.name")
-            text(class = "td col_proj", content = "@tk.scope")
-            text(class = "muted col_dur", content = "@tk.created")
-            text(class = "muted col_dur", content = "@tk.last_used")
-
-            row(class = col_act) {
-              button(
-                class = env_del,
-                on_click = registry_rm_token:@tk.name,
-                text = "✕",
-                tooltip = Revogar,
-              )
-            }
+      // Sem `height`: a lista é curta e cresce com o painel. O cabeçalho só
+      // aparece com algum token — sem nenhum, só o aviso.
+      if @registry_tokens is empty {
+        SemTokens
+      } else {
+        tableview(
+          :items = registry_tokens,
+          var = tk,
+          header_class = "thead th",
+          row_class = "trow td tv_row",
+          width = fill,
+        ) {
+          tablecolumn(key = name, label = NOME, class = col_svc) {
+            text(class = td_key, content = "@tk.name")
           }
 
-          hr
+          tablecolumn(key = scope, label = ESCOPO, class = col_proj)
+
+          tablecolumn(key = created, label = CRIADO, class = col_dur) {
+            text(class = muted, content = "@tk.created")
+          }
+
+          tablecolumn(key = last_used, label = "ÚLTIMO USO", class = col_dur) {
+            text(class = muted, content = "@tk.last_used")
+          }
+
+          tablecolumn(label = "AÇÃO", class = col_act) {
+            button(
+              class = env_del,
+              on_click = registry_rm_token:@tk.name,
+              text = "✕",
+              tooltip = Revogar,
+            )
+          }
         }
       }
     }
@@ -178,43 +182,40 @@ component {
         )
       }
 
-      row(class = thead) {
-        text(class = "th col_svc", content = "TAG")
-        text(class = "th col_proj", content = "DIGEST")
-        text(class = "th col_dur", content = "TAMANHO")
-        text(class = "th col_dur", content = "ATUALIZADA")
-        text(class = "th col_act", content = "AÇÃO")
-      }
-
-      if @registry_tags_loading == "true" {
-        LoadingRow
-      }
-
-      scrollable(
-        if = @registry_tags_loading,
-        not_equals = true,
-        direction = vertical,
+      tableview(
+        :items = registry_tags,
+        :sort = registry_tags_sort,
+        var = t,
+        header_class = "thead th",
+        row_class = "trow td tv_row",
         class = scroll_fill,
       ) {
-        column(class = table_body) {
-          column(class = row_wrap, :for-each = registry_tags, var = t) {
-            row(class = trow) {
-              text(class = "td_key col_svc", content = "@t.tag")
-              text(class = "muted col_proj", content = "@t.digest")
-              text(class = "muted col_dur", content = "@t.size")
-              text(class = "muted col_dur", content = "@t.updated")
+        tablecolumn(key = tag, label = TAG, class = col_svc) {
+          text(class = td_key, content = "@t.tag")
+        }
 
-              row(class = col_act) {
-                button(
-                  class = dk_rm,
-                  on_click = registry_rm_tag:@t.tag,
-                  text = Remover,
-                )
-              }
-            }
+        tablecolumn(key = digest, label = DIGEST, class = col_proj) {
+          text(class = muted, content = "@t.digest")
+        }
 
-            hr
-          }
+        tablecolumn(key = size, label = TAMANHO, class = col_dur) {
+          text(class = muted, content = "@t.size")
+        }
+
+        tablecolumn(key = updated, label = ATUALIZADA, class = col_dur) {
+          text(class = muted, content = "@t.updated")
+        }
+
+        tablecolumn(label = "AÇÃO", class = col_act) {
+          button(
+            class = dk_rm,
+            on_click = registry_rm_tag:@t.tag,
+            text = Remover,
+          )
+        }
+
+        if @registry_tags_loading == "true" {
+          LoadingRow
         }
       }
     }

@@ -81,6 +81,11 @@
 .trow       { width: fill; padding: 13 18; spacing: 0; align-y: center; }
 .td         { size: 13; color: var(--text-2); }
 .td_key     { size: 13; bold: true; color: var(--accent); }
+/* `tableview(header_class = "thead th", row_class = "trow td tv_row")`: a
+   faixa do cabeçalho é o .thead (fundo, raio, padding) com o texto do .th; a
+   linha é o .trow (padding) com o texto do .td nas células sem corpo, e o
+   border-color daqui é o fio entre uma linha e a próxima (o antigo `hr`). */
+.tv_row     { border-color: var(--border); }
 .col_svc    { width: 240; }
 .col_proj   { width: 180; }
 .col_state  { width: 170; }

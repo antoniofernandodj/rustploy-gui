@@ -74,25 +74,24 @@ component {
           }
         }
 
-        row(class = thead) {
-          text(class = "th col_state", content = "ESTADO")
-          text(class = "th col_dur", content = "DURAÇÃO")
-          text(class = "th col_start", content = "MENSAGEM")
-        }
+        // Sem `sort`: as etapas ficam na ordem em que aconteceram.
+        tableview(
+          :items = eng_detail_rows,
+          var = d,
+          header_class = "thead th",
+          row_class = "trow td tv_row",
+          class = detail_scroll,
+        ) {
+          tablecolumn(label = ESTADO, class = col_state) {
+            text(class = "state_lbl state_@d.kind", content = "@d.label")
+          }
 
-        scrollable(direction = vertical, class = detail_scroll) {
-          column(class = table_body) {
-            each @eng_detail_rows as d {
-              column(class = row_wrap) {
-                row(class = trow) {
-                  text(class = "state_lbl state_@d.kind col_state", content = "@d.label")
-                  text(class = "muted col_dur", content = "@d.dur")
-                  text(class = "muted col_start", content = "@d.msg")
-                }
+          tablecolumn(label = "DURAÇÃO", class = col_dur) {
+            text(class = muted, content = "@d.dur")
+          }
 
-                hr
-              }
-            }
+          tablecolumn(label = MENSAGEM, class = col_start) {
+            text(class = muted, content = "@d.msg")
           }
         }
       }

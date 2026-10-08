@@ -160,6 +160,16 @@ function docker_rm_volume(name: string): ()
     remove_one({ RemoveVolume = { name = name } }, "removendo volume…")
 end
 
+-- "Somente em uso" (on_toggle="docker_only_used:<chave>"): grava a chave e
+-- remonta as listas — o filtro mora em fmt.docker_* (a tableview desenha toda
+-- linha que recebe).
+function docker_only_used(key: string?, v: string?): ()
+    if key then
+        ctx[key] = v or ""
+    end
+    Stream.rebuild_lists()
+end
+
 function docker_rm_network(id: string): ()
     local ok = confirm{
         title = "Remover rede?",

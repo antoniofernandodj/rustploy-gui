@@ -28,47 +28,43 @@ component {
       content = "@docker_msg",
     )
 
-    row(class = thead) {
-      text(class = "th col_svc", content = "NOME")
-      text(class = "th col_img", content = "IMAGEM")
-      text(class = "th col_state", content = "DONO")
-      text(class = "th col_dur", content = "ESTADO")
-      text(class = "th col_act", content = "AÇÃO")
-    }
-
-    if @data_loading == "true" {
-      LoadingRow
-    }
-
-    scrollable(
-      if = @data_loading,
-      not_equals = true,
-      direction = vertical,
+    tableview(
+      :items = docker_containers,
+      :sort = docker_containers_sort,
+      var = c,
+      header_class = "thead th",
+      row_class = "trow td tv_row",
       class = scroll_fill,
     ) {
-      column(class = table_body) {
-        each @docker_containers as c (fallback = SemContainersDocker) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td_key col_svc", content = "@c.name")
-              text(class = "td col_img", content = "@c.image")
-              text(class = "muted col_state", content = "@c.owner")
-              StateCell(kind = @c.state_kind, label = @c.state_label)
+      tablecolumn(key = name, label = NOME, class = col_svc) {
+        text(class = td_key, content = "@c.name")
+      }
 
-              row(class = col_act) {
-                button(
-                  if = @c.can_remove,
-                  equals = 1,
-                  class = dk_rm,
-                  on_click = docker_rm_container:@c.id_full,
-                  text = Remover,
-                )
-              }
-            }
+      tablecolumn(key = image, label = IMAGEM, class = col_img)
 
-            hr
-          }
-        }
+      tablecolumn(key = owner, label = DONO, class = col_state) {
+        text(class = muted, content = "@c.owner")
+      }
+
+      tablecolumn(key = state_label, label = ESTADO, class = col_state) {
+        StateCell(kind = @c.state_kind, label = @c.state_label)
+      }
+
+      tablecolumn(label = "AÇÃO", class = col_act) {
+        button(
+          if = @c.can_remove,
+          equals = 1,
+          class = dk_rm,
+          on_click = docker_rm_container:@c.id_full,
+          text = Remover,
+        )
+      }
+
+      // Sem linha nenhuma: o "carregando" do primeiro snapshot, ou o vazio.
+      if @data_loading == "true" {
+        LoadingRow
+      } else {
+        SemContainersDocker
       }
     }
   }

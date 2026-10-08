@@ -30,9 +30,12 @@ local function rebuild_lists(): ()
     -- disponível para reuso; não recalculamos aqui à toa.
     -- ctx.docker_rows = fmt.docker_rows(State.last_pairs, term)
     ctx.docker_containers = fmt.docker_containers(snap.docker_containers, term)
-    ctx.docker_images = fmt.docker_images(snap.docker_images, term)
-    ctx.docker_volumes = fmt.docker_volumes(snap.docker_volumes, term)
-    ctx.docker_networks = fmt.docker_networks(snap.docker_networks, term)
+    ctx.docker_images = fmt.docker_images(
+        snap.docker_images, term, ctx.docker_images_only_used == "true")
+    ctx.docker_volumes = fmt.docker_volumes(
+        snap.docker_volumes, term, ctx.docker_volumes_only_used == "true")
+    ctx.docker_networks = fmt.docker_networks(
+        snap.docker_networks, term, ctx.docker_networks_only_used == "true")
     ctx.registry_repos = fmt.registry_repos(snap.registry_repos, term)
 end
 M.rebuild_lists = rebuild_lists
