@@ -23,6 +23,8 @@ screen {
       .titlebar_title { size: 12; bold: true; color: var(--muted); }
       .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
       .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
+      .win_icon_box   { width: fill; align-x: center; }
+      .win_icon       { width: 12; height: 12; color: var(--text); }
 
       .lw_body   { width: fill; height: fill; padding: 14; spacing: 10; }
       .lw_head   { width: fill; align-y: center; spacing: 12; }
@@ -60,7 +62,17 @@ screen {
           }
 
           button(class = win_btn, on_click = window:minimize, text = "—")
-          button(class = win_btn, on_click = window:maximize, text = "▢")
+          // Quadrado = maximizar; dois sobrepostos = restaurar (a convenção da
+          // barra nativa). O estado vem do daemon do glacier, a cada resize.
+          if @glacier_window_maximized {
+            button(class = win_btn, on_click = window:maximize, tooltip = Restaurar) {
+              container(class = win_icon_box) { svg(class = win_icon, src = "assets/icons/win_restore.svg") }
+            }
+          } else {
+            button(class = win_btn, on_click = window:maximize, tooltip = Maximizar) {
+              container(class = win_icon_box) { svg(class = win_icon, src = "assets/icons/win_maximize.svg") }
+            }
+          }
           button(class = win_close, on_click = window:close, text = "✕")
         }
 
