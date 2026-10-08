@@ -259,6 +259,7 @@ local function with_project_env(mutate: (pe: any) -> ()): ()
             ctx.proj_env_text = dotenv
             ctx.proj_env_text_orig = dotenv
         end
+        toast{ message = tostring("Salvo"), kind = "success" }
     else
         toast{ message = tostring(res2), kind = "error" }
     end
@@ -343,16 +344,16 @@ local function reorder_project_env(
     return new_vars, new_comments
 end
 
--- on_validation_error do <form name="penv_add"> (a chave é obrigatória via
--- rules="required"). O erro do modo-secret abaixo continua no handler porque é
--- condicional (não dá pra declarar no <form>).
+-- Não é mais ligado ao <form> (a validação declarativa não disparava o submit
+-- neste form, dentro do componente; o penv_add valida a chave por conta própria,
+-- como o env_add do serviço). Mantido caso a validação declarativa volte.
 function penv_apontar(_erros_json: string?): ()
     toast{ message = "Informe a chave (KEY)", kind = "warning" }
 end
 
 function penv_add(): ()
-    -- rules="required" no <form> garante penv_new_key preenchido aqui.
     local key = Helpers.trim(ctx.penv_new_key)
+    if key == "" then ctx.erro_penv_new_key = "chave vazia"; return end
     ctx.erro_penv_new_key = ""
     local val = ctx.penv_new_val or ""
     -- Duas formas de virar referência de secret (a que o daemon decifra no
