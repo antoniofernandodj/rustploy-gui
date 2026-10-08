@@ -23,7 +23,7 @@ screen {
       .titlebar_title { size: 12; bold: true; color: var(--muted); }
       .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
       .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
-      .win_icon_box   { width: fill; align-x: center; }
+      .win_icon_box   { width: fill; height: 20.8; align-x: center; align-y: center; }  /* = altura de linha do "—" (16 × 1.3) */
       .win_icon       { width: 12; height: 12; color: var(--text); }
 
       .lw_body   { width: fill; height: fill; padding: 14; spacing: 10; }
