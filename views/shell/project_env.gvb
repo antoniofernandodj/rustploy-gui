@@ -38,6 +38,7 @@ component {
     form(
       name = penv_add,
       on_submit = penv_add,
+      on_validation_error = penv_apontar,
       width = fill,
       spacing = 8,
     ) {
@@ -45,6 +46,8 @@ component {
         input(
           class = env_in_key,
           form_control = penv_new_key,
+          rules = required,
+          msg = "informe a chave",
           placeholder = KEY,
         )
       }
@@ -99,7 +102,7 @@ component {
       }
 
       row {
-        button(class = btn_primary, on_click = penv_add, text = Adicionar)
+        button(type = submit, class = btn_primary, text = Adicionar)
       }
     }
 

@@ -36,7 +36,7 @@ function ntok_scope(s: string): ()
     ctx.ntok_scope = s
 end
 
--- on_validation_error do <form> — NOME é `rules="required"`; o motor já
+-- on_validation_error do form(...) — NOME é `rules="required"`; o motor já
 -- publicou {erro_ntok_name} e acendeu o :invalid.
 function ntok_apontar(_erros_json: string?): ()
     toast{ message = "Informe o nome do token", kind = "warning" }
@@ -48,7 +48,7 @@ function ntok_create(): ()
         ctx.ntok_err = "sem conexão — reabra a janela pelo app"
         return
     end
-    -- rules="required" no <form> garante ntok_name preenchido aqui.
+    -- rules="required" no form(...) garante ntok_name preenchido aqui.
     local name = Helpers.trim(ctx.ntok_name)
     ctx.ntok_err = ""
     ctx.ntok_msg = "criando…"

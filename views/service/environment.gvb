@@ -23,11 +23,19 @@ component {
       }
     }
 
-    form(name = env_add, on_submit = env_add, width = fill, spacing = 8) {
+    form(
+      name = env_add,
+      on_submit = env_add,
+      on_validation_error = env_apontar,
+      width = fill,
+      spacing = 8,
+    ) {
       row(class = env_add) {
         input(
           class = env_in_key,
           form_control = env_new_key,
+          rules = required,
+          msg = "informe a chave",
           placeholder = KEY,
         )
       }
@@ -41,7 +49,7 @@ component {
       }
 
       row(class = env_add) {
-        button(class = btn_primary, on_click = env_add, text = Adicionar)
+        button(type = submit, class = btn_primary, text = Adicionar)
       }
     }
 

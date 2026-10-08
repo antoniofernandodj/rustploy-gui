@@ -21,7 +21,7 @@ local function client(): Api.Client?
 end
 
 function init(): ()
-    -- `np_name`/`np_desc` são as chaves que os `form_control` do <form> ligam
+    -- `np_name`/`np_desc` são as chaves que os `form_control` do form(...) ligam
     -- (sem `value=`/`on_change=`: o motor grava sozinho). Só o valor inicial é
     -- semeado aqui; os `erro_np_*` são publicados pelo motor na validação.
     ctx.np_name = ctx.np_name or ""
@@ -31,7 +31,7 @@ function init(): ()
     ctx.np_busy = ""
 end
 
--- on_validation_error do <form>: as falhas já vêm prontas em JSON
+-- on_validation_error do form(...): as falhas já vêm prontas em JSON
 -- (`[{campo,msg}]`) e os `{erro_<campo>}` + o `:invalid` já estão na tela —
 -- aqui é só o aviso.
 function np_apontar(_erros_json: string?): ()
@@ -39,7 +39,7 @@ function np_apontar(_erros_json: string?): ()
     toast{ message = "Corrija os campos destacados", kind = "warning" }
 end
 
--- on_submit do <form>: só roda quando a validação (rules="required" no campo
+-- on_submit do form(...): só roda quando a validação (rules="required" no campo
 -- NOME) passou, então `np_name` está garantidamente preenchido. `fetch` (dentro
 -- de rpc_checked) SUSPENDE a corrotina; ao voltar, em sucesso avisa a janela
 -- principal e se fecha.

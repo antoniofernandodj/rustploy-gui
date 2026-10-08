@@ -181,7 +181,7 @@ function cancel_project_edit(): ()
     ctx.editing_project = "false"
 end
 
--- on_validation_error do <form name="edit_project"> — o motor já publicou
+-- on_validation_error do form(name = edit_project) — o motor já publicou
 -- {erro_edit_proj_name} e acendeu o :invalid; aqui é só o aviso.
 function proj_edit_apontar(_erros_json: string?): ()
     toast{ message = "Informe o nome do projeto", kind = "warning" }
@@ -344,17 +344,15 @@ local function reorder_project_env(
     return new_vars, new_comments
 end
 
--- Não é mais ligado ao <form> (a validação declarativa não disparava o submit
--- neste form, dentro do componente; o penv_add valida a chave por conta própria,
--- como o env_add do serviço). Mantido caso a validação declarativa volte.
+-- on_validation_error do form(name = penv_add) — a chave é `rules="required"`;
+-- o motor publica {erro_penv_new_key} e acende o :invalid. Aqui é só o aviso.
 function penv_apontar(_erros_json: string?): ()
     toast{ message = "Informe a chave (KEY)", kind = "warning" }
 end
 
 function penv_add(): ()
+    -- rules="required" no form(...) garante a chave preenchida aqui.
     local key = Helpers.trim(ctx.penv_new_key)
-    if key == "" then ctx.erro_penv_new_key = "chave vazia"; return end
-    ctx.erro_penv_new_key = ""
     local val = ctx.penv_new_val or ""
     -- Duas formas de virar referência de secret (a que o daemon decifra no
     -- deploy, deploy/env_resolve.rs):

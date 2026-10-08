@@ -594,7 +594,7 @@ end
 
 -- ── Renomear serviço (aba General → "Nome do serviço") ──────────────────────
 
--- on_validation_error do <form name="svc_rename">: o motor já acendeu o :invalid
+-- on_validation_error do form(name = svc_rename): o motor já acendeu o :invalid
 -- e publicou {erro_edit_svc_name}; aqui é só o aviso.
 function svc_rename_apontar(_erros_json: string?): ()
     toast{ message = "Informe o nome do serviço", kind = "warning" }
@@ -875,10 +875,15 @@ local function reorder_env(vars: {any}, comments: {any}, keys: {any}): ({any}, {
     return new_vars, new_comments
 end
 
+-- on_validation_error do form(name = env_add) — a chave é `rules="required"`;
+-- o motor publica {erro_env_new_key} e acende o :invalid. Aqui é só o aviso.
+function env_apontar(_erros_json: string?): ()
+    toast{ message = "Informe a chave (KEY)", kind = "warning" }
+end
+
 function env_add(): ()
+    -- rules="required" no form(...) garante a chave preenchida aqui.
     local key = Helpers.trim(ctx.env_new_key)
-    if key == "" then ctx.erro_env_new_key = "chave vazia"; return end
-    ctx.erro_env_new_key = ""
     local val = ctx.env_new_val or ""
     -- `<secret:NOME>`/`secret:NOME` digitado no campo valor vira referência de
     -- secret, como no editor .env (parse_dotenv) — é o caminho para valores
