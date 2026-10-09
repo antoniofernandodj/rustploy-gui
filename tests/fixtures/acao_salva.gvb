@@ -1,0 +1,11 @@
+// Fixture do teste busy.rs: um botão cuja ação toasta e depois ainda faz outro
+// fetch (o "reler o serviço" dos handlers reais).
+screen(title = fixture, size = "200 200") {
+  resources {
+    script(src = acao_salva.luau)
+  }
+
+  column {
+    button(on_click = salvar, disabled = @busy_salvar, text = Salvar)
+  }
+}

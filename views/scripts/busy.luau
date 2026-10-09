@@ -8,7 +8,12 @@
 --   • o template liga `disabled = @busy_<nome>` no botão, então ele fica
 --     bloqueado na hora e volta assim que a ação termina — com sucesso, erro
 --     de resposta ou timeout (o `fetch` tem teto em net/api.luau), e mesmo se
---     o handler lançar erro (o flag é limpo antes de relançar).
+--     o handler lançar erro (o flag é limpo antes de relançar);
+--   • o botão libera no PRIMEIRO `toast` da própria ação — é o aviso de que a
+--     resposta chegou. Depois dele o handler ainda costuma reler serviço/
+--     histórico/snapshot (mais rpcs); esperar isso deixaria o botão travado
+--     segundos além da resposta. A ação é identificada pela corrotina
+--     (`coroutine.running()`), então toasts de outras ações não interferem.
 -- `install` também embrulha o `init()` para semear os flags (ver `seed`).
 -- A lista vem de busy_actions.luau; só ações de botão/formulário entram (um
 -- callback de sse ou uma `rule` bloqueada por reentrada perderia eventos).
@@ -29,6 +34,24 @@ local function seed(names: { string }): ()
     end
 end
 
+-- Quem está rodando: `running[nome] = corrotina dona`; `held[corrotina]` =
+-- chaves que ela segura (uma ação pode chamar outra, também embrulhada).
+local running: { [string]: thread } = {}
+local held: { [thread]: { string } } = {}
+
+local function release(th: thread): ()
+    local keys = held[th]
+
+    if keys then
+        for _, key in keys do
+            if running[key] == th then
+                running[key] = nil
+                ctx[key] = "false"
+            end
+        end
+    end
+end
+
 function M.install(names: { string }): ()
     local env = _G :: any
     local installed: { string } = {}
@@ -41,13 +64,31 @@ function M.install(names: { string }): ()
             table.insert(installed, name)
 
             env[name] = function(...)
-                if ctx[key] == "true" then
+                if running[key] then
                     return
                 end
 
+                local th = coroutine.running()
+                running[key] = th
                 ctx[key] = "true"
+                held[th] = held[th] or {}
+                table.insert(held[th], key)
+
                 local res = table.pack(pcall(fn, ...))
-                ctx[key] = "false"
+
+                -- Larga só a chave DESTA ação (a externa, se houver, segue presa).
+                if running[key] == th then
+                    running[key] = nil
+                    ctx[key] = "false"
+                end
+
+                local keys = held[th]
+                if keys then
+                    table.remove(keys, table.find(keys, key))
+                    if #keys == 0 then
+                        held[th] = nil
+                    end
+                end
 
                 if not res[1] then
                     error(res[2], 0)
@@ -56,6 +97,13 @@ function M.install(names: { string }): ()
                 return table.unpack(res, 2, res.n)
             end
         end
+    end
+
+    local real_toast = env.toast
+    env.toast = function(opts)
+        release(coroutine.running())
+
+        return real_toast(opts)
     end
 
     local init = env.init
