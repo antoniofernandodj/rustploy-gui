@@ -10,9 +10,11 @@
 
 local State = require("../state")
 
-function open_export_window(): ()
+-- `id` vem do card de serviço (`open_export_window:@id`); sem ele, é o serviço
+-- aberto na tela do serviço (botão do cabeçalho).
+function open_export_window(id: string?): ()
     local api = State.api
-    local sid = ctx.selected_service or ""
+    local sid = (id ~= nil and id ~= "") and id or (ctx.selected_service or "")
     if not api or sid == "" then
         return
     end

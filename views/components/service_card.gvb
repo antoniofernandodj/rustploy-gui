@@ -50,6 +50,14 @@ component {
       border-radius: 5
     }
 
+    .card_icon     {
+      width: 40;
+      color: var(--border);
+      padding: 9 0;
+      text-align: center;
+      border-radius: 5
+    }
+
     .c_name {
       size: 16;
       bold: true;
@@ -125,6 +133,15 @@ component {
         disabled = @busy_stop_delete_service,
         text = Remover,
       )
+
+      button(
+        class = card_icon,
+        on_click = open_export_window:@id,
+        disabled = @busy_open_export_window,
+        text = "⇪",
+        tooltip = "Exportar serviço (arquivo para recriá-lo em outro servidor)",
+      )
     }
+
   }
 }
