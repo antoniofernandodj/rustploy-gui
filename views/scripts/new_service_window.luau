@@ -20,6 +20,7 @@
 local State = require("state")
 local Api = require("net/api")
 require("handlers/wizard")
+require("handlers/bundle_import")
 
 function init(): ()
     -- Reconstrói o cliente da API a partir da conexão semeada (usado pelo
@@ -42,6 +43,18 @@ function init(): ()
     ctx.erro_ns_name = ""
     ctx.ns_tsearch = ""
     ctx.ns_step = "pick_type"
+
+    -- Passo "Importar" (handlers/bundle_import.luau).
+    ctx.imp_text = ""
+    ctx.imp_file = ""
+    ctx.imp_name = ""
+    ctx.imp_report = "false"
+    ctx.imp_err = ""
+    ctx.imp_msg = ""
+    ctx.imp_busy = ""
+    ctx.imp_provider_id = ""
+    ctx.imp_drop_domains = "false"
+    ctx.imp_deploy = "false"
 end
 
 -- Setter genérico de campo (on_change="field:<chave>" dos inputs do wizard).

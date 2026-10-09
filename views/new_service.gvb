@@ -74,6 +74,175 @@ component {
             button_label = "Selecionar ›",
             action = ns_kind:template,
           )
+
+          PickerRow(
+            title = Importar,
+            subtitle = "Recriar um serviço exportado de outro servidor",
+            button_label = "Selecionar ›",
+            action = ns_kind:import,
+          )
+        }
+      }
+    }
+
+    // ── Importar serviço exportado (handlers/bundle_import.luau) ────────
+    if @ns_step == "import_form" {
+      column(class = form_panel) {
+        text(class = label_cap, content = "IMPORTAR SERVIÇO EXPORTADO")
+
+        text(
+          class = muted,
+          content = """
+            O serviço é criado no projeto @proj_name, sem deploy — revise e
+            clique em Deploy depois. Só a configuração vem no arquivo; os dados
+            (volumes, bancos) não.
+          """,
+        )
+
+        text(class = err, if = @imp_err, not_equals = "", content = "@imp_err")
+        text(class = warn, if = @imp_msg, not_equals = "", content = "@imp_msg")
+
+        if @imp_report == "true" {
+          row(class = env_add) {
+            text(class = muted, content = "Pacote: @imp_file")
+            button(
+              class = btn_ghost,
+              on_click = imp_clear,
+              disabled = @busy_imp_clear,
+              text = "Trocar pacote",
+            )
+          }
+
+          text(class = label_cap, content = "NOME DO SERVIÇO NOVO")
+          input(class = field_input, :value = imp_name, on_change = field:imp_name, placeholder = nome)
+
+          text(
+            class = err,
+            if = @imp_conflict,
+            equals = true,
+            content = "Já existe um serviço com esse nome neste projeto — escolha outro e clique em Atualizar análise.",
+          )
+
+          if @imp_has_warnings == "true" {
+            text(class = label_cap, content = "ATENÇÃO")
+            column(class = kv_list) {
+              template(:for-each = imp_warnings, var = w) {
+                text(class = muted, content = "@w.text")
+              }
+            }
+          }
+
+          if @imp_has_svc_missing == "true" {
+            text(class = label_cap, content = "VARIÁVEIS DO SERVIÇO SEM VALOR (OBRIGATÓRIO)")
+            text(class = muted, content = "Complete o valor depois do = (uma por linha).")
+            textarea(class = env_editor, font = mono, :value = imp_svc_text)
+          }
+
+          if @imp_has_proj_missing == "true" {
+            text(class = label_cap, content = "VARIÁVEIS DO PROJETO SEM VALOR (OBRIGATÓRIO)")
+            text(class = muted, content = "Complete o valor depois do = (uma por linha).")
+            textarea(class = env_editor, font = mono, :value = imp_proj_text)
+          }
+
+          if @imp_has_secret_missing == "true" {
+            text(class = label_cap, content = "SECRETS QUE ESTE PROJETO NÃO TEM")
+            text(
+              class = muted,
+              content = "Informe o valor para criá-los, ou deixe vazio para seguir sem (a referência fica quebrada até você criar o secret).",
+            )
+            textarea(class = env_editor, font = mono, :value = imp_secret_text)
+          }
+
+          if @imp_missing_provider != "" {
+            text(class = label_cap, content = "GIT PROVIDER “@imp_missing_provider” NÃO EXISTE AQUI")
+            text(class = muted, content = "Escolha um provider deste servidor, ou siga sem.")
+            column(class = kv_list) {
+              template(:for-each = imp_providers, var = p) {
+                button(
+                  class = btn_ghost,
+                  on_click = imp_use_provider:@p.id,
+                  disabled = @busy_imp_use_provider,
+                  text = "@p.mark  @p.label",
+                )
+              }
+            }
+          }
+
+          if @imp_has_pe == "true" {
+            text(class = label_cap, content = "VARIÁVEIS DO PROJETO TRAZIDAS")
+            text(class = muted, content = "Nada do projeto é sobrescrito sem você escolher. Clique para trocar a escolha.")
+            column(class = kv_list) {
+              template(:for-each = imp_pe, var = v) {
+                row(class = kv_row) {
+                  text(class = env_key, content = "@v.key")
+                  text(class = muted, content = "@v.info")
+                  if @v.can_choose == "true" {
+                    button(
+                      class = btn_ghost,
+                      on_click = imp_choice:@v.key,
+                      disabled = @busy_imp_choice,
+                      text = "@v.choice",
+                    )
+                  } else {
+                    text(class = muted, content = "já existe igual — nada a fazer")
+                  }
+                }
+              }
+            }
+          }
+
+          checkbox(
+            :checked = imp_drop_domains,
+            on_toggle = field:imp_drop_domains,
+            label = "Não trazer os domínios",
+          )
+
+          checkbox(
+            :checked = imp_deploy,
+            on_toggle = field:imp_deploy,
+            label = "Fazer deploy logo depois de criar",
+          )
+
+          row(class = env_add) {
+            button(
+              class = btn_primary,
+              on_click = imp_create,
+              disabled = @busy_imp_create,
+              text = "Criar serviço",
+            )
+            button(
+              class = btn_blue,
+              on_click = imp_analyze,
+              disabled = @busy_imp_analyze,
+              text = "Atualizar análise",
+            )
+          }
+        } else {
+          button(
+            class = btn_blue,
+            on_click = imp_pick_file,
+            disabled = @busy_imp_pick_file,
+            text = "Escolher arquivo…",
+          )
+
+          text(class = label_cap, content = "…OU COLE O TEXTO DO PACOTE")
+          textarea(
+            class = env_editor,
+            font = mono,
+            :value = imp_text,
+            placeholder = l"""
+              apiVersion: rustploy/v1
+              kind: Service
+              …
+            """,
+          )
+
+          button(
+            class = btn_primary,
+            on_click = imp_analyze,
+            disabled = @busy_imp_analyze,
+            text = Analisar,
+          )
         }
       }
     }

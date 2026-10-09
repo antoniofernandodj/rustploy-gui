@@ -36,10 +36,17 @@ end
 
 -- Quem está rodando: `running[nome] = corrotina dona`; `held[corrotina]` =
 -- chaves que ela segura (uma ação pode chamar outra, também embrulhada).
-local running: { [string]: thread } = {}
-local held: { [thread]: { string } } = {}
+-- Código Lua que chama um handler direto (sem corrotina própria) roda na
+-- principal, onde `coroutine.running()` é nil: `MAIN` é o dono dessas chamadas.
+local MAIN = {}
+local running: { [string]: any } = {}
+local held: { [any]: { string } } = {}
 
-local function release(th: thread): ()
+local function owner(): any
+    return coroutine.running() or MAIN
+end
+
+local function release(th: any): ()
     local keys = held[th]
 
     if keys then
@@ -68,7 +75,7 @@ function M.install(names: { string }): ()
                     return
                 end
 
-                local th = coroutine.running()
+                local th = owner()
                 running[key] = th
                 ctx[key] = "true"
                 held[th] = held[th] or {}
@@ -101,7 +108,7 @@ function M.install(names: { string }): ()
 
     local real_toast = env.toast
     env.toast = function(opts)
-        release(coroutine.running())
+        release(owner())
 
         return real_toast(opts)
     end

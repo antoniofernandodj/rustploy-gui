@@ -129,4 +129,5 @@ app(
   screen(name = new_service, src = "new_service_window.gvb")
   screen(name = new_project, src = "new_project_form.gvb")
   screen(name = new_registry_token, src = "new_registry_token_window.gvb")
+  screen(name = service_export, src = "service_export_window.gvb")
 }

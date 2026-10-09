@@ -197,6 +197,7 @@ fn new_service_wizard_window_renders() {
         "compose_form",
         "pick_template",
         "template_form",
+        "import_form",
     ] {
         m.define_data("ns_step", step);
         m.reevaluate_all()
@@ -860,6 +861,7 @@ fn janelas_declaram_titulo_e_tamanho() {
         ("new_job", Some("Novo job — Rustploy"), "560 700", "handlers/jobs.luau"),
         ("new_service", Some("Novo serviço — Rustploy"), "560 700", "handlers/wizard.luau"),
         ("new_registry_token", Some("Novo token — Rustploy"), "480 420", "handlers/registry.luau"),
+        ("service_export", Some("Exportar serviço — Rustploy"), "620 720", "handlers/bundle.luau"),
         ("log", None, "900 560", "handlers/services.luau"),
     ];
     for (tela, titulo, tamanho, handler) in filhas {
@@ -1045,4 +1047,99 @@ fn acao_em_andamento_trava_o_botao() {
         Some("true"),
         "ação suspensa no fetch deve manter o botão bloqueado"
     );
+}
+
+/// A janela "Exportar serviço" (`service_export_window.gvb` + `.luau`): o plano
+/// semeado vira a lista ☑/☐ — só a variável do projeto que o serviço cita vem
+/// marcada — e os botões da lista fazem o toggle.
+#[test]
+fn service_export_window_renders_and_toggles() {
+    cd_ws_root();
+    let mut m = GlacierUI::new();
+    m.define_data("api_url", "http://localhost");
+    m.define_data("api_token", "t");
+    m.define_data("ex_service_id", "svc_1");
+    m.define_data(
+        "ex_plan",
+        r#"{"service_name":"api","project_name":"Flow","blocked":null,
+            "service_env":[{"key":"CACHE","is_secret":false,"suggested":false}],
+            "project_env":[{"key":"REDIS_URL","is_secret":false,"suggested":true},
+                           {"key":"NAO_LEVAR","is_secret":false,"suggested":false},
+                           {"key":"SENTRY","is_secret":true,"suggested":false}]}"#,
+    );
+    m.register_app_screen("views/app.gvb", "service_export")
+        .expect("service_export_window.gvb must register");
+    m.set_initial_screen("service_export");
+    m.reevaluate_all().expect("eval service_export");
+    assert!(m.render("service_export").is_ok(), "render service_export");
+
+    let rows = |m: &GlacierUI| -> Vec<(String, String)> {
+        let v: serde_json::Value =
+            serde_json::from_str(m.context().get("ex_vars").expect("ex_vars")).unwrap();
+        v.as_array()
+            .unwrap()
+            .iter()
+            .map(|r| (r["key"].as_str().unwrap().into(), r["mark"].as_str().unwrap().into()))
+            .collect()
+    };
+    assert_eq!(
+        rows(&m),
+        vec![
+            ("REDIS_URL".to_string(), "☑".to_string()),
+            ("NAO_LEVAR".to_string(), "☐".to_string()),
+            ("SENTRY".to_string(), "☐".to_string()),
+        ],
+        "só a citada pelo serviço vem marcada"
+    );
+    assert_eq!(m.context().get("ex_picked_count").map(String::as_str), Some("1"));
+
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("ex_toggle:NAO_LEVAR".into()));
+    assert_eq!(rows(&m)[1].1, "☑", "toggle marca");
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("ex_none".into()));
+    assert!(rows(&m).iter().all(|(_, mark)| mark == "☐"));
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("ex_all".into()));
+    assert!(rows(&m).iter().all(|(_, mark)| mark == "☑"));
+}
+
+/// O passo "Importar" do wizard, na tela do relatório (todas as listas e
+/// ramos condicionais preenchidos): precisa avaliar e renderizar sem erro.
+#[test]
+fn new_service_import_report_renders() {
+    cd_ws_root();
+    let mut m = GlacierUI::new();
+    for (k, v) in [
+        ("api_url", "http://localhost"),
+        ("api_token", "t"),
+        ("selected_project_id", "p1"),
+        ("proj_name", "demo"),
+        ("ns_step", "import_form"),
+        ("imp_report", "true"),
+        ("imp_file", "api.rustploy-service.yml"),
+        ("imp_name", "api"),
+        ("imp_conflict", "true"),
+        ("imp_has_warnings", "true"),
+        ("imp_warnings", r#"[{"text":"• Domínios trazidos: a.tech."}]"#),
+        ("imp_has_svc_missing", "true"),
+        ("imp_svc_text", "CACHE=\nOWN="),
+        ("imp_has_proj_missing", "true"),
+        ("imp_proj_text", "REDIS_URL="),
+        ("imp_has_secret_missing", "true"),
+        ("imp_secret_text", "SENTRY_DSN="),
+        ("imp_missing_provider", "github-acme"),
+        ("imp_providers", r#"[{"id":"gp_1","label":"github","mark":"○"}]"#),
+        ("imp_has_pe", "true"),
+        (
+            "imp_pe",
+            r#"[{"key":"REDIS_URL","info":"em conflito","can_choose":"true","choice":"manter a do projeto"},{"key":"SENTRY","info":"secret · igual","can_choose":"false","choice":"x"}]"#,
+        ),
+        ("imp_drop_domains", "false"),
+        ("imp_deploy", "false"),
+    ] {
+        m.define_data(k, v);
+    }
+    m.register_app_screen("views/app.gvb", "new_service")
+        .expect("new_service_window.gvb must register");
+    m.set_initial_screen("new_service");
+    m.reevaluate_all().expect("eval import_form com relatório");
+    assert!(m.render("new_service").is_ok(), "render import_form com relatório");
 }

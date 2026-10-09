@@ -134,6 +134,14 @@ component {
             text = "■",
             tooltip = Stop,
           )
+
+          button(
+            class = btn_ghost,
+            on_click = open_export_window,
+            disabled = @busy_open_export_window,
+            text = "⇪",
+            tooltip = "Exportar serviço",
+          )
         }
       }
 
@@ -142,6 +150,12 @@ component {
         button(class = btn_blue, on_click = svc_reload, disabled = @busy_svc_reload, text = Reload)
         button(class = btn_blue, on_click = svc_rebuild, disabled = @busy_svc_rebuild, text = Rebuild)
         button(class = btn_danger, on_click = svc_stop, disabled = @busy_svc_stop, text = Stop)
+        button(
+          class = btn_ghost,
+          on_click = open_export_window,
+          disabled = @busy_open_export_window,
+          text = "Exportar serviço",
+        )
       }
     }
 

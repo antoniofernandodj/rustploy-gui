@@ -71,7 +71,7 @@ function ns_back(): ()
     local step = ctx.ns_step
     if step == "pick_db" or step == "pick_broker" or step == "app_form"
         or step == "compose_form" or step == "pick_template" or step == "db_form"
-        or step == "template_form" then
+        or step == "template_form" or step == "import_form" then
         ctx.ns_step = "pick_type"
         ctx.ns_msg = ""
     else
@@ -90,6 +90,8 @@ function ns_kind(k: string): ()
         ctx.ns_step = "pick_broker"
     elseif k == "template" then
         ctx.ns_step = "pick_template"
+    elseif k == "import" then
+        ctx.ns_step = "import_form"
     end
 end
 
