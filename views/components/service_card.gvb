@@ -156,15 +156,6 @@ component {
         text = "⇪",
         tooltip = "Exportar serviço (arquivo para recriá-lo em outro servidor)",
       )
-
-      button(
-        class = card_icon,
-        on_click = open_new_service_window:import,
-        disabled = @busy_open_new_service_window,
-        text = "⇩",
-        tooltip = "Importar serviço de um arquivo exportado",
-      )
     }
-
   }
 }
