@@ -32,7 +32,9 @@ end
 -- a janela abre depois, já com o catálogo. Ao criar, a janela envia
 -- broadcast("service_created") e se fecha (ver ns_create). Substitui o antigo
 -- fluxo inline (view=new_service), removido do shell.gvb.
-function open_new_service_window(): ()
+-- `start` opcional ("import"): o ícone de importar do card de serviço abre o
+-- wizard direto no passo Importar (`open_new_service_window:import`).
+function open_new_service_window(start: string?): ()
     local pid = ctx.selected_project_id or ""
     local api = State.api
     if pid == "" or not api then
@@ -53,6 +55,7 @@ function open_new_service_window(): ()
             api_token = ctx.api_token or "",
             selected_project_id = pid,
             proj_name = ctx.proj_name or "",
+            ns_start = start or "",
             ns_dbs = dbs,
             ns_brokers = brokers,
             ns_templates = templates,

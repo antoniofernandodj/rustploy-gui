@@ -42,7 +42,7 @@ function init(): ()
     ctx.ns_busy = ""
     ctx.erro_ns_name = ""
     ctx.ns_tsearch = ""
-    ctx.ns_step = "pick_type"
+    ctx.ns_step = (ctx.ns_start == "import") and "import_form" or "pick_type"
 
     -- Passo "Importar" (handlers/bundle_import.luau).
     ctx.imp_text = ""

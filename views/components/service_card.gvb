@@ -51,8 +51,16 @@ component {
     }
 
     .card_icon     {
-      width: 40;
+      width: fill;
       color: var(--border);
+      padding: 9 0;
+      text-align: center;
+      border-radius: 5
+    }
+
+    .card_icon_danger {
+      width: fill;
+      color: var(--danger);
       padding: 9 0;
       text-align: center;
       border-radius: 5
@@ -125,13 +133,20 @@ component {
     button(class = card_open, on_click = open_service:@id, disabled = @busy_open_service, text = "Abrir  ›")
 
     row(class = card_actions) {
-      button(class = card_stop, on_click = svc_stop_id:@id, disabled = @busy_svc_stop_id, text = Parar)
+      button(
+        class = card_icon,
+        on_click = svc_stop_id:@id,
+        disabled = @busy_svc_stop_id,
+        text = "■",
+        tooltip = Parar,
+      )
 
       button(
-        class = card_remove,
+        class = card_icon_danger,
         on_click = stop_delete_service:@id,
         disabled = @busy_stop_delete_service,
-        text = Remover,
+        text = "✕",
+        tooltip = Remover,
       )
 
       button(
@@ -140,6 +155,14 @@ component {
         disabled = @busy_open_export_window,
         text = "⇪",
         tooltip = "Exportar serviço (arquivo para recriá-lo em outro servidor)",
+      )
+
+      button(
+        class = card_icon,
+        on_click = open_new_service_window:import,
+        disabled = @busy_open_new_service_window,
+        text = "⇩",
+        tooltip = "Importar serviço de um arquivo exportado",
       )
     }
 
