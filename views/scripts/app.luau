@@ -21,3 +21,6 @@ require("handlers/docker")
 require("handlers/registry")
 require("handlers/jobs")
 require("handlers/deploy_queue")
+
+-- Trava de ação em andamento (ver busy.luau): por último, com todas as funções já definidas.
+require("busy").install(require("busy_actions"))

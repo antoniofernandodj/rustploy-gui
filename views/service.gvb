@@ -25,6 +25,7 @@ component {
       .tabs_main     { width: shrink; spacing: 4; }
       .svc_actions   { spacing: 10; align-y: center; }
       .btn_blue      { color: var(--blue); padding: 11 22; border-radius: 5 }
+      .btn_blue:disabled { color: var(--border); text-color: var(--faint); }
       /* Corpo: conteúdo da aba + painel lateral */
       .svc_body      { width: fill; height: fill; spacing: 20; }
       .svc_main      { width: fill; height: fill; spacing: 16; }
@@ -72,6 +73,7 @@ component {
           button(
             class = btn_ghost,
             on_click = open_project:@svc_project_id,
+            disabled = @busy_open_project,
             text = "‹ @svc_project",
           )
 
@@ -104,6 +106,7 @@ component {
           button(
             class = btn_primary,
             on_click = svc_deploy,
+            disabled = @busy_svc_deploy,
             text = "▶",
             tooltip = Deploy,
           )
@@ -111,6 +114,7 @@ component {
           button(
             class = btn_blue,
             on_click = svc_reload,
+            disabled = @busy_svc_reload,
             text = "⟳",
             tooltip = Reload,
           )
@@ -118,6 +122,7 @@ component {
           button(
             class = btn_blue,
             on_click = svc_rebuild,
+            disabled = @busy_svc_rebuild,
             text = "⚙",
             tooltip = Rebuild,
           )
@@ -125,6 +130,7 @@ component {
           button(
             class = btn_danger,
             on_click = svc_stop,
+            disabled = @busy_svc_stop,
             text = "■",
             tooltip = Stop,
           )
@@ -132,10 +138,10 @@ component {
       }
 
       row(class = "svc_actions svc_actions_full") {
-        button(class = btn_primary, on_click = svc_deploy, text = Deploy)
-        button(class = btn_blue, on_click = svc_reload, text = Reload)
-        button(class = btn_blue, on_click = svc_rebuild, text = Rebuild)
-        button(class = btn_danger, on_click = svc_stop, text = Stop)
+        button(class = btn_primary, on_click = svc_deploy, disabled = @busy_svc_deploy, text = Deploy)
+        button(class = btn_blue, on_click = svc_reload, disabled = @busy_svc_reload, text = Reload)
+        button(class = btn_blue, on_click = svc_rebuild, disabled = @busy_svc_rebuild, text = Rebuild)
+        button(class = btn_danger, on_click = svc_stop, disabled = @busy_svc_stop, text = Stop)
       }
     }
 
@@ -263,6 +269,7 @@ component {
             button(
               class = tab,
               on_click = open_logs_window,
+              disabled = @busy_open_logs_window,
               text = "Logs de runtime",
             )
           }

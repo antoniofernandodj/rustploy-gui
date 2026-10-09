@@ -13,6 +13,7 @@ component {
       button(
         class = btn_primary,
         on_click = open_logs_window,
+        disabled = @busy_open_logs_window,
         text = "Abrir logs em janela",
       )
     }

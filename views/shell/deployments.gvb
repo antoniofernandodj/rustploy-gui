@@ -25,6 +25,7 @@ component {
       button(
         class = btn_danger,
         on_click = deployments_clear_finished,
+        disabled = @busy_deployments_clear_finished,
         text = "Limpar parados/falhos",
       )
     }

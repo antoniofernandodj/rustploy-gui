@@ -43,6 +43,7 @@ component {
                 button(
                   class = copy_btn,
                   on_click = eng_open_detail:@a.service_id,
+                  disabled = @busy_eng_open_detail,
                   text = Detalhes,
                 )
               }
@@ -65,7 +66,7 @@ component {
         row(class = detail_head) {
           text(class = detail_title, content = "Deploy · @eng_detail_title")
 
-          button(class = copy_btn, on_click = eng_close_detail, text = Fechar)
+          button(class = copy_btn, on_click = eng_close_detail, disabled = @busy_eng_close_detail, text = Fechar)
         }
 
         row(class = stepper) {

@@ -19,6 +19,7 @@ component {
         button(
           class = btn_primary,
           on_click = iac_export,
+          disabled = @busy_iac_export,
           text = "Exportar para um .zip…",
         )
 
@@ -61,6 +62,7 @@ component {
         button(
           class = btn_primary,
           on_click = iac_import,
+          disabled = @busy_iac_import,
           text = "Importar de um .zip…",
         )
 

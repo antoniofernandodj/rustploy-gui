@@ -24,12 +24,14 @@ component {
     button(
       class = btn_primary,
       on_click = compose_save,
+      disabled = @busy_compose_save,
       text = "Salvar compose",
     )
 
     button(
       class = btn_ghost,
       on_click = compose_cancel,
+      disabled = @busy_compose_cancel,
       text = Cancelar,
     )
 

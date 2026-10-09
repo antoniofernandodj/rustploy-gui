@@ -70,7 +70,7 @@ component {
       )
 
       row(class = env_add) {
-        button(class = btn_primary, on_click = settings_save, text = Save)
+        button(class = btn_primary, on_click = settings_save, disabled = @busy_settings_save, text = Save)
         text(class = muted, content = "@settings_msg")
       }
     }

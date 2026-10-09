@@ -19,6 +19,7 @@ component {
       button(
         class = btn_export,
         on_click = penv_export,
+        disabled = @busy_penv_export,
         text = Exportar,
       )
 
@@ -28,10 +29,11 @@ component {
         button(
           class = btn_export_on,
           on_click = penv_text_toggle,
+          disabled = @busy_penv_text_toggle,
           text = Fechar,
         )
       } else {
-        button(class = tab, on_click = penv_text_toggle, text = .env)
+        button(class = tab, on_click = penv_text_toggle, disabled = @busy_penv_text_toggle, text = .env)
       }
     }
 
@@ -63,6 +65,7 @@ component {
           button(
             class = btn_export_on,
             on_click = penv_secret_toggle,
+            disabled = @busy_penv_secret_toggle,
             text = "usar secret",
           )
         }
@@ -82,6 +85,7 @@ component {
             :for-each = proj_secrets,
             var = s,
             on_click = secret_use:@s.name,
+            disabled = @busy_secret_use,
             text = @s.name_display,
           )
         }
@@ -96,13 +100,14 @@ component {
           button(
             class = tab,
             on_click = penv_secret_toggle,
+            disabled = @busy_penv_secret_toggle,
             text = "usar secret",
           )
         }
       }
 
       row {
-        button(type = submit, class = btn_primary, text = Adicionar)
+        button(type = submit, disabled = @busy_penv_add, class = btn_primary, text = Adicionar)
       }
     }
 
@@ -144,6 +149,7 @@ component {
                 button(
                   class = env_del,
                   on_click = penv_del:@e.key,
+                  disabled = @busy_penv_del,
                   text = "✕",
                 )
 
@@ -174,6 +180,7 @@ component {
                 button(
                   class = env_del,
                   on_click = penv_del:@e.key,
+                  disabled = @busy_penv_del,
                   text = "✕",
                 )
 
@@ -202,12 +209,14 @@ component {
             button(
               class = btn_primary,
               on_click = penv_import,
+              disabled = @busy_penv_import,
               text = Salvar,
             )
 
             button(
               class = btn_ghost,
               on_click = penv_text_cancel,
+              disabled = @busy_penv_text_cancel,
               text = Cancelar,
             )
           }

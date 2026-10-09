@@ -94,8 +94,8 @@ screen(title = "Novo projeto — Rustploy") {
 
         row(class = np_actions) {
           column(class = np_spacer)
-          button(class = btn_ghost, on_click = cancel, text = Cancelar)
-          button(type = submit, class = btn_primary, text = "Criar projeto")
+          button(class = btn_ghost, on_click = cancel, disabled = @busy_cancel, text = Cancelar)
+          button(type = submit, disabled = @busy_submit_project, class = btn_primary, text = "Criar projeto")
         }
       }
     }

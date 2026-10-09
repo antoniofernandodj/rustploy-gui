@@ -12,6 +12,7 @@ component {
     button(
       class = btn_sm_primary,
       on_click = open_new_job_window,
+      disabled = @busy_open_new_job_window,
       text = "+ Novo job",
     )
   }
@@ -38,6 +39,7 @@ component {
             if = @j.running,
             not_equals = true,
             on_click = job_run_now:@j.id,
+            disabled = @busy_job_run_now,
             text = "Rodar agora",
           )
 
@@ -46,6 +48,7 @@ component {
             if = @j.running,
             equals = true,
             on_click = job_run_cancel:@j.last_run_id,
+            disabled = @busy_job_run_cancel,
             text = Cancelar,
           )
 
@@ -54,24 +57,28 @@ component {
             if = @j.last_run_id,
             not_equals = "",
             on_click = open_job_logs_window:@j.last_run_id,
+            disabled = @busy_open_job_logs_window,
             text = "Ver logs",
           )
 
           button(
             class = copy_btn,
             on_click = job_toggle:@j.id,
+            disabled = @busy_job_toggle,
             text = @j.enabled_label,
           )
 
           button(
             class = copy_btn,
             on_click = open_edit_job_window:@j.id,
+            disabled = @busy_open_edit_job_window,
             text = Editar,
           )
 
           button(
             class = env_del,
             on_click = job_del:@j.id,
+            disabled = @busy_job_del,
             text = "✕",
           )
         }

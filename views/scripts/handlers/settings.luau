@@ -12,9 +12,10 @@ local M = {}
 
 -- ── Settings (Web Server) ────────────────────────────────────────────────
 
-function settings_tab(t: string): ()
-    ctx.settings_tab = t
-end
+-- Órfão desde que a aba virou <tabbar>: a barra grava `settings_tab` sozinha.
+-- function settings_tab(t: string): ()
+--     ctx.settings_tab = t
+-- end
 
 function settings_save(): ()
     local api = State.api
@@ -38,9 +39,10 @@ end
 
 -- ── Settings → Git (provedores Gitea / GitHub) ───────────────────────────
 
-function gp_mode(m: string): ()
-    ctx.gp_mode = m
-end
+-- Órfão desde que a aba virou <tabbar>: a barra grava `gp_mode` sozinha.
+-- function gp_mode(m: string): ()
+--     ctx.gp_mode = m
+-- end
 
 -- Alterna o tipo de provedor (gitea | github) e recomputa a redirect URI, que
 -- tem path por provedor (/oauth/gitea/callback vs /oauth/github/callback).
@@ -399,9 +401,10 @@ function M.dc_load(): ()
     end
 end
 
-function dc_kind(k: string): ()
-    ctx.dc_kind = k
-end
+-- Órfão desde que a aba virou <tabbar>: a barra grava `dc_kind` sozinha.
+-- function dc_kind(k: string): ()
+--     ctx.dc_kind = k
+-- end
 
 -- Órfão desde que o seletor de dia da semana virou um <radiogroup> em home.gvb:
 -- o builtin grava `dc_weekday` sozinho, no update dele em Rust, e ninguém mais

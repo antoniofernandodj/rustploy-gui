@@ -16,35 +16,10 @@ component {
   ) {
     text(class = label_cap, content = "KIND")
 
-    row(class = tabs) {
-      TabButton(
-        label = None,
-        current = @f_hc_kind,
-        target = none,
-        action = hckind:none,
-      )
-
-      TabButton(
-        label = Tcp,
-        current = @f_hc_kind,
-        target = tcp,
-        action = hckind:tcp,
-      )
-
-      TabButton(
-        label = Http,
-        current = @f_hc_kind,
-        target = http,
-        action = hckind:http,
-      )
-
-      TabButton(
-        label = Docker,
-        current = @f_hc_kind,
-        target = docker,
-        action = hckind:docker,
-      )
-    }
+    tabbar(
+      :value = f_hc_kind, active = @f_hc_kind, :items = hc_kinds,
+      tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+    )
 
     if @f_hc_kind == "http" {
       text(class = label_cap, content = "HTTP PATH")
@@ -127,7 +102,7 @@ component {
     }
 
     row(class = env_add) {
-      button(class = btn_primary, on_click = hc_save, text = Save)
+      button(class = btn_primary, on_click = hc_save, disabled = @busy_hc_save, text = Save)
       text(class = muted, content = "@svc_action_msg")
     }
   }

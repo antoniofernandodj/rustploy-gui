@@ -212,6 +212,13 @@ fn new_service_wizard_window_renders() {
 fn all_screens_and_service_tabs_render() {
     let mut m = boot();
 
+    // Itens das <tabbar> de rótulo fixo — o `init()` do app os semeia em
+    // produção; aqui a barra renderizaria vazia sem ninguém notar.
+    m.define_data("settings_tabs", r#"[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]"#);
+    m.define_data("dc_kinds", r#"[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]"#);
+    m.define_data("gp_modes", r#"[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]"#);
+    m.define_data("hc_kinds", r#"[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]"#);
+
     m.reevaluate_all().expect("eval login");
     assert!(m.render("app").is_ok(), "login render");
 
@@ -1014,4 +1021,28 @@ fn grades_de_cards_renderizam_com_spread() {
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval grade de serviços: {e}"));
     assert!(m.render("app").is_ok(), "render grade de serviços");
+}
+
+/// Trava de ação em andamento (busy.luau): o `init()` semeia `busy_<ação>` e o
+/// botão do template o liga em `disabled`; uma ação que suspende num `fetch`
+/// deixa o flag em "true" até terminar, e um segundo clique é ignorado.
+#[test]
+fn acao_em_andamento_trava_o_botao() {
+    let mut m = boot();
+    m.reevaluate_all().expect("eval inicial");
+
+    assert_eq!(
+        m.context().get("busy_connect").map(String::as_str),
+        Some("false"),
+        "init() deve semear o flag de cada ação instalada"
+    );
+
+    // `connect` faz um rpc (fetch) → a corrotina suspende com o flag ligado.
+    m.define_data("url", "http://127.0.0.1:9");
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("connect".into()));
+    assert_eq!(
+        m.context().get("busy_connect").map(String::as_str),
+        Some("true"),
+        "ação suspensa no fetch deve manter o botão bloqueado"
+    );
 }

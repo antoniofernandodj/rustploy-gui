@@ -81,6 +81,7 @@ component {
         button(
           class = copy_btn,
           on_click = shared_enable,
+          disabled = @busy_shared_enable,
           text = Compartilhar,
         )
       }
@@ -89,6 +90,7 @@ component {
         button(
           class = copy_btn,
           on_click = shared_disable,
+          disabled = @busy_shared_disable,
           text = Desligar,
         )
       }

@@ -98,9 +98,10 @@ function prov(t: string): ()
     ctx.prov_tab = t
 end
 
-function hckind(k: string): ()
-    ctx.f_hc_kind = k
-end
+-- Órfão desde que a aba virou <tabbar>: a barra grava `f_hc_kind` sozinha.
+-- function hckind(k: string): ()
+--     ctx.f_hc_kind = k
+-- end
 
 
 -- Setter genérico de campo (on_change="field:<chave>").

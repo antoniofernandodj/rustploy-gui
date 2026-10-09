@@ -31,13 +31,14 @@ component {
 
       // Ações empilhadas: um botão fill disputando a linha com
       // texto/botão fica torto quando o card está estreito.
-      button(class = card_open, on_click = open_project:@id, text = "Abrir  ›")
+      button(class = card_open, on_click = open_project:@id, disabled = @busy_open_project, text = "Abrir  ›")
 
       button(
         class = card_remove,
         if = @can_delete,
         equals = 1,
         on_click = delete_project:@id,
+        disabled = @busy_delete_project,
         text = Remover,
       )
 

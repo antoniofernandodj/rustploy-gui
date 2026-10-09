@@ -157,8 +157,8 @@ component {
           content = "● daemon v@daemon_version",
         )
 
-        button(class = btn_danger, on_click = stop_all, text = "Stop All")
-        button(class = btn_ghost, on_click = disconnect, text = Disconnect)
+        button(class = btn_danger, on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")
+        button(class = btn_ghost, on_click = disconnect, disabled = @busy_disconnect, text = Disconnect)
       }
 
       hr

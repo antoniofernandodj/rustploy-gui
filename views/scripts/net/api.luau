@@ -15,6 +15,12 @@
 local M = {}
 M.__index = M
 
+-- Teto de cada requisição (ms). Sem ele um daemon que não responde deixaria a
+-- ação suspensa para sempre — e o botão (busy.luau) bloqueado junto. Estourar
+-- vira `(false, erro)` como qualquer outra falha de transporte.
+M.RPC_TIMEOUT_MS = 60000
+M.UPLOAD_TIMEOUT_MS = 600000
+
 --- Só o header `Authorization` (tabela vazia quando não há token). Função de
 --- MÓDULO (ponto, não dois-pontos) de propósito: também serve quem NÃO tem um
 --- Client nas mãos — as chamadas cruas de `sse` em `handlers/stream.luau` e
@@ -42,6 +48,7 @@ function M:rpc(cmd: any): (boolean, any)
         method = "POST",
         body = json.encode(cmd),
         headers = self:headers(),
+        timeout = M.RPC_TIMEOUT_MS,
     })
 
     if not res.ok then
@@ -89,6 +96,7 @@ function M:upload_archive(service_id: string, filename: string, body_base64: str
         method = "POST",
         body_base64 = body_base64,
         headers = h,
+        timeout = M.UPLOAD_TIMEOUT_MS,
     })
     if not res.ok then
         return false, (res.error ~= nil and res.error ~= "") and res.error or ("HTTP " .. tostring(res.status))

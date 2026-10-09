@@ -1,7 +1,6 @@
 // Janela "Novo token do registry": motor Glacier próprio, aberto por open_window a partir do app principal.
 screen(title = "Novo token — Rustploy") {
   resources {
-    link(rel = import, href = "components/tab_button.gvb", as = TabButton)
 
     style """
       /* Titlebar custom (mesma linguagem visual do app.gv) */
@@ -82,21 +81,10 @@ screen(title = "Novo token — Rustploy") {
 
             text(class = label_cap, content = "ESCOPO")
 
-            row(class = tabs) {
-              TabButton(
-                label = "Somente leitura (pull)",
-                current = @ntok_scope,
-                target = pull,
-                action = ntok_scope:pull,
-              )
-
-              TabButton(
-                label = "Leitura e escrita (push)",
-                current = @ntok_scope,
-                target = push,
-                action = ntok_scope:push,
-              )
-            }
+            tabbar(
+              :value = ntok_scope, active = @ntok_scope, :items = ntok_scopes,
+              tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+            )
 
             text(
               if = @ntok_err,
@@ -119,7 +107,7 @@ screen(title = "Novo token — Rustploy") {
                 text = Cancelar,
               )
 
-              button(type = submit, class = btn_primary, text = "Criar token")
+              button(type = submit, disabled = @busy_ntok_create, class = btn_primary, text = "Criar token")
             }
           }
         }

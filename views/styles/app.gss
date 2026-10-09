@@ -48,11 +48,18 @@
    NavItem. Mantido comentado, não removido (é reutilizável). */
 /* .nav_item       { width: fill; color: var(--surface); padding: 11 14; } */
 .tab        { color: var(--surface); padding: 9 16; border-radius: 5 }
+.tab_on     { color: var(--blue); padding: 9 16; border-radius: 5 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 .btn_primary      { color: var(--green); padding: 11 20; border-radius: 5 }
 .btn_danger       { color: var(--danger); padding: 11 20; border-radius: 5 }
 .btn_ghost        { color: var(--border); padding: 11 18; border-radius: 5 }
+/* Ação em andamento (busy.luau liga `disabled = @busy_<ação>`): o botão apaga na hora. */
+.btn_primary:disabled { color: var(--border); text-color: var(--faint); }
+.btn_danger:disabled  { color: var(--border); text-color: var(--faint); }
+.btn_ghost:disabled   { color: var(--surface); text-color: var(--faint); }
+.copy_btn:disabled    { color: var(--surface); text-color: var(--faint); }
+.env_del:disabled     { color: var(--surface); text-color: var(--faint); }
 
 /* ── Panels & cards ───────────────────────────────────────────────────── */
 /* Idem: `--bg` é a cor do tema, e o `.content` fica dentro do `.screen`, que

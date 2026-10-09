@@ -24,8 +24,8 @@ component {
       }
 
       row(class = env_add) {
-        button(class = btn_ghost, on_click = ns_back, text = "‹ Voltar")
-        button(class = btn_ghost, on_click = ns_cancel, text = Cancelar)
+        button(class = btn_ghost, on_click = ns_back, disabled = @busy_ns_back, text = "‹ Voltar")
+        button(class = btn_ghost, on_click = ns_cancel, disabled = @busy_ns_cancel, text = Cancelar)
       }
     }
 
@@ -161,6 +161,7 @@ component {
             button(
               class = btn_primary,
               on_click = ns_create,
+              disabled = @busy_ns_create,
               text = "Criar Application",
             )
           }
@@ -214,6 +215,7 @@ component {
             button(
               class = btn_primary,
               on_click = ns_create,
+              disabled = @busy_ns_create,
               text = "Criar Compose Stack",
             )
           }
@@ -327,6 +329,7 @@ component {
               button(
                 class = btn_primary,
                 on_click = ns_create,
+                disabled = @busy_ns_create,
                 text = "Criar @ns_db_label",
               )
             }
@@ -392,6 +395,7 @@ component {
               button(
                 class = btn_primary,
                 on_click = ns_create,
+                disabled = @busy_ns_create,
                 text = "Criar @ns_template_name",
               )
             }

@@ -33,6 +33,7 @@ component {
           button(
             class = dep_del_btn,
             on_click = regen_webhook,
+            disabled = @busy_regen_webhook,
             text = Regenerar,
           )
         }
@@ -74,6 +75,7 @@ component {
                 button(
                   class = dep_logs_btn,
                   on_click = dep_logs:@d.id_full,
+                  disabled = @busy_dep_logs,
                   text = "≡",
                   tooltip = "Ver build log",
                 )
@@ -83,6 +85,7 @@ component {
                   equals = 1,
                   class = dep_del_btn,
                   on_click = delete_deployment:@d.id_full,
+                  disabled = @busy_delete_deployment,
                   text = "✕",
                   tooltip = "Remover deployment",
                 )

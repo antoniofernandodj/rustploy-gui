@@ -160,6 +160,7 @@ component {
     button(
       class = btn_primary,
       on_click = gen_save,
+      disabled = @busy_gen_save,
       text = Save,
     )
 

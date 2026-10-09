@@ -30,7 +30,7 @@ component {
         text(class = muted, content = "Run args atuais: @svc_run_args")
 
         row(class = env_add) {
-          button(class = btn_primary, on_click = adv_save, text = "Save")
+          button(class = btn_primary, on_click = adv_save, disabled = @busy_adv_save, text = "Save")
           text(class = muted, content = "@svc_action_msg")
         }
       }
@@ -72,6 +72,7 @@ component {
                   button(
                     class = env_del,
                     on_click = pdc_del:@c.id,
+                    disabled = @busy_pdc_del,
                     text = "✕",
                   )
 
@@ -90,6 +91,7 @@ component {
                   button(
                     class = env_del,
                     on_click = pdc_del:@c.id,
+                    disabled = @busy_pdc_del,
                     text = "✕",
                   )
 
@@ -118,6 +120,7 @@ component {
           button(
             class = btn_primary,
             on_click = pdc_add,
+            disabled = @busy_pdc_add,
             text = "Adicionar à fila",
           )
         }

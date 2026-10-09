@@ -23,6 +23,7 @@ component {
       button(
         class = btn_danger,
         on_click = docker_prune_networks,
+        disabled = @busy_docker_prune_networks,
         text = "Limpar sem uso",
       )
     }
@@ -66,6 +67,7 @@ component {
           equals = "SEM USO",
           class = dk_rm,
           on_click = docker_rm_network:@n.id_full,
+          disabled = @busy_docker_rm_network,
           text = Remover,
         )
       }

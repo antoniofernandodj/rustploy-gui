@@ -15,6 +15,7 @@ component {
         equals = true,
         class = copy_btn,
         on_click = queue_toggle_pause,
+        disabled = @busy_queue_toggle_pause,
         text = "Retomar fila",
       )
 
@@ -23,6 +24,7 @@ component {
         not_equals = true,
         class = copy_btn,
         on_click = queue_toggle_pause,
+        disabled = @busy_queue_toggle_pause,
         text = "Pausar fila",
       )
     }
@@ -53,12 +55,14 @@ component {
             button(
               class = copy_btn,
               on_click = queue_promote:@q.deployment_id,
+              disabled = @busy_queue_promote,
               text = "↑ topo",
             )
 
             button(
               class = env_del,
               on_click = queue_cancel:@q.deployment_id,
+              disabled = @busy_queue_cancel,
               text = "✕",
             )
           }

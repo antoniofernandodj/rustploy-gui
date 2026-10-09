@@ -9,17 +9,18 @@ component {
   column(class = env_wrap) {
     row(class = env_head) {
       text(class = muted_fill, content = "@svc_env_count variável(eis)")
-      button(class = btn_export, on_click = env_export, text = Exportar)
+      button(class = btn_export, on_click = env_export, disabled = @busy_env_export, text = Exportar)
       text(content = " ")
 
       if @env_text_open == "true" {
         button(
           class = btn_export_on,
           on_click = env_text_toggle,
+          disabled = @busy_env_text_toggle,
           text = Fechar,
         )
       } else {
-        button(class = tab, on_click = env_text_toggle, text = .env)
+        button(class = tab, on_click = env_text_toggle, disabled = @busy_env_text_toggle, text = .env)
       }
     }
 
@@ -49,7 +50,7 @@ component {
       }
 
       row(class = env_add) {
-        button(type = submit, class = btn_primary, text = Adicionar)
+        button(type = submit, disabled = @busy_env_add, class = btn_primary, text = Adicionar)
       }
     }
 
@@ -100,6 +101,7 @@ component {
               button(
                 class = env_del,
                 on_click = env_del:@e.key,
+                disabled = @busy_env_del,
                 text = "✕",
               )
 
@@ -128,6 +130,7 @@ component {
               button(
                 class = env_del,
                 on_click = env_del:@e.key,
+                disabled = @busy_env_del,
                 text = "✕",
               )
 
@@ -155,12 +158,14 @@ component {
             button(
               class = btn_primary,
               on_click = env_import,
+              disabled = @busy_env_import,
               text = Salvar,
             )
 
             button(
               class = btn_ghost,
               on_click = env_text_cancel,
+              disabled = @busy_env_text_cancel,
               text = Cancelar,
             )
           }

@@ -26,15 +26,17 @@ function init(): ()
     ctx.ntok_step = "form"
     ctx.ntok_name = ""
     ctx.ntok_scope = "pull"
+    ctx.ntok_scopes = [=[[{"id":"pull","label":"Somente leitura (pull)"},{"id":"push","label":"Leitura e escrita (push)"}]]=]
     ctx.ntok_err = ""
     ctx.ntok_msg = ""
     ctx.ntok_busy = ""
     ctx.ntok_login_cmd = ""
 end
 
-function ntok_scope(s: string): ()
-    ctx.ntok_scope = s
-end
+-- Órfão desde que a aba virou <tabbar>: a barra grava `ntok_scope` sozinha.
+-- function ntok_scope(s: string): ()
+--     ctx.ntok_scope = s
+-- end
 
 -- on_validation_error do form(...) — NOME é `rules="required"`; o motor já
 -- publicou {erro_ntok_name} e acendeu o :invalid.
@@ -78,3 +80,6 @@ function ntok_create(): ()
     -- demorar pra copiar o segredo, ou nunca fechar explicitamente).
     broadcast("registry_token_created", { name = created.name or name })
 end
+
+-- Trava de ação em andamento (ver busy.luau): por último, com todas as funções já definidas.
+require("busy").install(require("busy_actions"))

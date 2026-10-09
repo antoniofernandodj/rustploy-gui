@@ -42,12 +42,14 @@ component {
     button(
       class = btn_primary,
       on_click = archive_upload,
+      disabled = @busy_archive_upload,
       text = "Enviar zip",
     )
 
     button(
       class = btn_secondary,
       on_click = gen_save,
+      disabled = @busy_gen_save,
       text = "Salvar porta",
     )
   }

@@ -67,6 +67,7 @@ component {
             button(
               class = forget_btn,
               on_click = esquecer_servidor,
+              disabled = @busy_esquecer_servidor,
               text = "Esquecer este servidor",
             )
           }
@@ -85,7 +86,7 @@ component {
           )
         }
 
-        button(class = connect_btn, on_click = connect, text = Connect)
+        button(class = connect_btn, on_click = connect, disabled = @busy_connect, text = Connect)
       }
 
       text(if = @error, not_equals = "", class = err, content = "⚠ @error")

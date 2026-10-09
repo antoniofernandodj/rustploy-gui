@@ -23,28 +23,10 @@ component {
 
       text(class = label_cap, content = "FREQUÊNCIA")
 
-      row(class = tabs) {
-        TabButton(
-          label = "A cada N horas",
-          current = @dc_kind,
-          target = interval,
-          action = dc_kind:interval,
-        )
-
-        TabButton(
-          label = "Todo dia",
-          current = @dc_kind,
-          target = daily,
-          action = dc_kind:daily,
-        )
-
-        TabButton(
-          label = "Toda semana",
-          current = @dc_kind,
-          target = weekly,
-          action = dc_kind:weekly,
-        )
-      }
+      tabbar(
+        :value = dc_kind, active = @dc_kind, :items = dc_kinds,
+        tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+      )
 
       row(class = hc_grid, if = @dc_kind, equals = interval) {
         column(class = hc_field) {
@@ -143,13 +125,14 @@ component {
       )
 
       row(class = env_add) {
-        button(class = btn_primary, on_click = dc_save, text = Salvar)
+        button(class = btn_primary, on_click = dc_save, disabled = @busy_dc_save, text = Salvar)
 
         button(
           class = tab,
           if = @dc_running,
           not_equals = true,
           on_click = dc_run_now,
+          disabled = @busy_dc_run_now,
           text = "Executar agora",
         )
 

@@ -18,35 +18,10 @@ component {
     }
   }
 
-  row(class = tabs) {
-    TabButton(
-      label = "Web Server",
-      current = @settings_tab,
-      target = web,
-      action = settings_tab:web,
-    )
-
-    TabButton(
-      label = Git,
-      current = @settings_tab,
-      target = git,
-      action = settings_tab:git,
-    )
-
-    TabButton(
-      label = "Infra as Code",
-      current = @settings_tab,
-      target = iac,
-      action = settings_tab:iac,
-    )
-
-    TabButton(
-      label = Manutenção,
-      current = @settings_tab,
-      target = maintenance,
-      action = settings_tab:maintenance,
-    )
-  }
+  tabbar(
+    :value = settings_tab, active = @settings_tab, :items = settings_tabs,
+    tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+  )
 
   hr
 

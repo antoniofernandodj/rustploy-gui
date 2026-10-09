@@ -32,6 +32,7 @@ component {
             button(
               class = btn_danger,
               on_click = gp_delete:@p.id,
+              disabled = @busy_gp_delete,
               text = Remover,
             )
           }
@@ -125,21 +126,10 @@ component {
 
         text(class = label_cap, content = "MÉTODO")
 
-        row(class = tabs) {
-          TabButton(
-            label = OAuth2,
-            current = @gp_mode,
-            target = oauth,
-            action = gp_mode:oauth,
-          )
-
-          TabButton(
-            label = "Token (PAT)",
-            current = @gp_mode,
-            target = pat,
-            action = gp_mode:pat,
-          )
-        }
+        tabbar(
+          :value = gp_mode, active = @gp_mode, :items = gp_modes,
+          tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+        )
 
         // OAuth2
         if @gp_mode != "pat" {
@@ -239,12 +229,14 @@ component {
           button(
             class = btn_primary,
             on_click = gp_connect,
+            disabled = @busy_gp_connect,
             text = "Conectar conta",
           )
 
           button(
             class = tab,
             on_click = gp_refresh,
+            disabled = @busy_gp_refresh,
             text = "Atualizar lista",
           )
         }

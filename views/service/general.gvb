@@ -39,7 +39,7 @@ component {
             placeholder = "Nome do serviço",
           )
 
-          button(type = submit, class = btn_primary, text = Renomear)
+          button(type = submit, disabled = @busy_save_service_name, class = btn_primary, text = Renomear)
         }
 
         text(

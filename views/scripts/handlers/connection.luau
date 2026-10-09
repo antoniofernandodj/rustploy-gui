@@ -104,6 +104,12 @@ function init(): ()
     -- aqui, e não no dc_apply_config, porque não depende da config carregada:
     -- se o load falhasse, a lista sumiria e o grupo ficaria vazio.
     ctx.weekdays = fmt.WEEKDAYS_JSON
+    -- Itens das <tabbar> de rótulo fixo ({id,label}); a barra grava o id na
+    -- chave `:value` sozinha, sem handler.
+    ctx.settings_tabs = [=[[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]]=]
+    ctx.dc_kinds = [=[[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]]=]
+    ctx.gp_modes = [=[[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]]=]
+    ctx.hc_kinds = [=[[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]]=]
     -- Listas vazias como "[]" (não nil) para os ForEach não verem literal.
     for _, k in ipairs{
         "deployments",

@@ -46,6 +46,7 @@ component {
         if = @registry_status_enabled,
         equals = true,
         on_click = registry_gc,
+        disabled = @busy_registry_gc,
         text = "Executar GC",
       )
     }
@@ -85,6 +86,7 @@ component {
             button(
               class = copy_btn,
               on_click = registry_open_repo:@r.name,
+              disabled = @busy_registry_open_repo,
               text = "≡",
               tooltip = "Ver tags",
             )
@@ -92,6 +94,7 @@ component {
             button(
               class = env_del,
               on_click = registry_rm_repo:@r.name,
+              disabled = @busy_registry_rm_repo,
               text = "✕",
               tooltip = Remover,
             )
@@ -122,6 +125,7 @@ component {
         button(
           class = btn_primary,
           on_click = registry_open_token_window,
+          disabled = @busy_registry_open_token_window,
           text = "+ Novo token",
         )
       }
@@ -156,6 +160,7 @@ component {
             button(
               class = env_del,
               on_click = registry_rm_token:@tk.name,
+              disabled = @busy_registry_rm_token,
               text = "✕",
               tooltip = Revogar,
             )
@@ -178,6 +183,7 @@ component {
         button(
           class = btn_ghost,
           on_click = registry_close_repo,
+          disabled = @busy_registry_close_repo,
           text = "← Voltar",
         )
       }
@@ -210,6 +216,7 @@ component {
           button(
             class = dk_rm,
             on_click = registry_rm_tag:@t.tag,
+            disabled = @busy_registry_rm_tag,
             text = Remover,
           )
         }

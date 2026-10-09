@@ -27,6 +27,7 @@ component {
       button(
         class = btn_primary,
         on_click = open_new_project_window,
+        disabled = @busy_open_new_project_window,
         text = "+ Novo projeto",
       )
     }

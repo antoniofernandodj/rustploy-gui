@@ -17,6 +17,7 @@ component {
       button(
         class = btn_danger,
         on_click = docker_prune_containers,
+        disabled = @busy_docker_prune_containers,
         text = "Limpar parados",
       )
     }
@@ -56,6 +57,7 @@ component {
           equals = 1,
           class = dk_rm,
           on_click = docker_rm_container:@c.id_full,
+          disabled = @busy_docker_rm_container,
           text = Remover,
         )
       }

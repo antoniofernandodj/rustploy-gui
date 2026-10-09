@@ -24,6 +24,7 @@ component {
             button(
               class = env_del,
               on_click = dom_del:@d.domain,
+              disabled = @busy_dom_del,
               text = "✕",
             )
 
@@ -80,6 +81,7 @@ component {
       button(
         class = btn_primary,
         on_click = dom_add,
+        disabled = @busy_dom_add,
         text = "Adicionar domínio",
       )
 
@@ -110,12 +112,14 @@ component {
       button(
         class = btn_ghost,
         on_click = dom_hostport_save,
+        disabled = @busy_dom_hostport_save,
         text = "Salvar porta",
       )
 
       button(
         class = btn_ghost,
         on_click = dom_hostport_auto,
+        disabled = @busy_dom_hostport_auto,
         text = Automática,
       )
     }

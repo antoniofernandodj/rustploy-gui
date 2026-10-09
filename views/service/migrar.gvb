@@ -53,11 +53,12 @@ component {
       )
 
       row(class = env_add) {
-        button(class = btn_primary, on_click = mig_start, text = Migrar)
+        button(class = btn_primary, on_click = mig_start, disabled = @busy_mig_start, text = Migrar)
 
         button(
           class = btn_ghost,
           on_click = mig_refresh,
+          disabled = @busy_mig_refresh,
           text = Atualizar,
         )
       }
@@ -86,12 +87,14 @@ component {
             button(
               class = btn_ghost,
               on_click = mig_rollback,
+              disabled = @busy_mig_rollback,
               text = Reverter,
             )
 
             button(
               class = btn_ghost,
               on_click = mig_discard,
+              disabled = @busy_mig_discard,
               text = "Descartar banco antigo",
             )
           }

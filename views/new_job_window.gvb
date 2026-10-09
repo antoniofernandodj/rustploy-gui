@@ -71,7 +71,7 @@ screen(title = "Novo job — Rustploy") {
 
           row(class = np_actions) {
             column(class = np_spacer)
-            button(class = btn_ghost, on_click = cancel, text = Cancelar)
+            button(class = btn_ghost, on_click = cancel, disabled = @busy_cancel, text = Cancelar)
           }
         }
 
@@ -95,6 +95,7 @@ screen(title = "Novo job — Rustploy") {
             button(
               class = btn_ghost,
               on_click = njob_pick_no_service,
+              disabled = @busy_njob_pick_no_service,
               text = "Nenhum — job autônomo ›",
             )
           }
@@ -119,7 +120,7 @@ screen(title = "Novo job — Rustploy") {
 
           row(class = np_actions) {
             column(class = np_spacer)
-            button(class = btn_ghost, on_click = njob_back, text = "‹ Voltar")
+            button(class = btn_ghost, on_click = njob_back, disabled = @busy_njob_back, text = "‹ Voltar")
           }
         }
 
@@ -373,6 +374,7 @@ screen(title = "Novo job — Rustploy") {
                 if = @njob_edit_id,
                 not_equals = "",
                 on_click = njob_back,
+                disabled = @busy_njob_back,
                 text = Fechar,
               )
 
@@ -381,6 +383,7 @@ screen(title = "Novo job — Rustploy") {
                 if = @njob_edit_id,
                 equals = "",
                 on_click = njob_back,
+                disabled = @busy_njob_back,
                 text = "‹ Voltar",
               )
 
@@ -389,6 +392,7 @@ screen(title = "Novo job — Rustploy") {
                 if = @njob_edit_id,
                 not_equals = "",
                 on_click = njob_create,
+                disabled = @busy_njob_create,
                 text = Salvar,
               )
 
@@ -397,6 +401,7 @@ screen(title = "Novo job — Rustploy") {
                 if = @njob_edit_id,
                 equals = "",
                 on_click = njob_create,
+                disabled = @busy_njob_create,
                 text = "Criar job",
               )
             }
