@@ -94,12 +94,16 @@ app(
             // Quadrado = maximizar; dois sobrepostos = restaurar (a convenção da
             // barra nativa). O estado vem do daemon do glacier, a cada resize.
             if @glacier_window_maximized {
-              button(class = win_btn, on_click = window:maximize, tooltip = Restaurar) {
-                container(class = win_icon_box) { svg(class = win_icon, src = "assets/icons/win_restore.svg") }
+              button(class = win_btn, on_click = window:maximize) {
+                container(class = win_icon_box) {
+                  svg(class = win_icon, src = "assets/icons/win_restore.svg")
+                }
               }
             } else {
-              button(class = win_btn, on_click = window:maximize, tooltip = Maximizar) {
-                container(class = win_icon_box) { svg(class = win_icon, src = "assets/icons/win_maximize.svg") }
+              button(class = win_btn, on_click = window:maximize) {
+                container(class = win_icon_box) {
+                  svg(class = win_icon, src = "assets/icons/win_maximize.svg")
+                }
               }
             }
             button(class = win_close, on_click = window:close, text = "✕")
