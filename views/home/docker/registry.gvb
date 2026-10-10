@@ -6,7 +6,7 @@ component {
       text(
         if = @registry_repos_count,
         equals = 0,
-        class = muted,
+        class = u-muted,
         content = """
           Nenhum repositório ainda. Faça `docker push` para o registry embutido.
         """,
@@ -15,14 +15,14 @@ component {
       text(
         if = @registry_repos_count,
         not_equals = 0,
-        class = muted,
+        class = u-muted,
         content = "Nenhum repositório corresponde à busca.",
       )
     }
 
     component(name = SemTokens) {
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Nenhum token ainda. Sem token nenhum push/pull é autenticado — crie um
           antes de usar o registry.
@@ -31,10 +31,10 @@ component {
     }
   }
 
-  column(class = panel_fill) {
-    row(class = env_head) {
+  column(class = "panel panel--fill") {
+    row(class = env__head) {
       text(
-        class = muted_fill,
+        class = "u-muted u-fill",
         content = """
           Registry @registry_status_label · @registry_repos_count
           repositório(s) · @registry_storage_human
@@ -42,7 +42,7 @@ component {
       )
 
       button(
-        class = btn_danger,
+        class = "btn btn--danger",
         if = @registry_status_enabled,
         equals = true,
         on_click = registry_gc,
@@ -52,39 +52,39 @@ component {
     }
 
     text(
-      if = @registry_msg,
+      if = @registry_message,
       not_equals = "",
-      class = muted,
-      content = "@registry_msg",
+      class = u-muted,
+      content = "@registry_message",
     )
 
-    column(class = panel_fill, if = @registry_selected_repo, equals = "") {
+    column(class = "panel panel--fill", if = @registry_selected_repo, equals = "") {
       tableview(
         :items = registry_repos,
         :sort = registry_repos_sort,
         var = r,
-        header_class = "thead th",
-        row_class = "trow td tv_row",
-        class = scroll_fill,
+        header_class = "table__head table__head-cell",
+        row_class = "table__row table__cell table__row--divided",
+        class = u-fill-all,
       ) {
-        tablecolumn(key = name, label = "REPOSITÓRIO", class = col_svc) {
-          text(class = td_key, content = "@r.name")
+        tablecolumn(key = name, label = "REPOSITÓRIO", class = table__col-svc) {
+          text(class = "table__cell table__cell--key", content = "@r.name")
         }
 
-        tablecolumn(key = tag_count, label = TAGS, class = col_proj)
+        tablecolumn(key = tag_count, label = TAGS, class = table__col-proj)
 
-        tablecolumn(key = size, label = TAMANHO, class = col_dur) {
-          text(class = muted, content = "@r.size")
+        tablecolumn(key = size, label = TAMANHO, class = table__col-dur) {
+          text(class = u-muted, content = "@r.size")
         }
 
-        tablecolumn(key = created, label = CRIADO, class = col_dur) {
-          text(class = muted, content = "@r.created")
+        tablecolumn(key = created, label = CRIADO, class = table__col-dur) {
+          text(class = u-muted, content = "@r.created")
         }
 
-        tablecolumn(label = "AÇÃO", class = col_act_2, align = right) {
-          row(class = col_act_2) {
+        tablecolumn(label = "AÇÃO", class = table__col-act-2, align = right) {
+          row(class = table__col-act-2) {
             button(
-              class = copy_btn,
+              class = "btn btn--ghost btn--xs",
               on_click = registry_open_repo:@r.name,
               disabled = @busy_registry_open_repo,
               text = "≡",
@@ -92,9 +92,9 @@ component {
             )
 
             button(
-              class = env_del,
-              on_click = registry_rm_repo:@r.name,
-              disabled = @busy_registry_rm_repo,
+              class = env__del,
+              on_click = registry_remove_repo:@r.name,
+              disabled = @busy_registry_remove_repo,
               text = "✕",
               tooltip = Remover,
             )
@@ -109,13 +109,13 @@ component {
       }
 
       text(
-        class = label_cap,
+        class = u-label-cap,
         content = "TOKENS DE ACESSO (@registry_tokens_count)",
       )
 
-      row(class = env_head) {
+      row(class = env__head) {
         text(
-          class = muted_fill,
+          class = "u-muted u-fill",
           content = """
             Basic auth (docker login) — o segredo só aparece uma vez, na
             criação.
@@ -123,7 +123,7 @@ component {
         )
 
         button(
-          class = btn_primary,
+          class = "btn btn--primary",
           on_click = registry_open_token_window,
           disabled = @busy_registry_open_token_window,
           text = "+ Novo token",
@@ -138,29 +138,29 @@ component {
         tableview(
           :items = registry_tokens,
           var = tk,
-          header_class = "thead th",
-          row_class = "trow td tv_row",
+          header_class = "table__head table__head-cell",
+          row_class = "table__row table__cell table__row--divided",
           width = fill,
         ) {
-          tablecolumn(key = name, label = NOME, class = col_svc) {
-            text(class = td_key, content = "@tk.name")
+          tablecolumn(key = name, label = NOME, class = table__col-svc) {
+            text(class = "table__cell table__cell--key", content = "@tk.name")
           }
 
-          tablecolumn(key = scope, label = ESCOPO, class = col_proj)
+          tablecolumn(key = scope, label = ESCOPO, class = table__col-proj)
 
-          tablecolumn(key = created, label = CRIADO, class = col_dur) {
-            text(class = muted, content = "@tk.created")
+          tablecolumn(key = created, label = CRIADO, class = table__col-dur) {
+            text(class = u-muted, content = "@tk.created")
           }
 
-          tablecolumn(key = last_used, label = "ÚLTIMO USO", class = col_dur) {
-            text(class = muted, content = "@tk.last_used")
+          tablecolumn(key = last_used, label = "ÚLTIMO USO", class = table__col-dur) {
+            text(class = u-muted, content = "@tk.last_used")
           }
 
-          tablecolumn(label = "AÇÃO", class = col_act) {
+          tablecolumn(label = "AÇÃO", class = table__col-act) {
             button(
-              class = env_del,
-              on_click = registry_rm_token:@tk.name,
-              disabled = @busy_registry_rm_token,
+              class = env__del,
+              on_click = registry_remove_token:@tk.name,
+              disabled = @busy_registry_remove_token,
               text = "✕",
               tooltip = Revogar,
             )
@@ -170,18 +170,18 @@ component {
     }
 
     column(
-      class = panel_fill,
+      class = "panel panel--fill",
       if = @registry_selected_repo,
       not_equals = "",
     ) {
-      row(class = env_head) {
+      row(class = env__head) {
         text(
-          class = muted_fill,
+          class = "u-muted u-fill",
           content = "@registry_selected_repo — @registry_tags_count tag(s)",
         )
 
         button(
-          class = btn_ghost,
+          class = "btn btn--ghost",
           on_click = registry_close_repo,
           disabled = @busy_registry_close_repo,
           text = "← Voltar",
@@ -192,31 +192,31 @@ component {
         :items = registry_tags,
         :sort = registry_tags_sort,
         var = t,
-        header_class = "thead th",
-        row_class = "trow td tv_row",
-        class = scroll_fill,
+        header_class = "table__head table__head-cell",
+        row_class = "table__row table__cell table__row--divided",
+        class = u-fill-all,
       ) {
-        tablecolumn(key = tag, label = TAG, class = col_svc) {
-          text(class = td_key, content = "@t.tag")
+        tablecolumn(key = tag, label = TAG, class = table__col-svc) {
+          text(class = "table__cell table__cell--key", content = "@t.tag")
         }
 
-        tablecolumn(key = digest, label = DIGEST, class = col_proj) {
-          text(class = muted, content = "@t.digest")
+        tablecolumn(key = digest, label = DIGEST, class = table__col-proj) {
+          text(class = u-muted, content = "@t.digest")
         }
 
-        tablecolumn(key = size, label = TAMANHO, class = col_dur) {
-          text(class = muted, content = "@t.size")
+        tablecolumn(key = size, label = TAMANHO, class = table__col-dur) {
+          text(class = u-muted, content = "@t.size")
         }
 
-        tablecolumn(key = updated, label = ATUALIZADA, class = col_dur) {
-          text(class = muted, content = "@t.updated")
+        tablecolumn(key = updated, label = ATUALIZADA, class = table__col-dur) {
+          text(class = u-muted, content = "@t.updated")
         }
 
-        tablecolumn(label = "AÇÃO", class = col_act) {
+        tablecolumn(label = "AÇÃO", class = table__col-act) {
           button(
-            class = dk_rm,
-            on_click = registry_rm_tag:@t.tag,
-            disabled = @busy_registry_rm_tag,
+            class = "btn btn--danger btn--xs",
+            on_click = registry_remove_tag:@t.tag,
+            disabled = @busy_registry_remove_tag,
             text = Remover,
           )
         }

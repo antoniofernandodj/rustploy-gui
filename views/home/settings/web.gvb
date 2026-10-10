@@ -1,21 +1,21 @@
 // Web Server (default)
 component {
   form(name = settings, on_submit = settings_save, width = fill) {
-    column(class = form_panel) {
-      text(class = label_cap, content = "URL PÚBLICA DA API")
+    column(class = form-panel) {
+      text(class = u-label-cap, content = "URL PÚBLICA DA API")
 
-      row(class = kv_row) {
-        text(class = kv_val_fill, content = "@ss_public_base")
+      row(class = kv-list__row) {
+        text(class = "kv-list__val kv-list__val--compact", content = "@server_settings_public_base")
 
         button(
-          class = copy_btn,
-          on_click = clipboard:ss_public_base,
+          class = "btn btn--ghost btn--xs",
+          on_click = clipboard:server_settings_public_base,
           text = Copiar,
         )
       }
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Derivada de [api] domain/port no daemon — é a base das URLs de
           webhook dos serviços e do callback OAuth (mesma porta da API).
@@ -24,25 +24,25 @@ component {
       )
 
       text(
-        class = label_cap,
+        class = u-label-cap,
         content = "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",
       )
 
       input(
         placeholder = voce@@exemplo.com,
-        class = field_input,
-        form_control = ss_email,
+        class = field__input,
+        form_control = server_settings_email,
       )
 
       text(
-        if = @erro_ss_email,
+        if = @error_server_settings_email,
         not_equals = "",
-        class = err,
-        content = "@erro_ss_email",
+        class = u-error,
+        content = "@error_server_settings_email",
       )
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Certificados TLS emitidos automaticamente. Requer restart do
           daemon.
@@ -50,18 +50,18 @@ component {
       )
 
       text(
-        class = label_cap,
+        class = u-label-cap,
         content = "DOMÍNIO DO REGISTRY (EXPOSIÇÃO PÚBLICA)",
       )
 
       input(
         placeholder = registry.meusite.com,
-        class = field_input,
-        form_control = ss_registry_domain,
+        class = field__input,
+        form_control = server_settings_registry_domain,
       )
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Expõe o registry Docker embutido via ingress + certificado
           automático. Requer [registry] enabled = true na config. Vazio =
@@ -69,9 +69,9 @@ component {
         """,
       )
 
-      row(class = env_add) {
-        button(class = btn_primary, on_click = settings_save, disabled = @busy_settings_save, text = Save)
-        text(class = muted, content = "@settings_msg")
+      row(class = env__add) {
+        button(class = "btn btn--primary", on_click = settings_save, disabled = @busy_settings_save, text = Save)
+        text(class = u-muted, content = "@settings_message")
       }
     }
   }

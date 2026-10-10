@@ -2,14 +2,14 @@
 component {
   resources {
     component(name = SemVariaveis) {
-      text(class = muted, content = "Nenhuma variável.")
+      text(class = u-muted, content = "Nenhuma variável.")
     }
   }
 
-  column(class = env_wrap, if = @proj_loading, not_equals = true) {
-    row(class = env_head) {
+  column(class = env, if = @project_loading, not_equals = true) {
+    row(class = env__head) {
       text(
-        class = muted_fill,
+        class = "u-muted u-fill",
         content = """
           Herdadas por todos os serviços deste projeto no deploy — as
           do serviço têm precedência.
@@ -17,72 +17,72 @@ component {
       )
 
       button(
-        class = btn_export,
-        on_click = penv_export,
-        disabled = @busy_penv_export,
+        class = "btn btn--ghost btn--wide",
+        on_click = project_env_export,
+        disabled = @busy_project_env_export,
         text = Exportar,
       )
 
       text(content = " ")
 
-      if @penv_text_open == "true" {
+      if @project_env_text_open == "true" {
         button(
-          class = btn_export_on,
-          on_click = penv_text_toggle,
-          disabled = @busy_penv_text_toggle,
+          class = "btn btn--blue btn--wide",
+          on_click = project_env_text_toggle,
+          disabled = @busy_project_env_text_toggle,
           text = Fechar,
         )
       } else {
-        button(class = tab, on_click = penv_text_toggle, disabled = @busy_penv_text_toggle, text = .env)
+        button(class = tabs__tab, on_click = project_env_text_toggle, disabled = @busy_project_env_text_toggle, text = .env)
       }
     }
 
     form(
-      name = penv_add,
-      on_submit = penv_add,
-      on_validation_error = penv_apontar,
+      name = project_env_add,
+      on_submit = project_env_add,
+      on_validation_error = project_env_show_validation_errors,
       width = fill,
       spacing = 8,
     ) {
-      row(class = env_add) {
+      row(class = env__add) {
         input(
-          class = env_in_key,
-          form_control = penv_new_key,
+          class = env__input,
+          form_control = project_env_new_key,
           rules = required,
           msg = "informe a chave",
           placeholder = KEY,
         )
       }
 
-      if @penv_new_is_secret == "true" {
-        row(class = env_add) {
+      if @project_env_new_is_secret == "true" {
+        row(class = env__add) {
           input(
-            class = env_in_val,
-            form_control = penv_new_val,
+            class = env__input,
+            form_control = project_env_new_value,
             placeholder = "nome do secret",
           )
 
           button(
-            class = btn_export_on,
-            on_click = penv_secret_toggle,
-            disabled = @busy_penv_secret_toggle,
+            class = "btn btn--blue btn--wide",
+            on_click = project_env_secret_toggle,
+            disabled = @busy_project_env_secret_toggle,
             text = "usar secret",
           )
         }
 
         text(
-          if = @proj_secrets,
+          if = @project_secrets,
           empty = "",
-          class = muted,
+          class = u-muted,
           content = "Nenhum secret cadastrado — crie um na aba Secrets.",
         )
 
-        row(class = env_add, if = @proj_secrets, not_empty) {
-          text(class = muted, content = "Secrets do projeto: ")
+        row(class = env__add, if = @project_secrets, not_empty) {
+          text(class = u-muted, content = "Secrets do projeto: ")
 
           button(
-            class = copy_btn,
-            :for-each = proj_secrets,
+            class = "btn btn--ghost btn--xs",
+            :for-each = project_secrets,
             var = s,
             on_click = secret_use:@s.name,
             disabled = @busy_secret_use,
@@ -90,133 +90,133 @@ component {
           )
         }
       } else {
-        row(class = env_add) {
+        row(class = env__add) {
           input(
-            class = env_in_val,
-            form_control = penv_new_val,
+            class = env__input,
+            form_control = project_env_new_value,
             placeholder = value,
           )
 
           button(
-            class = tab,
-            on_click = penv_secret_toggle,
-            disabled = @busy_penv_secret_toggle,
+            class = tabs__tab,
+            on_click = project_env_secret_toggle,
+            disabled = @busy_project_env_secret_toggle,
             text = "usar secret",
           )
         }
       }
 
       row {
-        button(type = submit, disabled = @busy_penv_add, class = btn_primary, text = Adicionar)
+        button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = Adicionar)
       }
     }
 
     text(
-      class = err,
-      if = @erro_penv_new_key,
+      class = u-error,
+      if = @error_project_env_new_key,
       not_empty,
-      content = "@erro_penv_new_key",
+      content = "@error_project_env_new_key",
     )
 
-    scrollable(direction = vertical, class = env_list_scroll) {
-      column(class = kv_list) {
+    scrollable(direction = vertical, class = u-fill-all) {
+      column(class = kv-list) {
         template(
-          :for-each = proj_env,
+          :for-each = project_env,
           foreach_fallback = SemVariaveis,
           var = e,
-          on_reorder = penv_reorder,
+          on_reorder = project_env_reorder,
           reorder_key = key,
         ) {
           if @e.__dragging == "true" {
             if @e.kind == "comment" {
-              row(class = kv_row_drag) {
+              row(class = "kv-list__row kv-list__row--dragging") {
                 text(
-                  class = "env_drag_handle env_dragging",
+                  class = "env__drag-handle env__drag-handle--dragging",
                   drag_handle = true,
                   content = "⋮ ",
                 )
 
-                text(class = muted, content = "@e.value")
+                text(class = u-muted, content = "@e.value")
               }
             } else {
-              row(class = kv_row_drag) {
+              row(class = "kv-list__row kv-list__row--dragging") {
                 text(
-                  class = "env_drag_handle env_dragging",
+                  class = "env__drag-handle env__drag-handle--dragging",
                   drag_handle = true,
                   content = "⋮ ",
                 )
 
                 button(
-                  class = env_del,
-                  on_click = penv_del:@e.key,
-                  disabled = @busy_penv_del,
+                  class = env__del,
+                  on_click = project_env_delete:@e.key,
+                  disabled = @busy_project_env_delete,
                   text = "✕",
                 )
 
-                text(class = env_sep)
-                text(class = env_key, content = "@e.key_display")
-                text(class = kv_val_fill, content = "@e.value")
+                text(class = env__sep)
+                text(class = env__key, content = "@e.key_display")
+                text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
               }
             }
           } else {
             if @e.kind == "comment" {
-              row(class = kv_row) {
+              row(class = kv-list__row) {
                 text(
-                  class = env_drag_handle,
+                  class = env__drag-handle,
                   drag_handle = true,
                   content = "⋮ ",
                 )
 
-                text(class = muted, content = "@e.value")
+                text(class = u-muted, content = "@e.value")
               }
             } else {
-              row(class = kv_row) {
+              row(class = kv-list__row) {
                 text(
-                  class = env_drag_handle,
+                  class = env__drag-handle,
                   drag_handle = true,
                   content = "⋮ ",
                 )
 
                 button(
-                  class = env_del,
-                  on_click = penv_del:@e.key,
-                  disabled = @busy_penv_del,
+                  class = env__del,
+                  on_click = project_env_delete:@e.key,
+                  disabled = @busy_project_env_delete,
                   text = "✕",
                 )
 
-                text(class = env_sep)
-                text(class = env_key, content = "@e.key_display")
-                text(class = kv_val_fill, content = "@e.value")
+                text(class = env__sep)
+                text(class = env__key, content = "@e.key_display")
+                text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
               }
             }
           }
         }
 
-        if @penv_text_open == "true" {
+        if @project_env_text_open == "true" {
           text(
-            class = muted,
+            class = u-muted,
             content = "Cole/edite no formato KEY=VALUE (# comentário).",
           )
 
           textarea(
-            class = env_editor,
+            class = env__editor,
             font = mono,
-            :value = proj_env_text,
+            :value = project_env_text,
             placeholder = "KEY=VALUE   (# comentário)",
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = btn_primary,
-              on_click = penv_import,
-              disabled = @busy_penv_import,
+              class = "btn btn--primary",
+              on_click = project_env_import,
+              disabled = @busy_project_env_import,
               text = Salvar,
             )
 
             button(
-              class = btn_ghost,
-              on_click = penv_text_cancel,
-              disabled = @busy_penv_text_cancel,
+              class = "btn btn--ghost",
+              on_click = project_env_text_cancel,
+              disabled = @busy_project_env_text_cancel,
               text = Cancelar,
             )
           }

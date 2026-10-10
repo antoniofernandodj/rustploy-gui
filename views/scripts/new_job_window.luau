@@ -33,7 +33,7 @@ local function decode(s: string?): { any }
 end
 
 -- Recorrência (Option<Recurrence>, externally-tagged) → (kind, hours, hour,
--- minute, weekday), pro formulário. Inverso do bloco em njob_create.
+-- minute, weekday), pro formulário. Inverso do bloco em new_job_create.
 local function unpack_recurrence(r: any): (string, string, string, string, string)
     if r == nil then
         return "manual", "6", "3", "0", "0"
@@ -51,85 +51,85 @@ local function unpack_recurrence(r: any): (string, string, string, string, strin
 end
 
 function init(): ()
-    -- ctx.njob_projects/njob_services já chegam como JSON (semeados via data).
-    ctx.njob_projects = ctx.njob_projects or "[]"
-    ctx.njob_services_all = ctx.njob_services or "[]"
-    ctx.njob_services_filtered = "[]"
+    -- ctx.new_job_projects/new_job_services já chegam como JSON (semeados via data).
+    ctx.new_job_projects = ctx.new_job_projects or "[]"
+    ctx.new_job_services_all = ctx.new_job_services or "[]"
+    ctx.new_job_services_filtered = "[]"
 
-    ctx.njob_step = "pick_project"
-    ctx.njob_project_id = ""
-    ctx.njob_project_name = ""
-    ctx.njob_service_id = ""
-    ctx.njob_service_name = ""
-    ctx.njob_name = ""
-    ctx.njob_compose = ""
-    ctx.njob_main_service = ""
+    ctx.new_job_step = "pick_project"
+    ctx.new_job_project_id = ""
+    ctx.new_job_project_name = ""
+    ctx.new_job_service_id = ""
+    ctx.new_job_service_name = ""
+    ctx.new_job_name = ""
+    ctx.new_job_compose = ""
+    ctx.new_job_main_service = ""
 
     -- Fonte do compose: "compose" (colado, default) | "git" (clona um repo
     -- a cada execução — mesmo picker conta→repo→branch da aba Gitea de
-    -- serviço). Ver njob_source/njob_git_provider_pick/njob_git_repo_pick.
+    -- serviço). Ver new_job_source/new_job_git_provider_pick/new_job_git_repo_pick.
     -- Os campos de picker usam `or` (não sobrescrevem à força): em modo
     -- edição de job git-sourced, open_edit_job_window já resolveu e semeou
     -- esses valores (não dá pra buscar aqui dentro, ver docstring do topo).
-    ctx.njob_source = "compose"
-    ctx.njob_git_providers = ctx.njob_git_providers or "[]"
-    ctx.njob_git_provider_id = ""
-    ctx.njob_git_repos = ctx.njob_git_repos or "[]"
-    ctx.njob_git_repo = ctx.njob_git_repo or ""
-    ctx.njob_git_branches = ctx.njob_git_branches or "[]"
-    ctx.njob_git_branch = ""
-    ctx.njob_compose_path = "docker-compose.yml"
-    ctx.njob_git_msg = ""
-    ctx.njob_git_busy = ""
-    ctx.njob_busy = ""
+    ctx.new_job_source = "compose"
+    ctx.new_job_git_providers = ctx.new_job_git_providers or "[]"
+    ctx.new_job_git_provider_id = ""
+    ctx.new_job_git_repos = ctx.new_job_git_repos or "[]"
+    ctx.new_job_git_repo = ctx.new_job_git_repo or ""
+    ctx.new_job_git_branches = ctx.new_job_git_branches or "[]"
+    ctx.new_job_git_branch = ""
+    ctx.new_job_compose_path = "docker-compose.yml"
+    ctx.new_job_git_message = ""
+    ctx.new_job_git_busy = ""
+    ctx.new_job_busy = ""
 
-    -- Env vars próprias do job (blob .env colado, parseado em njob_create).
-    ctx.njob_env_text = ""
+    -- Env vars próprias do job (blob .env colado, parseado em new_job_create).
+    ctx.new_job_env_text = ""
 
-    ctx.njob_kind = "manual"
-    ctx.njob_hours = "6"
+    ctx.new_job_kind = "manual"
+    ctx.new_job_hours = "6"
     -- Uma chave só, "HH:MM": quem edita o horário agora é o <timeedit> do
     -- .gvb. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
     -- formato do daemon) e fmt.hm_join/hm_split fazem a ponte.
-    ctx.njob_time = "03:00"
-    ctx.njob_weekday = "0"
+    ctx.new_job_time = "03:00"
+    ctx.new_job_weekday = "0"
     -- Coleção fixa do <radiogroup> de dia da semana (recorrência Semanal).
     ctx.weekdays = fmt.WEEKDAYS_JSON
-    ctx.njob_err = ""
-    ctx.njob_msg = ""
+    ctx.new_job_error = ""
+    ctx.new_job_message = ""
 
-    -- ── Modo edição: open_edit_job_window semeia njob_edit_job (Job cru em
+    -- ── Modo edição: open_edit_job_window semeia new_job_edit_job (Job cru em
     -- JSON) — pula os passos 1/2 (projeto/serviço gatilho não são editáveis
     -- via JobUpdate) e preenche o passo 3 inteiro com o job existente.
-    ctx.njob_edit_id = ""
-    ctx.njob_enabled = "true"
-    if ctx.njob_edit_job and ctx.njob_edit_job ~= "" then
-        local ok, job = pcall(json.decode, ctx.njob_edit_job)
+    ctx.new_job_edit_id = ""
+    ctx.new_job_enabled = "true"
+    if ctx.new_job_edit_job and ctx.new_job_edit_job ~= "" then
+        local ok, job = pcall(json.decode, ctx.new_job_edit_job)
         if ok and type(job) == "table" then
-            ctx.njob_edit_id = job.id
-            ctx.njob_step = "form"
-            ctx.njob_name = job.name or ""
-            ctx.njob_main_service = job.main_service or ""
-            ctx.njob_enabled = job.enabled and "true" or "false"
+            ctx.new_job_edit_id = job.id
+            ctx.new_job_step = "form"
+            ctx.new_job_name = job.name or ""
+            ctx.new_job_main_service = job.main_service or ""
+            ctx.new_job_enabled = job.enabled and "true" or "false"
 
             if job.git_source then
-                ctx.njob_source = "git"
-                ctx.njob_git_provider_id = job.git_source.provider_id or ""
-                ctx.njob_git_branch = job.git_source.branch or ""
-                ctx.njob_compose_path = job.git_source.compose_path or "docker-compose.yml"
-                -- njob_git_repo já vem semeado (resolvido por
+                ctx.new_job_source = "git"
+                ctx.new_job_git_provider_id = job.git_source.provider_id or ""
+                ctx.new_job_git_branch = job.git_source.branch or ""
+                ctx.new_job_compose_path = job.git_source.compose_path or "docker-compose.yml"
+                -- new_job_git_repo já vem semeado (resolvido por
                 -- open_edit_job_window a partir de git_source.url).
             else
-                ctx.njob_compose = job.compose or ""
+                ctx.new_job_compose = job.compose or ""
             end
 
-            ctx.njob_env_text = fmt.env_dotenv_with_comments(job.env_vars, job.env_comments)
+            ctx.new_job_env_text = fmt.env_dotenv_with_comments(job.env_vars, job.env_comments)
 
             local kind, hours, hour, minute, weekday = unpack_recurrence(job.recurrence)
-            ctx.njob_kind = kind
-            ctx.njob_hours = hours
-            ctx.njob_time = fmt.hm_join(hour, minute)
-            ctx.njob_weekday = weekday
+            ctx.new_job_kind = kind
+            ctx.new_job_hours = hours
+            ctx.new_job_time = fmt.hm_join(hour, minute)
+            ctx.new_job_weekday = weekday
         end
     end
 end
@@ -146,189 +146,193 @@ end
 -- só que dentro desta janela isolada (não pode buscar no init(), mas ações
 -- despachadas por clique/on_change chegam ao executor normalmente).
 
-function njob_source(kind: string): ()
-    ctx.njob_source = kind
-    if kind == "git" and ctx.njob_git_providers == "[]" then
+function new_job_source(kind: string): ()
+    ctx.new_job_source = kind
+    if kind == "git" and ctx.new_job_git_providers == "[]" then
         local api = client()
         if not api then
             return
         end
-        ctx.njob_git_msg = "carregando contas…"
-        ctx.njob_git_busy = "true"
+        ctx.new_job_git_message = "carregando contas…"
+        ctx.new_job_git_busy = "true"
         local ok, res = api:rpc("GitProviderList")
-        ctx.njob_git_busy = ""
+        ctx.new_job_git_busy = ""
         if ok and res.GitProviders then
-            ctx.njob_git_providers = fmt.git_providers(res.GitProviders)
-            ctx.njob_git_msg = ""
+            ctx.new_job_git_providers = fmt.git_providers(res.GitProviders)
+            ctx.new_job_git_message = ""
         else
-            ctx.njob_git_msg = "erro ao listar contas conectadas"
+            ctx.new_job_git_message = "erro ao listar contas conectadas"
         end
     end
 end
 
-function njob_git_provider_pick(id: string): ()
-    ctx.njob_git_provider_id = id or ""
-    ctx.njob_git_repo = ""
-    ctx.njob_git_repos = "[]"
-    ctx.njob_git_branches = "[]"
+function new_job_git_provider_pick(id: string): ()
+    ctx.new_job_git_provider_id = id or ""
+    ctx.new_job_git_repo = ""
+    ctx.new_job_git_repos = "[]"
+    ctx.new_job_git_branches = "[]"
     local api = client()
-    if not api or ctx.njob_git_provider_id == "" then
+    if not api or ctx.new_job_git_provider_id == "" then
         return
     end
-    ctx.njob_git_msg = "carregando repositórios…"
-    ctx.njob_git_busy = "true"
-    local ok, res = api:rpc{ GitRepoList = { provider_id = ctx.njob_git_provider_id } }
-    ctx.njob_git_busy = ""
+    ctx.new_job_git_message = "carregando repositórios…"
+    ctx.new_job_git_busy = "true"
+    local ok, res = api:rpc{
+        GitRepoList = { provider_id = ctx.new_job_git_provider_id }
+    }
+    ctx.new_job_git_busy = ""
     if ok and res.GitRepos then
-        ctx.njob_git_repos = fmt.git_repos(res.GitRepos)
-        ctx.njob_git_msg = tostring(#res.GitRepos) .. " repositório(s)"
+        ctx.new_job_git_repos = fmt.git_repos(res.GitRepos)
+        ctx.new_job_git_message = tostring(#res.GitRepos) .. " repositório(s)"
     else
-        ctx.njob_git_msg = "erro ao listar repositórios"
+        ctx.new_job_git_message = "erro ao listar repositórios"
     end
 end
 
-function njob_git_repo_pick(full_name: string): ()
+function new_job_git_repo_pick(full_name: string): ()
     if not full_name then
         return
     end
-    ctx.njob_git_repo = full_name
-    local ok, repos = pcall(json.decode, ctx.njob_git_repos or "[]")
+    ctx.new_job_git_repo = full_name
+    local ok, repos = pcall(json.decode, ctx.new_job_git_repos or "[]")
     if ok and type(repos) == "table" then
         for _, r in ipairs(repos) do
             if r.full_name == full_name and r.default_branch and r.default_branch ~= "" then
-                ctx.njob_git_branch = r.default_branch
+                ctx.new_job_git_branch = r.default_branch
                 break
             end
         end
     end
-    ctx.njob_git_branches = "[]"
-    local pid = ctx.njob_git_provider_id or ""
+    ctx.new_job_git_branches = "[]"
+    local pid = ctx.new_job_git_provider_id or ""
     local api = client()
     if not api or pid == "" then
         return
     end
-    ctx.njob_git_msg = "carregando branches…"
-    ctx.njob_git_busy = "true"
-    local okb, resb = api:rpc{ GitBranchList = { provider_id = pid, repo_full_name = full_name } }
-    ctx.njob_git_busy = ""
+    ctx.new_job_git_message = "carregando branches…"
+    ctx.new_job_git_busy = "true"
+    local okb, resb = api:rpc{
+        GitBranchList = { provider_id = pid, repo_full_name = full_name }
+    }
+    ctx.new_job_git_busy = ""
     if okb and resb.GitBranches then
-        ctx.njob_git_branches = fmt.git_branches(resb.GitBranches)
-        ctx.njob_git_msg = ""
+        ctx.new_job_git_branches = fmt.git_branches(resb.GitBranches)
+        ctx.new_job_git_message = ""
     else
-        ctx.njob_git_msg = "erro ao listar branches"
+        ctx.new_job_git_message = "erro ao listar branches"
     end
 end
 
-function njob_pick_project(id: string): ()
-    ctx.njob_project_id = id
+function new_job_pick_project(id: string): ()
+    ctx.new_job_project_id = id
     local name = ""
-    for _, p in ipairs(decode(ctx.njob_projects)) do
+    for _, p in ipairs(decode(ctx.new_job_projects)) do
         if p.id == id then
             name = p.name
         end
     end
-    ctx.njob_project_name = name
+    ctx.new_job_project_name = name
 
     local filtered = {}
-    for _, s in ipairs(decode(ctx.njob_services_all)) do
+    for _, s in ipairs(decode(ctx.new_job_services_all)) do
         if s.project_id == id then
             table.insert(filtered, s)
         end
     end
-    ctx.njob_services_filtered = json.encode(filtered)
-    ctx.njob_step = "pick_service"
+    ctx.new_job_services_filtered = json.encode(filtered)
+    ctx.new_job_step = "pick_service"
 end
 
-function njob_pick_service(id: string): ()
-    ctx.njob_service_id = id
+function new_job_pick_service(id: string): ()
+    ctx.new_job_service_id = id
     local name = ""
-    for _, s in ipairs(decode(ctx.njob_services_filtered)) do
+    for _, s in ipairs(decode(ctx.new_job_services_filtered)) do
         if s.id == id then
             name = s.name
         end
     end
-    ctx.njob_service_name = name
-    ctx.njob_step = "form"
+    ctx.new_job_service_name = name
+    ctx.new_job_step = "form"
 end
 
 -- Job 100% autônomo: sem serviço gatilho, só as env vars do projeto.
-function njob_pick_no_service(): ()
-    ctx.njob_service_id = ""
-    ctx.njob_service_name = "nenhum (autônomo)"
-    ctx.njob_step = "form"
+function new_job_pick_no_service(): ()
+    ctx.new_job_service_id = ""
+    ctx.new_job_service_name = "nenhum (autônomo)"
+    ctx.new_job_step = "form"
 end
 
-function njob_back(): ()
+function new_job_back(): ()
     -- Modo edição: não há passos 1/2 pra voltar (projeto/serviço gatilho não
     -- são editáveis via JobUpdate) — "Voltar" fecha a janela.
-    if ctx.njob_edit_id ~= "" then
+    if ctx.new_job_edit_id ~= "" then
         close_window()
         return
     end
-    if ctx.njob_step == "form" then
-        ctx.njob_step = "pick_service"
-    elseif ctx.njob_step == "pick_service" then
-        ctx.njob_step = "pick_project"
+    if ctx.new_job_step == "form" then
+        ctx.new_job_step = "pick_service"
+    elseif ctx.new_job_step == "pick_service" then
+        ctx.new_job_step = "pick_project"
     end
 end
 
-function njob_kind(k: string): ()
-    ctx.njob_kind = k
+function new_job_kind(k: string): ()
+    ctx.new_job_kind = k
 end
 
 -- Órfão desde que o seletor de dia da semana virou um <radiogroup> — mesma
--- história do `dc_weekday` em handlers/settings.luau.
--- function njob_weekday(w: string): ()
---     ctx.njob_weekday = w
+-- história do `docker_cleanup_weekday` em handlers/settings.luau.
+-- function new_job_weekday(w: string): ()
+--     ctx.new_job_weekday = w
 -- end
 
-function njob_create(): ()
+function new_job_create(): ()
     local api = client()
     if not api then
-        ctx.njob_err = "sem conexão — reabra a janela pelo app"
+        ctx.new_job_error = "sem conexão — reabra a janela pelo app"
         return
     end
-    local name = Helpers.trim(ctx.njob_name)
+    local name = Helpers.trim(ctx.new_job_name)
     if name == "" then
-        ctx.njob_err = "informe um nome"
+        ctx.new_job_error = "informe um nome"
         return
     end
-    local main_service = Helpers.trim(ctx.njob_main_service)
+    local main_service = Helpers.trim(ctx.new_job_main_service)
     if main_service == "" then
-        ctx.njob_err = "informe o main_service (nome do serviço dentro do compose)"
+        ctx.new_job_error = "informe o main_service (nome do serviço dentro do compose)"
         return
     end
 
     local compose = ""
     local git_source: any = nil
-    if ctx.njob_source == "git" then
-        local branch = Helpers.trim(ctx.njob_git_branch)
-        if ctx.njob_git_repo == "" or branch == "" then
-            ctx.njob_err = "selecione repositório e branch"
+    if ctx.new_job_source == "git" then
+        local branch = Helpers.trim(ctx.new_job_git_branch)
+        if ctx.new_job_git_repo == "" or branch == "" then
+            ctx.new_job_error = "selecione repositório e branch"
             return
         end
-        local compose_path = Helpers.trim(ctx.njob_compose_path)
+        local compose_path = Helpers.trim(ctx.new_job_compose_path)
         if compose_path == "" then
             compose_path = "docker-compose.yml"
         end
         -- URL de clone vem da lista de repos já carregada (mesma resolução
         -- de gitea_repo_pick em handlers/services.luau).
         local url = ""
-        local ok, repos = pcall(json.decode, ctx.njob_git_repos or "[]")
+        local ok, repos = pcall(json.decode, ctx.new_job_git_repos or "[]")
         if ok and type(repos) == "table" then
             for _, r in ipairs(repos) do
-                if r.full_name == ctx.njob_git_repo then
+                if r.full_name == ctx.new_job_git_repo then
                     url = r.clone_url or ""
                     break
                 end
             end
         end
         if url == "" then
-            ctx.njob_err = "não foi possível resolver a URL do repositório — selecione de novo"
+            ctx.new_job_error = "não foi possível resolver a URL do repositório — selecione de novo"
             return
         end
         git_source = {
-            provider_id = ctx.njob_git_provider_id ~= "" and ctx.njob_git_provider_id or nil,
+            provider_id = ctx.new_job_git_provider_id ~= "" and ctx.new_job_git_provider_id or nil,
             url = url,
             branch = branch,
             username = nil,
@@ -336,62 +340,62 @@ function njob_create(): ()
             compose_path = compose_path,
         }
     else
-        compose = ctx.njob_compose or ""
+        compose = ctx.new_job_compose or ""
         if Helpers.trim(compose) == "" then
-            ctx.njob_err = "cole o docker-compose.yml do job"
+            ctx.new_job_error = "cole o docker-compose.yml do job"
             return
         end
     end
-    ctx.njob_err = ""
+    ctx.new_job_error = ""
 
     -- O caminho de volta do <timeedit>: a chave única "HH:MM" vira os dois
     -- campos que Recurrence::Daily/Weekly declaram no daemon.
-    local hora, minuto = fmt.hm_split(ctx.njob_time)
+    local hora, minuto = fmt.hm_split(ctx.new_job_time)
     local recurrence: any = nil
-    if ctx.njob_kind == "interval" then
-        recurrence = { IntervalHours = math.max(1, tonumber(ctx.njob_hours) or 1) }
-    elseif ctx.njob_kind == "daily" then
+    if ctx.new_job_kind == "interval" then
+        recurrence = { IntervalHours = math.max(1, tonumber(ctx.new_job_hours) or 1) }
+    elseif ctx.new_job_kind == "daily" then
         recurrence = {
             Daily = {
                 hour = hora,
                 minute = minuto,
             },
         }
-    elseif ctx.njob_kind == "weekly" then
+    elseif ctx.new_job_kind == "weekly" then
         recurrence = {
             Weekly = {
-                weekday = tonumber(ctx.njob_weekday) or 0,
+                weekday = tonumber(ctx.new_job_weekday) or 0,
                 hour = hora,
                 minute = minuto,
             },
         }
     end
 
-    local env_vars, env_comments = Helpers.parse_dotenv(ctx.njob_env_text)
-    local editing = ctx.njob_edit_id ~= ""
+    local env_vars, env_comments = Helpers.parse_dotenv(ctx.new_job_env_text)
+    local editing = ctx.new_job_edit_id ~= ""
 
-    ctx.njob_msg = editing and "salvando…" or "criando…"
-    ctx.njob_busy = "true"
+    ctx.new_job_message = editing and "salvando…" or "criando…"
+    ctx.new_job_busy = "true"
     local ok, res
     if editing then
         ok, res = api:rpc_checked{
             JobUpdate = {
-                id = ctx.njob_edit_id,
+                id = ctx.new_job_edit_id,
                 name = name,
                 compose = compose,
                 git_source = git_source,
                 main_service = main_service,
                 env_vars = env_vars,
                 env_comments = env_comments,
-                enabled = ctx.njob_enabled == "true",
+                enabled = ctx.new_job_enabled == "true",
                 recurrence = recurrence,
             },
         }
     else
         ok, res = api:rpc_checked{
             JobCreate = {
-                project_id = ctx.njob_project_id,
-                trigger_service_id = ctx.njob_service_id,
+                project_id = ctx.new_job_project_id,
+                trigger_service_id = ctx.new_job_service_id,
                 name = name,
                 compose = compose,
                 git_source = git_source,
@@ -402,10 +406,10 @@ function njob_create(): ()
             },
         }
     end
-    ctx.njob_busy = ""
+    ctx.new_job_busy = ""
     if not ok then
-        ctx.njob_msg = ""
-        ctx.njob_err = "erro: " .. tostring(res)
+        ctx.new_job_message = ""
+        ctx.new_job_error = "erro: " .. tostring(res)
         return
     end
 

@@ -6,31 +6,18 @@ component {
 
   resources {
     style """
-    .loading_row  {
-      spacing: 9;
-      align-y: center;
-      padding: 8;
-    }
-
-    .loading_spin {
-      width: 16;
-      height: 16;
-      color: var(--spin);
-    }
-
-    .loading_note {
-      size: 13;
-      color: var(--muted);
-    }
+    .loading-row        { spacing: 9; align-y: center; padding: 8; }
+    .loading-row__spin  { width: 16; height: 16; color: var(--spin); }
+    .loading-row__note  { size: 13; color: var(--muted); }
     """
   }
 
-  row(class = loading_row) {
-    spinner(class = loading_spin)
-    text(class = loading_note, if = @note, not_equals = "", content = "@note")
+  row(class = loading-row) {
+    spinner(class = loading-row__spin)
+    text(class = loading-row__note, if = @note, not_equals = "", content = "@note")
 
     text(
-      class = loading_note,
+      class = loading-row__note,
       if = @note,
       equals = "",
       content = "Carregando dados…",

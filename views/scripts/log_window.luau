@@ -2,14 +2,14 @@
 --!nolint FunctionUnused
 -- log_window.luau — script da JANELA de logs (runtime OU build) de um serviço/
 -- deployment, um motor Glacier próprio e ISOLADO do app principal (aberto via
--- open_window por handlers/services.luau: open_logs_window / dep_logs).
+-- open_window por handlers/services.luau: open_logs_window / deployment_logs).
 -- Genérico: a mesma janela serve os dois tipos, parametrizada por `data`:
 --   api_url / api_token   — conexão com o daemon
---   lw_title              — título (ex.: "Logs · api" / "Build logs · dep_01KX…")
---   lw_stream_url         — path do SSE dedicado a seguir:
+--   log_window_title              — título (ex.: "Logs · api" / "Build logs · dep_01KX…")
+--   log_window_stream_url         — path do SSE dedicado a seguir:
 --                             "/api/services/<id>/logs"          (runtime)
 --                             "/api/deployments/<id>/build-logs" (build)
---   lw_seed               — JSON do tail/histórico inicial (o pai já buscou)
+--   log_window_seed               — JSON do tail/histórico inicial (o pai já buscou)
 --
 -- O corpo é um <textarea> (text_editor): texto SELECIONÁVEL/copiável. Cada linha
 -- nova é APPENDADA no fim via append_textarea (o motor insere no Content sem
@@ -19,7 +19,7 @@
 --
 -- sse() no init() FUNCIONA (o motor liga as streams abertas no init); já
 -- `append_textarea` NÃO (efeitos de init são descartados, como `fetch`), por isso
--- o histórico inicial vai por um SET completo (ctx.lw_logs_text) no init, e só as
+-- o histórico inicial vai por um SET completo (ctx.log_window_logs_text) no init, e só as
 -- linhas VIVAS (no on_message da sse, ação despachada) usam append_textarea.
 --
 -- require resolve relativo a ESTE arquivo (scripts/): "fmt" (fachada de fmt/*)
@@ -40,8 +40,8 @@ local buf: { any } = {}
 -- fim com "\n" para os appends seguintes começarem em linha nova.
 local function set_full(): ()
     local text = fmt.join_log_lines(buf)
-    ctx.lw_logs_text = (#buf > 0) and (text .. "\n") or ""
-    ctx.lw_count = tostring(#buf)
+    ctx.log_window_logs_text = (#buf > 0) and (text .. "\n") or ""
+    ctx.log_window_count = tostring(#buf)
 end
 
 -- Aplica um lote de eventos novos: appenda no fim (barato) ou, se estourou o
@@ -59,8 +59,8 @@ local function push_batch(events: { any }): ()
         end
         set_full()
     else
-        append_textarea("lw_logs_text", fmt.join_log_lines(events) .. "\n")
-        ctx.lw_count = tostring(#buf)
+        append_textarea("log_window_logs_text", fmt.join_log_lines(events) .. "\n")
+        ctx.log_window_count = tostring(#buf)
     end
 end
 
@@ -75,11 +75,11 @@ local function to_row(ev: any): any?
 end
 
 function init(): ()
-    ctx.lw_title = ctx.lw_title or "Logs"
+    ctx.log_window_title = ctx.log_window_title or "Logs"
 
     -- Histórico inicial semeado pelo pai (SET completo — append_textarea de init
     -- seria descartado). Daí em diante, só appends vivos no on_message abaixo.
-    local oks, seed = pcall(json.decode, ctx.lw_seed or "[]")
+    local oks, seed = pcall(json.decode, ctx.log_window_seed or "[]")
     buf = (oks and type(seed) == "table") and seed or {}
     set_full()
 
@@ -88,7 +88,7 @@ function init(): ()
     -- Cada `data:` é um JSON auto-descritivo (kind). O endpoint dedicado manda
     -- lotes `bus_batch`; tratamos `bus` avulso por robustez.
 
-    local sse_url = (ctx.api_url or "") .. (ctx.lw_stream_url or "")
+    local sse_url = (ctx.api_url or "") .. (ctx.log_window_stream_url or "")
     sse(sse_url, {
         headers = Api.auth_headers(ctx.api_token),
         on_message = function(data: string): ()

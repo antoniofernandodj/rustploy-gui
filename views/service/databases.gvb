@@ -2,113 +2,113 @@
 component {
   scrollable(
     direction = vertical,
-    class = scroll_fill,
+    class = u-fill-all,
   ) {
-    column(width = fill, spacing = 8, class = form_panel) {
-      text(class = label_cap, content = "DATABASES (@svc_mdbs_count)")
+    column(width = fill, spacing = 8, class = form-panel) {
+      text(class = u-label-cap, content = "DATABASES (@service_shared_databases_count)")
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Cada database tem usuário próprio, sem acesso aos demais. O
           projeto consumidor recebe a connection string numa env var.
         """,
       )
 
-      scrollable(direction = vertical, class = env_list_scroll) {
-        column(class = kv_list) {
-          row(class = kv_row, :for-each = svc_mdbs, var = d) {
+      scrollable(direction = vertical, class = u-fill-all) {
+        column(class = kv-list) {
+          row(class = kv-list__row, :for-each = service_shared_databases, var = d) {
             button(
-              class = env_del,
-              on_click = mdb_delete:@d.id,
-              disabled = @busy_mdb_delete,
+              class = env__del,
+              on_click = shared_database_delete:@d.id,
+              disabled = @busy_shared_database_delete,
               text = "✕",
             )
 
-            text(class = env_sep)
-            button(class = tab, on_click = mdb_show:@d.id, disabled = @busy_mdb_show, text = @d.name)
-            text(class = kv_val_fill, content = "→ @d.project")
-            text(class = muted, content = "@d.env_var")
+            text(class = env__sep)
+            button(class = tabs__tab, on_click = shared_database_show:@d.id, disabled = @busy_shared_database_show, text = @d.name)
+            text(class = "kv-list__val kv-list__val--compact", content = "→ @d.project")
+            text(class = u-muted, content = "@d.env_var")
           }
         }
       }
 
-      row(class = kv_row, if = @mdb_url, not_equals = "") {
-        text(class = kv_key, content = "URL")
-        text(class = kv_val_fill, content = "@mdb_url_short")
+      row(class = kv-list__row, if = @shared_database_url, not_equals = "") {
+        text(class = kv-list__key, content = "URL")
+        text(class = "kv-list__val kv-list__val--compact", content = "@shared_database_url_short")
 
         button(
-          class = copy_btn,
-          on_click = clipboard:mdb_url,
+          class = "btn btn--ghost btn--xs",
+          on_click = clipboard:shared_database_url,
           text = Copiar,
         )
       }
 
-      text(class = label_cap, content = "NOVO DATABASE")
+      text(class = u-label-cap, content = "NOVO DATABASE")
 
       input(
-        class = field_input,
-        form_control = f_mdb_name,
-        :value = f_mdb_name,
-        on_change = field:f_mdb_name,
+        class = field__input,
+        form_control = service_form_shared_database_name,
+        :value = service_form_shared_database_name,
+        on_change = field:service_form_shared_database_name,
         placeholder = "nome (a-z, 0-9, _)",
       )
 
       select(
-        class = select,
-        :options = svc_mdb_projects,
-        :value = f_mdb_project,
-        on_change = field:f_mdb_project,
+        class = form-select,
+        :options = service_shared_database_projects,
+        :value = service_form_shared_database_project,
+        on_change = field:service_form_shared_database_project,
         placeholder = "projeto consumidor...",
         labelField = name,
         valueField = id,
       )
 
       input(
-        class = field_input,
-        form_control = f_mdb_env,
-        :value = f_mdb_env,
-        on_change = field:f_mdb_env,
+        class = field__input,
+        form_control = service_form_shared_database_env,
+        :value = service_form_shared_database_env,
+        on_change = field:service_form_shared_database_env,
         placeholder = "env var (padrão DATABASE_URL / MONGODB_URI)",
       )
 
       input(
-        class = field_input,
-        form_control = f_mdb_limit,
-        :value = f_mdb_limit,
-        on_change = field:f_mdb_limit,
+        class = field__input,
+        form_control = service_form_shared_database_limit,
+        :value = service_form_shared_database_limit,
+        on_change = field:service_form_shared_database_limit,
         placeholder = "limite de conexões (opcional; não vale no Mongo)",
       )
 
       input(
-        class = field_input,
-        form_control = f_mdb_timeout,
-        :value = f_mdb_timeout,
-        on_change = field:f_mdb_timeout,
+        class = field__input,
+        form_control = service_form_shared_database_timeout,
+        :value = service_form_shared_database_timeout,
+        on_change = field:service_form_shared_database_timeout,
         placeholder = "timeout de query em ms (opcional; só Postgres)",
       )
 
       toggle(
-        :checked = f_mdb_overwrite,
-        on_toggle = field:f_mdb_overwrite,
+        :checked = service_form_shared_database_overwrite,
+        on_toggle = field:service_form_shared_database_overwrite,
         label = "  Sobrescrever a env var se o projeto já a tiver",
       )
 
       toggle(
-        :checked = f_mdb_skip_env,
-        on_toggle = field:f_mdb_skip_env,
+        :checked = service_form_shared_database_skip_env,
+        on_toggle = field:service_form_shared_database_skip_env,
         label = "  Não mexer em env var (vou migrar os dados antes)",
       )
 
-      row(class = env_add) {
+      row(class = env__add) {
         button(
-          class = btn_primary,
-          on_click = mdb_create,
-          disabled = @busy_mdb_create,
+          class = "btn btn--primary",
+          on_click = shared_database_create,
+          disabled = @busy_shared_database_create,
           text = "Criar database",
         )
 
-        text(class = muted, content = "@svc_action_msg")
+        text(class = u-muted, content = "@service_action_message")
       }
     }
   }

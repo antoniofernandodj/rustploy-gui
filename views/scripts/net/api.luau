@@ -87,7 +87,11 @@ function M:rpc_checked(cmd: any): (boolean, any)
     return true, res
 end
 
-function M:upload_archive(service_id: string, filename: string, body_base64: string): (boolean, any)
+function M:upload_archive(
+    service_id: string,
+    filename: string,
+    body_base64: string
+): (boolean, any)
     local h = self:headers()
     h["Content-Type"] = "application/zip"
     h["X-Rustploy-Filename"] = filename

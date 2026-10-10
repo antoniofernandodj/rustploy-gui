@@ -2,42 +2,30 @@
 screen(title = "Exportar serviço — Rustploy") {
   resources {
     style """
-      /* Titlebar custom (mesma linguagem visual do app.gv) */
-      .titlebar       { width: fill; height: 32; background: var(--surface); align-y: center; }
-      .titlebar_drag  { width: fill; height: fill; align-y: center; padding: 0 0 0 16; spacing: 9; }
-      .titlebar_dot   { size: 10; color: var(--blue); }
-      .titlebar_title { size: 12; bold: true; color: var(--muted); }
-      .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
-      .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
-
-      .ex_screen { width: fill; height: fill; }
-      .ex_body   { width: fill; height: fill; }
-      .ex_row    { width: fill; spacing: 10; align-y: center; }
-      .ex_chk    { color: var(--surface); padding: 5 10; border-radius: 4; }
-      .ex_actions { width: fill; spacing: 10; align-y: center; }
-      .ex_yaml   { width: fill; height: 150; padding: 10 12; font: mono; }
+    .dialog__check { color: var(--surface); padding: 5 10; border-radius: 4; }
+    .dialog__yaml  { width: fill; height: 150; padding: 10 12; font: mono; }
     """
 
     script(src = "scripts/service_export_window.luau")
   }
 
-  column(class = ex_screen) {
+  column(class = dialog__screen) {
     row(class = titlebar) {
-      row(class = titlebar_drag, on_press = window:drag) {
-        text(class = titlebar_dot, content = "●")
-        text(class = titlebar_title, content = "Exportar serviço — Rustploy")
+      row(class = titlebar__drag, on_press = window:drag) {
+        text(class = titlebar__dot, content = "●")
+        text(class = titlebar__title, content = "Exportar serviço — Rustploy")
       }
 
-      button(class = win_btn, on_click = window:minimize, text = "—")
-      button(class = win_close, on_click = window:close, text = "✕")
+      button(class = titlebar__btn, on_click = window:minimize, text = "—")
+      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
     }
 
-    scrollable(class = ex_body, direction = vertical) {
-      column(class = form_panel) {
-        text(class = label_cap, content = "EXPORTAR · @ex_service")
+    scrollable(class = dialog__body, direction = vertical) {
+      column(class = form-panel) {
+        text(class = u-label-cap, content = "EXPORTAR · @export_service")
 
         text(
-          class = muted,
+          class = u-muted,
           content = """
             Gera um arquivo para recriar este serviço em outro servidor: abra um
             projeto de lá, Novo serviço → Importar. Só a configuração vai; os
@@ -45,16 +33,16 @@ screen(title = "Exportar serviço — Rustploy") {
           """,
         )
 
-        if @ex_blocked != "" {
-          text(class = err, content = "@ex_blocked")
+        if @export_blocked != "" {
+          text(class = u-error, content = "@export_blocked")
         } else {
-          text(class = label_cap, content = "VARIÁVEIS DO SERVIÇO (@ex_svc_count) — TODAS VÃO")
-          text(class = muted, content = "@ex_svc_vars")
+          text(class = u-label-cap, content = "VARIÁVEIS DO SERVIÇO (@export_service_count) — TODAS VÃO")
+          text(class = u-muted, content = "@export_service_vars")
 
-          text(class = label_cap, content = "VARIÁVEIS DO PROJETO “@ex_project” — MARQUE AS QUE O APP PRECISA")
+          text(class = u-label-cap, content = "VARIÁVEIS DO PROJETO “@export_project” — MARQUE AS QUE O APP PRECISA")
 
           text(
-            class = muted,
+            class = u-muted,
             content = """
               O container recebe TODAS as variáveis do projeto, e o rustploy não
               sabe quais o código lê. As marcadas por padrão são as que o serviço
@@ -62,46 +50,46 @@ screen(title = "Exportar serviço — Rustploy") {
             """,
           )
 
-          if @ex_has_vars == "true" {
-            row(class = ex_actions) {
+          if @export_has_vars == "true" {
+            row(class = dialog__actions) {
               button(
-                class = btn_ghost,
-                on_click = ex_suggested,
-                disabled = @busy_ex_suggested,
+                class = "btn btn--ghost",
+                on_click = export_suggested,
+                disabled = @busy_export_suggested,
                 text = Sugeridas,
               )
-              button(class = btn_ghost, on_click = ex_all, disabled = @busy_ex_all, text = Todas)
-              button(class = btn_ghost, on_click = ex_none, disabled = @busy_ex_none, text = Nenhuma)
-              text(class = muted, content = "@ex_picked_count marcada(s)")
+              button(class = "btn btn--ghost", on_click = export_all, disabled = @busy_export_all, text = Todas)
+              button(class = "btn btn--ghost", on_click = export_none, disabled = @busy_export_none, text = Nenhuma)
+              text(class = u-muted, content = "@export_picked_count marcada(s)")
             }
 
-            column(class = kv_list) {
-              template(:for-each = ex_vars, var = v) {
-                row(class = ex_row) {
+            column(class = kv-list) {
+              template(:for-each = export_vars, var = v) {
+                row(class = dialog__actions) {
                   button(
-                    class = ex_chk,
-                    on_click = ex_toggle:@v.key,
-                    disabled = @busy_ex_toggle,
+                    class = dialog__check,
+                    on_click = export_toggle:@v.key,
+                    disabled = @busy_export_toggle,
                     text = "@v.mark  @v.key",
                   )
-                  text(class = muted, content = "@v.tag")
+                  text(class = u-muted, content = "@v.tag")
                 }
               }
             }
           } else {
-            text(class = muted, content = "O projeto não tem variáveis.")
+            text(class = u-muted, content = "O projeto não tem variáveis.")
           }
 
           checkbox(
-            :checked = ex_values,
-            on_toggle = field:ex_values,
+            :checked = export_values,
+            on_toggle = field:export_values,
             label = "Incluir os valores das variáveis",
           )
 
           text(
-            if = @ex_values,
+            if = @export_values,
             equals = true,
-            class = err,
+            class = u-error,
             content = """
               O arquivo vai conter segredos em texto, e o disco o grava com a
               permissão padrão: trate-o como uma senha. (Secrets do rustploy,
@@ -110,35 +98,35 @@ screen(title = "Exportar serviço — Rustploy") {
           )
 
           text(
-            if = @ex_values,
+            if = @export_values,
             equals = false,
-            class = muted,
+            class = u-muted,
             content = "Sem valores: o arquivo leva só os nomes, e quem importar preenche os valores.",
           )
 
-          row(class = ex_actions) {
+          row(class = dialog__actions) {
             button(
-              class = btn_primary,
-              on_click = ex_save,
-              disabled = @busy_ex_save,
+              class = "btn btn--primary",
+              on_click = export_save,
+              disabled = @busy_export_save,
               text = "Salvar arquivo…",
             )
             button(
-              class = btn_blue,
-              on_click = ex_show,
-              disabled = @busy_ex_show,
+              class = "btn btn--blue btn--wide",
+              on_click = export_show,
+              disabled = @busy_export_show,
               text = "Mostrar como texto",
             )
           }
 
-          text(class = muted, if = @ex_msg, not_equals = "", content = "@ex_msg")
-          text(class = err, if = @ex_err, not_equals = "", content = "@ex_err")
+          text(class = u-muted, if = @export_message, not_equals = "", content = "@export_message")
+          text(class = u-error, if = @export_error, not_equals = "", content = "@export_error")
 
-          if @ex_yaml != "" {
-            textarea(class = ex_yaml, font = mono, :value = ex_yaml)
+          if @export_yaml != "" {
+            textarea(class = dialog__yaml, font = mono, :value = export_yaml)
             button(
-              class = copy_btn,
-              on_click = clipboard:ex_yaml,
+              class = "btn btn--ghost btn--xs",
+              on_click = clipboard:export_yaml,
               text = "Copiar texto",
             )
           }

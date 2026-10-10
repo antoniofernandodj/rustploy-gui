@@ -12,15 +12,15 @@ local function prune(cmd: any, label: string): ()
     if not api then
         return
     end
-    ctx.docker_msg = label
+    ctx.docker_message = label
     local ok, res = api:rpc_checked(cmd)
     if ok and res.PruneResult then
-        ctx.docker_msg = string.format("removidos: %d · %s liberados",
+        ctx.docker_message = string.format("removidos: %d · %s liberados",
             res.PruneResult.count or 0, fmt.fmt_bytes(res.PruneResult.reclaimed_bytes))
     elseif ok then
-        ctx.docker_msg = "limpeza concluída"
+        ctx.docker_message = "limpeza concluída"
     else
-        ctx.docker_msg = "erro: " .. res
+        ctx.docker_message = "erro: " .. res
     end
 end
 
@@ -95,27 +95,27 @@ end
 -- ── Remoção INDIVIDUAL (por item) ───────────────────────────────────────────
 -- Diferente do prune (em lote), remove UM recurso escolhido. Refresca na hora
 -- (refresh_now) para a linha sumir sem esperar o snapshot de 2s. O Docker recusa
--- remover recursos em uso (sem force) — o erro volta e é exibido em docker_msg.
+-- remover recursos em uso (sem force) — o erro volta e é exibido em docker_message.
 
 local function remove_one(cmd: any, doing: string): ()
     local api = State.api
     if not api then
         return
     end
-    ctx.docker_msg = doing
+    ctx.docker_message = doing
     local ok, res = api:rpc_checked(cmd)
     if ok then
-        ctx.docker_msg = "removido"
+        ctx.docker_message = "removido"
         Stream.refresh_now()
     else
-        ctx.docker_msg = "erro: " .. tostring(res)
+        ctx.docker_message = "erro: " .. tostring(res)
     end
 end
 
 -- Cada par confirm→do_* espelha o padrão de delete_deployment: o `confirm`
 -- suspende e, se o usuário confirmar, chama o handler `do_*` na hora com o
 -- id/name capturado no escopo.
-function docker_rm_container(id: string): ()
+function docker_remove_container(id: string): ()
     local ok = confirm{
         title = "Remover container?",
         message = "O container parado será removido (docker rm). Ação irreversível.",
@@ -130,7 +130,7 @@ function docker_rm_container(id: string): ()
     remove_one({ RemoveContainer = { id = id } }, "removendo container…")
 end
 
-function docker_rm_image(id: string): ()
+function docker_remove_image(id: string): ()
     local ok = confirm{
         title = "Remover imagem?",
         message = "A imagem será removida (docker rmi). Falha se algum container a referencia.",
@@ -145,7 +145,7 @@ function docker_rm_image(id: string): ()
     remove_one({ RemoveImage = { id = id } }, "removendo imagem…")
 end
 
-function docker_rm_volume(name: string): ()
+function docker_remove_volume(name: string): ()
     local ok = confirm{
         title = "Remover volume?",
         message = "O volume será removido (docker volume rm). Falha se estiver em uso. Ação irreversível.",
@@ -170,7 +170,7 @@ function docker_only_used(key: string?, v: string?): ()
     Stream.rebuild_lists()
 end
 
-function docker_rm_network(id: string): ()
+function docker_remove_network(id: string): ()
     local ok = confirm{
         title = "Remover rede?",
         message = "A rede será removida (docker network rm). Falha se houver container anexado.",

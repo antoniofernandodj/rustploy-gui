@@ -8,17 +8,17 @@ component {
     link(rel = import, href = "docker/registry.gvb", as = DockerRegistryTab)
   }
 
-  row(class = header_row) {
-    column(class = header_titles) {
-      text(class = title, content = "Docker")
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text(class = page-head__title, content = "Docker")
 
       text(
-        class = subtitle,
+        class = page-head__subtitle,
         content = "Containers, imagens, volumes e networks do host.",
       )
     }
 
-    row(class = "stats_row stats_hide_md") {
+    row(class = "page-head__stats page-head__stats--hide-md") {
       StatCard(label = CONTAINERS, value = @docker_containers_count)
       StatCard(label = IMAGENS, value = @docker_images_count)
       StatCard(label = VOLUMES, value = @docker_volumes_count)

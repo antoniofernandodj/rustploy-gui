@@ -8,40 +8,41 @@ component {
 
   resources {
     style """
-    .state_cell {
+    .state-cell {
       spacing: 7;
       align-y: center;
     }
 
-    .state_lbl {
+    .state-cell__label {
       size: 12;
     }
 
-    /* Paleta de estado — a 2ª classe (state_{kind}) pinta ponto + rótulo. */
-    .state_ok {
+    /* Paleta de estado (modificador na raiz): `.state-cell--ok > text` pinta o
+       ponto e o rótulo de uma vez — os filhos não carregam classe de cor. */
+    .state-cell--ok > text {
       color: var(--ok);
     }
 
-    .state_bad {
+    .state-cell--bad > text {
       color: var(--error);
     }
 
-    .state_info {
+    .state-cell--info > text {
       color: var(--accent);
     }
 
-    .state_warn {
+    .state-cell--warn > text {
       color: var(--warn);
     }
 
-    .state_muted {
+    .state-cell--muted > text {
       color: var(--muted);
     }
     """
   }
 
-  row(class = "state_cell col_state") {
-    text(class = "state_dot state_@kind", content = "●")
-    text(class = "state_lbl state_@kind", content = "@label")
+  row(class = "state-cell state-cell--@kind table__col-state") {
+    text(class = status-dot, content = "●")
+    text(class = state-cell__label, content = "@label")
   }
 }

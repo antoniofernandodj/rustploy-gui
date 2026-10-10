@@ -2,38 +2,38 @@
 component {
   resources {
     component(name = SemVariaveisDoServico) {
-      text(class = muted, content = "Nenhuma variável.")
+      text(class = u-muted, content = "Nenhuma variável.")
     }
   }
 
-  column(class = env_wrap) {
-    row(class = env_head) {
-      text(class = muted_fill, content = "@svc_env_count variável(eis)")
-      button(class = btn_export, on_click = env_export, disabled = @busy_env_export, text = Exportar)
+  column(class = env) {
+    row(class = env__head) {
+      text(class = "u-muted u-fill", content = "@service_env_count variável(eis)")
+      button(class = "btn btn--ghost btn--wide", on_click = env_export, disabled = @busy_env_export, text = Exportar)
       text(content = " ")
 
       if @env_text_open == "true" {
         button(
-          class = btn_export_on,
+          class = "btn btn--blue btn--wide",
           on_click = env_text_toggle,
           disabled = @busy_env_text_toggle,
           text = Fechar,
         )
       } else {
-        button(class = tab, on_click = env_text_toggle, disabled = @busy_env_text_toggle, text = .env)
+        button(class = tabs__tab, on_click = env_text_toggle, disabled = @busy_env_text_toggle, text = .env)
       }
     }
 
     form(
       name = env_add,
       on_submit = env_add,
-      on_validation_error = env_apontar,
+      on_validation_error = env_show_validation_errors,
       width = fill,
       spacing = 8,
     ) {
-      row(class = env_add) {
+      row(class = env__add) {
         input(
-          class = env_in_key,
+          class = env__input,
           form_control = env_new_key,
           rules = required,
           msg = "informe a chave",
@@ -41,21 +41,21 @@ component {
         )
       }
 
-      row(class = env_add) {
+      row(class = env__add) {
         input(
-          class = env_in_val,
-          form_control = env_new_val,
+          class = env__input,
+          form_control = env_new_value,
           placeholder = value,
         )
       }
 
-      row(class = env_add) {
-        button(type = submit, disabled = @busy_env_add, class = btn_primary, text = Adicionar)
+      row(class = env__add) {
+        button(type = submit, disabled = @busy_env_add, class = "btn btn--primary", text = Adicionar)
       }
     }
 
     text(
-      class = muted_fill,
+      class = "u-muted u-fill",
       content = """
         Para um valor sensível, use um secret do projeto: escreva
         <secret:NOME> ou secret:NOME como valor aqui ou no editor .env —
@@ -65,105 +65,105 @@ component {
     )
 
     text(
-      if = @erro_env_new_key,
+      if = @error_env_new_key,
       not_equals = "",
-      class = err,
-      content = "@erro_env_new_key",
+      class = u-error,
+      content = "@error_env_new_key",
     )
 
-    scrollable(direction = vertical, class = env_list_scroll) {
-      column(class = kv_list) {
+    scrollable(direction = vertical, class = u-fill-all) {
+      column(class = kv-list) {
         template(
-          :for-each = svc_env,
+          :for-each = service_env,
           var = e,
           on_reorder = env_reorder,
           reorder_key = key,
           foreach_fallback = SemVariaveisDoServico,
         ) {
           if @e.__dragging == "true" {
-            row(class = kv_row_drag, if = @e.kind, equals = comment) {
+            row(class = "kv-list__row kv-list__row--dragging", if = @e.kind, equals = comment) {
               text(
-                class = "env_drag_handle env_dragging",
+                class = "env__drag-handle env__drag-handle--dragging",
                 drag_handle = true,
                 content = "⋮ ",
               )
 
-              text(class = muted, content = "@e.value")
+              text(class = u-muted, content = "@e.value")
             }
 
-            row(class = kv_row_drag, else) {
+            row(class = "kv-list__row kv-list__row--dragging", else) {
               text(
-                class = "env_drag_handle env_dragging",
+                class = "env__drag-handle env__drag-handle--dragging",
                 drag_handle = true,
                 content = "⋮ ",
               )
 
               button(
-                class = env_del,
-                on_click = env_del:@e.key,
-                disabled = @busy_env_del,
+                class = env__del,
+                on_click = env_delete:@e.key,
+                disabled = @busy_env_delete,
                 text = "✕",
               )
 
-              text(class = env_sep)
-              text(class = env_key, content = "@e.key_display")
-              text(class = kv_val_fill, content = "@e.value")
+              text(class = env__sep)
+              text(class = env__key, content = "@e.key_display")
+              text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
             }
           } else {
-            row(class = kv_row, if = @e.kind, equals = comment) {
+            row(class = kv-list__row, if = @e.kind, equals = comment) {
               text(
-                class = env_drag_handle,
+                class = env__drag-handle,
                 drag_handle = true,
                 content = "⋮ ",
               )
 
-              text(class = muted, content = "@e.value")
+              text(class = u-muted, content = "@e.value")
             }
 
-            row(class = kv_row, else) {
+            row(class = kv-list__row, else) {
               text(
-                class = env_drag_handle,
+                class = env__drag-handle,
                 drag_handle = true,
                 content = "⋮ ",
               )
 
               button(
-                class = env_del,
-                on_click = env_del:@e.key,
-                disabled = @busy_env_del,
+                class = env__del,
+                on_click = env_delete:@e.key,
+                disabled = @busy_env_delete,
                 text = "✕",
               )
 
-              text(class = env_sep)
-              text(class = env_key, content = "@e.key_display")
-              text(class = kv_val_fill, content = "@e.value")
+              text(class = env__sep)
+              text(class = env__key, content = "@e.key_display")
+              text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
             }
           }
         }
 
         if @env_text_open == "true" {
           text(
-            class = muted,
+            class = u-muted,
             content = "Cole/edite no formato KEY=VALUE (# comentário).",
           )
 
           textarea(
-            class = env_editor,
+            class = env__editor,
             font = mono,
-            :value = svc_env_text,
+            :value = service_env_text,
             placeholder = "KEY=VALUE   (# comentário)",
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = btn_primary,
+              class = "btn btn--primary",
               on_click = env_import,
               disabled = @busy_env_import,
               text = Salvar,
             )
 
             button(
-              class = btn_ghost,
+              class = "btn btn--ghost",
               on_click = env_text_cancel,
               disabled = @busy_env_text_cancel,
               text = Cancelar,

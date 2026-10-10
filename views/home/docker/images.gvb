@@ -3,13 +3,13 @@
 component {
   resources {
     component(name = SemImagens) {
-      text(class = muted, content = "Nenhuma imagem.")
+      text(class = u-muted, content = "Nenhuma imagem.")
     }
   }
 
-  column(class = panel_fill) {
-    row(class = env_head) {
-      text(class = muted_fill, content = "@docker_images_count imagem(ns)")
+  column(class = "panel panel--fill") {
+    row(class = env__head) {
+      text(class = "u-muted u-fill", content = "@docker_images_count imagem(ns)")
 
       // O filtro mora em fmt.docker_images (a tableview desenha toda linha
       // que recebe): o toggle grava a chave e remonta a lista.
@@ -26,7 +26,7 @@ component {
       )
 
       button(
-        class = btn_danger,
+        class = "btn btn--danger",
         on_click = docker_prune_images,
         disabled = @busy_docker_prune_images,
         text = "Limpar sem uso",
@@ -34,55 +34,55 @@ component {
     }
 
     text(
-      if = @docker_msg,
+      if = @docker_message,
       not_equals = "",
-      class = muted,
-      content = "@docker_msg",
+      class = u-muted,
+      content = "@docker_message",
     )
 
     tableview(
       :items = docker_images,
       :sort = docker_images_sort,
       var = i,
-      header_class = "thead th",
-      row_class = "trow td tv_row",
-      class = scroll_fill,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
     ) {
-      tablecolumn(key = tags, label = TAGS, class = col_svc) {
-        text(class = td_key, content = "@i.tags")
+      tablecolumn(key = tags, label = TAGS, class = table__col-svc) {
+        text(class = "table__cell table__cell--key", content = "@i.tags")
       }
 
-      tablecolumn(key = owner, label = "PROJETO / SERVIÇO", class = col_proj)
+      tablecolumn(key = owner, label = "PROJETO / SERVIÇO", class = table__col-proj)
 
       tablecolumn(
         key = size,
         sort_key = size_bytes,
         label = TAMANHO,
-        class = col_dur,
+        class = table__col-dur,
       ) {
-        text(class = muted, content = "@i.size")
+        text(class = u-muted, content = "@i.size")
       }
 
       tablecolumn(
         key = created,
         sort_key = created_iso,
         label = CRIADA,
-        class = col_dur,
+        class = table__col-dur,
       ) {
-        text(class = muted, content = "@i.created")
+        text(class = u-muted, content = "@i.created")
       }
 
-      tablecolumn(key = in_use_label, label = USO, class = col_state) {
+      tablecolumn(key = in_use_label, label = USO, class = table__col-state) {
         StateCell(kind = @i.in_use_kind, label = @i.in_use_label)
       }
 
-      tablecolumn(label = "AÇÃO", class = col_act) {
+      tablecolumn(label = "AÇÃO", class = table__col-act) {
         button(
           if = @i.in_use_label,
           equals = "SEM USO",
-          class = dk_rm,
-          on_click = docker_rm_image:@i.id_full,
-          disabled = @busy_docker_rm_image,
+          class = "btn btn--danger btn--xs",
+          on_click = docker_remove_image:@i.id_full,
+          disabled = @busy_docker_remove_image,
           text = Remover,
         )
       }

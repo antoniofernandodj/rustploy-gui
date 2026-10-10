@@ -97,19 +97,19 @@ function init(): ()
     ctx.menu = ctx.menu or "true"
     -- Checkboxes do Infra as Code (Settings → aba IaC): semeados aqui pra o
     -- estado ser determinístico e o `do_import` nunca ler `nil`.
-    ctx.iac_prune = ctx.iac_prune or "false"
-    ctx.iac_deploy = ctx.iac_deploy or "false"
+    ctx.manifest_prune = ctx.manifest_prune or "false"
+    ctx.manifest_deploy = ctx.manifest_deploy or "false"
     ctx.data_loading = "true"
     -- Coleção fixa do <radiogroup> de dia da semana (aba Manutenção). Semeada
-    -- aqui, e não no dc_apply_config, porque não depende da config carregada:
+    -- aqui, e não no docker_cleanup_apply_config, porque não depende da config carregada:
     -- se o load falhasse, a lista sumiria e o grupo ficaria vazio.
     ctx.weekdays = fmt.WEEKDAYS_JSON
     -- Itens das <tabbar> de rótulo fixo ({id,label}); a barra grava o id na
     -- chave `:value` sozinha, sem handler.
     ctx.settings_tabs = [=[[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]]=]
-    ctx.dc_kinds = [=[[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]]=]
-    ctx.gp_modes = [=[[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]]=]
-    ctx.hc_kinds = [=[[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]]=]
+    ctx.docker_cleanup_kinds = [=[[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]]=]
+    ctx.git_provider_modes = [=[[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]]=]
+    ctx.healthcheck_kinds = [=[[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]]=]
     -- Listas vazias como "[]" (não nil) para os ForEach não verem literal.
     for _, k in ipairs{
         "deployments",
@@ -124,10 +124,10 @@ function init(): ()
         "ingress",
         "host_ports",
         "jobs_summary",
-        "proj_jobs",
+        "project_jobs",
         "monitoring",
-        "eng_active",
-        "eng_recent",
+        "deploy_engine_active",
+        "deploy_engine_recent",
         "project_services",
     } do
         if not ctx[k] or ctx[k] == "" then
@@ -148,17 +148,17 @@ function init(): ()
         "ingress_count",
         "host_ports_count",
         "jobs_count",
-        "proj_env_count",
-        "proj_jobs_count",
-        "proj_secrets_count",
+        "project_env_count",
+        "project_jobs_count",
+        "project_secrets_count",
         "docker_images_count",
         "docker_volumes_count",
         "docker_networks_count",
-        "eng_active_count",
-        "eng_recent_count",
-        "eng_success_24h",
-        "eng_failed_24h",
-        "eng_total_24h",
+        "deploy_engine_active_count",
+        "deploy_engine_recent_count",
+        "deploy_engine_success_24h",
+        "deploy_engine_failed_24h",
+        "deploy_engine_total_24h",
         "services_running",
         "services_total",
     } do
@@ -191,16 +191,16 @@ local function load_settings(): ()
         -- só-leitura (não há setter no protocolo), serve para exibir a base do
         -- webhook e montar a redirect URI do OAuth.
         local base = res.DaemonSettings.public_base_url or ""
-        ctx.ss_public_base = base
-        ctx.ss_email = res.DaemonSettings.acme_email or ""
-        ctx.ss_registry_domain = res.DaemonSettings.registry_domain or ""
-        ctx.gp_redirect = Helpers.oauth_redirect_uri(base)
+        ctx.server_settings_public_base = base
+        ctx.server_settings_email = res.DaemonSettings.acme_email or ""
+        ctx.server_settings_registry_domain = res.DaemonSettings.registry_domain or ""
+        ctx.git_provider_redirect = Helpers.oauth_redirect_uri(base)
     end
     local ok2, res2 = api:rpc("GitProviderList")
     if ok2 and res2.GitProviders then
         ctx.gitea_count = tostring(#res2.GitProviders)
     end
-    Settings.dc_load()
+    Settings.docker_cleanup_load()
 end
 
 -- on_submit/on_click do formulário de login. `fetch` suspende a corrotina, então
@@ -208,10 +208,10 @@ end
 function connect(): ()
     local base = Helpers.normalize_url(ctx.url)
     if not base then
-        ctx.erro_url = "URL inválida (ex.: https://rustploy.domain.tech)"
+        ctx.error_url = "URL inválida (ex.: https://rustploy.domain.tech)"
         return
     end
-    ctx.erro_url = ""
+    ctx.error_url = ""
     local token = ctx.token or ""
     ctx.api_url = base
     ctx.api_token = token
@@ -268,7 +268,7 @@ function disconnect(): ()
     State.last_pairs = {}
     State.metrics_by_id = {}
     State.jobs_by_id = {}
-    State.ns_templates_all = {}
+    State.new_service_templates_all = {}
     State.search_term = ""
     State.deploy_track =
         { service_id = "", deployment_id = "", running = false, name = "" }

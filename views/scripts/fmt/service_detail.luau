@@ -110,14 +110,20 @@ function M.env_json_with_comments(vars: {EnvVar}?, comments: {EnvComment}?): str
     for _, v in ipairs(active_vars) do
         for i, c in ipairs(active_comments) do
             if c.before_key == v.key then
-                table.insert(rows, { key = "__c" .. (i - 1), value = c.text, kind = "comment" })
+                table.insert(rows, {
+                    key = "__c" .. (i - 1),
+                    value = c.text, kind = "comment"
+                })
             end
         end
         table.insert(rows, env_var_row(v))
     end
     for i, c in ipairs(active_comments) do
         if c.before_key == nil then
-            table.insert(rows, { key = "__c" .. (i - 1), value = c.text, kind = "comment" })
+            table.insert(rows, {
+                key = "__c" .. (i - 1),
+                value = c.text, kind = "comment"
+            })
         end
     end
     return Util.enc_array(rows)

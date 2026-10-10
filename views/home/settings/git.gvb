@@ -2,37 +2,37 @@
 component {
   resources {
     component(name = SemContasGit) {
-      text(class = muted, content = "Nenhuma conta Git conectada ainda.")
+      text(class = u-muted, content = "Nenhuma conta Git conectada ainda.")
     }
   }
 
-  scrollable(direction = vertical, class = scroll_fill) {
-    column(class = form_panel) {
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-panel) {
       text(
-        class = label_cap,
+        class = u-label-cap,
         content = "CONTAS CONECTADAS (@gitea_count)",
       )
 
-      column(class = kv_list) {
+      column(class = kv-list) {
         template(
           :for-each = gitea_providers,
           var = p,
           foreach_fallback = SemContasGit,
         ) {
-          row(class = kv_row) {
-            column(class = header_titles) {
-              text(class = env_key, content = "@p.name")
+          row(class = kv-list__row) {
+            column(class = page-head__titles) {
+              text(class = env__key, content = "@p.name")
 
               text(
-                class = muted,
+                class = u-muted,
                 content = "@p.kind · @p.base_url · @p.auth_mode · @p.account",
               )
             }
 
             button(
-              class = btn_danger,
-              on_click = gp_delete:@p.id,
-              disabled = @busy_gp_delete,
+              class = "btn btn--danger",
+              on_click = git_provider_delete:@p.id,
+              disabled = @busy_git_provider_delete,
               text = Remover,
             )
           }
@@ -40,82 +40,82 @@ component {
       }
 
       hr
-      text(class = label_cap, content = "CONECTAR CONTA GIT")
+      text(class = u-label-cap, content = "CONECTAR CONTA GIT")
 
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
       row(class = tabs) {
         TabButton(
           label = Gitea,
-          current = @gp_kind,
+          current = @git_provider_kind,
           target = gitea,
-          action = gp_kind:gitea,
+          action = git_provider_kind:gitea,
         )
 
         TabButton(
           label = GitHub,
-          current = @gp_kind,
+          current = @git_provider_kind,
           target = github,
-          action = gp_kind:github,
+          action = git_provider_kind:github,
         )
       }
 
       text(
-        if = @gp_msg,
+        if = @git_provider_message,
         not_equals = "",
-        class = muted,
-        content = "@gp_msg",
+        class = u-muted,
+        content = "@git_provider_message",
       )
 
       button(
-        if = @gp_oauth_url,
+        if = @git_provider_oauth_url,
         not_equals = "",
-        class = btn_primary,
-        on_click = open:gp_oauth_url,
+        class = "btn btn--primary",
+        on_click = open:git_provider_oauth_url,
         text = "Abrir autorização no navegador",
       )
 
       form(
         name = git_provider,
-        on_submit = gp_connect,
+        on_submit = git_provider_connect,
         spacing = 10,
         width = fill,
       ) {
-        row(class = hc_grid) {
-          column(class = hc_field) {
-            text(class = label_cap, content = "NOME")
+        row(class = healthcheck__grid) {
+          column(class = healthcheck__field) {
+            text(class = u-label-cap, content = "NOME")
 
             input(
               placeholder = "Meu Gitea",
-              class = field_input,
-              form_control = gp_name,
-              :value = gp_name,
-              on_change = field:gp_name,
+              class = field__input,
+              form_control = git_provider_name,
+              :value = git_provider_name,
+              on_change = field:git_provider_name,
             )
 
             text(
-              if = @erro_gp_name,
+              if = @error_git_provider_name,
               not_equals = "",
-              class = err,
-              content = "@erro_gp_name",
+              class = u-error,
+              content = "@error_git_provider_name",
             )
           }
 
-          column(class = hc_field) {
-            text(class = label_cap, content = "BASE URL")
+          column(class = healthcheck__field) {
+            text(class = u-label-cap, content = "BASE URL")
 
             input(
               placeholder = "https://gitea.exemplo.com",
-              class = field_input,
-              form_control = gp_base_url,
-              :value = gp_base_url,
-              on_change = field:gp_base_url,
+              class = field__input,
+              form_control = git_provider_base_url,
+              :value = git_provider_base_url,
+              on_change = field:git_provider_base_url,
             )
 
             text(
-              if = @gp_kind,
+              if = @git_provider_kind,
               equals = github,
-              class = muted,
+              class = u-muted,
               content = """
                 Deixe vazio para github.com. Só preencha para GitHub
                 Enterprise Server (ex.: https://ghe.suaempresa.com).
@@ -124,55 +124,55 @@ component {
           }
         }
 
-        text(class = label_cap, content = "MÉTODO")
+        text(class = u-label-cap, content = "MÉTODO")
 
         tabbar(
-          :value = gp_mode, active = @gp_mode, :items = gp_modes,
-          tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+          :value = git_provider_mode, active = @git_provider_mode, :items = git_provider_modes,
+          tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
         )
 
         // OAuth2
-        if @gp_mode != "pat" {
-          text(class = label_cap, content = "CLIENT ID")
+        if @git_provider_mode != "pat" {
+          text(class = u-label-cap, content = "CLIENT ID")
 
           input(
             placeholder = "",
-            class = field_input,
-            form_control = gp_client_id,
-            :value = gp_client_id,
-            on_change = field:gp_client_id,
+            class = field__input,
+            form_control = git_provider_client_id,
+            :value = git_provider_client_id,
+            on_change = field:git_provider_client_id,
           )
 
-          text(class = label_cap, content = "CLIENT SECRET")
+          text(class = u-label-cap, content = "CLIENT SECRET")
 
           input(
             placeholder = "",
             secure = true,
-            class = field_input,
-            form_control = gp_client_secret,
-            :value = gp_client_secret,
-            on_change = field:gp_client_secret,
+            class = field__input,
+            form_control = git_provider_client_secret,
+            :value = git_provider_client_secret,
+            on_change = field:git_provider_client_secret,
           )
 
           text(
-            class = label_cap,
+            class = u-label-cap,
             content = "REDIRECT URI (cole no app OAuth do provedor)",
           )
 
-          row(class = kv_row) {
-            text(class = kv_val_fill, content = "@gp_redirect")
+          row(class = kv-list__row) {
+            text(class = "kv-list__val kv-list__val--compact", content = "@git_provider_redirect")
 
             button(
-              class = copy_btn,
-              on_click = clipboard:gp_redirect,
+              class = "btn btn--ghost btn--xs",
+              on_click = clipboard:git_provider_redirect,
               text = Copiar,
             )
           }
 
           text(
-            if = @gp_kind,
+            if = @git_provider_kind,
             not_equals = github,
-            class = muted,
+            class = u-muted,
             content = """
               No Gitea: Settings → Applications → crie um OAuth2 app e
               cole a Redirect URI acima.
@@ -180,9 +180,9 @@ component {
           )
 
           text(
-            if = @gp_kind,
+            if = @git_provider_kind,
             equals = github,
-            class = muted,
+            class = u-muted,
             content = """
               No GitHub: Settings → Developer settings → OAuth Apps → New
               OAuth App e cole a Redirect URI acima em "Authorization
@@ -192,22 +192,22 @@ component {
         }
 
         // PAT
-        if @gp_mode == "pat" {
-          text(class = label_cap, content = "PERSONAL ACCESS TOKEN")
+        if @git_provider_mode == "pat" {
+          text(class = u-label-cap, content = "PERSONAL ACCESS TOKEN")
 
           input(
             placeholder = "",
             secure = true,
-            class = field_input,
-            form_control = gp_pat,
-            :value = gp_pat,
-            on_change = field:gp_pat,
+            class = field__input,
+            form_control = git_provider_personal_access_token,
+            :value = git_provider_personal_access_token,
+            on_change = field:git_provider_personal_access_token,
           )
 
           text(
-            if = @gp_kind,
+            if = @git_provider_kind,
             not_equals = github,
-            class = muted,
+            class = u-muted,
             content = """
               No Gitea: Settings → Applications → Generate New Token
               (escopo: repo).
@@ -215,9 +215,9 @@ component {
           )
 
           text(
-            if = @gp_kind,
+            if = @git_provider_kind,
             equals = github,
-            class = muted,
+            class = u-muted,
             content = """
               No GitHub: Settings → Developer settings → Personal access
               tokens → gere um token com escopo "repo".
@@ -225,18 +225,18 @@ component {
           )
         }
 
-        row(class = env_add) {
+        row(class = env__add) {
           button(
-            class = btn_primary,
-            on_click = gp_connect,
-            disabled = @busy_gp_connect,
+            class = "btn btn--primary",
+            on_click = git_provider_connect,
+            disabled = @busy_git_provider_connect,
             text = "Conectar conta",
           )
 
           button(
-            class = tab,
-            on_click = gp_refresh,
-            disabled = @busy_gp_refresh,
+            class = tabs__tab,
+            on_click = git_provider_refresh,
+            disabled = @busy_git_provider_refresh,
             text = "Atualizar lista",
           )
         }

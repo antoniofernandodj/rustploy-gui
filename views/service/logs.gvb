@@ -1,17 +1,17 @@
 // Aba Logs do detalhe do serviço (importada por service.gvb).
 component {
-  column(class = log_panel) {
+  column(class = log-panel) {
     text(
-      class = muted,
+      class = u-muted,
       content = """
         Os logs de runtime abrem numa janela própria, isolada do restante
         do app (para não travar a interface sob alto volume de logs).
       """,
     )
 
-    row(class = env_add) {
+    row(class = env__add) {
       button(
-        class = btn_primary,
+        class = "btn btn--primary",
         on_click = open_logs_window,
         disabled = @busy_open_logs_window,
         text = "Abrir logs em janela",

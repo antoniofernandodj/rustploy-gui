@@ -1,85 +1,85 @@
-// Sub-aba Git do provider: URL/imagem crua; corpo do `if @prov_tab == "git"` de general.gvb.
+// Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab == "git"` de general.gvb.
 component {
   text(
-    class = label_cap,
+    class = u-label-cap,
     content = "SOURCE — REPOSITORY URL / IMAGE",
   )
 
   input(
-    class = field_input,
-    form_control = f_repo_url,
-    :value = f_repo_url,
-    on_change = field:f_repo_url,
+    class = field__input,
+    form_control = service_form_repo_url,
+    :value = service_form_repo_url,
+    on_change = field:service_form_repo_url,
     placeholder = "github.com/user/repo  ou  nginx:latest",
   )
 
   text(
-    class = muted,
+    class = u-muted,
     content = """
       URL de repositório vira Git; caso contrário é imagem de
       registry.
     """,
   )
 
-  row(class = hc_grid) {
-    column(class = hc_field) {
-      text(class = label_cap, content = "BRANCH")
+  row(class = healthcheck__grid) {
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "BRANCH")
 
       input(
-        class = field_input,
-        form_control = f_branch,
-        :value = f_branch,
-        on_change = field:f_branch,
+        class = field__input,
+        form_control = service_form_branch,
+        :value = service_form_branch,
+        on_change = field:service_form_branch,
         placeholder = main,
       )
     }
 
-    column(class = hc_field) {
-      text(class = label_cap, content = "PORT")
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "PORT")
 
       input(
-        class = field_input,
-        form_control = f_gen_port,
-        :value = f_gen_port,
-        on_change = field:f_gen_port,
+        class = field__input,
+        form_control = service_form_general_port,
+        :value = service_form_general_port,
+        on_change = field:service_form_general_port,
         placeholder = 80,
       )
 
       text(
-        if = @erro_f_gen_port,
+        if = @error_service_form_general_port,
         not_equals = "",
-        class = err,
-        content = "@erro_f_gen_port",
+        class = u-error,
+        content = "@error_service_form_general_port",
       )
     }
   }
 
-  row(class = hc_grid) {
-    column(class = hc_field) {
-      text(class = label_cap, content = "USERNAME")
+  row(class = healthcheck__grid) {
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "USERNAME")
 
       input(
-        class = field_input,
-        form_control = f_username,
-        :value = f_username,
-        on_change = field:f_username,
+        class = field__input,
+        form_control = service_form_username,
+        :value = service_form_username,
+        on_change = field:service_form_username,
         placeholder = "(opcional)",
       )
     }
 
-    column(class = hc_field) {
-      text(class = label_cap, content = "CREDENTIALS (secret)")
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "CREDENTIALS (secret)")
 
       input(
-        class = field_input,
-        form_control = f_credentials,
-        :value = f_credentials,
-        on_change = field:f_credentials,
+        class = field__input,
+        form_control = service_form_credentials,
+        :value = service_form_credentials,
+        on_change = field:service_form_credentials,
         placeholder = "(opcional)",
       )
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Nome de um secret do projeto (aba Secrets), puro — sem
           <secret:>. Usado para clonar repositório Git privado
@@ -89,81 +89,81 @@ component {
     }
   }
 
-  text(class = label_cap, content = "BUILD PATH (root)")
+  text(class = u-label-cap, content = "BUILD PATH (root)")
 
   input(
-    class = field_input,
-    form_control = f_build_path,
-    :value = f_build_path,
-    on_change = field:f_build_path,
+    class = field__input,
+    form_control = service_form_build_path,
+    :value = service_form_build_path,
+    on_change = field:service_form_build_path,
     placeholder = .,
   )
 
   text(
-    class = label_cap,
+    class = u-label-cap,
     content = "WATCH PATHS (separados por vírgula)",
   )
 
   input(
-    class = field_input,
-    form_control = f_watch_paths,
-    :value = f_watch_paths,
-    on_change = field:f_watch_paths,
+    class = field__input,
+    form_control = service_form_watch_paths,
+    :value = service_form_watch_paths,
+    on_change = field:service_form_watch_paths,
     placeholder = "src, Cargo.toml",
   )
 
   toggle(
-    :checked = f_submodules,
-    on_toggle = field:f_submodules,
+    :checked = service_form_submodules,
+    on_toggle = field:service_form_submodules,
     label = " Enable submodules",
   )
 
-  text(class = label_cap, content = "BUILD ENGINE: DOCKERFILE")
+  text(class = u-label-cap, content = "BUILD ENGINE: DOCKERFILE")
 
-  row(class = hc_grid) {
-    column(class = hc_field) {
-      text(class = label_cap, content = "DOCKERFILE")
+  row(class = healthcheck__grid) {
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "DOCKERFILE")
 
       input(
-        class = field_input,
-        form_control = f_dockerfile,
-        :value = f_dockerfile,
-        on_change = field:f_dockerfile,
+        class = field__input,
+        form_control = service_form_dockerfile,
+        :value = service_form_dockerfile,
+        on_change = field:service_form_dockerfile,
         placeholder = Dockerfile,
       )
     }
 
-    column(class = hc_field) {
-      text(class = label_cap, content = "CONTEXT PATH")
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "CONTEXT PATH")
 
       input(
-        class = field_input,
-        form_control = f_context_path,
-        :value = f_context_path,
-        on_change = field:f_context_path,
+        class = field__input,
+        form_control = service_form_context_path,
+        :value = service_form_context_path,
+        on_change = field:service_form_context_path,
         placeholder = .,
       )
     }
   }
 
-  text(class = label_cap, content = "BUILD STAGE (opcional)")
+  text(class = u-label-cap, content = "BUILD STAGE (opcional)")
 
   input(
-    class = field_input,
-    form_control = f_build_stage,
-    :value = f_build_stage,
-    on_change = field:f_build_stage,
+    class = field__input,
+    form_control = service_form_build_stage,
+    :value = service_form_build_stage,
+    on_change = field:service_form_build_stage,
     placeholder = "(multi-stage target)",
   )
 
-  row(class = env_add) {
+  row(class = env__add) {
     button(
-      class = btn_primary,
-      on_click = gen_save,
-      disabled = @busy_gen_save,
+      class = "btn btn--primary",
+      on_click = general_save,
+      disabled = @busy_general_save,
       text = Save,
     )
 
-    text(class = muted, content = "@svc_action_msg")
+    text(class = u-muted, content = "@service_action_message")
   }
 }

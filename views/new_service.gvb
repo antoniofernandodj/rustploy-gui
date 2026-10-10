@@ -4,187 +4,183 @@
 component {
   resources {
     component(name = SemTemplates) {
-      text(class = muted, content = "Nenhum template encontrado.")
+      text(class = u-muted, content = "Nenhum template encontrado.")
     }
-
-    style """
-      .warn { color: var(--warn); }
-    """
   }
 
   column(class = content) {
-    row(class = header_row) {
-      column(class = header_titles) {
-        text(class = title, content = "Novo Serviço — @proj_name")
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        text(class = page-head__title, content = "Novo Serviço — @project_name")
 
         text(
-          class = subtitle,
+          class = page-head__subtitle,
           content = "Escolha o tipo e configure o serviço antes de criar.",
         )
       }
 
-      row(class = env_add) {
-        button(class = btn_ghost, on_click = ns_back, disabled = @busy_ns_back, text = "‹ Voltar")
-        button(class = btn_ghost, on_click = ns_cancel, disabled = @busy_ns_cancel, text = Cancelar)
+      row(class = env__add) {
+        button(class = "btn btn--ghost", on_click = new_service_back, disabled = @busy_new_service_back, text = "‹ Voltar")
+        button(class = "btn btn--ghost", on_click = new_service_cancel, disabled = @busy_new_service_cancel, text = Cancelar)
       }
     }
 
-    row(class = busy_row, if = @ns_msg, not_equals = "") {
-      spinner(class = busy_spin, if = @ns_busy)
-      text(class = warn, content = "@ns_msg")
+    row(class = busy-row, if = @new_service_message, not_equals = "") {
+      spinner(class = busy-row__spin, if = @new_service_busy)
+      text(class = u-warn, content = "@new_service_message")
     }
 
     // ── Passo 1: tipo de serviço ────────────────────────────────────────
-    if @ns_step == "pick_type" {
-      column(class = form_panel) {
-        text(class = label_cap, content = "ESCOLHA O TIPO DE SERVIÇO")
+    if @new_service_step == "pick_type" {
+      column(class = form-panel) {
+        text(class = u-label-cap, content = "ESCOLHA O TIPO DE SERVIÇO")
 
-        column(class = kv_list) {
+        column(class = kv-list) {
           PickerRow(
             title = Application,
             subtitle = "Web app via Git ou imagem",
             button_label = "Selecionar ›",
-            action = ns_kind:application,
+            action = new_service_kind:application,
           )
 
           PickerRow(
             title = Database,
             subtitle = "Banco de dados gerenciado",
             button_label = "Selecionar ›",
-            action = ns_kind:database,
+            action = new_service_kind:database,
           )
 
           PickerRow(
             title = Broker,
             subtitle = "Mensageria: Kafka, RabbitMQ, NATS",
             button_label = "Selecionar ›",
-            action = ns_kind:broker,
+            action = new_service_kind:broker,
           )
 
           PickerRow(
             title = Compose,
             subtitle = "Stack Docker Compose",
             button_label = "Selecionar ›",
-            action = ns_kind:compose,
+            action = new_service_kind:compose,
           )
 
           PickerRow(
             title = Template,
             subtitle = "A partir de um preset",
             button_label = "Selecionar ›",
-            action = ns_kind:template,
+            action = new_service_kind:template,
           )
 
           PickerRow(
             title = Importar,
             subtitle = "Recriar um serviço exportado de outro servidor",
             button_label = "Selecionar ›",
-            action = ns_kind:import,
+            action = new_service_kind:import,
           )
         }
       }
     }
 
     // ── Importar serviço exportado (handlers/bundle_import.luau) ────────
-    if @ns_step == "import_form" {
-      column(class = form_panel) {
-        text(class = label_cap, content = "IMPORTAR SERVIÇO EXPORTADO")
+    if @new_service_step == "import_form" {
+      column(class = form-panel) {
+        text(class = u-label-cap, content = "IMPORTAR SERVIÇO EXPORTADO")
 
         text(
-          class = muted,
+          class = u-muted,
           content = """
-            O serviço é criado no projeto @proj_name, sem deploy — revise e
+            O serviço é criado no projeto @project_name, sem deploy — revise e
             clique em Deploy depois. Só a configuração vem no arquivo; os dados
             (volumes, bancos) não.
           """,
         )
 
-        text(class = err, if = @imp_err, not_equals = "", content = "@imp_err")
-        text(class = warn, if = @imp_msg, not_equals = "", content = "@imp_msg")
+        text(class = u-error, if = @import_error, not_equals = "", content = "@import_error")
+        text(class = u-warn, if = @import_message, not_equals = "", content = "@import_message")
 
-        if @imp_report == "true" {
-          row(class = env_add) {
-            text(class = muted, content = "Pacote: @imp_file")
+        if @import_report == "true" {
+          row(class = env__add) {
+            text(class = u-muted, content = "Pacote: @import_file")
             button(
-              class = btn_ghost,
-              on_click = imp_clear,
-              disabled = @busy_imp_clear,
+              class = "btn btn--ghost",
+              on_click = import_clear,
+              disabled = @busy_import_clear,
               text = "Trocar pacote",
             )
           }
 
-          text(class = label_cap, content = "NOME DO SERVIÇO NOVO")
-          input(class = field_input, :value = imp_name, on_change = field:imp_name, placeholder = nome)
+          text(class = u-label-cap, content = "NOME DO SERVIÇO NOVO")
+          input(class = field__input, :value = import_name, on_change = field:import_name, placeholder = nome)
 
           text(
-            class = err,
-            if = @imp_conflict,
+            class = u-error,
+            if = @import_conflict,
             equals = true,
             content = "Já existe um serviço com esse nome neste projeto — escolha outro e clique em Atualizar análise.",
           )
 
-          if @imp_has_warnings == "true" {
-            text(class = label_cap, content = "ATENÇÃO")
-            column(class = kv_list) {
-              template(:for-each = imp_warnings, var = w) {
-                text(class = muted, content = "@w.text")
+          if @import_has_warnings == "true" {
+            text(class = u-label-cap, content = "ATENÇÃO")
+            column(class = kv-list) {
+              template(:for-each = import_warnings, var = w) {
+                text(class = u-muted, content = "@w.text")
               }
             }
           }
 
-          if @imp_has_svc_missing == "true" {
-            text(class = label_cap, content = "VARIÁVEIS DO SERVIÇO SEM VALOR (OBRIGATÓRIO)")
-            text(class = muted, content = "Complete o valor depois do = (uma por linha).")
-            textarea(class = env_editor, font = mono, :value = imp_svc_text)
+          if @import_has_service_missing == "true" {
+            text(class = u-label-cap, content = "VARIÁVEIS DO SERVIÇO SEM VALOR (OBRIGATÓRIO)")
+            text(class = u-muted, content = "Complete o valor depois do = (uma por linha).")
+            textarea(class = env__editor, font = mono, :value = import_service_text)
           }
 
-          if @imp_has_proj_missing == "true" {
-            text(class = label_cap, content = "VARIÁVEIS DO PROJETO SEM VALOR (OBRIGATÓRIO)")
-            text(class = muted, content = "Complete o valor depois do = (uma por linha).")
-            textarea(class = env_editor, font = mono, :value = imp_proj_text)
+          if @import_has_project_missing == "true" {
+            text(class = u-label-cap, content = "VARIÁVEIS DO PROJETO SEM VALOR (OBRIGATÓRIO)")
+            text(class = u-muted, content = "Complete o valor depois do = (uma por linha).")
+            textarea(class = env__editor, font = mono, :value = import_project_text)
           }
 
-          if @imp_has_secret_missing == "true" {
-            text(class = label_cap, content = "SECRETS QUE ESTE PROJETO NÃO TEM")
+          if @import_has_secret_missing == "true" {
+            text(class = u-label-cap, content = "SECRETS QUE ESTE PROJETO NÃO TEM")
             text(
-              class = muted,
+              class = u-muted,
               content = "Informe o valor para criá-los, ou deixe vazio para seguir sem (a referência fica quebrada até você criar o secret).",
             )
-            textarea(class = env_editor, font = mono, :value = imp_secret_text)
+            textarea(class = env__editor, font = mono, :value = import_secret_text)
           }
 
-          if @imp_missing_provider != "" {
-            text(class = label_cap, content = "GIT PROVIDER “@imp_missing_provider” NÃO EXISTE AQUI")
-            text(class = muted, content = "Escolha um provider deste servidor, ou siga sem.")
-            column(class = kv_list) {
-              template(:for-each = imp_providers, var = p) {
+          if @import_missing_provider != "" {
+            text(class = u-label-cap, content = "GIT PROVIDER “@import_missing_provider” NÃO EXISTE AQUI")
+            text(class = u-muted, content = "Escolha um provider deste servidor, ou siga sem.")
+            column(class = kv-list) {
+              template(:for-each = import_providers, var = p) {
                 button(
-                  class = btn_ghost,
-                  on_click = imp_use_provider:@p.id,
-                  disabled = @busy_imp_use_provider,
+                  class = "btn btn--ghost",
+                  on_click = import_use_provider:@p.id,
+                  disabled = @busy_import_use_provider,
                   text = "@p.mark  @p.label",
                 )
               }
             }
           }
 
-          if @imp_has_pe == "true" {
-            text(class = label_cap, content = "VARIÁVEIS DO PROJETO TRAZIDAS")
-            text(class = muted, content = "Nada do projeto é sobrescrito sem você escolher. Clique para trocar a escolha.")
-            column(class = kv_list) {
-              template(:for-each = imp_pe, var = v) {
-                row(class = kv_row) {
-                  text(class = env_key, content = "@v.key")
-                  text(class = muted, content = "@v.info")
+          if @import_has_project_env == "true" {
+            text(class = u-label-cap, content = "VARIÁVEIS DO PROJETO TRAZIDAS")
+            text(class = u-muted, content = "Nada do projeto é sobrescrito sem você escolher. Clique para trocar a escolha.")
+            column(class = kv-list) {
+              template(:for-each = import_project_env, var = v) {
+                row(class = kv-list__row) {
+                  text(class = env__key, content = "@v.key")
+                  text(class = u-muted, content = "@v.info")
                   if @v.can_choose == "true" {
                     button(
-                      class = btn_ghost,
-                      on_click = imp_choice:@v.key,
-                      disabled = @busy_imp_choice,
+                      class = "btn btn--ghost",
+                      on_click = import_choice:@v.key,
+                      disabled = @busy_import_choice,
                       text = "@v.choice",
                     )
                   } else {
-                    text(class = muted, content = "já existe igual — nada a fazer")
+                    text(class = u-muted, content = "já existe igual — nada a fazer")
                   }
                 }
               }
@@ -192,44 +188,44 @@ component {
           }
 
           checkbox(
-            :checked = imp_drop_domains,
-            on_toggle = field:imp_drop_domains,
+            :checked = import_drop_domains,
+            on_toggle = field:import_drop_domains,
             label = "Não trazer os domínios",
           )
 
           checkbox(
-            :checked = imp_deploy,
-            on_toggle = field:imp_deploy,
+            :checked = import_deploy,
+            on_toggle = field:import_deploy,
             label = "Fazer deploy logo depois de criar",
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = btn_primary,
-              on_click = imp_create,
-              disabled = @busy_imp_create,
+              class = "btn btn--primary",
+              on_click = import_create,
+              disabled = @busy_import_create,
               text = "Criar serviço",
             )
             button(
-              class = btn_blue,
-              on_click = imp_analyze,
-              disabled = @busy_imp_analyze,
+              class = "btn btn--blue btn--wide",
+              on_click = import_analyze,
+              disabled = @busy_import_analyze,
               text = "Atualizar análise",
             )
           }
         } else {
           button(
-            class = btn_blue,
-            on_click = imp_pick_file,
-            disabled = @busy_imp_pick_file,
+            class = "btn btn--blue btn--wide",
+            on_click = import_pick_file,
+            disabled = @busy_import_pick_file,
             text = "Escolher arquivo…",
           )
 
-          text(class = label_cap, content = "…OU COLE O TEXTO DO PACOTE")
+          text(class = u-label-cap, content = "…OU COLE O TEXTO DO PACOTE")
           textarea(
-            class = env_editor,
+            class = env__editor,
             font = mono,
-            :value = imp_text,
+            :value = import_text,
             placeholder = l"""
               apiVersion: rustploy/v1
               kind: Service
@@ -238,9 +234,9 @@ component {
           )
 
           button(
-            class = btn_primary,
-            on_click = imp_analyze,
-            disabled = @busy_imp_analyze,
+            class = "btn btn--primary",
+            on_click = import_analyze,
+            disabled = @busy_import_analyze,
             text = Analisar,
           )
         }
@@ -248,89 +244,89 @@ component {
     }
 
     // ── Passo 2 (Database): escolha do banco ───────────────────────────
-    if @ns_step == "pick_db" {
-      column(class = form_panel) {
-        text(class = label_cap, content = "ESCOLHA O BANCO DE DADOS")
+    if @new_service_step == "pick_db" {
+      column(class = form-panel) {
+        text(class = u-label-cap, content = "ESCOLHA O BANCO DE DADOS")
 
-        column(class = kv_list) {
+        column(class = kv-list) {
           PickerRow(
-            :for-each = ns_dbs,
+            :for-each = new_service_databases,
             var = d,
             title = @d.label,
             subtitle = @d.image,
             button_label = "Selecionar ›",
-            action = ns_db:@d.id,
+            action = new_service_database:@d.id,
           )
         }
       }
     }
 
     // ── Passo 2 (Broker): escolha do broker ────────────────────────────
-    if @ns_step == "pick_broker" {
-      column(class = form_panel) {
-        text(class = label_cap, content = "ESCOLHA O BROKER")
+    if @new_service_step == "pick_broker" {
+      column(class = form-panel) {
+        text(class = u-label-cap, content = "ESCOLHA O BROKER")
 
-        column(class = kv_list) {
+        column(class = kv-list) {
           PickerRow(
-            :for-each = ns_brokers,
+            :for-each = new_service_brokers,
             var = b,
             title = @b.label,
             subtitle = @b.image,
             button_label = "Selecionar ›",
-            action = ns_broker:@b.id,
+            action = new_service_broker:@b.id,
           )
         }
       }
     }
 
     // ── Application ─────────────────────────────────────────────────────
-    if @ns_step == "app_form" {
-      form(name = ns_app, on_submit = ns_create, width = fill) {
-        column(class = form_panel) {
-          text(class = label_cap, content = "NOVA APPLICATION")
-          text(class = label_cap, content = "NOME")
+    if @new_service_step == "app_form" {
+      form(name = new_service_app, on_submit = new_service_create, width = fill) {
+        column(class = form-panel) {
+          text(class = u-label-cap, content = "NOVA APPLICATION")
+          text(class = u-label-cap, content = "NOME")
 
           input(
             placeholder = minha-app,
-            class = field_input,
-            form_control = ns_name,
-            :value = ns_name,
-            on_change = field:ns_name,
+            class = field__input,
+            form_control = new_service_name,
+            :value = new_service_name,
+            on_change = field:new_service_name,
           )
 
           text(
-            if = @erro_ns_name,
+            if = @error_new_service_name,
             not_equals = "",
-            class = err,
-            content = "@erro_ns_name",
+            class = u-error,
+            content = "@error_new_service_name",
           )
 
           text(
-            class = label_cap,
+            class = u-label-cap,
             content = "APP NAME (OPCIONAL — usado no lugar do nome)",
           )
 
           input(
             placeholder = "(opcional)",
-            class = field_input,
-            form_control = ns_app_name,
-            :value = ns_app_name,
-            on_change = field:ns_app_name,
+            class = field__input,
+            form_control = new_service_app_name,
+            :value = new_service_app_name,
+            on_change = field:new_service_app_name,
           )
 
           text(
-            class = muted,
+            class = u-muted,
             content = """
               Configure a origem (Git ou imagem) na aba General do serviço
               depois de criar.
             """,
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = btn_primary,
-              on_click = ns_create,
-              disabled = @busy_ns_create,
+              class = "btn btn--primary",
+              on_click = new_service_create,
+              disabled = @busy_new_service_create,
               text = "Criar Application",
             )
           }
@@ -339,52 +335,52 @@ component {
     }
 
     // ── Compose ─────────────────────────────────────────────────────────
-    if @ns_step == "compose_form" {
-      form(name = ns_compose, on_submit = ns_create, width = fill) {
-        column(class = form_panel) {
-          text(class = label_cap, content = "NOVA COMPOSE STACK")
-          text(class = label_cap, content = "NOME")
+    if @new_service_step == "compose_form" {
+      form(name = new_service_compose, on_submit = new_service_create, width = fill) {
+        column(class = form-panel) {
+          text(class = u-label-cap, content = "NOVA COMPOSE STACK")
+          text(class = u-label-cap, content = "NOME")
 
           input(
             placeholder = minha-stack,
-            class = field_input,
-            form_control = ns_name,
-            :value = ns_name,
-            on_change = field:ns_name,
+            class = field__input,
+            form_control = new_service_name,
+            :value = new_service_name,
+            on_change = field:new_service_name,
           )
 
           text(
-            if = @erro_ns_name,
+            if = @error_new_service_name,
             not_equals = "",
-            class = err,
-            content = "@erro_ns_name",
+            class = u-error,
+            content = "@error_new_service_name",
           )
 
           text(
-            class = label_cap,
+            class = u-label-cap,
             content = "APP NAME (OPCIONAL — usado no lugar do nome)",
           )
 
           input(
             placeholder = "(opcional)",
-            class = field_input,
-            form_control = ns_app_name,
-            :value = ns_app_name,
-            on_change = field:ns_app_name,
+            class = field__input,
+            form_control = new_service_app_name,
+            :value = new_service_app_name,
+            on_change = field:new_service_app_name,
           )
 
           text(
-            class = muted,
+            class = u-muted,
             content = """
               Configure o compose file dentro do serviço antes de fazer deploy.
             """,
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = btn_primary,
-              on_click = ns_create,
-              disabled = @busy_ns_create,
+              class = "btn btn--primary",
+              on_click = new_service_create,
+              disabled = @busy_new_service_create,
               text = "Criar Compose Stack",
             )
           }
@@ -393,113 +389,113 @@ component {
     }
 
     // ── Database (form do banco escolhido) ──────────────────────────────
-    if @ns_step == "db_form" {
-      scrollable(direction = vertical, class = scroll_fill) {
-        form(name = ns_db, on_submit = ns_create, width = fill) {
-          column(class = form_panel) {
-            text(class = label_cap, content = "NOVA @ns_db_label")
-            text(class = label_cap, content = "NOME")
+    if @new_service_step == "db_form" {
+      scrollable(direction = vertical, class = u-fill-all) {
+        form(name = new_service_database, on_submit = new_service_create, width = fill) {
+          column(class = form-panel) {
+            text(class = u-label-cap, content = "NOVA @new_service_database_label")
+            text(class = u-label-cap, content = "NOME")
 
             input(
               placeholder = meu-banco,
-              class = field_input,
-              form_control = ns_name,
-              :value = ns_name,
-              on_change = field:ns_name,
+              class = field__input,
+              form_control = new_service_name,
+              :value = new_service_name,
+              on_change = field:new_service_name,
             )
 
             text(
-              if = @erro_ns_name,
+              if = @error_new_service_name,
               not_equals = "",
-              class = err,
-              content = "@erro_ns_name",
+              class = u-error,
+              content = "@error_new_service_name",
             )
 
-            if @ns_db_has_dbname == "true" {
-              text(class = label_cap, content = "DATABASE NAME")
+            if @new_service_database_has_dbname == "true" {
+              text(class = u-label-cap, content = "DATABASE NAME")
 
               input(
                 placeholder = app,
-                class = field_input,
-                form_control = ns_db_name,
-                :value = ns_db_name,
-                on_change = field:ns_db_name,
+                class = field__input,
+                form_control = new_service_database_name,
+                :value = new_service_database_name,
+                on_change = field:new_service_database_name,
               )
             }
 
-            if @ns_db_has_user == "true" {
-              text(class = label_cap, content = "USER")
+            if @new_service_database_has_user == "true" {
+              text(class = u-label-cap, content = "USER")
 
               input(
                 placeholder = user,
-                class = field_input,
-                form_control = ns_db_user,
-                :value = ns_db_user,
-                on_change = field:ns_db_user,
+                class = field__input,
+                form_control = new_service_database_user,
+                :value = new_service_database_user,
+                on_change = field:new_service_database_user,
               )
             }
 
-            text(class = label_cap, content = "PASSWORD (gerada — pode trocar)")
+            text(class = u-label-cap, content = "PASSWORD (gerada — pode trocar)")
 
             input(
               placeholder = "(vazio = sem senha, só no Redis)",
-              class = field_input,
-              form_control = ns_db_password,
-              :value = ns_db_password,
-              on_change = field:ns_db_password,
+              class = field__input,
+              form_control = new_service_database_password,
+              :value = new_service_database_password,
+              on_change = field:new_service_database_password,
             )
 
-            if @ns_db_has_rootpw == "true" {
+            if @new_service_database_has_rootpw == "true" {
               text(
-                class = label_cap,
+                class = u-label-cap,
                 content = "ROOT PASSWORD (gerada — pode trocar)",
               )
 
               input(
                 placeholder = "",
-                class = field_input,
-                form_control = ns_db_root_password,
-                :value = ns_db_root_password,
-                on_change = field:ns_db_root_password,
+                class = field__input,
+                form_control = new_service_database_root_password,
+                :value = new_service_database_root_password,
+                on_change = field:new_service_database_root_password,
               )
             }
 
             checkbox(
               label = "Use Replica Sets",
-              if = @ns_db_has_replica,
+              if = @new_service_database_has_replica,
               equals = true,
-              :checked = ns_use_replica,
-              on_toggle = field:ns_use_replica,
+              :checked = new_service_use_replica,
+              on_toggle = field:new_service_use_replica,
             )
 
             checkbox(
               label = "Gerar URL de conexão externa (porta e firewall automáticos)",
-              :checked = ns_expose_external,
-              on_toggle = field:ns_expose_external,
+              :checked = new_service_expose_external,
+              on_toggle = field:new_service_expose_external,
             )
 
             text(
-              if = @ns_expose_external,
+              if = @new_service_expose_external,
               equals = true,
-              class = muted,
+              class = u-muted,
               content = """
                 O serviço ficará acessível pela internet numa porta alocada pelo
                 rustploy, protegido pela senha acima.
               """,
             )
 
-            text(class = label_cap, content = "DOCKER IMAGE")
+            text(class = u-label-cap, content = "DOCKER IMAGE")
 
-            row(class = kv_row) {
-              text(class = kv_val_fill, content = "@ns_image")
+            row(class = kv-list__row) {
+              text(class = "kv-list__val kv-list__val--compact", content = "@new_service_image")
             }
 
-            row(class = env_add) {
+            row(class = env__add) {
               button(
-                class = btn_primary,
-                on_click = ns_create,
-                disabled = @busy_ns_create,
-                text = "Criar @ns_db_label",
+                class = "btn btn--primary",
+                on_click = new_service_create,
+                disabled = @busy_new_service_create,
+                text = "Criar @new_service_database_label",
               )
             }
           }
@@ -508,23 +504,23 @@ component {
     }
 
     // ── Template: catálogo ───────────────────────────────────────────────
-    if @ns_step == "pick_template" {
-      column(class = env_wrap) {
-        column(class = hc_field) {
-          text(class = label_cap, content = "BUSCAR")
+    if @new_service_step == "pick_template" {
+      column(class = env) {
+        column(class = healthcheck__field) {
+          text(class = u-label-cap, content = "BUSCAR")
 
           input(
             placeholder = "buscar templates…",
-            class = field_input,
-            :value = ns_tsearch,
-            on_change = ns_tsearch,
+            class = field__input,
+            :value = new_service_template_search,
+            on_change = new_service_template_search,
           )
         }
 
-        scrollable(direction = vertical, class = scroll_fill) {
-          column(class = kv_list) {
-            each @ns_templates as t (fallback = SemTemplates) {
-              TemplateRow(spread = @t, action = ns_pick_template:@t.id)
+        scrollable(direction = vertical, class = u-fill-all) {
+          column(class = kv-list) {
+            each @new_service_templates as t (fallback = SemTemplates) {
+              TemplateRow(spread = @t, action = new_service_pick_template:@t.id)
             }
           }
         }
@@ -532,40 +528,40 @@ component {
     }
 
     // ── Template: configuração ───────────────────────────────────────────
-    if @ns_step == "template_form" {
-      scrollable(direction = vertical, class = scroll_fill) {
-        form(name = ns_template, on_submit = ns_create, width = fill) {
-          column(class = form_panel) {
-            text(class = label_cap, content = "@ns_template_name — CONFIGURAR")
-            text(class = label_cap, content = "NOME DO SERVIÇO")
+    if @new_service_step == "template_form" {
+      scrollable(direction = vertical, class = u-fill-all) {
+        form(name = new_service_template, on_submit = new_service_create, width = fill) {
+          column(class = form-panel) {
+            text(class = u-label-cap, content = "@new_service_template_name — CONFIGURAR")
+            text(class = u-label-cap, content = "NOME DO SERVIÇO")
 
             input(
-              placeholder = @ns_template_name,
-              class = field_input,
-              form_control = ns_name,
-              :value = ns_name,
-              on_change = field:ns_name,
+              placeholder = @new_service_template_name,
+              class = field__input,
+              form_control = new_service_name,
+              :value = new_service_name,
+              on_change = field:new_service_name,
             )
 
-            template(:for-each = ns_template_vars, var = v) {
-              column(class = hc_field) {
-                text(class = label_cap, content = "@v.label")
+            template(:for-each = new_service_template_vars, var = v) {
+              column(class = healthcheck__field) {
+                text(class = u-label-cap, content = "@v.label")
 
                 input(
                   placeholder = @v.placeholder,
-                  class = field_input,
-                  :value = ns_tv_@v.idx,
-                  on_change = field:ns_tv_@v.idx,
+                  class = field__input,
+                  :value = new_service_template_variable_value_@v.idx,
+                  on_change = field:new_service_template_variable_value_@v.idx,
                 )
               }
             }
 
-            row(class = env_add) {
+            row(class = env__add) {
               button(
-                class = btn_primary,
-                on_click = ns_create,
-                disabled = @busy_ns_create,
-                text = "Criar @ns_template_name",
+                class = "btn btn--primary",
+                on_click = new_service_create,
+                disabled = @busy_new_service_create,
+                text = "Criar @new_service_template_name",
               )
             }
           }

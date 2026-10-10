@@ -21,35 +21,27 @@ component {
     link(rel = import, href = "components/template_row.gvb", as = TemplateRow)
 
     style """
-      .sidebar { background: var(--surface); }
-      .menu_btn       { color: var(--border); text-color: var(--text); padding: 9 13; border-radius: 5; }
-      .brand_box      { spacing: 2; padding: 0 8 18 8; }
-      .brand          { size: 21; bold: true; color: var(--text); }
-      .brand_sub      { size: 11; color: var(--faint); }
-      .nav_section    { size: 11; bold: true; color: var(--faint); padding: 16 8 6 8; }
-      .nav_spacer     { height: fill; }
-      .main_col       { width: fill; height: fill; }
+      .sidebar          { background: var(--surface); }
+      .brand            { spacing: 2; padding: 0 8 18 8; }
+      .brand__name      { size: 21; bold: true; color: var(--text); }
+      .brand__sub       { size: 11; color: var(--faint); }
+      .sidebar__section { size: 11; bold: true; color: var(--faint); padding: 16 8 6 8; }
+      .sidebar__spacer  { height: fill; }
+      .shell__main      { width: fill; height: fill; }
       /* Top bar */
-      .topbar     { width: fill; padding: 18 28; spacing: 18; align-y: center; }
-      .search     { width: fill; padding: 11 14; }
+      .topbar        { width: fill; padding: 18 28; spacing: 18; align-y: center; }
+      .topbar__menu  { color: var(--border); text-color: var(--text); padding: 9 13; border-radius: 5; }
+      .topbar__search { width: fill; padding: 11 14; }
       /* Ações do cabeçalho do projeto (variantes compactas, à direita) */
-      .btn_sm_primary { color: var(--green); padding: 7 13; border-radius: 4; size: 12 }
-      .btn_sm_ghost   { color: var(--border); padding: 7 12; border-radius: 4; size: 12 }
-      .btn_sm_danger  { color: var(--danger); padding: 7 13; border-radius: 4; size: 12 }
-      .proj_topbar    { width: fill; align-y: center; }
-      .proj_actions   { spacing: 8; align-y: center; }
-      .hspacer        { width: fill; }
-      /* Grid de cards (projetos / serviços) */
-      .grid           { width: fill; spacing: 16; }
-      .card_row       { width: fill; spacing: 16; }
+      .proj-bar          { width: fill; align-y: center; }
+      .proj-bar__actions { spacing: 8; align-y: center; }
       @media (max-width: 900) {
         .topbar { padding: 12 16; spacing: 10; }
       }
 
       @media (max-width: 560) {
-        .topbar { padding: 10 10; spacing: 8; }
-        .search        { hidden: true; }
-        .topbar_status { hidden: true; }
+        .topbar__search { hidden: true; }
+        .topbar__status { hidden: true; }
       }
     """
   }
@@ -64,12 +56,12 @@ component {
       spacing = 6,
       panel_class = sidebar,
     ) {
-      column(class = brand_box) {
-        text(class = brand, content = "Rustploy")
-        text(class = brand_sub, content = "PRODUCTION CLUSTER")
+      column(class = brand) {
+        text(class = brand__name, content = "Rustploy")
+        text(class = brand__sub, content = "PRODUCTION CLUSTER")
       }
 
-      text(class = nav_section, content = "DEPLOYMENT OPS")
+      text(class = sidebar__section, content = "DEPLOYMENT OPS")
 
       NavItem(
         label = Deployments,
@@ -107,7 +99,7 @@ component {
       )
 
       NavItem(label = Docker, icon = "◉", target = docker, action = nav_docker)
-      text(class = nav_section, content = "MANAGEMENT")
+      text(class = sidebar__section, content = "MANAGEMENT")
 
       NavItem(
         label = "Projects (@projects_count)",
@@ -116,7 +108,7 @@ component {
         action = nav_projects,
       )
 
-      column(class = nav_spacer)
+      column(class = sidebar__spacer)
       hr
 
       NavItem(
@@ -135,30 +127,30 @@ component {
     }
 
     // ── Main column ────────────────────────────────────────────────────
-    column(class = main_col) {
+    column(class = shell__main) {
       // Top bar
       row(class = topbar) {
         button(
-          class = menu_btn,
+          class = topbar__menu,
           text = "☰",
           on_click = app:drawer::toggle:menu,
           tooltip = "Mostrar/ocultar o menu",
         )
 
         input(
-          class = search,
+          class = topbar__search,
           :value = search,
           on_change = search_changed,
           placeholder = "Search deployments, nodes…",
         )
 
         text(
-          class = "muted topbar_status",
+          class = "u-muted topbar__status",
           content = "● daemon v@daemon_version",
         )
 
-        button(class = btn_danger, on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")
-        button(class = btn_ghost, on_click = disconnect, disabled = @busy_disconnect, text = Disconnect)
+        button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")
+        button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = Disconnect)
       }
 
       hr

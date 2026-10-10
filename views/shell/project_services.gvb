@@ -7,42 +7,42 @@ component {
     link(rel = import, href = "project_jobs.gvb", as = ProjectJobsTab)
 
     component(name = SemServicosNoProjeto) {
-      text(class = muted, content = "Nenhum serviço neste projeto ainda.")
+      text(class = u-muted, content = "Nenhum serviço neste projeto ainda.")
     }
   }
 
   column(class = content) {
-    row(class = header_row) {
-      column(class = header_titles) {
-        row(class = proj_topbar) {
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        row(class = proj-bar) {
           button(
-            class = btn_ghost,
+            class = "btn btn--ghost",
             on_click = nav_projects,
             disabled = @busy_nav_projects,
             text = "‹ Projetos",
           )
 
-          column(class = hspacer)
+          column(class = u-fill)
 
           if @editing_project != "true" {
-            row(class = proj_actions) {
+            row(class = proj-bar__actions) {
               button(
-                class = btn_sm_primary,
+                class = "btn btn--primary btn--sm",
                 on_click = open_new_service_window,
                 disabled = @busy_open_new_service_window,
                 text = "+ Novo serviço",
               )
 
               button(
-                class = btn_sm_ghost,
+                class = "btn btn--ghost btn--sm",
                 on_click = edit_project_toggle,
                 disabled = @busy_edit_project_toggle,
                 text = "Editar projeto",
               )
 
-              if @proj_can_delete == "1" {
+              if @project_can_delete == "1" {
                 button(
-                  class = btn_sm_danger,
+                  class = "btn btn--danger btn--sm",
                   on_click = delete_project:@selected_project_id,
                   disabled = @busy_delete_project,
                   text = "Remover projeto",
@@ -56,53 +56,53 @@ component {
           form(
             name = edit_project,
             on_submit = save_project_edit,
-            on_validation_error = proj_edit_apontar,
+            on_validation_error = project_edit_show_validation_errors,
             spacing = 6,
             width = fill,
           ) {
             input(
-              class = field_input,
-              form_control = edit_proj_name,
+              class = field__input,
+              form_control = edit_project_name,
               rules = required,
               msg = "informe um nome",
               placeholder = "Nome do projeto",
             )
 
             text(
-              class = err,
-              if = @erro_edit_proj_name,
+              class = u-error,
+              if = @error_edit_project_name,
               not_empty,
-              content = "@erro_edit_proj_name",
+              content = "@error_edit_project_name",
             )
 
             input(
-              class = field_input,
-              form_control = edit_proj_desc,
+              class = field__input,
+              form_control = edit_project_description,
               placeholder = "Descrição (opcional)",
             )
 
-            row(class = env_add) {
-              button(type = submit, disabled = @busy_save_project_edit, class = btn_primary, text = Salvar)
+            row(class = env__add) {
+              button(type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary", text = Salvar)
 
               button(
-                class = btn_ghost,
+                class = "btn btn--ghost",
                 on_click = cancel_project_edit,
                 disabled = @busy_cancel_project_edit,
                 text = Cancelar,
               )
 
-              text(class = muted, content = "@proj_action_msg")
+              text(class = u-muted, content = "@project_action_message")
             }
           }
         } else {
-          text(class = title, content = "@proj_name")
-          text(class = subtitle, content = "@proj_description")
+          text(class = page-head__title, content = "@project_name")
+          text(class = page-head__subtitle, content = "@project_description")
 
           text(
-            if = @proj_action_msg,
+            if = @project_action_message,
             not_equals = "",
-            class = muted,
-            content = "@proj_action_msg",
+            class = u-muted,
+            content = "@project_action_message",
           )
         }
       }
@@ -112,63 +112,63 @@ component {
     row(class = tabs) {
       TabButton(
         label = Serviços,
-        current = @proj_tab,
+        current = @project_tab,
         target = services,
-        action = proj_tab:services,
+        action = project_tab:services,
       )
 
       TabButton(
-        label = "Variáveis (@proj_env_count)",
-        current = @proj_tab,
+        label = "Variáveis (@project_env_count)",
+        current = @project_tab,
         target = env,
-        action = proj_tab:env,
+        action = project_tab:env,
       )
 
       TabButton(
-        label = "Secrets (@proj_secrets_count)",
-        current = @proj_tab,
+        label = "Secrets (@project_secrets_count)",
+        current = @project_tab,
         target = secrets,
-        action = proj_tab:secrets,
+        action = project_tab:secrets,
       )
 
       TabButton(
-        label = "Jobs (@proj_jobs_count)",
-        current = @proj_tab,
+        label = "Jobs (@project_jobs_count)",
+        current = @project_tab,
         target = jobs,
-        action = proj_tab:jobs,
+        action = project_tab:jobs,
       )
     }
 
     hr
 
-    if @proj_loading == "true" {
+    if @project_loading == "true" {
       LoadingRow
     }
 
-    if @proj_tab == "env" {
+    if @project_tab == "env" {
       // ── Variáveis de ambiente do projeto ──────────────────────
-    ProjectEnvTab(if = @proj_loading, not_equals = true)
+    ProjectEnvTab(if = @project_loading, not_equals = true)
     }
 
-    if @proj_tab == "secrets" {
+    if @project_tab == "secrets" {
       // ── Secrets do projeto ──────────────────────────────────────
-    ProjectSecretsTab(if = @proj_loading, not_equals = true)
+    ProjectSecretsTab(if = @project_loading, not_equals = true)
     }
 
-    if @proj_tab == "jobs" {
+    if @project_tab == "jobs" {
       ProjectJobsTab
     }
 
-    if @proj_tab == "services" {
+    if @project_tab == "services" {
       scrollable(
-        if = @proj_loading,
+        if = @project_loading,
         not_equals = true,
         direction = vertical,
-        class = scroll_fill,
+        class = u-fill-all,
       ) {
         column(class = grid) {
           each @project_services as r (fallback = SemServicosNoProjeto) {
-            row(class = card_row) {
+            row(class = grid__row) {
               ServiceCard(:for-each = r.cards, var = c, spread = @c)
             }
           }

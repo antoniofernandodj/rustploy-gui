@@ -21,39 +21,40 @@ local function client(): Api.Client?
 end
 
 function init(): ()
-    -- `np_name`/`np_desc` são as chaves que os `form_control` do form(...) ligam
+    -- `new_project_name`/`new_project_description` são as chaves que os
+    -- `form_control` do form(...) ligam
     -- (sem `value=`/`on_change=`: o motor grava sozinho). Só o valor inicial é
     -- semeado aqui; os `erro_np_*` são publicados pelo motor na validação.
-    ctx.np_name = ctx.np_name or ""
-    ctx.np_desc = ctx.np_desc or ""
-    ctx.np_err = ""
-    ctx.np_msg = ""
-    ctx.np_busy = ""
+    ctx.new_project_name = ctx.new_project_name or ""
+    ctx.new_project_description = ctx.new_project_description or ""
+    ctx.new_project_error = ""
+    ctx.new_project_message = ""
+    ctx.new_project_busy = ""
 end
 
 -- on_validation_error do form(...): as falhas já vêm prontas em JSON
 -- (`[{campo,msg}]`) e os `{erro_<campo>}` + o `:invalid` já estão na tela —
 -- aqui é só o aviso.
-function np_apontar(_erros_json: string?): ()
-    ctx.np_msg = ""
+function new_project_show_validation_errors(_erros_json: string?): ()
+    ctx.new_project_message = ""
     toast{ message = "Corrija os campos destacados", kind = "warning" }
 end
 
 -- on_submit do form(...): só roda quando a validação (rules="required" no campo
--- NOME) passou, então `np_name` está garantidamente preenchido. `fetch` (dentro
+-- NOME) passou, então `new_project_name` está garantidamente preenchido. `fetch` (dentro
 -- de rpc_checked) SUSPENDE a corrotina; ao voltar, em sucesso avisa a janela
 -- principal e se fecha.
 function submit_project(): ()
     local api = client()
     if not api then
-        ctx.np_err = "sem conexão — reabra a janela pelo app"
+        ctx.new_project_error = "sem conexão — reabra a janela pelo app"
         return
     end
-    ctx.np_err = ""
-    local name = Helpers.trim(ctx.np_name)
-    local desc = Helpers.trim(ctx.np_desc)
-    ctx.np_msg = "criando…"
-    ctx.np_busy = "true"
+    ctx.new_project_error = ""
+    local name = Helpers.trim(ctx.new_project_name)
+    local desc = Helpers.trim(ctx.new_project_description)
+    ctx.new_project_message = "criando…"
+    ctx.new_project_busy = "true"
 
     local ok, res = api:rpc_checked{
         ProjectCreate = {
@@ -61,10 +62,10 @@ function submit_project(): ()
             description = (desc ~= "" and desc or nil),
         },
     }
-    ctx.np_busy = ""
+    ctx.new_project_busy = ""
     if not ok then
-        ctx.np_msg = ""
-        ctx.np_err = "erro: " .. tostring(res)
+        ctx.new_project_message = ""
+        ctx.new_project_error = "erro: " .. tostring(res)
         return
     end
 

@@ -8,7 +8,7 @@ component {
 
   resources {
     style """
-    .stat_card  {
+    .stat-card {
       background: var(--surface);
       border-radius: 6;
       border-width: 1;
@@ -17,23 +17,14 @@ component {
       spacing: 6;
     }
 
-    .stat_num   {
-      size: 26;
-      bold: true;
-      color: var(--accent);
-    }
-
-    .stat_num_g {
-      size: 26;
-      bold: true;
-      color: var(--ok);
-    }
+    .stat-card__num     { size: 26; bold: true; color: var(--accent); }
+    .stat-card__num--ok { color: var(--ok); }
     """
   }
 
-  column(class = stat_card) {
-    text(class = label_cap, content = "@label")
-    text(class = stat_num_g, if = @accent, equals = 1, content = "@value")
-    text(class = stat_num, else, content = "@value")
+  column(class = stat-card) {
+    text(class = u-label-cap, content = "@label")
+    text(class = "stat-card__num stat-card__num--ok", if = @accent, equals = 1, content = "@value")
+    text(class = stat-card__num, else, content = "@value")
   }
 }

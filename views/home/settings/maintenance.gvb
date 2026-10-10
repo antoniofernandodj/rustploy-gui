@@ -2,18 +2,18 @@
 // docs/plano-limpeza-automatica-docker.md) — mesmas funções dos botões
 // manuais da aba Docker, disparadas por agendamento em vez de clique.
 component {
-  scrollable(direction = vertical, class = scroll_fill) {
-    column(class = form_panel) {
-      text(class = label_cap, content = "LIMPEZA AUTOMÁTICA")
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-panel) {
+      text(class = u-label-cap, content = "LIMPEZA AUTOMÁTICA")
 
       toggle(
-        :checked = dc_enabled,
-        on_toggle = field:dc_enabled,
+        :checked = docker_cleanup_enabled,
+        on_toggle = field:docker_cleanup_enabled,
         label = "  Ativar limpeza automática",
       )
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Roda sozinha, no horário abaixo, os recursos marcados nesta
           tela. Desligada por padrão — nada é removido até você marcar
@@ -21,23 +21,23 @@ component {
         """,
       )
 
-      text(class = label_cap, content = "FREQUÊNCIA")
+      text(class = u-label-cap, content = "FREQUÊNCIA")
 
       tabbar(
-        :value = dc_kind, active = @dc_kind, :items = dc_kinds,
-        tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+        :value = docker_cleanup_kind, active = @docker_cleanup_kind, :items = docker_cleanup_kinds,
+        tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
       )
 
-      row(class = hc_grid, if = @dc_kind, equals = interval) {
-        column(class = hc_field) {
-          text(class = label_cap, content = "A CADA (HORAS)")
+      row(class = healthcheck__grid, if = @docker_cleanup_kind, equals = interval) {
+        column(class = healthcheck__field) {
+          text(class = u-label-cap, content = "A CADA (HORAS)")
 
           // Teto de 168 = uma semana. Acima disso o usuário quer a
           // frequência "semanal", que é a aba ao lado.
           spinbox(
-            field_class = spin_field,
-            form_control = dc_hours,
-            :value = dc_hours,
+            field_class = field__spin,
+            form_control = docker_cleanup_hours,
+            :value = docker_cleanup_hours,
             min = 1,
             max = 168,
             width = 90,
@@ -46,62 +46,62 @@ component {
         }
       }
 
-      row(class = tabs, if = @dc_kind, equals = weekly) {
-        radiogroup(:value = dc_weekday, :items = weekdays, layout = row)
+      row(class = tabs, if = @docker_cleanup_kind, equals = weekly) {
+        radiogroup(:value = docker_cleanup_weekday, :items = weekdays, layout = row)
       }
 
-      row(class = hc_grid, if = @dc_kind, not_equals = interval) {
-        column(class = hc_field) {
-          text(class = label_cap, content = "HORÁRIO")
-          timeedit(:value = dc_time)
+      row(class = healthcheck__grid, if = @docker_cleanup_kind, not_equals = interval) {
+        column(class = healthcheck__field) {
+          text(class = u-label-cap, content = "HORÁRIO")
+          timeedit(:value = docker_cleanup_time)
         }
       }
 
       text(
-        class = muted,
-        content = "Próxima execução agendada: @dc_next_run_label",
+        class = u-muted,
+        content = "Próxima execução agendada: @docker_cleanup_next_run_label",
       )
 
       hr
-      text(class = label_cap, content = "O QUE LIMPAR")
+      text(class = u-label-cap, content = "O QUE LIMPAR")
 
       checkbox(
-        :checked = dc_containers,
-        on_toggle = field:dc_containers,
+        :checked = docker_cleanup_containers,
+        on_toggle = field:docker_cleanup_containers,
         label = "Containers parados",
       )
 
       checkbox(
-        :checked = dc_images,
-        on_toggle = field:dc_images,
+        :checked = docker_cleanup_images,
+        on_toggle = field:docker_cleanup_images,
         label = "Imagens sem uso",
       )
 
       checkbox(
-        if = @dc_images,
+        if = @docker_cleanup_images,
         equals = true,
-        :checked = dc_images_all,
-        on_toggle = field:dc_images_all,
+        :checked = docker_cleanup_images_all,
+        on_toggle = field:docker_cleanup_images_all,
         label = "   incluir todas as não usadas (não só as sem tag)",
       )
 
       checkbox(
-        :checked = dc_networks,
-        on_toggle = field:dc_networks,
+        :checked = docker_cleanup_networks,
+        on_toggle = field:docker_cleanup_networks,
         label = "Redes sem uso",
       )
 
       checkbox(
-        :checked = dc_build_cache,
-        on_toggle = field:dc_build_cache,
+        :checked = docker_cleanup_build_cache,
+        on_toggle = field:docker_cleanup_build_cache,
         label = "Cache de build",
       )
 
       hr
-      text(class = "label_cap err", content = "VOLUMES — CUIDADO")
+      text(class = "u-label-cap u-error", content = "VOLUMES — CUIDADO")
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Volumes sem uso criados por fora do rustploy (não pelos seus
           serviços, que só usam bind mount) podem conter dado que ninguém
@@ -111,44 +111,44 @@ component {
       )
 
       checkbox(
-        :checked = dc_volumes,
-        on_toggle = field:dc_volumes,
+        :checked = docker_cleanup_volumes,
+        on_toggle = field:docker_cleanup_volumes,
         label = "Volumes sem uso",
       )
 
       checkbox(
-        if = @dc_volumes,
+        if = @docker_cleanup_volumes,
         equals = true,
-        :checked = dc_volumes_all,
-        on_toggle = field:dc_volumes_all,
+        :checked = docker_cleanup_volumes_all,
+        on_toggle = field:docker_cleanup_volumes_all,
         label = "   incluir todos os sem uso (não só os anônimos)",
       )
 
-      row(class = env_add) {
-        button(class = btn_primary, on_click = dc_save, disabled = @busy_dc_save, text = Salvar)
+      row(class = env__add) {
+        button(class = "btn btn--primary", on_click = docker_cleanup_save, disabled = @busy_docker_cleanup_save, text = Salvar)
 
         button(
-          class = tab,
-          if = @dc_running,
+          class = tabs__tab,
+          if = @docker_cleanup_running,
           not_equals = true,
-          on_click = dc_run_now,
-          disabled = @busy_dc_run_now,
+          on_click = docker_cleanup_run_now,
+          disabled = @busy_docker_cleanup_run_now,
           text = "Executar agora",
         )
 
         button(
-          class = tab,
-          if = @dc_running,
+          class = tabs__tab,
+          if = @docker_cleanup_running,
           equals = true,
           text = "Executando…",
         )
 
-        text(class = muted, content = "@dc_msg")
+        text(class = u-muted, content = "@docker_cleanup_message")
       }
 
       hr
-      text(class = label_cap, content = "ÚLTIMA EXECUÇÃO")
-      text(class = muted, content = "@dc_last_run_text")
+      text(class = u-label-cap, content = "ÚLTIMA EXECUÇÃO")
+      text(class = u-muted, content = "@docker_cleanup_last_run_text")
     }
   }
 }

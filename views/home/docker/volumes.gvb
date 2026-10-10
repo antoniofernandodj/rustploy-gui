@@ -3,13 +3,13 @@
 component {
   resources {
     component(name = SemVolumes) {
-      text(class = muted, content = "Nenhum volume.")
+      text(class = u-muted, content = "Nenhum volume.")
     }
   }
 
-  column(class = panel_fill) {
-    row(class = env_head) {
-      text(class = muted_fill, content = "@docker_volumes_count volume(s)")
+  column(class = "panel panel--fill") {
+    row(class = env__head) {
+      text(class = "u-muted u-fill", content = "@docker_volumes_count volume(s)")
 
       // O filtro mora em fmt.docker_volumes — ver images.gvb.
       checkbox(
@@ -25,7 +25,7 @@ component {
       )
 
       button(
-        class = btn_danger,
+        class = "btn btn--danger",
         on_click = docker_prune_volumes,
         disabled = @busy_docker_prune_volumes,
         text = "Limpar sem uso",
@@ -33,46 +33,46 @@ component {
     }
 
     text(
-      if = @docker_msg,
+      if = @docker_message,
       not_equals = "",
-      class = muted,
-      content = "@docker_msg",
+      class = u-muted,
+      content = "@docker_message",
     )
 
     tableview(
       :items = docker_volumes,
       :sort = docker_volumes_sort,
       var = v,
-      header_class = "thead th",
-      row_class = "trow td tv_row",
-      class = scroll_fill,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = NOME, class = col_svc) {
-        text(class = td_key, content = "@v.name")
+      tablecolumn(key = name, label = NOME, class = table__col-svc) {
+        text(class = "table__cell table__cell--key", content = "@v.name")
       }
 
-      tablecolumn(key = driver, label = DRIVER, class = col_proj)
+      tablecolumn(key = driver, label = DRIVER, class = table__col-proj)
 
       tablecolumn(
         key = size,
         sort_key = size_bytes,
         label = TAMANHO,
-        class = col_dur,
+        class = table__col-dur,
       ) {
-        text(class = muted, content = "@v.size")
+        text(class = u-muted, content = "@v.size")
       }
 
-      tablecolumn(key = in_use_label, label = USO, class = col_state) {
+      tablecolumn(key = in_use_label, label = USO, class = table__col-state) {
         StateCell(kind = @v.in_use_kind, label = @v.in_use_label)
       }
 
-      tablecolumn(label = "AÇÃO", class = col_act) {
+      tablecolumn(label = "AÇÃO", class = table__col-act) {
         button(
           if = @v.in_use_label,
           equals = "SEM USO",
-          class = dk_rm,
-          on_click = docker_rm_volume:@v.name_full,
-          disabled = @busy_docker_rm_volume,
+          class = "btn btn--danger btn--xs",
+          on_click = docker_remove_volume:@v.name_full,
+          disabled = @busy_docker_remove_volume,
           text = Remover,
         )
       }

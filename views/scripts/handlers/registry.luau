@@ -24,11 +24,11 @@ function registry_open_repo(name: string): ()
     if ok and res.RegistryTags then
         ctx.registry_tags = fmt.registry_tags(res.RegistryTags)
         ctx.registry_tags_count = tostring(#res.RegistryTags)
-        ctx.registry_msg = ""
+        ctx.registry_message = ""
     else
         ctx.registry_tags = "[]"
         ctx.registry_tags_count = "0"
-        ctx.registry_msg = "erro: " .. tostring(res)
+        ctx.registry_message = "erro: " .. tostring(res)
     end
     ctx.registry_tags_loading = "false"
 end
@@ -45,7 +45,7 @@ end
 -- repositório é lido de ctx.registry_selected_repo (a tag só é visível dentro de
 -- um repo já aberto).
 
-function registry_rm_tag(tag: string): ()
+function registry_remove_tag(tag: string): ()
     local ok_confirm = confirm{
         title = "Remover tag?",
         message = "A tag será removida. Se outra tag apontar pro mesmo manifest (mesma imagem), ela também é removida — o delete é por digest, não por tag. O disco é liberado pelo botão \"Executar GC\". Ação irreversível.",
@@ -62,22 +62,22 @@ function registry_rm_tag(tag: string): ()
     if not api or not repo or repo == "" then
         return
     end
-    ctx.registry_msg = "removendo tag…"
+    ctx.registry_message = "removendo tag…"
     local ok, res = api:rpc_checked{
         RegistryTagDelete = { repo = repo, tag = tag }
     }
     if ok then
-        ctx.registry_msg = "removida"
+        ctx.registry_message = "removida"
         registry_open_repo(repo)
         Stream.refresh_now()
     else
-        ctx.registry_msg = "erro: " .. tostring(res)
+        ctx.registry_message = "erro: " .. tostring(res)
     end
 end
 
 
 
-function registry_rm_repo(name: string): ()
+function registry_remove_repo(name: string): ()
     local ok_confirm = confirm{
         title = "Remover repositório?",
         message = "Todas as tags e manifests do repositório serão removidos. O disco é liberado pelo botão \"Executar GC\". Ação irreversível.",
@@ -93,16 +93,16 @@ function registry_rm_repo(name: string): ()
     if not api then
         return
     end
-    ctx.registry_msg = "removendo repositório…"
+    ctx.registry_message = "removendo repositório…"
     local ok, res = api:rpc_checked{ RegistryRepoDelete = { repo = name } }
     if ok then
-        ctx.registry_msg = "removido"
+        ctx.registry_message = "removido"
         if ctx.registry_selected_repo == name then
             registry_close_repo()
         end
         Stream.refresh_now()
     else
-        ctx.registry_msg = "erro: " .. tostring(res)
+        ctx.registry_message = "erro: " .. tostring(res)
     end
 end
 
@@ -127,15 +127,15 @@ function registry_gc(): ()
     if not api then
         return
     end
-    ctx.registry_msg = "executando GC…"
+    ctx.registry_message = "executando GC…"
     local ok, res = api:rpc_checked("RegistryGc")
     if ok and res.RegistryGcResult then
-        ctx.registry_msg = string.format("GC: %d arquivo(s) removido(s) · %s liberados",
+        ctx.registry_message = string.format("GC: %d arquivo(s) removido(s) · %s liberados",
             res.RegistryGcResult.blobs_removed or 0,
             fmt.fmt_bytes(res.RegistryGcResult.bytes_freed or 0))
         Stream.refresh_now()
     else
-        ctx.registry_msg = "erro: " .. tostring(res)
+        ctx.registry_message = "erro: " .. tostring(res)
     end
 end
 
@@ -171,7 +171,7 @@ function registry_open_token_window(): ()
     }
 end
 
-function registry_rm_token(name: string): ()
+function registry_remove_token(name: string): ()
     local ok_confirm = confirm{
         title = "Revogar token?",
         message = "Qualquer `docker login`/push/pull usando esse token deixa de funcionar imediatamente. Ação irreversível.",
@@ -187,13 +187,17 @@ function registry_rm_token(name: string): ()
     if not api then
         return
     end
-    ctx.registry_msg = "revogando token…"
-    local ok, res = api:rpc_checked{ RegistryTokenRevoke = { name = name } }
+    ctx.registry_message = "revogando token…"
+    local ok, res = api:rpc_checked{
+        RegistryTokenRevoke = {
+            name = name
+        }
+    }
     if ok then
-        ctx.registry_msg = "token revogado"
+        ctx.registry_message = "token revogado"
         registry_refresh_tokens()
     else
-        ctx.registry_msg = "erro: " .. tostring(res)
+        ctx.registry_message = "erro: " .. tostring(res)
     end
 end
 

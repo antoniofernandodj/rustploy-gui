@@ -4,98 +4,84 @@
 screen(title = "Novo projeto — Rustploy") {
   resources {
     style """
-      /* Titlebar custom (mesma linguagem visual do app.gv) */
-      .titlebar       { width: fill; height: 32; background: var(--surface); align-y: center; }
-      .titlebar_drag  { width: fill; height: fill; align-y: center; padding: 0 0 0 16; spacing: 9; }
-      .titlebar_dot   { size: 10; color: var(--blue); }
-      .titlebar_title { size: 12; bold: true; color: var(--muted); }
-      .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
-      .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
-
-      .np_screen  { width: fill; height: fill; }
-      .np_wrap    { width: fill; height: fill; padding: 24; spacing: 18; }
-      .np_head    { width: fill; spacing: 5; }
-      .np_title   { size: 20; bold: true; color: var(--text); }
-      .np_group   { width: fill; spacing: 6; }
-      .np_label   { size: 11; bold: true; color: var(--muted); }
-      .np_input   { width: fill; }
-      .np_actions { width: fill; spacing: 10; align-y: center; }
-      .np_spacer  { width: fill; }
+    .dialog__wrap  { width: fill; height: fill; padding: 24; spacing: 18; }
+    .dialog__head  { width: fill; spacing: 5; }
+    .dialog__title { size: 20; bold: true; color: var(--text); }
     """
 
     script(src = "scripts/new_project_window.luau")
   }
 
-  column(class = np_screen) {
+  column(class = dialog__screen) {
     row(class = titlebar) {
-      row(class = titlebar_drag, on_press = window:drag) {
-        text(class = titlebar_dot, content = "●")
-        text(class = titlebar_title, content = "Novo projeto — Rustploy")
+      row(class = titlebar__drag, on_press = window:drag) {
+        text(class = titlebar__dot, content = "●")
+        text(class = titlebar__title, content = "Novo projeto — Rustploy")
       }
 
-      button(class = win_btn, on_click = window:minimize, text = "—")
-      button(class = win_close, on_click = window:close, text = "✕")
+      button(class = titlebar__btn, on_click = window:minimize, text = "—")
+      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
     }
 
-    column(class = np_wrap) {
-      column(class = np_head) {
-        text(class = np_title, content = "Novo projeto")
+    column(class = dialog__wrap) {
+      column(class = dialog__head) {
+        text(class = dialog__title, content = "Novo projeto")
 
         text(
-          class = muted,
+          class = u-muted,
           content = "Cadastre um projeto no cluster conectado.",
         )
       }
 
       form(
-        name = np_form,
+        name = new_project_form,
         on_submit = submit_project,
-        on_validation_error = np_apontar,
+        on_validation_error = new_project_show_validation_errors,
         width = fill,
         spacing = 14,
       ) {
-        column(class = np_group) {
-          text(class = np_label, content = "NOME")
+        column(class = field) {
+          text(class = field__label, content = "NOME")
 
           input(
-            class = np_input,
-            form_control = np_name,
+            class = dialog__input,
+            form_control = new_project_name,
             rules = required,
             msg = "informe um nome",
             placeholder = "Nome do projeto",
           )
 
           text(
-            class = err,
-            if = @erro_np_name,
+            class = u-error,
+            if = @error_new_project_name,
             not_empty,
-            content = "@erro_np_name",
+            content = "@error_new_project_name",
           )
         }
 
-        column(class = np_group) {
-          text(class = np_label, content = "DESCRIÇÃO (OPCIONAL)")
+        column(class = field) {
+          text(class = field__label, content = "DESCRIÇÃO (OPCIONAL)")
 
           input(
-            class = np_input,
-            form_control = np_desc,
+            class = dialog__input,
+            form_control = new_project_description,
             placeholder = Descrição,
           )
         }
 
         // Erros de rede/RPC (não de campo) e o status "criando…" — spinner
-        // enquanto o RPC está no ar ({np_busy}).
-        text(if = @np_err, not_equals = "", class = err, content = "@np_err")
+        // enquanto o RPC está no ar ({new_project_busy}).
+        text(if = @new_project_error, not_equals = "", class = u-error, content = "@new_project_error")
 
-        row(class = busy_row, if = @np_msg, not_equals = "") {
-          spinner(class = busy_spin, if = @np_busy)
-          text(class = muted, content = "@np_msg")
+        row(class = busy-row, if = @new_project_message, not_equals = "") {
+          spinner(class = busy-row__spin, if = @new_project_busy)
+          text(class = u-muted, content = "@new_project_message")
         }
 
-        row(class = np_actions) {
-          column(class = np_spacer)
-          button(class = btn_ghost, on_click = cancel, disabled = @busy_cancel, text = Cancelar)
-          button(type = submit, disabled = @busy_submit_project, class = btn_primary, text = "Criar projeto")
+        row(class = dialog__actions) {
+          column(class = u-fill)
+          button(class = "btn btn--ghost", on_click = cancel, disabled = @busy_cancel, text = Cancelar)
+          button(type = submit, disabled = @busy_submit_project, class = "btn btn--primary", text = "Criar projeto")
         }
       }
     }

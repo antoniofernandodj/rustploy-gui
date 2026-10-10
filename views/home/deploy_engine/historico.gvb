@@ -3,7 +3,7 @@ component {
   resources {
     component(name = SemDeployRecente) {
       text(
-        class = empty_state,
+        class = empty-state,
         content = "Nenhum deploy concluído nas últimas 24h.",
       )
     }
@@ -11,40 +11,40 @@ component {
 
   // Histórico 24h: a única lista que cresce sem limite — é ela que fica
   // com o espaço restante da tela e com o scroll.
-  column(class = section_fill) {
-    row(class = section_head) {
+  column(class = "section section--fill") {
+    row(class = section__head) {
       text(
-        class = section_title,
-        content = "HISTÓRICO 24H (@eng_recent_count)",
+        class = section__title,
+        content = "HISTÓRICO 24H (@deploy_engine_recent_count)",
       )
     }
 
     // O cabeçalho só aparece com algum deploy — sem nenhum, só o aviso.
-    if @eng_recent is empty {
-      column(class = section_body) {
+    if @deploy_engine_recent is empty {
+      column(class = section__body) {
         SemDeployRecente
       }
     } else {
-      column(class = section_scroll) {
+      column(class = section__scroll) {
         tableview(
-          :items = eng_recent,
-          :sort = eng_recent_sort,
+          :items = deploy_engine_recent,
+          :sort = deploy_engine_recent_sort,
           var = r,
-          header_class = "thead th",
-          row_class = "trow td tv_row",
-          class = scroll_fill,
+          header_class = "table__head table__head-cell",
+          row_class = "table__row table__cell table__row--divided",
+          class = u-fill-all,
         ) {
-          tablecolumn(label = " ", class = col_icon) {
-            text(class = td, content = "@r.icon")
+          tablecolumn(label = " ", class = table__col-icon) {
+            text(class = table__cell, content = "@r.icon")
           }
 
-          tablecolumn(key = service, label = "SERVIÇO", class = col_svc) {
-            text(class = td_key, content = "@r.service")
+          tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
+            text(class = "table__cell table__cell--key", content = "@r.service")
           }
 
-          tablecolumn(key = project, label = PROJETO, class = col_proj)
+          tablecolumn(key = project, label = PROJETO, class = table__col-proj)
 
-          tablecolumn(key = state_label, label = ESTADO, class = col_state) {
+          tablecolumn(key = state_label, label = ESTADO, class = table__col-state) {
             StateCell(kind = @r.state_kind, label = @r.state_label)
           }
 
@@ -52,18 +52,18 @@ component {
             key = duration,
             sort_key = elapsed_secs,
             label = "DURAÇÃO",
-            class = col_dur,
+            class = table__col-dur,
           ) {
-            text(class = muted, content = "@r.duration")
+            text(class = u-muted, content = "@r.duration")
           }
 
           tablecolumn(
             key = start,
             sort_key = start_iso,
             label = "INÍCIO",
-            class = col_start,
+            class = table__col-start,
           ) {
-            text(class = muted, content = "@r.start")
+            text(class = u-muted, content = "@r.start")
           }
         }
       }

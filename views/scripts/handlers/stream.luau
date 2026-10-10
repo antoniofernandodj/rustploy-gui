@@ -60,18 +60,18 @@ local function update_open_project(): ()
     if not proj then
         return
     end
-    local proj_pairs = {}
+    local project_pairs = {}
     for _, e in ipairs(State.last_pairs) do
         if e.svc.spec.project_id == pid then
-            table.insert(proj_pairs, e)
+            table.insert(project_pairs, e)
         end
     end
-    ctx.proj_name = proj.name
-    ctx.proj_description = proj.description or ""
-    ctx.proj_can_delete = (#proj_pairs == 0) and "1" or "0"
-    ctx.proj_loading = "false"
+    ctx.project_name = proj.name
+    ctx.project_description = proj.description or ""
+    ctx.project_can_delete = (#project_pairs == 0) and "1" or "0"
+    ctx.project_loading = "false"
     ctx.project_services = fmt.service_rows(
-        proj_pairs,
+        project_pairs,
         State.metrics_by_id,
         State.search_term
     )
@@ -79,35 +79,35 @@ local function update_open_project(): ()
     -- nasce "Variáveis ()" até a primeira edição.
     local penv = proj.env_vars or {}
     local pcomments = proj.env_comments or {}
-    ctx.proj_env = fmt.env_json_with_comments(penv, pcomments)
-    ctx.proj_env_count = tostring(#penv)
-    -- O snapshot chega ~1x/s; se reescrevêssemos proj_env_text (o value do
+    ctx.project_env = fmt.env_json_with_comments(penv, pcomments)
+    ctx.project_env_count = tostring(#penv)
+    -- O snapshot chega ~1x/s; se reescrevêssemos project_env_text (o value do
     -- textarea) toda vez, o que o usuário digita seria resetado. Só
     -- ressincroniza o editor .env quando ele está fechado.
-    if ctx.penv_text_open ~= "true" then
+    if ctx.project_env_text_open ~= "true" then
         local pdotenv = fmt.env_dotenv_with_comments(penv, pcomments)
-        ctx.proj_env_text = pdotenv
-        ctx.proj_env_text_orig = pdotenv
+        ctx.project_env_text = pdotenv
+        ctx.project_env_text_original = pdotenv
     end
 
     -- Aba "Secrets (N)": só os nomes — `projects[].secrets` vem do snapshot
     -- (ver http_api.rs::snapshot), nunca o valor. A mesma lista alimenta os
     -- chips de "usar secret" da aba Variáveis.
     local secrets = proj.secrets or {}
-    ctx.proj_secrets = fmt.secret_rows(secrets)
-    ctx.proj_secrets_count = tostring(#secrets)
+    ctx.project_secrets = fmt.secret_rows(secrets)
+    ctx.project_secrets_count = tostring(#secrets)
 
     -- Aba "Jobs (N)": jobs deste projeto (filtrados do `msg.jobs` global —
     -- já busca tudo a cada snapshot, sem RPC extra).
-    local proj_jobs = {}
+    local project_jobs = {}
     for _, s in ipairs(snap.jobs or {}) do
         if s.job.project_id == pid then
-            table.insert(proj_jobs, s)
+            table.insert(project_jobs, s)
         end
     end
-    local jobs_json, jobs_count = fmt.job_summaries(proj_jobs, State.jobs_inflight)
-    ctx.proj_jobs = jobs_json
-    ctx.proj_jobs_count = tostring(jobs_count)
+    local jobs_json, jobs_count = fmt.job_summaries(project_jobs, State.jobs_inflight)
+    ctx.project_jobs = jobs_json
+    ctx.project_jobs_count = tostring(jobs_count)
 end
 
 M.update_open_project = update_open_project
@@ -128,23 +128,23 @@ local function refresh_jobs_summary_local(): ()
 end
 M.refresh_jobs_summary_local = refresh_jobs_summary_local
 
-local function refresh_eng_detail(active: {any}?): ()
-    local id = (ctx :: any).eng_detail_id
+local function refresh_deploy_engine_detail(active: {any}?): ()
+    local id = (ctx :: any).deploy_engine_detail_id
     if id == nil or id == "" then
         return
     end
     for _, info in ipairs(active or {}) do
         if info.service_id == id then
-            ctx.eng_detail_title = info.service_name
-            ctx.eng_detail_steps = fmt.eng_detail_steps(info)
-            ctx.eng_detail_rows = fmt.eng_detail(info)
+            ctx.deploy_engine_detail_title = info.service_name
+            ctx.deploy_engine_detail_steps = fmt.deploy_engine_detail_steps(info)
+            ctx.deploy_engine_detail_rows = fmt.deploy_engine_detail(info)
             return
         end
     end
-    ctx.eng_detail_id = ""
-    ctx.eng_detail_open = "false"
+    ctx.deploy_engine_detail_id = ""
+    ctx.deploy_engine_detail_open = "false"
 end
-M.refresh_eng_detail = refresh_eng_detail
+M.refresh_deploy_engine_detail = refresh_deploy_engine_detail
 
 local function apply_snapshot(msg: any): ()
     State.snap = msg
@@ -165,19 +165,19 @@ local function apply_snapshot(msg: any): ()
     -- Deploy Engine (inline, não filtrado pela busca).
     local eng = msg.engine
     if eng then
-        ctx.eng_active_count = tostring(#(eng.active or {}))
-        ctx.eng_success_24h = tostring(eng.successful_24h or 0)
-        ctx.eng_failed_24h = tostring(eng.failed_24h or 0)
-        ctx.eng_total_24h = tostring(eng.total_24h or 0)
-        ctx.eng_uptime = fmt.fmt_uptime(eng.uptime_secs)
-        ctx.eng_active = fmt.eng_active(eng.active)
-        M.refresh_eng_detail(eng.active)
-        ctx.eng_recent = fmt.eng_recent(eng.recent)
-        ctx.eng_recent_count = tostring(#(eng.recent or {}))
+        ctx.deploy_engine_active_count = tostring(#(eng.active or {}))
+        ctx.deploy_engine_success_24h = tostring(eng.successful_24h or 0)
+        ctx.deploy_engine_failed_24h = tostring(eng.failed_24h or 0)
+        ctx.deploy_engine_total_24h = tostring(eng.total_24h or 0)
+        ctx.deploy_engine_uptime = fmt.fmt_uptime(eng.uptime_secs)
+        ctx.deploy_engine_active = fmt.deploy_engine_active(eng.active)
+        M.refresh_deploy_engine_detail(eng.active)
+        ctx.deploy_engine_recent = fmt.deploy_engine_recent(eng.recent)
+        ctx.deploy_engine_recent_count = tostring(#(eng.recent or {}))
         -- Fila global (um por vez): itens esperando + estado pausado.
-        ctx.eng_queued = fmt.eng_queued(eng.queued)
-        ctx.eng_queued_count = tostring(#(eng.queued or {}))
-        ctx.eng_paused = (eng.paused and "true" or "false")
+        ctx.deploy_engine_queued = fmt.deploy_engine_queued(eng.queued)
+        ctx.deploy_engine_queued_count = tostring(#(eng.queued or {}))
+        ctx.deploy_engine_paused = (eng.paused and "true" or "false")
 
         -- Timer decorrido do deploy em voo do serviço aberto (granularidade de
         -- 2s — sem timer no Luau, vem do próprio snapshot; ver o plano de
@@ -188,8 +188,8 @@ local function apply_snapshot(msg: any): ()
         then
             for _, a in ipairs(eng.active or {}) do
                 if a.service_id == State.deploy_track.service_id then
-                    ctx.svc_deploy_running = "true"
-                    ctx.svc_deploy_elapsed = fmt.fmt_secs(a.elapsed_secs)
+                    ctx.service_deploy_running = "true"
+                    ctx.service_deploy_elapsed = fmt.fmt_secs(a.elapsed_secs)
                     break
                 end
             end
@@ -291,10 +291,10 @@ function deployments_clear_finished(): ()
         end
     end
     if #ids == 0 then
-        ctx.deployments_msg = "nada para limpar"
+        ctx.deployments_message = "nada para limpar"
         return
     end
-    ctx.deployments_msg = string.format("removendo %d deployment(s)…", #ids)
+    ctx.deployments_message = string.format("removendo %d deployment(s)…", #ids)
     local removed = 0
     local failed = 0
     for _, id in ipairs(ids) do
@@ -306,9 +306,9 @@ function deployments_clear_finished(): ()
         end
     end
     if failed == 0 then
-        ctx.deployments_msg = string.format("%d removido(s)", removed)
+        ctx.deployments_message = string.format("%d removido(s)", removed)
     else
-        ctx.deployments_msg = string.format("%d removido(s), %d falharam", removed, failed)
+        ctx.deployments_message = string.format("%d removido(s), %d falharam", removed, failed)
         toast{
             message = tostring(
                 string.format("%d deployment(s) não puderam ser removidos", failed)
@@ -323,7 +323,7 @@ end
 -- Eventos vivos do bus: métricas e transições de deploy. Logs (runtime/build)
 -- NÃO passam mais aqui — o daemon os tirou do firehose `/api/events` e os serve
 -- por endpoints dedicados, consumidos só pelas janelas de log isoladas (ver
--- log_window.luau; open_logs_window / dep_logs em handlers/services.luau). Assim
+-- log_window.luau; open_logs_window / deployment_logs em handlers/services.luau). Assim
 -- a janela principal não reprocessa (reavalia) sua árvore inteira por linha.
 local function apply_bus(ev: any): ()
     -- Eventos unit-variant chegam como string JSON (ex.: "DeployQueueChanged"),
@@ -342,9 +342,11 @@ local function apply_bus(ev: any): ()
         -- este arquivo (`Stream = require("stream")`), e um require cíclico
         -- devolveria um módulo incompleto. Atualiza os 3 campos direto.
         local p = ev.DockerCleanupCompleted
-        ctx.dc_running = "false"
-        ctx.dc_last_run_text = fmt.docker_cleanup_last_run_summary({ at = p.at, results = p.results })
-        State.dc_last_run_at_raw = p.at
+        ctx.docker_cleanup_running = "false"
+        ctx.docker_cleanup_last_run_text = fmt.docker_cleanup_last_run_summary({
+            at = p.at, results = p.results
+        })
+        State.docker_cleanup_last_run_at_raw = p.at
     elseif ev.ContainerMetrics then
         local p = ev.ContainerMetrics
         if p.service_id then
@@ -352,14 +354,14 @@ local function apply_bus(ev: any): ()
         end
     elseif ev.SystemMetrics then
         local s = ev.SystemMetrics
-        ctx.sys_cpu = string.format("%.0f%%", s.cpu_percent or 0)
-        ctx.sys_mem = (
+        ctx.host_cpu = string.format("%.0f%%", s.cpu_percent or 0)
+        ctx.host_memory = (
             fmt.fmt_bytes(s.mem_used_bytes) .. " / " .. fmt.fmt_bytes(s.mem_total_bytes)
         )
-        ctx.sys_disk = (
+        ctx.host_disk = (
             fmt.fmt_bytes(s.disk_used_bytes) .. " / " .. fmt.fmt_bytes(s.disk_total_bytes)
         )
-        ctx.sys_load = string.format(
+        ctx.host_load = string.format(
             "%.2f %.2f %.2f",
             s.load_avg_1 or 0,
             s.load_avg_5 or 0,
@@ -380,9 +382,9 @@ local function apply_bus(ev: any): ()
                 -- desktops (ex.: certos GNOME/extensões) que descartam a notificação
                 -- quando o app_name casa com um .desktop instalado — o nome de
                 -- exibição evita isso. Ver glacier-ui 0.43 e docs/notificacao-so.md.
-                local svc_name = State.deploy_track.name
-                if svc_name == "" then
-                    svc_name = "serviço"
+                local service_name = State.deploy_track.name
+                if service_name == "" then
+                    service_name = "serviço"
                 end
                 -- `d.message` é o MOTIVO da falha (o texto do Docker, o
                 -- healthcheck que não passou…). O evento sempre o carregou; era
@@ -393,7 +395,7 @@ local function apply_bus(ev: any): ()
                 if live then
                     notify{
                         title = "Deploy concluído",
-                        body = svc_name .. " está no ar e recebendo tráfego.",
+                        body = service_name .. " está no ar e recebendo tráfego.",
                         app_name = "Rustploy",
                         icon = "rustploy-gui",
                     }
@@ -402,8 +404,8 @@ local function apply_bus(ev: any): ()
                         title = "Deploy falhou",
                         body = (
                             motivo ~= ""
-                                and (svc_name .. ": " .. motivo)
-                                or (svc_name .. ": " .. tostring(d.state) .. ".")
+                                and (service_name .. ": " .. motivo)
+                                or (service_name .. ": " .. tostring(d.state) .. ".")
                         ),
                         app_name = "Rustploy",
                         icon = "rustploy-gui",
@@ -412,15 +414,15 @@ local function apply_bus(ev: any): ()
                     -- aberta olhando o deploy não recebe notificação em alguns
                     -- desktops, e é justamente quem mais quer ver o motivo.
                     toast{
-                        message = svc_name .. ": " .. (
+                        message = service_name .. ": " .. (
                             motivo ~= "" and motivo or ("deploy " .. tostring(d.state))
                         ),
                         kind = "error",
                     }
                 end
                 if d.service_id == ctx.selected_service then
-                    ctx.svc_deploy_running = "false"
-                    ctx.svc_action_msg = (
+                    ctx.service_deploy_running = "false"
+                    ctx.service_action_message = (
                         live and "deploy concluído"
                             or (
                                 motivo ~= ""
@@ -428,13 +430,13 @@ local function apply_bus(ev: any): ()
                                     or ("deploy: " .. tostring(d.state))
                             )
                     )
-                    ctx.svc_action_color = live and "#3FB950" or "#F85149"
+                    ctx.service_action_color = live and "#3FB950" or "#F85149"
                     Services.fetch_service_detail(d.service_id)
                 end
             elseif d.service_id == ctx.selected_service then
-                ctx.svc_deploy_running = "true"
-                ctx.svc_action_msg = "deploy · " .. tostring(d.state)
-                ctx.svc_action_color = "#58A6FF"
+                ctx.service_deploy_running = "true"
+                ctx.service_action_message = "deploy · " .. tostring(d.state)
+                ctx.service_action_color = "#58A6FF"
             end
         end
     end

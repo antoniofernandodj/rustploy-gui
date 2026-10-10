@@ -3,46 +3,46 @@ component {
   resources {
     component(name = SemPortasDeHost) {
       text(
-        class = muted,
+        class = u-muted,
         content = "Nenhum serviço com porta de host configurada.",
       )
     }
   }
 
-  row(class = header_row) {
-    column(class = header_titles) {
-      text(class = title, content = "Ingress")
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text(class = page-head__title, content = "Ingress")
 
       text(
-        class = subtitle,
+        class = page-head__subtitle,
         content = "Active routes in the reverse proxy.",
       )
     }
 
-    row(class = stats_row) {
+    row(class = page-head__stats) {
       StatCard(label = ROUTES, value = @ingress_count)
       StatCard(label = "PORTAS DE HOST", value = @host_ports_count)
     }
   }
 
-  column(class = panel_fill) {
+  column(class = "panel panel--fill") {
     tableview(
       :items = ingress,
       :sort = ingress_sort,
       var = i,
-      header_class = "thead th",
-      row_class = "trow td tv_row",
-      class = scroll_fill,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
     ) {
-      tablecolumn(key = domain, label = "DOMÍNIO", class = col_svc) {
-        text(class = td_key, content = "@i.domain")
+      tablecolumn(key = domain, label = "DOMÍNIO", class = table__col-svc) {
+        text(class = "table__cell table__cell--key", content = "@i.domain")
       }
 
-      tablecolumn(key = service, label = "SERVIÇO", class = col_proj)
-      tablecolumn(key = upstream, label = UPSTREAM, class = col_dur)
+      tablecolumn(key = service, label = "SERVIÇO", class = table__col-proj)
+      tablecolumn(key = upstream, label = UPSTREAM, class = table__col-dur)
 
-      tablecolumn(key = tls, label = TLS, class = col_start) {
-        text(class = muted, content = "@i.tls")
+      tablecolumn(key = tls, label = TLS, class = table__col-start) {
+        text(class = u-muted, content = "@i.tls")
       }
 
       if @data_loading == "true" {
@@ -51,7 +51,7 @@ component {
     }
 
     text(
-      class = label_cap,
+      class = u-label-cap,
       content = "PORTAS TCP DE HOST (@host_ports_count)",
     )
 
@@ -60,23 +60,23 @@ component {
       :items = host_ports,
       :sort = host_ports_sort,
       var = hp,
-      header_class = "thead th",
-      row_class = "trow td tv_row",
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
       width = fill,
     ) {
-      tablecolumn(key = service, label = "SERVIÇO", class = col_svc) {
-        text(class = td_key, content = "@hp.service")
+      tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
+        text(class = "table__cell table__cell--key", content = "@hp.service")
       }
 
-      tablecolumn(key = project, label = PROJETO, class = col_proj)
-      tablecolumn(key = host_port, label = "PORTA HOST", class = col_dur)
+      tablecolumn(key = project, label = PROJETO, class = table__col-proj)
+      tablecolumn(key = host_port, label = "PORTA HOST", class = table__col-dur)
 
       tablecolumn(
         key = container_port,
         label = "PORTA CONTAINER",
-        class = col_start,
+        class = table__col-start,
       ) {
-        text(class = muted, content = "@hp.container_port")
+        text(class = u-muted, content = "@hp.container_port")
       }
 
       SemPortasDeHost

@@ -2,55 +2,55 @@
 component {
   resources {
     component(name = SemDeployAtivo) {
-      text(class = empty_state, content = "Nenhum deploy em andamento.")
+      text(class = empty-state, content = "Nenhum deploy em andamento.")
     }
   }
 
-  column(class = table_body) {
+  column(class = u-fill) {
     column(class = section) {
-      row(class = section_head) {
+      row(class = section__head) {
         text(
-          class = section_title,
-          content = "EXECUTANDO AGORA (@eng_active_count)",
+          class = section__title,
+          content = "EXECUTANDO AGORA (@deploy_engine_active_count)",
         )
       }
 
-      column(class = section_body) {
-        row(class = thead, if = @eng_active, not_empty) {
-          text(class = "th col_svc", content = "SERVIÇO")
-          text(class = "th col_proj", content = "PROJETO")
-          text(class = "th col_state", content = "ESTADO")
-          text(class = "th col_dur", content = "TOTAL")
-          text(class = "th col_start", content = "FASE")
-          text(class = "th col_act")
+      column(class = section__body) {
+        row(class = table__head, if = @deploy_engine_active, not_empty) {
+          text(class = "table__head-cell table__col-svc", content = "SERVIÇO")
+          text(class = "table__head-cell table__col-proj", content = "PROJETO")
+          text(class = "table__head-cell table__col-state", content = "ESTADO")
+          text(class = "table__head-cell table__col-dur", content = "TOTAL")
+          text(class = "table__head-cell table__col-start", content = "FASE")
+          text(class = "table__head-cell table__col-act")
         }
 
         if @data_loading == "true" {
           LoadingRow
         }
 
-        column(if = @data_loading, not_equals = true, class = table_body) {
-          each @eng_active as a (fallback = SemDeployAtivo) {
-            column(class = row_wrap) {
-              row(class = trow) {
-                text(class = "td_key col_svc", content = "@a.service")
-                text(class = "td col_proj", content = "@a.project")
+        column(if = @data_loading, not_equals = true, class = u-fill) {
+          each @deploy_engine_active as a (fallback = SemDeployAtivo) {
+            column(class = u-fill) {
+              row(class = table__row) {
+                text(class = "table__cell table__cell--key table__col-svc", content = "@a.service")
+                text(class = "table__cell table__col-proj", content = "@a.project")
                 StateCell(kind = @a.state_kind, label = @a.state_label)
 
-                text(class = "muted col_dur", content = "@a.total")
-                text(class = "muted col_start", content = "@a.phase")
+                text(class = "u-muted table__col-dur", content = "@a.total")
+                text(class = "u-muted table__col-start", content = "@a.phase")
 
                 button(
-                  class = copy_btn,
-                  on_click = eng_open_detail:@a.service_id,
-                  disabled = @busy_eng_open_detail,
+                  class = "btn btn--ghost btn--xs",
+                  on_click = deploy_engine_open_detail:@a.service_id,
+                  disabled = @busy_deploy_engine_open_detail,
                   text = Detalhes,
                 )
               }
 
               row(class = stepper) {
                 each @a.steps as st {
-                  text(class = "step step_@st.status", content = "@st.text")
+                  text(class = "stepper__step stepper__step--@st.status", content = "@st.text")
                 }
               }
 
@@ -61,38 +61,40 @@ component {
       }
     }
 
-    popup(value = eng_detail_open, trigger = none, onClose = eng_close_detail) {
-      column(class = "painel detail_panel") {
-        row(class = detail_head) {
-          text(class = detail_title, content = "Deploy · @eng_detail_title")
+    popup(value = deploy_engine_detail_open, trigger = none, onClose = deploy_engine_close_detail) {
+      column(class = "panel panel--round detail") {
+        row(class = detail__head) {
+          text(class = detail__title, content = "Deploy · @deploy_engine_detail_title")
 
-          button(class = copy_btn, on_click = eng_close_detail, disabled = @busy_eng_close_detail, text = Fechar)
+          button(class = "btn btn--ghost btn--xs", on_click = deploy_engine_close_detail, disabled = @busy_deploy_engine_close_detail, text = Fechar)
         }
 
         row(class = stepper) {
-          each @eng_detail_steps as st {
-            text(class = "step step_@st.status", content = "@st.text")
+          each @deploy_engine_detail_steps as st {
+            text(class = "stepper__step stepper__step--@st.status", content = "@st.text")
           }
         }
 
         // Sem `sort`: as etapas ficam na ordem em que aconteceram.
         tableview(
-          :items = eng_detail_rows,
+          :items = deploy_engine_detail_rows,
           var = d,
-          header_class = "thead th",
-          row_class = "trow td tv_row",
-          class = detail_scroll,
+          header_class = "table__head table__head-cell",
+          row_class = "table__row table__cell table__row--divided",
+          class = u-fill-all,
         ) {
-          tablecolumn(label = ESTADO, class = col_state) {
-            text(class = "state_lbl state_@d.kind", content = "@d.label")
+          tablecolumn(label = ESTADO, class = table__col-state) {
+            row(class = "state-cell state-cell--@d.kind") {
+              text(class = state-cell__label, content = "@d.label")
+            }
           }
 
-          tablecolumn(label = "DURAÇÃO", class = col_dur) {
-            text(class = muted, content = "@d.dur")
+          tablecolumn(label = "DURAÇÃO", class = table__col-dur) {
+            text(class = u-muted, content = "@d.dur")
           }
 
-          tablecolumn(label = MENSAGEM, class = col_start) {
-            text(class = muted, content = "@d.msg")
+          tablecolumn(label = MENSAGEM, class = table__col-start) {
+            text(class = u-muted, content = "@d.msg")
           }
         }
       }

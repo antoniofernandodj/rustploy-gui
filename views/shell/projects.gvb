@@ -2,30 +2,30 @@
 component {
   resources {
     component(name = SemProjetos) {
-      text(class = muted, content = "Nenhum projeto ainda.")
+      text(class = u-muted, content = "Nenhum projeto ainda.")
     }
   }
 
   column(class = content) {
-    row(class = header_row) {
-      column(class = header_titles) {
-        text(class = title, content = "Projects")
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        text(class = page-head__title, content = "Projects")
 
         text(
-          class = subtitle,
+          class = page-head__subtitle,
           content = "Projetos do cluster e a contagem de serviços de cada um.",
         )
       }
 
-      row(class = stats_row) {
+      row(class = page-head__stats) {
         StatCard(label = SERVICES, value = @services_count)
         StatCard(label = PROJECTS, value = @projects_count, accent = 1)
       }
     }
 
-    row(class = env_add) {
+    row(class = env__add) {
       button(
-        class = btn_primary,
+        class = "btn btn--primary",
         on_click = open_new_project_window,
         disabled = @busy_open_new_project_window,
         text = "+ Novo projeto",
@@ -40,7 +40,7 @@ component {
       if = @data_loading,
       not_equals = true,
       direction = vertical,
-      class = scroll_fill,
+      class = u-fill-all,
     ) {
       column(class = grid) {
         template(
@@ -48,7 +48,7 @@ component {
           var = r,
           foreach_fallback = SemProjetos,
         ) {
-          row(class = card_row) {
+          row(class = grid__row) {
             template(:for-each = r.cards, var = c) {
               ProjectCard(spread = @c)
             }

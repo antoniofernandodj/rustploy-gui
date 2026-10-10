@@ -2,12 +2,12 @@
 // (projetos/serviços, env vars sempre como ${VAR}) + rustploy.vars.toml
 // (os valores reais, aninhados por escopo).
 component {
-  scrollable(direction = vertical, class = scroll_fill) {
-    column(class = form_panel) {
-      text(class = label_cap, content = "EXPORTAR")
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-panel) {
+      text(class = u-label-cap, content = "EXPORTAR")
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Gera um `.zip` com rustploy.yml + rustploy.vars.toml no lugar
           que você escolher. Os valores das env vars ficam só no TOML;
@@ -15,23 +15,23 @@ component {
         """,
       )
 
-      row(class = busy_row) {
+      row(class = busy-row) {
         button(
-          class = btn_primary,
-          on_click = iac_export,
-          disabled = @busy_iac_export,
+          class = "btn btn--primary",
+          on_click = manifest_export,
+          disabled = @busy_manifest_export,
           text = "Exportar para um .zip…",
         )
 
-        spinner(class = busy_spin, if = @iac_busy)
-        text(class = muted, content = "@iac_export_msg")
+        spinner(class = busy-row__spin, if = @manifest_busy)
+        text(class = u-muted, content = "@manifest_export_message")
       }
 
       hr
-      text(class = label_cap, content = "IMPORTAR")
+      text(class = u-label-cap, content = "IMPORTAR")
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Escolha o `.zip` do manifesto (o mesmo que o Exportar gera). Ele
           precisa ter exatamente um .yml e um .toml na raiz — nada mais,
@@ -42,47 +42,47 @@ component {
         """,
       )
 
-      row(class = env_add) {
+      row(class = env__add) {
         checkbox(
-          :checked = iac_prune,
-          on_toggle = field:iac_prune,
+          :checked = manifest_prune,
+          on_toggle = field:manifest_prune,
           label = "Remover serviços ausentes do manifesto (prune)",
         )
       }
 
-      row(class = env_add) {
+      row(class = env__add) {
         checkbox(
-          :checked = iac_deploy,
-          on_toggle = field:iac_deploy,
+          :checked = manifest_deploy,
+          on_toggle = field:manifest_deploy,
           label = "Disparar deploy dos serviços criados/alterados",
         )
       }
 
-      row(class = busy_row) {
+      row(class = busy-row) {
         button(
-          class = btn_primary,
-          on_click = iac_import,
-          disabled = @busy_iac_import,
+          class = "btn btn--primary",
+          on_click = manifest_import,
+          disabled = @busy_manifest_import,
           text = "Importar de um .zip…",
         )
 
-        spinner(class = busy_spin, if = @iac_busy)
-        text(class = muted, content = "@iac_import_msg")
+        spinner(class = busy-row__spin, if = @manifest_busy)
+        text(class = u-muted, content = "@manifest_import_message")
       }
 
-      if @iac_has_missing == "true" {
+      if @manifest_has_missing == "true" {
         text(
-          class = err,
-          content = "Variáveis sem valor no TOML: @iac_missing_vars",
+          class = u-error,
+          content = "Variáveis sem valor no TOML: @manifest_missing_vars",
         )
       }
 
-      if @iac_has_report == "true" {
-        text(class = label_cap, content = "RESULTADO")
+      if @manifest_has_report == "true" {
+        text(class = u-label-cap, content = "RESULTADO")
 
-        column(class = kv_list) {
-          row(class = kv_row, :for-each = iac_report_lines, var = l) {
-            text(class = muted, content = "@l")
+        column(class = kv-list) {
+          row(class = kv-list__row, :for-each = manifest_report_lines, var = l) {
+            text(class = u-muted, content = "@l")
           }
         }
       }

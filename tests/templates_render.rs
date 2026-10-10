@@ -62,19 +62,19 @@ fn new_project_form_window_renders() {
         node.children.iter().find_map(|c| find_control(c, name))
     }
     let ast = m.evaluated("new_project").expect("evaluated");
-    let np_name = find_control(ast, "np_name")
-        .expect("o form_control \"np_name\" deve existir na árvore avaliada");
+    let new_project_name = find_control(ast, "new_project_name")
+        .expect("o form_control \"new_project_name\" deve existir na árvore avaliada");
     assert!(
-        np_name.rules().is_some_and(|r| r.contains("required")),
-        "np_name deve carregar rules=\"required\", achei {:?}",
-        np_name.rules()
+        new_project_name.rules().is_some_and(|r| r.contains("required")),
+        "new_project_name deve carregar rules=\"required\", achei {:?}",
+        new_project_name.rules()
     );
     assert_eq!(
-        np_name
+        new_project_name
             .form
             .as_ref()
             .and_then(|f| f.form_error_action.as_deref()),
-        Some("np_apontar"),
+        Some("new_project_show_validation_errors"),
         "o on_validation_error do <form> deve chegar no campo (form_error_action)"
     );
 }
@@ -87,16 +87,16 @@ fn new_job_window_renders() {
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.define_data("njob_projects", r#"[{"id":"prj_1","name":"acme"}]"#);
+    m.define_data("new_job_projects", r#"[{"id":"prj_1","name":"acme"}]"#);
     m.define_data(
-        "njob_services",
+        "new_job_services",
         r#"[{"id":"svc_1","name":"web","project_id":"prj_1"}]"#,
     );
     m.register_app_screen("views/app.gvb", "new_job")
     .expect("new_job_window.gvb must register");
     m.set_initial_screen("new_job");
 
-    m.define_data("njob_step", "pick_project");
+    m.define_data("new_job_step", "pick_project");
     m.reevaluate_all()
         .expect("eval new_job_window/pick_project");
     assert!(
@@ -104,10 +104,10 @@ fn new_job_window_renders() {
         "render new_job_window/pick_project"
     );
 
-    m.define_data("njob_step", "pick_service");
-    m.define_data("njob_project_name", "acme");
+    m.define_data("new_job_step", "pick_service");
+    m.define_data("new_job_project_name", "acme");
     m.define_data(
-        "njob_services_filtered",
+        "new_job_services_filtered",
         r#"[{"id":"svc_1","name":"web","project_id":"prj_1"}]"#,
     );
     m.reevaluate_all()
@@ -117,15 +117,15 @@ fn new_job_window_renders() {
         "render new_job_window/pick_service"
     );
 
-    m.define_data("njob_step", "form");
-    m.define_data("njob_service_name", "web");
-    m.define_data("njob_time", "03:00");
+    m.define_data("new_job_step", "form");
+    m.define_data("new_job_service_name", "web");
+    m.define_data("new_job_time", "03:00");
     m.define_data(
         "weekdays",
         r#"[{"id":"0","label":"Seg"},{"id":"1","label":"Ter"},{"id":"2","label":"Qua"},{"id":"3","label":"Qui"},{"id":"4","label":"Sex"},{"id":"5","label":"Sáb"},{"id":"6","label":"Dom"}]"#,
     );
     for kind in ["manual", "interval", "daily", "weekly"] {
-        m.define_data("njob_kind", kind);
+        m.define_data("new_job_kind", kind);
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval new_job_window/form {kind}: {e}"));
         assert!(
@@ -144,10 +144,10 @@ fn log_window_renders() {
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.define_data("lw_title", "Logs · api");
-    m.define_data("lw_stream_url", "/api/services/svc1/logs");
+    m.define_data("log_window_title", "Logs · api");
+    m.define_data("log_window_stream_url", "/api/services/svc1/logs");
     m.define_data(
-        "lw_seed",
+        "log_window_seed",
         r#"[{"stream":"Stdout","line":"hello","timestamp":"2026-07-10T23:00:00Z"}]"#,
     );
     m.register_app_screen("views/app.gvb", "log")
@@ -167,25 +167,25 @@ fn new_service_wizard_window_renders() {
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
     m.define_data("selected_project_id", "p1");
-    m.define_data("proj_name", "demo");
+    m.define_data("project_name", "demo");
     m.register_app_screen("views/app.gvb", "new_service")
     .expect("new_service_window.gvb must register");
     m.set_initial_screen("new_service");
 
-    m.define_data("ns_db_has_dbname", "true");
-    m.define_data("ns_db_has_user", "true");
-    m.define_data("ns_db_has_rootpw", "true");
-    m.define_data("ns_db_has_replica", "true");
+    m.define_data("new_service_database_has_dbname", "true");
+    m.define_data("new_service_database_has_user", "true");
+    m.define_data("new_service_database_has_rootpw", "true");
+    m.define_data("new_service_database_has_replica", "true");
     m.define_data(
-        "ns_dbs",
+        "new_service_databases",
         r#"[{"id":"postgres","label":"PostgreSQL","image":"postgres:18"}]"#,
     );
     m.define_data(
-        "ns_templates",
+        "new_service_templates",
         r#"[{"id":"forgejo","name":"Forgejo","description":"git","logo":"assets/blueprint-logos/forgejo/forgejo.svg","logo_kind":"svg"},{"id":"wordpress","name":"WordPress","description":"cms","logo":"assets/blueprint-logos/wordpress/wordpress.png","logo_kind":"img"}]"#,
     );
     m.define_data(
-        "ns_template_vars",
+        "new_service_template_vars",
         r#"[{"idx":"0","label":"Domínio","placeholder":"x"}]"#,
     );
 
@@ -199,7 +199,7 @@ fn new_service_wizard_window_renders() {
         "template_form",
         "import_form",
     ] {
-        m.define_data("ns_step", step);
+        m.define_data("new_service_step", step);
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval new_service/{step}: {e}"));
         assert!(
@@ -216,9 +216,9 @@ fn all_screens_and_service_tabs_render() {
     // Itens das <tabbar> de rótulo fixo — o `init()` do app os semeia em
     // produção; aqui a barra renderizaria vazia sem ninguém notar.
     m.define_data("settings_tabs", r#"[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]"#);
-    m.define_data("dc_kinds", r#"[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]"#);
-    m.define_data("gp_modes", r#"[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]"#);
-    m.define_data("hc_kinds", r#"[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]"#);
+    m.define_data("docker_cleanup_kinds", r#"[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]"#);
+    m.define_data("git_provider_modes", r#"[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]"#);
+    m.define_data("healthcheck_kinds", r#"[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]"#);
 
     m.reevaluate_all().expect("eval login");
     assert!(m.render("app").is_ok(), "login render");
@@ -242,38 +242,38 @@ fn all_screens_and_service_tabs_render() {
     }
 
     m.define_data("view", "deploy_engine");
-    m.define_data("eng_tab", "fila");
-    m.define_data("eng_queued_count", "2");
-    m.define_data("eng_paused", "true");
+    m.define_data("deploy_engine_tab", "fila");
+    m.define_data("deploy_engine_queued_count", "2");
+    m.define_data("deploy_engine_paused", "true");
     m.define_data(
-        "eng_queued",
+        "deploy_engine_queued",
         r#"[{"deployment_id":"dep_1","pos":"1","service":"api","project":"acme"},{"deployment_id":"dep_2","pos":"2","service":"worker","project":"acme"}]"#,
     );
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval deploy_engine: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine com fila");
 
-    m.define_data("eng_tab", "executando");
-    m.define_data("eng_active_count", "1");
+    m.define_data("deploy_engine_tab", "executando");
+    m.define_data("deploy_engine_active_count", "1");
     m.define_data(
-        "eng_active",
+        "deploy_engine_active",
         r#"[{"service":"api","project":"acme","state_label":"BUILDING","state_kind":"info","steps":[{"text":"✓ Fila","status":"done"},{"text":"● Obter","status":"current"},{"text":"○ Live","status":"pending"}],"total":"10s","phase":"4s","service_id":"svc_1"}]"#,
     );
-    m.define_data("eng_detail_open", "true");
-    m.define_data("eng_detail_title", "api");
+    m.define_data("deploy_engine_detail_open", "true");
+    m.define_data("deploy_engine_detail_title", "api");
     m.define_data(
-        "eng_detail_steps",
+        "deploy_engine_detail_steps",
         r#"[{"text":"✓ Fila","status":"done"},{"text":"✕ Obter","status":"failed"}]"#,
     );
     m.define_data(
-        "eng_detail_rows",
+        "deploy_engine_detail_rows",
         r#"[{"label":"Pending","kind":"ok","dur":"2s","msg":""},{"label":"Failed","kind":"bad","dur":"—","msg":"build quebrou"}]"#,
     );
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval deploy_engine ativo+detalhe: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine com stepper e popup");
 
-    m.define_data("eng_tab", "historico");
+    m.define_data("deploy_engine_tab", "historico");
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval deploy_engine histórico: {e}"));
     assert!(m.render("app").is_ok(), "render deploy_engine histórico");
@@ -365,74 +365,74 @@ fn all_screens_and_service_tabs_render() {
     assert!(m.render("app").is_ok(), "render schedules com dados");
 
     m.define_data(
-        "proj_env",
+        "project_env",
         r##"[{"key":"__c0","value":"# comentário","kind":"comment"},{"key":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_THAT_SHOULD_BE_TRUNCATED","key_display":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_TH…","value":"x","kind":"plain"}]"##,
     );
-    m.define_data("proj_jobs_count", "1");
+    m.define_data("project_jobs_count", "1");
     m.define_data(
-        "proj_jobs",
+        "project_jobs",
         r#"[{"id":"job_1","name":"backup-db","recurrence":"a cada 6h","enabled":true,"enabled_label":"Pausar","last_run_label":"ok","last_run_kind":"ok","last_run_id":"jrun_1","next_run_at":"12/07 03:00"}]"#,
     );
-    m.define_data("proj_secrets_count", "1");
+    m.define_data("project_secrets_count", "1");
     m.define_data(
-        "proj_secrets",
+        "project_secrets",
         r#"[{"name":"GITHUB_TOKEN","name_display":"GITHUB_TOKEN"}]"#,
     );
-    for proj_tab in ["services", "env", "secrets", "jobs"] {
+    for project_tab in ["services", "env", "secrets", "jobs"] {
         m.define_data("view", "project_services");
-        m.define_data("proj_tab", proj_tab);
-        m.define_data("proj_loading", "false");
+        m.define_data("project_tab", project_tab);
+        m.define_data("project_loading", "false");
         m.reevaluate_all()
-            .unwrap_or_else(|e| panic!("eval project_services/{proj_tab}: {e}"));
+            .unwrap_or_else(|e| panic!("eval project_services/{project_tab}: {e}"));
         assert!(
             m.render("app").is_ok(),
-            "render project_services/{proj_tab}"
+            "render project_services/{project_tab}"
         );
     }
 
-    m.define_data("proj_tab", "env");
-    m.define_data("penv_new_is_secret", "true");
+    m.define_data("project_tab", "env");
+    m.define_data("project_env_new_is_secret", "true");
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval project_services/env secret: {e}"));
     assert!(
         m.render("app").is_ok(),
         "render project_services/env modo secret"
     );
-    m.define_data("proj_secrets_count", "0");
-    m.define_data("proj_secrets", "[]");
-    for proj_tab in ["env", "secrets"] {
-        m.define_data("proj_tab", proj_tab);
+    m.define_data("project_secrets_count", "0");
+    m.define_data("project_secrets", "[]");
+    for project_tab in ["env", "secrets"] {
+        m.define_data("project_tab", project_tab);
         m.reevaluate_all()
-            .unwrap_or_else(|e| panic!("eval {proj_tab} sem secrets: {e}"));
-        assert!(m.render("app").is_ok(), "render {proj_tab} sem secrets");
+            .unwrap_or_else(|e| panic!("eval {project_tab} sem secrets: {e}"));
+        assert!(m.render("app").is_ok(), "render {project_tab} sem secrets");
     }
-    m.define_data("penv_new_is_secret", "false");
+    m.define_data("project_env_new_is_secret", "false");
 
     m.define_data("view", "settings");
     m.define_data("gitea_count", "1");
     for mode in ["oauth", "pat"] {
         m.define_data("settings_tab", "git");
-        m.define_data("gp_mode", mode);
+        m.define_data("git_provider_mode", mode);
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval settings/git {mode}: {e}"));
         assert!(m.render("app").is_ok(), "render settings/git {mode}");
     }
 
     m.define_data("settings_tab", "web");
-    m.define_data("ss_public_base", "https://rustploy.meusite.com");
+    m.define_data("server_settings_public_base", "https://rustploy.meusite.com");
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval settings/web: {e}"));
     assert!(m.render("app").is_ok(), "render settings/web");
 
     m.define_data("settings_tab", "iac");
-    m.define_data("iac_has_export", "true");
-    m.define_data("iac_yaml", "apiVersion: rustploy/v1\nprojects: []\n");
-    m.define_data("iac_dotenv", "[project.acme.env]\nLOG_LEVEL = \"info\"\n");
-    m.define_data("iac_has_missing", "true");
-    m.define_data("iac_missing_vars", "DB_PASS, API_TOKEN");
-    m.define_data("iac_has_report", "true");
+    m.define_data("manifest_has_export", "true");
+    m.define_data("manifest_yaml", "apiVersion: rustploy/v1\nprojects: []\n");
+    m.define_data("manifest_dotenv", "[project.acme.env]\nLOG_LEVEL = \"info\"\n");
+    m.define_data("manifest_has_missing", "true");
+    m.define_data("manifest_missing_vars", "DB_PASS, API_TOKEN");
+    m.define_data("manifest_has_report", "true");
     m.define_data(
-        "iac_report_lines",
+        "manifest_report_lines",
         r#"["[created] project acme","[updated] service acme/web"]"#,
     );
     m.reevaluate_all()
@@ -440,30 +440,30 @@ fn all_screens_and_service_tabs_render() {
     assert!(m.render("app").is_ok(), "render settings/iac");
 
     m.define_data("settings_tab", "maintenance");
-    m.define_data("dc_enabled", "true");
-    m.define_data("dc_hours", "6");
-    m.define_data("dc_time", "03:00");
-    m.define_data("dc_weekday", "0");
+    m.define_data("docker_cleanup_enabled", "true");
+    m.define_data("docker_cleanup_hours", "6");
+    m.define_data("docker_cleanup_time", "03:00");
+    m.define_data("docker_cleanup_weekday", "0");
     m.define_data(
         "weekdays",
         r#"[{"id":"0","label":"Seg"},{"id":"1","label":"Ter"},{"id":"2","label":"Qua"},{"id":"3","label":"Qui"},{"id":"4","label":"Sex"},{"id":"5","label":"Sáb"},{"id":"6","label":"Dom"}]"#,
     );
-    m.define_data("dc_containers", "true");
-    m.define_data("dc_images", "true");
-    m.define_data("dc_images_all", "false");
-    m.define_data("dc_volumes", "false");
-    m.define_data("dc_volumes_all", "false");
-    m.define_data("dc_networks", "true");
-    m.define_data("dc_build_cache", "true");
-    m.define_data("dc_next_run_label", "hoje às 03:00");
+    m.define_data("docker_cleanup_containers", "true");
+    m.define_data("docker_cleanup_images", "true");
+    m.define_data("docker_cleanup_images_all", "false");
+    m.define_data("docker_cleanup_volumes", "false");
+    m.define_data("docker_cleanup_volumes_all", "false");
+    m.define_data("docker_cleanup_networks", "true");
+    m.define_data("docker_cleanup_build_cache", "true");
+    m.define_data("docker_cleanup_next_run_label", "hoje às 03:00");
     m.define_data(
-        "dc_last_run_text",
+        "docker_cleanup_last_run_text",
         "12/07 03:00 · 3 removidos · 120 MB liberados",
     );
-    m.define_data("dc_running", "false");
-    m.define_data("dc_msg", "");
+    m.define_data("docker_cleanup_running", "false");
+    m.define_data("docker_cleanup_message", "");
     for kind in ["interval", "daily", "weekly"] {
-        m.define_data("dc_kind", kind);
+        m.define_data("docker_cleanup_kind", kind);
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval settings/maintenance {kind}: {e}"));
         assert!(
@@ -487,43 +487,43 @@ fn all_screens_and_service_tabs_render() {
         m.define_data("tab", tab);
         m.define_data("env_text_open", "true");
         m.define_data(
-            "svc_env",
+            "service_env",
             r##"[{"key":"__c0","value":"# comentário","kind":"comment"},{"key":"OLA","key_display":"OLA","value":"mundo","kind":"plain"},{"key":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_THAT_SHOULD_BE_TRUNCATED","key_display":"A_VERY_LONG_ENVIRONMENT_VARIABLE_NAME_TH…","value":"x","kind":"plain"}]"##,
         );
-        m.define_data("dep_selected", "abc123");
-        m.define_data("svc_webhook_supported", "true");
+        m.define_data("deployment_selected", "abc123");
+        m.define_data("service_webhook_supported", "true");
         m.define_data(
-            "svc_webhook_url",
+            "service_webhook_url",
             "https://rustploy.meusite.com/webhook/svc_01ABC/f4b53d4d9d574a55",
         );
         m.define_data(
-            "svc_webhook_url_short",
+            "service_webhook_url_short",
             "https://rustploy.meusite.com/webhook/svc_01ABC…",
         );
         m.define_data("gitea_count", "1");
-        m.define_data("prov_tab", "gitea");
+        m.define_data("provider_tab", "gitea");
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval tab {tab}: {e}"));
         assert!(m.render("app").is_ok(), "render tab {tab}");
     }
 
     m.define_data("tab", "general");
-    m.define_data("svc_source_kind", "Git");
-    m.define_data("erro_f_gen_port", "");
+    m.define_data("service_source_kind", "Git");
+    m.define_data("error_service_form_general_port", "");
     for prov in ["git", "zip"] {
-        m.define_data("prov_tab", prov);
+        m.define_data("provider_tab", prov);
         m.reevaluate_all()
-            .unwrap_or_else(|e| panic!("eval general/prov_tab={prov}: {e}"));
-        assert!(m.render("app").is_ok(), "render general/prov_tab={prov}");
+            .unwrap_or_else(|e| panic!("eval general/provider_tab={prov}: {e}"));
+        assert!(m.render("app").is_ok(), "render general/provider_tab={prov}");
     }
-    m.define_data("svc_source_kind", "Compose");
-    m.define_data("svc_compose", "services:\n  web:\n    image: nginx\n");
-    m.define_data("svc_compose_orig", "services:\n  web:\n    image: nginx\n");
+    m.define_data("service_source_kind", "Compose");
+    m.define_data("service_compose", "services:\n  web:\n    image: nginx\n");
+    m.define_data("service_compose_original", "services:\n  web:\n    image: nginx\n");
     m.reevaluate_all().expect("eval general/compose");
     assert!(m.render("app").is_ok(), "render general/compose");
 
     m.define_data("tab", "deployments");
-    m.define_data("svc_webhook_url", "");
+    m.define_data("service_webhook_url", "");
     m.reevaluate_all()
         .expect("eval deployments/webhook sem token");
     assert!(
@@ -531,7 +531,7 @@ fn all_screens_and_service_tabs_render() {
         "render deployments/webhook sem token"
     );
 
-    m.define_data("svc_webhook_supported", "false");
+    m.define_data("service_webhook_supported", "false");
     m.reevaluate_all()
         .expect("eval deployments/webhook compose");
     assert!(
@@ -755,13 +755,13 @@ fn disconnect_limpa_o_contexto_da_sessao() {
         ("api_url", "https://rustploy.example"),
         ("api_token", "token-secreto"),
         ("projects_count", "7"),
-        ("proj_name", "acme"),
+        ("project_name", "acme"),
         (
-            "proj_secrets",
+            "project_secrets",
             r#"[{"name":"GITHUB_TOKEN","name_display":"GITHUB_TOKEN"}]"#,
         ),
         (
-            "svc_env",
+            "service_env",
             r#"[{"key":"API_KEY","value":"secret:API_KEY","kind":"secret"}]"#,
         ),
         ("selected_project_id", "prj_1"),
@@ -776,9 +776,9 @@ fn disconnect_limpa_o_contexto_da_sessao() {
     for k in [
         "api_url",
         "api_token",
-        "proj_name",
-        "proj_secrets",
-        "svc_env",
+        "project_name",
+        "project_secrets",
+        "service_env",
         "selected_project_id",
     ] {
         assert!(
@@ -834,6 +834,49 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
             esperado_aceso,
             "view={view}: item Projects deveria estar {} ",
             if esperado_aceso { "aceso" } else { "apagado" }
+        );
+    }
+}
+
+/// Seletor de filho direto do `.gss` (glacier-ui 0.122): o modificador
+/// `.nav-item--active` na RAIZ do NavItem recolore ícone e rótulo por
+/// `.nav-item--active > .nav-item__icon`. Se a regra composta não casasse, o
+/// item aceso ficaria com as cores base (`--faint`/`--muted`) — sem erro algum.
+#[test]
+fn nav_item_aceso_recolore_os_filhos_por_combinador() {
+    use glacier_ui::parser::{NodeType, UiNode};
+
+    fn nav_cores(node: &UiNode) -> Option<Vec<Option<String>>> {
+        if let NodeType::Button { on_click, .. } = &node.kind
+            && on_click.as_deref() == Some("NavItem::nav_projects")
+        {
+            return Some(
+                node.children
+                    .iter()
+                    .map(|c| match &c.kind {
+                        NodeType::Text { color, .. } => color.clone(),
+                        _ => None,
+                    })
+                    .collect(),
+            );
+        }
+        node.children.iter().find_map(nav_cores)
+    }
+
+    let mut m = boot();
+    for (view, icone, rotulo) in [
+        ("projects", "#E6EDF3", "#E6EDF3"),
+        ("deployments", "#6E7681", "#8B949E"),
+    ] {
+        m.define_data("screen", "shell");
+        m.define_data("view", view);
+        m.reevaluate_all().expect("eval");
+        let cores = nav_cores(m.evaluated("app").expect("app evaluated"))
+            .expect("item Projects deveria existir na sidebar");
+        assert_eq!(
+            cores,
+            vec![Some(icone.to_string()), Some(rotulo.to_string())],
+            "view={view}: cores de ícone e rótulo do item Projects"
         );
     }
 }
@@ -1007,7 +1050,7 @@ fn grades_de_cards_renderizam_com_spread() {
     );
 
     m.define_data("view", "project_services");
-    m.define_data("proj_loading", "false");
+    m.define_data("project_loading", "false");
     m.define_data(
         "project_services",
         r##"[{"cards":[
@@ -1058,9 +1101,9 @@ fn service_export_window_renders_and_toggles() {
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.define_data("ex_service_id", "svc_1");
+    m.define_data("export_service_id", "svc_1");
     m.define_data(
-        "ex_plan",
+        "export_plan",
         r#"{"service_name":"api","project_name":"Flow","blocked":null,
             "service_env":[{"key":"CACHE","is_secret":false,"suggested":false}],
             "project_env":[{"key":"REDIS_URL","is_secret":false,"suggested":true},
@@ -1075,7 +1118,7 @@ fn service_export_window_renders_and_toggles() {
 
     let rows = |m: &GlacierUI| -> Vec<(String, String)> {
         let v: serde_json::Value =
-            serde_json::from_str(m.context().get("ex_vars").expect("ex_vars")).unwrap();
+            serde_json::from_str(m.context().get("export_vars").expect("export_vars")).unwrap();
         v.as_array()
             .unwrap()
             .iter()
@@ -1091,13 +1134,13 @@ fn service_export_window_renders_and_toggles() {
         ],
         "só a citada pelo serviço vem marcada"
     );
-    assert_eq!(m.context().get("ex_picked_count").map(String::as_str), Some("1"));
+    assert_eq!(m.context().get("export_picked_count").map(String::as_str), Some("1"));
 
-    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("ex_toggle:NAO_LEVAR".into()));
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("export_toggle:NAO_LEVAR".into()));
     assert_eq!(rows(&m)[1].1, "☑", "toggle marca");
-    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("ex_none".into()));
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("export_none".into()));
     assert!(rows(&m).iter().all(|(_, mark)| mark == "☐"));
-    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("ex_all".into()));
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("export_all".into()));
     assert!(rows(&m).iter().all(|(_, mark)| mark == "☑"));
 }
 
@@ -1111,29 +1154,29 @@ fn new_service_import_report_renders() {
         ("api_url", "http://localhost"),
         ("api_token", "t"),
         ("selected_project_id", "p1"),
-        ("proj_name", "demo"),
-        ("ns_step", "import_form"),
-        ("imp_report", "true"),
-        ("imp_file", "api.rustploy-service.yml"),
-        ("imp_name", "api"),
-        ("imp_conflict", "true"),
-        ("imp_has_warnings", "true"),
-        ("imp_warnings", r#"[{"text":"• Domínios trazidos: a.tech."}]"#),
-        ("imp_has_svc_missing", "true"),
-        ("imp_svc_text", "CACHE=\nOWN="),
-        ("imp_has_proj_missing", "true"),
-        ("imp_proj_text", "REDIS_URL="),
-        ("imp_has_secret_missing", "true"),
-        ("imp_secret_text", "SENTRY_DSN="),
-        ("imp_missing_provider", "github-acme"),
-        ("imp_providers", r#"[{"id":"gp_1","label":"github","mark":"○"}]"#),
-        ("imp_has_pe", "true"),
+        ("project_name", "demo"),
+        ("new_service_step", "import_form"),
+        ("import_report", "true"),
+        ("import_file", "api.rustploy-service.yml"),
+        ("import_name", "api"),
+        ("import_conflict", "true"),
+        ("import_has_warnings", "true"),
+        ("import_warnings", r#"[{"text":"• Domínios trazidos: a.tech."}]"#),
+        ("import_has_service_missing", "true"),
+        ("import_service_text", "CACHE=\nOWN="),
+        ("import_has_project_missing", "true"),
+        ("import_project_text", "REDIS_URL="),
+        ("import_has_secret_missing", "true"),
+        ("import_secret_text", "SENTRY_DSN="),
+        ("import_missing_provider", "github-acme"),
+        ("import_providers", r#"[{"id":"gp_1","label":"github","mark":"○"}]"#),
+        ("import_has_project_env", "true"),
         (
-            "imp_pe",
+            "import_project_env",
             r#"[{"key":"REDIS_URL","info":"em conflito","can_choose":"true","choice":"manter a do projeto"},{"key":"SENTRY","info":"secret · igual","can_choose":"false","choice":"x"}]"#,
         ),
-        ("imp_drop_domains", "false"),
-        ("imp_deploy", "false"),
+        ("import_drop_domains", "false"),
+        ("import_deploy", "false"),
     ] {
         m.define_data(k, v);
     }

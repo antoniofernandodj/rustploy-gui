@@ -2,28 +2,28 @@
 component {
   resources {
     component(name = SemDeployments) {
-      text(class = muted, content = "Nenhum deployment ainda.")
+      text(class = u-muted, content = "Nenhum deployment ainda.")
     }
   }
 
   column(class = content) {
-    row(class = header_row) {
-      column(class = header_titles) {
-        text(class = title, content = "Deployments")
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        text(class = page-head__title, content = "Deployments")
 
         text(
-          class = subtitle,
+          class = page-head__subtitle,
           content = "Real-time status of services in the cluster.",
         )
       }
 
-      row(class = "stats_row stats_hide_lg") {
+      row(class = "page-head__stats page-head__stats--hide-lg") {
         StatCard(label = STATUS, value = @services_label, accent = 1)
         StatCard(label = UPTIME, value = @daemon_uptime)
       }
 
       button(
-        class = btn_danger,
+        class = "btn btn--danger",
         on_click = deployments_clear_finished,
         disabled = @busy_deployments_clear_finished,
         text = "Limpar parados/falhos",
@@ -31,43 +31,43 @@ component {
     }
 
     text(
-      if = @deployments_msg,
+      if = @deployments_message,
       not_equals = "",
-      class = muted,
-      content = "@deployments_msg",
+      class = u-muted,
+      content = "@deployments_message",
     )
 
-    column(class = panel_fill) {
+    column(class = "panel panel--fill") {
       tableview(
         :items = deployments,
         :sort = deployments_sort,
         var = d,
-        header_class = "thead th",
-        row_class = "trow td tv_row",
-        class = scroll_fill,
+        header_class = "table__head table__head-cell",
+        row_class = "table__row table__cell table__row--divided",
+        class = u-fill-all,
       ) {
-        tablecolumn(key = service, label = "SERVIÇO", class = col_svc) {
-          text(class = td_key, content = "@d.service")
+        tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
+          text(class = "table__cell table__cell--key", content = "@d.service")
         }
 
-        tablecolumn(key = project, label = PROJETO, class = col_proj)
+        tablecolumn(key = project, label = PROJETO, class = table__col-proj)
 
-        tablecolumn(key = state_label, label = ESTADO, class = col_state) {
+        tablecolumn(key = state_label, label = ESTADO, class = table__col-state) {
           StateCell(kind = @d.state_kind, label = @d.state_label)
         }
 
         // Sem `key`: "2m 3s" não ordena como texto, e o valor cru não vem.
-        tablecolumn(label = "DURAÇÃO", class = col_dur) {
-          text(class = td, content = "@d.duration")
+        tablecolumn(label = "DURAÇÃO", class = table__col-dur) {
+          text(class = table__cell, content = "@d.duration")
         }
 
         tablecolumn(
           key = start,
           sort_key = start_iso,
           label = "INÍCIO",
-          class = col_start,
+          class = table__col-start,
         ) {
-          text(class = muted, content = "@d.start")
+          text(class = u-muted, content = "@d.start")
         }
 
         if @data_loading == "true" {

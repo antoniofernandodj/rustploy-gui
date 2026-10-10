@@ -7,19 +7,9 @@ component {
     prop(name = action)
   }
 
-  resources {
-    style """
-    .tab_on {
-      color: var(--blue);
-      padding: 9 16;
-      border-radius: 5
-    }
-    """
-  }
-
   if @current == "@target" {
-    button(class = tab_on, on_click = @action, text = @label)
+    button(class = "tabs__tab tabs__tab--active", on_click = @action, text = @label)
   } else {
-    button(class = tab, on_click = @action, text = @label)
+    button(class = tabs__tab, on_click = @action, text = @label)
   }
 }

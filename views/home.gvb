@@ -10,15 +10,12 @@ component {
     link(rel = import, href = "home/schedules.gvb", as = HomeSchedules)
 
     style """
-      .col_icon       { width: 28; }
-      .content_center { width: fill; height: fill; align-x: center; align-y: center; }
-      /* Botão "Remover" compacto por-linha nas sub-abas Docker. */
-      .dk_rm    { color: var(--danger); padding: 5 12; border-radius: 3; }
-      .col_act  { width: 120; align-x: end; text-align: end; }
-      .col_act_2 { width: 90; align-x: end; text-align: end; spacing: 8; }
-      .col_act_4 { width: 170; align-x: end; text-align: end; spacing: 8; }
+      .table__col-icon  { width: 28; }
+      .table__col-act   { width: 120; align-x: end; text-align: end; }
+      .table__col-act-2 { width: 90; align-x: end; text-align: end; spacing: 8; }
+      .table__col-act-4 { width: 170; align-x: end; text-align: end; spacing: 8; }
       /* Mesma linha de job acima, +1 controle (editar). */
-      .col_act_5 { width: 210; align-x: end; text-align: end; spacing: 8; }
+      .table__col-act-5 { width: 210; align-x: end; text-align: end; spacing: 8; }
     """
   }
 
@@ -53,9 +50,9 @@ component {
       HomeSchedules
     }
 
-    column(class = content_center, if = @view, equals = support) {
-      text(class = title, content = "Support")
-      text(class = subtitle, content = "github.com/antoniofernandodj/rustploy")
+    column(class = u-center-fill, if = @view, equals = support) {
+      text(class = page-head__title, content = "Support")
+      text(class = page-head__subtitle, content = "github.com/antoniofernandodj/rustploy")
     }
   }
 }

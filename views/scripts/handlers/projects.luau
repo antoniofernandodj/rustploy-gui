@@ -14,11 +14,11 @@ local Registry = require("registry")
 function open_project(id: string): ()
     ctx.selected_project_id = id
     ctx.view = "project_services"
-    ctx.proj_tab = "services"
+    ctx.project_tab = "services"
     ctx.editing_project = "false"
-    ctx.proj_action_msg = ""
-    ctx.penv_text_open = "false"
-    ctx.proj_loading = "true"
+    ctx.project_action_message = ""
+    ctx.project_env_text_open = "false"
+    ctx.project_loading = "true"
     Stream.update_open_project()
 end
 
@@ -101,32 +101,32 @@ function create_project(): ()
     if not api then
         return
     end
-    local name = Helpers.trim(ctx.new_proj_name)
+    local name = Helpers.trim(ctx.new_project_inline_name)
     if name == "" then
-        ctx.erro_new_proj_name = "informe um nome"
+        ctx.error_new_project_inline_name = "informe um nome"
         return
     end
-    ctx.erro_new_proj_name = ""
-    local desc = Helpers.trim(ctx.new_proj_desc)
+    ctx.error_new_project_inline_name = ""
+    local desc = Helpers.trim(ctx.new_project_inline_description)
     local cmd = {
         ProjectCreate = {
             name = name,
             description = (desc ~= "" and desc or nil)
         }
     }
-    ctx.new_proj_msg = "criando…"
+    ctx.new_project_inline_message = "criando…"
     local ok, res = api:rpc_checked(cmd)
     if ok then
-        ctx.new_proj_name = ""
-        ctx.new_proj_desc = ""
-        ctx.new_proj_msg = "projeto criado"
+        ctx.new_project_inline_name = ""
+        ctx.new_project_inline_description = ""
+        ctx.new_project_inline_message = "projeto criado"
         toast{
             message = tostring("Projeto \"" .. name .. "\" criado"),
             kind = "success"
         }
         Stream.refresh_now()
     else
-        ctx.new_proj_msg = "erro: " .. res
+        ctx.new_project_inline_message = "erro: " .. res
         toast{
             message = tostring(res),
             kind = "error"
@@ -153,7 +153,7 @@ function delete_project(id: string): ()
     if not api or id == "" then
         return
     end
-    ctx.proj_action_msg = "removendo…"
+    ctx.project_action_message = "removendo…"
     local ok, res = api:rpc_checked{ ProjectDelete = { id = id } }
     if ok then
         ctx.selected_project_id = ""
@@ -161,7 +161,7 @@ function delete_project(id: string): ()
         toast{ message = tostring("Projeto removido"), kind = "success" }
         Stream.refresh_now()
     else
-        ctx.proj_action_msg = "erro: " .. res
+        ctx.project_action_message = "erro: " .. res
         toast{ message = tostring(res), kind = "error" }
     end
 end
@@ -171,9 +171,9 @@ end
 -- ── Editar projeto (cabeçalho de project_services) ──────────────────────
 
 function edit_project_toggle(): ()
-    ctx.edit_proj_name = ctx.proj_name or ""
-    ctx.edit_proj_desc = ctx.proj_description or ""
-    ctx.erro_edit_proj_name = ""
+    ctx.edit_project_name = ctx.project_name or ""
+    ctx.edit_project_description = ctx.project_description or ""
+    ctx.error_edit_project_name = ""
     ctx.editing_project = "true"
 end
 
@@ -182,8 +182,8 @@ function cancel_project_edit(): ()
 end
 
 -- on_validation_error do form(name = edit_project) — o motor já publicou
--- {erro_edit_proj_name} e acendeu o :invalid; aqui é só o aviso.
-function proj_edit_apontar(_erros_json: string?): ()
+-- {error_edit_project_name} e acendeu o :invalid; aqui é só o aviso.
+function project_edit_show_validation_errors(_erros_json: string?): ()
     toast{ message = "Informe o nome do projeto", kind = "warning" }
 end
 
@@ -194,8 +194,8 @@ function save_project_edit(): ()
     if pid == "" or not api then
         return
     end
-    local name = Helpers.trim(ctx.edit_proj_name)
-    local desc = Helpers.trim(ctx.edit_proj_desc)
+    local name = Helpers.trim(ctx.edit_project_name)
+    local desc = Helpers.trim(ctx.edit_project_description)
     local ok, res = api:rpc_checked{
         ProjectUpdate = {
             id = pid,
@@ -205,11 +205,11 @@ function save_project_edit(): ()
     }
     if ok then
         ctx.editing_project = "false"
-        ctx.proj_action_msg = "projeto atualizado"
-        ctx.proj_name = name
-        ctx.proj_description = desc
+        ctx.project_action_message = "projeto atualizado"
+        ctx.project_name = name
+        ctx.project_description = desc
     else
-        ctx.proj_action_msg = "erro: " .. res
+        ctx.project_action_message = "erro: " .. res
     end
 end
 
@@ -251,13 +251,13 @@ local function with_project_env(mutate: (pe: any) -> ()): ()
         }
     }
     if ok2 then
-        ctx.proj_env = fmt.env_json_with_comments(pe.env_vars, pe.env_comments)
-        ctx.proj_env_count = tostring(#pe.env_vars)
+        ctx.project_env = fmt.env_json_with_comments(pe.env_vars, pe.env_comments)
+        ctx.project_env_count = tostring(#pe.env_vars)
         -- Não sobrescrever o textarea enquanto o usuário edita (ver stream.luau).
-        if ctx.penv_text_open ~= "true" then
+        if ctx.project_env_text_open ~= "true" then
             local dotenv = fmt.env_dotenv_with_comments(pe.env_vars, pe.env_comments)
-            ctx.proj_env_text = dotenv
-            ctx.proj_env_text_orig = dotenv
+            ctx.project_env_text = dotenv
+            ctx.project_env_text_original = dotenv
         end
         toast{ message = tostring("Salvo"), kind = "success" }
     else
@@ -344,27 +344,27 @@ local function reorder_project_env(
     return new_vars, new_comments
 end
 
--- on_validation_error do form(name = penv_add) — a chave é `rules="required"`;
--- o motor publica {erro_penv_new_key} e acende o :invalid. Aqui é só o aviso.
-function penv_apontar(_erros_json: string?): ()
+-- on_validation_error do form(name = project_env_add) — a chave é `rules="required"`;
+-- o motor publica {error_project_env_new_key} e acende o :invalid. Aqui é só o aviso.
+function project_env_show_validation_errors(_erros_json: string?): ()
     toast{ message = "Informe a chave (KEY)", kind = "warning" }
 end
 
-function penv_add(): ()
+function project_env_add(): ()
     -- rules="required" no form(...) garante a chave preenchida aqui.
-    local key = Helpers.trim(ctx.penv_new_key)
-    local val = ctx.penv_new_val or ""
+    local key = Helpers.trim(ctx.project_env_new_key)
+    local val = ctx.project_env_new_value or ""
     -- Duas formas de virar referência de secret (a que o daemon decifra no
     -- deploy, deploy/env_resolve.rs):
     --   • toggle "usar secret" ligado (ver handlers/secrets.luau) — o campo
     --     valor carrega o NOME puro do secret, não o conteúdo;
     --   • `<secret:NOME>`/`secret:NOME` digitado no valor, como no editor .env.
     local secret_name: string? = Helpers.parse_secret_ref(val)
-    if ctx.penv_new_is_secret == "true" and secret_name == nil then
+    if ctx.project_env_new_is_secret == "true" and secret_name == nil then
         -- Modo secret: o valor JÁ é o nome (o chip preenche assim).
         local name = Helpers.trim(val)
         if name == "" then
-            ctx.erro_penv_new_key = "escolha um secret"
+            ctx.error_project_env_new_key = "escolha um secret"
             return
         end
         secret_name = name
@@ -380,12 +380,12 @@ function penv_add(): ()
         table.insert(kept, { key = key, value = value })
         pe.env_vars = kept
     end)
-    ctx.penv_new_key = ""
-    ctx.penv_new_val = ""
-    ctx.penv_new_is_secret = "false"
+    ctx.project_env_new_key = ""
+    ctx.project_env_new_value = ""
+    ctx.project_env_new_is_secret = "false"
 end
 
-function penv_del(key: string): ()
+function project_env_delete(key: string): ()
     with_project_env(function(pe: any): ()
         local kept = json.array{}
         for _, v in ipairs(pe.env_vars) do
@@ -404,7 +404,7 @@ function penv_del(key: string): ()
     end)
 end
 
-function penv_reorder(v: string?): ()
+function project_env_reorder(v: string?): ()
     if not v then
         return
     end
@@ -421,33 +421,33 @@ end
 
 -- ── Editor .env do projeto (mesmo fluxo do serviço) ─────────────────────
 
-function penv_text_toggle(): ()
-    ctx.penv_text_open = (ctx.penv_text_open == "true") and "false" or "true"
+function project_env_text_toggle(): ()
+    ctx.project_env_text_open = (ctx.project_env_text_open == "true") and "false" or "true"
 end
 
-function penv_export(): ()
-    -- Abre o editor .env já preenchido (o texto vem do snapshot em proj_env_text).
-    ctx.penv_text_open = "true"
+function project_env_export(): ()
+    -- Abre o editor .env já preenchido (o texto vem do snapshot em project_env_text).
+    ctx.project_env_text_open = "true"
 end
 
-function penv_text_cancel(): ()
-    ctx.proj_env_text = ctx.proj_env_text_orig or ""
-    ctx.penv_text_open = "false"
+function project_env_text_cancel(): ()
+    ctx.project_env_text = ctx.project_env_text_original or ""
+    ctx.project_env_text_open = "false"
 end
 
-function penv_import(): ()
-    local vars, comments = parse_project_dotenv(ctx.proj_env_text)
+function project_env_import(): ()
+    local vars, comments = parse_project_dotenv(ctx.project_env_text)
     with_project_env(function(pe: any): ()
         pe.env_vars = vars
         pe.env_comments = comments
     end)
-    ctx.penv_text_open = "false"
+    ctx.project_env_text_open = "false"
 end
 
 -- ── Ações de serviço a partir de um card do grid do projeto ─────────────
 -- O grid se atualiza no próximo snapshot; refresh_now traz isso pra hora.
 
-function svc_stop_id(id: string): ()
+function service_stop_id(id: string): ()
     local ok_confirm = confirm{
         title = "Parar serviço?",
         message = "O tráfego para este serviço será interrompido até um novo deploy.",
@@ -463,9 +463,9 @@ function svc_stop_id(id: string): ()
     if not api then
         return
     end
-    ctx.proj_action_msg = "enviando…"
+    ctx.project_action_message = "enviando…"
     local ok, res = api:rpc_checked{ ServiceStop = { service_id = id } }
-    ctx.proj_action_msg = ok and "serviço parado" or ("erro: " .. res)
+    ctx.project_action_message = ok and "serviço parado" or ("erro: " .. res)
     if not ok then
         toast{ message = tostring(res), kind = "error" }
     end
@@ -476,18 +476,18 @@ end
 function stop_delete_service(id: string): ()
     -- Jobs de Schedules gatilhados por este serviço são removidos em cascata
     -- pelo daemon — avisa quais no confirm (jobs_by_id vem do snapshot).
-    local dep_names = {}
+    local deployment_names = {}
     for _, job in State.jobs_by_id do
         if job.trigger_service_id == id then
-            table.insert(dep_names, tostring(job.name))
+            table.insert(deployment_names, tostring(job.name))
         end
     end
     local message = "O serviço será parado e removido."
-    if #dep_names > 0 then
-        table.sort(dep_names)
+    if #deployment_names > 0 then
+        table.sort(deployment_names)
         message = message
             .. " Os jobs de Schedules que dependem dele também serão removidos, com histórico: "
-            .. table.concat(dep_names, ", ")
+            .. table.concat(deployment_names, ", ")
             .. "."
     end
     message = message .. " Essa ação não pode ser desfeita."
@@ -507,14 +507,14 @@ function stop_delete_service(id: string): ()
     if not api then
         return
     end
-    ctx.proj_action_msg = "removendo…"
+    ctx.project_action_message = "removendo…"
     local ok, res = api:rpc_checked{ ServiceStop = { service_id = id } }
     if not ok then
-        ctx.proj_action_msg = "erro ao parar: " .. res;
+        ctx.project_action_message = "erro ao parar: " .. res;
         toast{ message = tostring(res), kind = "error" }; return
     end
     local ok2, res2 = api:rpc_checked{ ServiceDelete = { id = id } }
-    ctx.proj_action_msg = ok2 and "serviço parado e removido" or ("erro ao remover: " .. res2)
+    ctx.project_action_message = ok2 and "serviço parado e removido" or ("erro ao remover: " .. res2)
     if ok2 then
         toast{ message = tostring("Serviço removido"), kind = "success" }
     else

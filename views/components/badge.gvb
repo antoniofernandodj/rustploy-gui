@@ -9,7 +9,7 @@ component {
   }
 
   row(class = badge) {
-    text(class = state_dot, color = @color, content = "●")
-    text(class = badge_lbl, color = @color, content = "@label")
+    text(class = status-dot, color = @color, content = "●")
+    text(class = badge__label, color = @color, content = "@label")
   }
 }

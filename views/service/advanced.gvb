@@ -1,48 +1,48 @@
 component {
   scrollable(
     direction = vertical,
-    class = scroll_fill,
+    class = u-fill-all,
   ) {
-    column(class = svc_main) {
-      form(name = advanced, on_submit = adv_save, class = form_panel) {
-        text(class = label_cap, content = "REPLICAS")
+    column(class = service__main) {
+      form(name = advanced, on_submit = advanced_save, class = form-panel) {
+        text(class = u-label-cap, content = "REPLICAS")
 
         spinbox(
-          field_class = spin_field,
-          form_control = f_replicas,
-          :value = f_replicas,
+          field_class = field__spin,
+          form_control = service_form_replicas,
+          :value = service_form_replicas,
           min = 1,
           max = 20,
           width = 90,
           placeholder = 1,
         )
 
-        text(class = label_cap, content = "RUN COMMAND")
+        text(class = u-label-cap, content = "RUN COMMAND")
 
         input(
-          class = field_input,
-          form_control = f_run_command,
-          :value = f_run_command,
-          on_change = field:f_run_command,
+          class = field__input,
+          form_control = service_form_run_command,
+          :value = service_form_run_command,
+          on_change = field:service_form_run_command,
           placeholder = "(padrão da imagem)",
         )
 
-        text(class = muted, content = "Run args atuais: @svc_run_args")
+        text(class = u-muted, content = "Run args atuais: @service_run_args")
 
-        row(class = env_add) {
-          button(class = btn_primary, on_click = adv_save, disabled = @busy_adv_save, text = "Save")
-          text(class = muted, content = "@svc_action_msg")
+        row(class = env__add) {
+          button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "Save")
+          text(class = u-muted, content = "@service_action_message")
         }
       }
 
-      column(class = form_panel) {
+      column(class = form-panel) {
         text(
-          class = label_cap,
+          class = u-label-cap,
           content = "FILA DE PRÉ-DEPLOY (@pre_deploy_checks_count)",
         )
 
         text(
-          class = muted,
+          class = u-muted,
           content = """
             Roda esses Jobs em ORDEM antes do deploy (manual ou webhook),
             um de cada vez. Se o exit code de algum for diferente de 0, a
@@ -52,75 +52,75 @@ component {
           """,
         )
 
-        scrollable(direction = vertical, class = env_list_scroll) {
-          column(class = kv_list, height = shrink) {
+        scrollable(direction = vertical, class = u-fill-all) {
+          column(class = kv-list, height = shrink) {
             template(
               :for-each = pre_deploy_checks,
               foreach_fallback = SemChecks,
               var = c,
-              on_reorder = pdc_reorder,
+              on_reorder = pre_deploy_check_reorder,
               reorder_key = id,
             ) {
               if @c.__dragging == "true" {
-                row(class = kv_row_drag) {
+                row(class = "kv-list__row kv-list__row--dragging") {
                   text(
-                    class = "env_drag_handle env_dragging",
+                    class = "env__drag-handle env__drag-handle--dragging",
                     drag_handle = true,
                     content = "⋮",
                   )
 
                   button(
-                    class = env_del,
-                    on_click = pdc_del:@c.id,
-                    disabled = @busy_pdc_del,
+                    class = env__del,
+                    on_click = pre_deploy_check_delete:@c.id,
+                    disabled = @busy_pre_deploy_check_delete,
                     text = "✕",
                   )
 
-                  text(class = env_sep)
-                  text(class = env_key, content = "@c.index.")
-                  text(class = kv_val_fill, content = "@c.name")
+                  text(class = env__sep)
+                  text(class = env__key, content = "@c.index.")
+                  text(class = "kv-list__val kv-list__val--compact", content = "@c.name")
                 }
               } else {
-                row(class = kv_row) {
+                row(class = kv-list__row) {
                   text(
-                    class = env_drag_handle,
+                    class = env__drag-handle,
                     drag_handle = true,
                     content = "⋮",
                   )
 
                   button(
-                    class = env_del,
-                    on_click = pdc_del:@c.id,
-                    disabled = @busy_pdc_del,
+                    class = env__del,
+                    on_click = pre_deploy_check_delete:@c.id,
+                    disabled = @busy_pre_deploy_check_delete,
                     text = "✕",
                   )
 
-                  text(class = env_sep)
-                  text(class = env_key, content = "@c.index.")
-                  text(class = kv_val_fill, content = "@c.name")
+                  text(class = env__sep)
+                  text(class = env__key, content = "@c.index.")
+                  text(class = "kv-list__val kv-list__val--compact", content = "@c.name")
                 }
               }
             }
           }
         }
 
-        text(class = label_cap, content = "ADICIONAR À FILA")
+        text(class = u-label-cap, content = "ADICIONAR À FILA")
 
         select(
-          class = select,
+          class = form-select,
           :options = pre_deploy_available_jobs,
-          :value = f_pdc_add_job_id,
-          on_change = field:f_pdc_add_job_id,
+          :value = service_form_pre_deploy_check_add_job_id,
+          on_change = field:service_form_pre_deploy_check_add_job_id,
           placeholder = "escolher job...",
           labelField = name,
           valueField = id,
         )
 
-        row(class = env_add) {
+        row(class = env__add) {
           button(
-            class = btn_primary,
-            on_click = pdc_add,
-            disabled = @busy_pdc_add,
+            class = "btn btn--primary",
+            on_click = pre_deploy_check_add,
+            disabled = @busy_pre_deploy_check_add,
             text = "Adicionar à fila",
           )
         }

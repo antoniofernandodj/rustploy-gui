@@ -7,12 +7,12 @@ component {
     link(rel = import, href = "settings/maintenance.gvb", as = SettingsMaintenanceTab)
   }
 
-  row(class = header_row) {
-    column(class = header_titles) {
-      text(class = title, content = "Settings")
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text(class = page-head__title, content = "Settings")
 
       text(
-        class = subtitle,
+        class = page-head__subtitle,
         content = "Daemon web server, HTTPS e contas Git.",
       )
     }
@@ -20,7 +20,7 @@ component {
 
   tabbar(
     :value = settings_tab, active = @settings_tab, :items = settings_tabs,
-    tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+    tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
   )
 
   hr

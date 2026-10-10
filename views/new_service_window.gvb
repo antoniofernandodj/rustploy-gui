@@ -10,35 +10,22 @@ screen(title = "Novo serviço — Rustploy") {
     link(rel = import, href = "components/picker_row.gvb", as = PickerRow)
     link(rel = import, href = "components/template_row.gvb", as = TemplateRow)
 
-    style """
-      /* Titlebar custom (mesma linguagem visual do app.gv) */
-      .titlebar       { width: fill; height: 32; background: var(--surface); align-y: center; }
-      .titlebar_drag  { width: fill; height: fill; align-y: center; padding: 0 0 0 16; spacing: 9; }
-      .titlebar_dot   { size: 10; color: var(--blue); }
-      .titlebar_title { size: 12; bold: true; color: var(--muted); }
-      .win_btn        { width: 48; padding: 5 0; color: var(--border); text-align: center; }
-      .win_close      { width: 48; padding: 5 0; color: var(--danger); text-align: center; }
-
-      .nsw_screen { width: fill; height: fill; }
-      .nsw_body   { width: fill; height: fill; }
-    """
-
     script(src = "scripts/new_service_window.luau")
   }
 
-  column(class = nsw_screen) {
+  column(class = dialog__screen) {
     row(class = titlebar) {
-      row(class = titlebar_drag, on_press = window:drag) {
-        text(class = titlebar_dot, content = "●")
-        text(class = titlebar_title, content = "Novo serviço — Rustploy")
+      row(class = titlebar__drag, on_press = window:drag) {
+        text(class = titlebar__dot, content = "●")
+        text(class = titlebar__title, content = "Novo serviço — Rustploy")
       }
 
-      button(class = win_btn, on_click = window:minimize, text = "—")
-      button(class = win_close, on_click = window:close, text = "✕")
+      button(class = titlebar__btn, on_click = window:minimize, text = "—")
+      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
     }
 
     // Corpo do wizard, rolável (os passos db_form/template_form são altos).
-    scrollable(class = nsw_body, direction = vertical) {
+    scrollable(class = dialog__body, direction = vertical) {
       NewServiceWizard
     }
   }

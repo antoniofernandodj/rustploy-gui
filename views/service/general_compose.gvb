@@ -1,18 +1,18 @@
-// Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @svc_source_kind == "Compose"` de general.gvb.
+// Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @service_source_kind == "Compose"` de general.gvb.
 component {
-  text(class = label_cap, content = "DOCKER COMPOSE (YAML)")
+  text(class = u-label-cap, content = "DOCKER COMPOSE (YAML)")
 
   text(
-    class = muted,
+    class = u-muted,
     content = """
       Edite o compose do serviço. Salvar aplica no próximo deploy.
     """,
   )
 
   textarea(
-    class = env_editor,
+    class = env__editor,
     font = mono,
-    :value = svc_compose,
+    :value = service_compose,
     placeholder = l"""
       services:
         app:
@@ -20,21 +20,21 @@ component {
     """,
   )
 
-  row(class = env_add) {
+  row(class = env__add) {
     button(
-      class = btn_primary,
+      class = "btn btn--primary",
       on_click = compose_save,
       disabled = @busy_compose_save,
       text = "Salvar compose",
     )
 
     button(
-      class = btn_ghost,
+      class = "btn btn--ghost",
       on_click = compose_cancel,
       disabled = @busy_compose_cancel,
       text = Cancelar,
     )
 
-    text(class = muted, content = "@svc_action_msg")
+    text(class = u-muted, content = "@service_action_message")
   }
 }

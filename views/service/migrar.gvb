@@ -2,13 +2,13 @@
 component {
   scrollable(
     direction = vertical,
-    class = scroll_fill,
+    class = u-fill-all,
   ) {
-    column(width = fill, spacing = 8, class = form_panel) {
-      text(class = label_cap, content = "MIGRAR PARA BANCO COMPARTILHADO")
+    column(width = fill, spacing = 8, class = form-panel) {
+      text(class = u-label-cap, content = "MIGRAR PARA BANCO COMPARTILHADO")
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Crie antes o database de destino no servidor compartilhado (aba
           Databases de lá, marcando "Não mexer em env var"). Mesmo motor e
@@ -18,83 +18,83 @@ component {
       )
 
       text(
-        class = label_cap,
+        class = u-label-cap,
         content = "DATABASE DE ORIGEM (dentro deste banco)",
       )
 
       input(
-        class = field_input,
-        form_control = f_mig_db,
-        :value = f_mig_db,
-        on_change = field:f_mig_db,
+        class = field__input,
+        form_control = service_form_migration_database,
+        :value = service_form_migration_database,
+        on_change = field:service_form_migration_database,
         placeholder = "nome do database",
       )
 
-      text(class = label_cap, content = "DESTINO")
+      text(class = u-label-cap, content = "DESTINO")
 
       select(
-        class = select,
-        :options = mig_dests,
-        :value = f_mig_dest,
-        on_change = field:f_mig_dest,
+        class = form-select,
+        :options = migration_destinations,
+        :value = service_form_migration_destination,
+        on_change = field:service_form_migration_destination,
         placeholder = "database de destino...",
         labelField = name,
         valueField = id,
       )
 
-      text(class = label_cap, content = "ENV VAR A TROCAR")
+      text(class = u-label-cap, content = "ENV VAR A TROCAR")
 
       input(
-        class = field_input,
-        form_control = f_mig_env,
-        :value = f_mig_env,
-        on_change = field:f_mig_env,
+        class = field__input,
+        form_control = service_form_migration_env,
+        :value = service_form_migration_env,
+        on_change = field:service_form_migration_env,
         placeholder = "padrão DATABASE_URL / MONGODB_URI",
       )
 
-      row(class = env_add) {
-        button(class = btn_primary, on_click = mig_start, disabled = @busy_mig_start, text = Migrar)
+      row(class = env__add) {
+        button(class = "btn btn--primary", on_click = migration_start, disabled = @busy_migration_start, text = Migrar)
 
         button(
-          class = btn_ghost,
-          on_click = mig_refresh,
-          disabled = @busy_mig_refresh,
+          class = "btn btn--ghost",
+          on_click = migration_refresh,
+          disabled = @busy_migration_refresh,
           text = Atualizar,
         )
       }
 
-      if @mig_has == "true" {
-        text(class = label_cap, content = "ANDAMENTO — @mig_status")
+      if @migration_has == "true" {
+        text(class = u-label-cap, content = "ANDAMENTO — @migration_status")
 
-        column(class = kv_list) {
-          row(class = kv_row, :for-each = mig_steps, var = s) {
-            text(class = env_key, content = "@s.icon")
-            text(class = kv_val_fill, content = "@s.name")
-            text(class = muted, content = "@s.detail")
+        column(class = kv-list) {
+          row(class = kv-list__row, :for-each = migration_steps, var = s) {
+            text(class = env__key, content = "@s.icon")
+            text(class = "kv-list__val kv-list__val--compact", content = "@s.name")
+            text(class = u-muted, content = "@s.detail")
           }
         }
 
-        if @mig_can_finish == "true" {
+        if @migration_can_finish == "true" {
           text(
-            class = muted,
+            class = u-muted,
             content = """
               Migração concluída — o banco antigo foi mantido (parado)
               para rollback.
             """,
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = btn_ghost,
-              on_click = mig_rollback,
-              disabled = @busy_mig_rollback,
+              class = "btn btn--ghost",
+              on_click = migration_rollback,
+              disabled = @busy_migration_rollback,
               text = Reverter,
             )
 
             button(
-              class = btn_ghost,
-              on_click = mig_discard,
-              disabled = @busy_mig_discard,
+              class = "btn btn--ghost",
+              on_click = migration_discard,
+              disabled = @busy_migration_discard,
               text = "Descartar banco antigo",
             )
           }

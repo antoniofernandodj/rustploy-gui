@@ -1,17 +1,17 @@
-// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @prov_tab == "zip"` de general.gvb.
+// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.gvb.
 component {
-  text(class = label_cap, content = "ZIP DOCKERFILE")
+  text(class = u-label-cap, content = "ZIP DOCKERFILE")
 
   input(
-    class = field_input,
-    form_control = f_archive_path,
-    :value = f_archive_path,
-    on_change = field:f_archive_path,
+    class = field__input,
+    form_control = service_form_archive_path,
+    :value = service_form_archive_path,
+    on_change = field:service_form_archive_path,
     placeholder = "/caminho/para/app.zip",
   )
 
   text(
-    class = muted,
+    class = u-muted,
     content = """
       O zip deve conter um Dockerfile na raiz. Depois do envio,
       o deploy normal usa os arquivos descompactados pelo
@@ -19,37 +19,37 @@ component {
     """,
   )
 
-  row(class = hc_grid) {
-    column(class = hc_field) {
-      text(class = label_cap, content = "PORT")
+  row(class = healthcheck__grid) {
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "PORT")
 
       input(
-        class = field_input,
-        form_control = f_gen_port,
-        :value = f_gen_port,
-        on_change = field:f_gen_port,
+        class = field__input,
+        form_control = service_form_general_port,
+        :value = service_form_general_port,
+        on_change = field:service_form_general_port,
         placeholder = 80,
       )
     }
 
-    column(class = hc_field) {
-      text(class = label_cap, content = "STATUS")
-      text(class = muted, content = "@svc_action_msg")
+    column(class = healthcheck__field) {
+      text(class = u-label-cap, content = "STATUS")
+      text(class = u-muted, content = "@service_action_message")
     }
   }
 
-  row(class = env_add) {
+  row(class = env__add) {
     button(
-      class = btn_primary,
+      class = "btn btn--primary",
       on_click = archive_upload,
       disabled = @busy_archive_upload,
       text = "Enviar zip",
     )
 
     button(
-      class = btn_secondary,
-      on_click = gen_save,
-      disabled = @busy_gen_save,
+      class = btn-secondary,
+      on_click = general_save,
+      disabled = @busy_general_save,
       text = "Salvar porta",
     )
   }

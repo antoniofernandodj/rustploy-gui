@@ -3,7 +3,7 @@
 -- service_export_window.luau — script da JANELA "Exportar serviço", um motor
 -- Glacier próprio e ISOLADO do app principal (aberto via open_window por
 -- handlers/bundle.luau::open_export_window, que semeia a conexão e o plano:
--- ex_plan = JSON do ServiceExportPlan).
+-- export_plan = JSON do ServiceExportPlan).
 --
 -- O usuário marca quais variáveis do PROJETO levar (o rustploy não sabe quais o
 -- app lê: o container recebe todas) e escolhe incluir ou não os valores; o
@@ -48,8 +48,8 @@ local function render(): ()
         })
     end
 
-    ctx.ex_vars = json.encode(rows)
-    ctx.ex_picked_count = tostring(n)
+    ctx.export_vars = json.encode(rows)
+    ctx.export_picked_count = tostring(n)
 end
 
 local function pick(rule: (v: any) -> boolean): ()
@@ -61,25 +61,25 @@ local function pick(rule: (v: any) -> boolean): ()
 end
 
 function init(): ()
-    local ok, p = pcall(json.decode, ctx.ex_plan or "{}")
+    local ok, p = pcall(json.decode, ctx.export_plan or "{}")
     plan = (ok and type(p) == "table") and p or {}
 
-    ctx.ex_service = plan.service_name or ""
-    ctx.ex_project = plan.project_name or ""
-    ctx.ex_blocked = plan.blocked or ""
+    ctx.export_service = plan.service_name or ""
+    ctx.export_project = plan.project_name or ""
+    ctx.export_blocked = plan.blocked or ""
 
     local names = {}
     for _, v in ipairs(plan.service_env or {}) do
         table.insert(names, v.key .. (v.is_secret and " 🔒" or ""))
     end
-    ctx.ex_svc_vars = #names > 0 and table.concat(names, ", ") or "(este serviço não tem variáveis próprias)"
-    ctx.ex_svc_count = tostring(#names)
-    ctx.ex_has_vars = (#(plan.project_env or {}) > 0) and "true" or "false"
+    ctx.export_service_vars = #names > 0 and table.concat(names, ", ") or "(este serviço não tem variáveis próprias)"
+    ctx.export_service_count = tostring(#names)
+    ctx.export_has_vars = (#(plan.project_env or {}) > 0) and "true" or "false"
 
-    ctx.ex_values = "true"
-    ctx.ex_yaml = ""
-    ctx.ex_err = ""
-    ctx.ex_msg = ""
+    ctx.export_values = "true"
+    ctx.export_yaml = ""
+    ctx.export_error = ""
+    ctx.export_message = ""
 
     pick(function(v: any): boolean
         return v.suggested == true
@@ -92,35 +92,35 @@ function field(key: string?, v: string?): ()
     end
 end
 
-function ex_toggle(key: string): ()
+function export_toggle(key: string): ()
     picked[key] = not picked[key]
     render()
 end
 
-function ex_suggested(): ()
+function export_suggested(): ()
     pick(function(v: any): boolean
         return v.suggested == true
     end)
 end
 
-function ex_all(): ()
+function export_all(): ()
     pick(function(_v: any): boolean
         return true
     end)
 end
 
-function ex_none(): ()
+function export_none(): ()
     pick(function(_v: any): boolean
         return false
     end)
 end
 
 -- Pede o pacote ao daemon com as escolhas da tela. `(yaml, nome_de_arquivo)`
--- ou `nil` (com ctx.ex_err preenchido).
+-- ou `nil` (com ctx.export_error preenchido).
 local function generate(): (string?, string?)
     local api = client()
     if not api then
-        ctx.ex_err = "sem conexão — reabra a janela pelo app"
+        ctx.export_error = "sem conexão — reabra a janela pelo app"
         return nil, nil
     end
 
@@ -131,26 +131,26 @@ local function generate(): (string?, string?)
         end
     end
 
-    ctx.ex_err = ""
-    ctx.ex_msg = "gerando…"
+    ctx.export_error = ""
+    ctx.export_message = "gerando…"
     local ok, res = api:rpc_checked{
         ServiceExport = {
-            service_id = ctx.ex_service_id,
-            include_values = ctx.ex_values == "true",
+            service_id = ctx.export_service_id,
+            include_values = ctx.export_values == "true",
             project_env_keys = keys,
         },
     }
-    ctx.ex_msg = ""
+    ctx.export_message = ""
 
     if not ok or type(res) ~= "table" or not res.ServiceBundleYaml then
-        ctx.ex_err = "erro: " .. tostring(res)
+        ctx.export_error = "erro: " .. tostring(res)
         return nil, nil
     end
 
     return res.ServiceBundleYaml.yaml, res.ServiceBundleYaml.filename
 end
 
-function ex_save(): ()
+function export_save(): ()
     local yaml, filename = generate()
     if not yaml then
         return
@@ -168,17 +168,17 @@ function ex_save(): ()
 
     local okw, werr = write_file(path, yaml)
     if not okw then
-        ctx.ex_err = "falha ao gravar: " .. tostring(werr)
+        ctx.export_error = "falha ao gravar: " .. tostring(werr)
         return
     end
-    ctx.ex_msg = "salvo em " .. path
+    ctx.export_message = "salvo em " .. path
 end
 
 -- Mostra o pacote como texto (com o botão Copiar) para quem não quer arquivo.
-function ex_show(): ()
+function export_show(): ()
     local yaml = generate()
     if yaml then
-        ctx.ex_yaml = yaml
+        ctx.export_yaml = yaml
     end
 end
 

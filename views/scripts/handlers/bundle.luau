@@ -31,8 +31,8 @@ function open_export_window(id: string?): ()
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            ex_service_id = sid,
-            ex_plan = json.encode(res.ServiceExportPlan),
+            export_service_id = sid,
+            export_plan = json.encode(res.ServiceExportPlan),
         },
     }
 end

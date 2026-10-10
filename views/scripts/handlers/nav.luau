@@ -17,8 +17,8 @@ end
 
 function nav_deploy_engine(): ()
     goto_view("deploy_engine")
-    if (ctx.eng_tab or "") == "" then
-        ctx.eng_tab = "fila"
+    if (ctx.deploy_engine_tab or "") == "" then
+        ctx.deploy_engine_tab = "fila"
     end
 end
 
@@ -47,11 +47,11 @@ function nav_settings(): ()
     goto_view("settings")
     ctx.settings_tab = "web"
     -- Defaults do form de conexão Git (destaca a aba certa e o método OAuth).
-    if (ctx.gp_kind or "") == "" then
-        ctx.gp_kind = "gitea"
+    if (ctx.git_provider_kind or "") == "" then
+        ctx.git_provider_kind = "gitea"
     end
-    if (ctx.gp_mode or "") == "" then
-        ctx.gp_mode = "oauth"
+    if (ctx.git_provider_mode or "") == "" then
+        ctx.git_provider_mode = "oauth"
     end
 end
 
@@ -68,9 +68,9 @@ function nav(v: string?): ()
 end
 
 
--- Abas (TabButton dispara `proj_tab:services`, `docker_tab:images`, …).
-function proj_tab(t: string): ()
-    ctx.proj_tab = t
+-- Abas (TabButton dispara `project_tab:services`, `docker_tab:images`, …).
+function project_tab(t: string): ()
+    ctx.project_tab = t
 end
 
 function docker_tab(t: string): ()
@@ -80,8 +80,8 @@ function docker_tab(t: string): ()
     end
 end
 
-function eng_tab(t: string): ()
-    ctx.eng_tab = t
+function deploy_engine_tab(t: string): ()
+    ctx.deploy_engine_tab = t
 end
 
 function deploy_tab(t: string): ()
@@ -95,12 +95,12 @@ function tab(t: string): ()
 end
 
 function prov(t: string): ()
-    ctx.prov_tab = t
+    ctx.provider_tab = t
 end
 
--- Órfão desde que a aba virou <tabbar>: a barra grava `f_hc_kind` sozinha.
+-- Órfão desde que a aba virou <tabbar>: a barra grava `service_form_healthcheck_kind` sozinha.
 -- function hckind(k: string): ()
---     ctx.f_hc_kind = k
+--     ctx.service_form_healthcheck_kind = k
 -- end
 
 

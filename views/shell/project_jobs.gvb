@@ -2,27 +2,27 @@
 component {
   resources {
     component(name = SemJobsNoProjeto) {
-      text(class = muted, content = "Nenhum job cadastrado ainda.")
+      text(class = u-muted, content = "Nenhum job cadastrado ainda.")
     }
   }
 
-  row(class = env_head) {
-    text(class = muted_fill, content = "@proj_jobs_count job(s)")
+  row(class = env__head) {
+    text(class = "u-muted u-fill", content = "@project_jobs_count job(s)")
 
     button(
-      class = btn_sm_primary,
+      class = "btn btn--primary btn--sm",
       on_click = open_new_job_window,
       disabled = @busy_open_new_job_window,
       text = "+ Novo job",
     )
   }
 
-  scrollable(direction = vertical, class = env_list_scroll) {
-    column(class = kv_list) {
-      each @proj_jobs as j (fallback = SemJobsNoProjeto) {
-        row(class = kv_row) {
-          text(class = env_key, content = "@j.name")
-          text(class = "muted col_dur", content = "@j.recurrence")
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = kv-list) {
+      each @project_jobs as j (fallback = SemJobsNoProjeto) {
+        row(class = kv-list__row) {
+          text(class = env__key, content = "@j.name")
+          text(class = "u-muted table__col-dur", content = "@j.recurrence")
 
           StateCell(
             kind = @j.last_run_kind,
@@ -30,12 +30,12 @@ component {
           )
 
           text(
-            class = "muted kv_val_fill",
+            class = "u-muted kv-list__val kv-list__val--compact",
             content = "→ @j.next_run_at",
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             if = @j.running,
             not_equals = true,
             on_click = job_run_now:@j.id,
@@ -44,7 +44,7 @@ component {
           )
 
           button(
-            class = env_del,
+            class = env__del,
             if = @j.running,
             equals = true,
             on_click = job_run_cancel:@j.last_run_id,
@@ -53,7 +53,7 @@ component {
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             if = @j.last_run_id,
             not_equals = "",
             on_click = open_job_logs_window:@j.last_run_id,
@@ -62,23 +62,23 @@ component {
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             on_click = job_toggle:@j.id,
             disabled = @busy_job_toggle,
             text = @j.enabled_label,
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             on_click = open_edit_job_window:@j.id,
             disabled = @busy_open_edit_job_window,
             text = Editar,
           )
 
           button(
-            class = env_del,
-            on_click = job_del:@j.id,
-            disabled = @busy_job_del,
+            class = env__del,
+            on_click = job_delete:@j.id,
+            disabled = @busy_job_delete,
             text = "✕",
           )
         }

@@ -88,9 +88,15 @@ function job_toggle(id: string): ()
         },
     }
     if ok then
-        toast{ message = tostring(job.enabled and "Job pausado" or "Job ativado"), kind = "success" }
+        toast{
+            message = tostring(job.enabled and "Job pausado" or "Job ativado"),
+            kind = "success"
+        }
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{
+            message = tostring(res),
+            kind = "error"
+        }
     end
     Stream.refresh_now()
 end
@@ -110,7 +116,11 @@ function open_new_job_window(): ()
     for _, e in ipairs((snap and snap.services) or {}) do
         local svc = e.service
         if svc then
-            table.insert(services, { id = svc.id, name = svc.spec.name, project_id = svc.spec.project_id })
+            table.insert(services, {
+                id = svc.id,
+                name = svc.spec.name,
+                project_id = svc.spec.project_id
+            })
         end
     end
     open_window{
@@ -119,8 +129,8 @@ function open_new_job_window(): ()
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            njob_projects = json.encode(projects),
-            njob_services = json.encode(services),
+            new_job_projects = json.encode(projects),
+            new_job_services = json.encode(services),
         },
     }
 end
@@ -134,15 +144,18 @@ end
 function open_edit_job_window(id: string): ()
     local job = State.jobs_by_id[id]
     if not job then
-        toast{ message = tostring("job não encontrado (tela desatualizada — tenta de novo)"), kind = "error" }
+        toast{
+            message = tostring("job não encontrado (tela desatualizada — tenta de novo)"),
+            kind = "error"
+        }
         return
     end
     local api = State.api
 
-    local njob_git_providers = "[]"
-    local njob_git_repos = "[]"
-    local njob_git_repo = ""
-    local njob_git_branches = "[]"
+    local new_job_git_providers = "[]"
+    local new_job_git_repos = "[]"
+    local new_job_git_repo = ""
+    local new_job_git_branches = "[]"
     if job.git_source and api then
         local pid = job.git_source.provider_id
         if pid and pid ~= "" then
@@ -151,26 +164,32 @@ function open_edit_job_window(id: string): ()
             -- init (mesma restrição de `open_new_job_window`), então até ela
             -- abrir o clique em "Editar" fica sem NENHUM feedback visual.
             -- Só o toast avisa que algo está acontecendo nesse intervalo.
-            toast{ message = tostring("Carregando dados do repositório…"), kind = "info" }
+            toast{
+                message = tostring("Carregando dados do repositório…"),
+                kind = "info"
+            }
             local okp, resp = api:rpc("GitProviderList")
             if okp and resp.GitProviders then
-                njob_git_providers = fmt.git_providers(resp.GitProviders)
+                new_job_git_providers = fmt.git_providers(resp.GitProviders)
             end
             local okr, resr = api:rpc{ GitRepoList = { provider_id = pid } }
             if okr and resr.GitRepos then
-                njob_git_repos = fmt.git_repos(resr.GitRepos)
+                new_job_git_repos = fmt.git_repos(resr.GitRepos)
                 for _, r in ipairs(resr.GitRepos) do
                     if r.clone_url == job.git_source.url then
-                        njob_git_repo = r.full_name
+                        new_job_git_repo = r.full_name
                         break
                     end
                 end
-                if njob_git_repo ~= "" then
+                if new_job_git_repo ~= "" then
                     local okb, resb = api:rpc{
-                        GitBranchList = { provider_id = pid, repo_full_name = njob_git_repo },
+                        GitBranchList = {
+                            provider_id = pid,
+                            repo_full_name = new_job_git_repo
+                        },
                     }
                     if okb and resb.GitBranches then
-                        njob_git_branches = fmt.git_branches(resb.GitBranches)
+                        new_job_git_branches = fmt.git_branches(resb.GitBranches)
                     end
                 end
             end
@@ -186,11 +205,11 @@ function open_edit_job_window(id: string): ()
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            njob_edit_job = json.encode(job),
-            njob_git_providers = njob_git_providers,
-            njob_git_repos = njob_git_repos,
-            njob_git_repo = njob_git_repo,
-            njob_git_branches = njob_git_branches,
+            new_job_edit_job = json.encode(job),
+            new_job_git_providers = new_job_git_providers,
+            new_job_git_repos = new_job_git_repos,
+            new_job_git_repo = new_job_git_repo,
+            new_job_git_branches = new_job_git_branches,
         },
     }
 end
@@ -205,7 +224,11 @@ function open_job_logs_window(job_run_id: string): ()
     local seed = "[]"
     local api = State.api
     if api then
-        local ok, res = api:rpc{ GetJobLogs = { job_run_id = job_run_id } }
+        local ok, res = api:rpc{
+            GetJobLogs = {
+                job_run_id = job_run_id
+            }
+        }
         if ok and res.JobLogs then
             seed = json.encode(res.JobLogs)
         end
@@ -217,14 +240,14 @@ function open_job_logs_window(job_run_id: string): ()
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            lw_title = "Job · " .. string.sub(job_run_id, 1, 12),
-            lw_stream_url = "/api/jobs/runs/" .. job_run_id .. "/logs",
-            lw_seed = seed,
+            log_window_title = "Job · " .. string.sub(job_run_id, 1, 12),
+            log_window_stream_url = "/api/jobs/runs/" .. job_run_id .. "/logs",
+            log_window_seed = seed,
         },
     }
 end
 
-function job_del(id: string): ()
+function job_delete(id: string): ()
     local api = State.api
     if not api then
         return

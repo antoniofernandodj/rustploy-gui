@@ -654,7 +654,7 @@ pelo espelho**.
   conhecidos; uma sessão escrita só do lado da ponte teria o agente operando um
   servidor que a janela do usuário nem sabe que existe. Limpa-se o erro anterior
   antes, para não confundir uma falha velha com esta. O motivo de uma recusa vem de
-  `error` (falha de transporte/401) ou de `erro_url` (URL malformada) — o
+  `error` (falha de transporte/401) ou de `error_url` (URL malformada) — o
   `connect()` escreve ali e volta sem conectar. `TIMEOUT_CONNECT` (30 s) é o quanto
   se espera: ele faz um `DaemonStatus` de validação contra o daemon remoto, então o
   teto é de rede, não de UI. `POLL` (100 ms) é de quanto em quanto tempo se
@@ -840,15 +840,15 @@ são, cada uma, um motor isolado aberto por `open_window`; não passam pelo `app
 então cada teste as registra e renderiza por conta própria, **semeando** a conexão
 (e projetos/serviços já buscados) como `open_window({ data = … })` faria. O init do
 script real tenta o catálogo, mas o *fetch* suspende sem executor — por isso os
-dados que os passos esperam são semeados à mão. Chaves como `njob_time` ("HH:MM" do
+dados que os passos esperam são semeados à mão. Chaves como `new_job_time` ("HH:MM" do
 `<timeedit>`) e a coleção do `<radiogroup>` de dia da semana são semeadas pelo
 `init()` da janela real; o teste faz o papel dele.
 
 **Onda 1 da reforma** (glacier-ui 0.102+): o campo NOME de "Novo projeto" usa a
-validação declarada no `<form>`. Na árvore avaliada, o `form_control` `np_name` deve
+validação declarada no `<form>`. Na árvore avaliada, o `form_control` `new_project_name` deve
 carregar `rules` com `required` e ter o `on_validation_error` do `<form>` propagado
 (`form_error_action`) — é o que garante que um envio vazio roteie para o
-`np_apontar` em vez do `submit_project`.
+`new_project_show_validation_errors` em vez do `submit_project`.
 
 **O teste que passa por todas as telas** (`all_screens_and_service_tabs_render`)
 percorre: as views do shell; o Deploy Engine com a fila "NA FILA" (itens
@@ -906,7 +906,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   ao entrar num projeto ou serviço, porque o `nav_item.gvb` comparava `{view}` contra
   um `target` de **uma** view só (`equals`) e `project_services`/`service` não são
   `"projects"`. A correção usa `one_of` (glacier-ui 0.57.8): `target="projects
-  project_services service"` casa com qualquer das três. `nav_row_on` é a classe do
+  project_services service"` casa com qualquer das três. `nav-item--active` é a classe do
   fundo azul, mas o widget `<button>` lê a propriedade `color:` do GSS para o fundo
   (`background:` é ignorada em botões), então o campo que importa é o `color` de
   `node.kind`, não o `node.background` genérico (esse é para containers/rows). O
@@ -981,13 +981,13 @@ mesmo coalescido a 30 fps. Por isso os logs (runtime e build) abrem em janela pr
 lá o motor só tem um template minúsculo, cada reavaliação é trivial e o log rola liso
 independente da taxa de chegada. O mesmo vale para a aba Logs do serviço, que é só um
 *launcher* (ver [6.5](#65-o-detalhe-do-serviço)), e para o build log de um deployment
-(`dep_logs` → `open_window`): renderizar milhares de linhas por reavaliação travava a
+(`deployment_logs` → `open_window`): renderizar milhares de linhas por reavaliação travava a
 principal.
 
 **A condição vai na chamada, não na raiz do componente.** Num componente extraído, o `if`
 do nó raiz não é aplicado: o conteúdo apareceria sempre. Por isso as abas se escrevem
 `ServiceLogsTab(if = @tab, equals = logs)` e as abas de projeto
-`ProjectEnvTab(if = @proj_loading, not_equals = true)`, com o `if` no ponto de uso. O
+`ProjectEnvTab(if = @project_loading, not_equals = true)`, com o `if` no ponto de uso. O
 mesmo raciocínio vale para o `LoadingRow` (ver [6.7](#67-os-componentes)).
 
 **Vários filhos condicionais pedem `if @x { … }`, não `if=` como atributo.** O atributo
@@ -1118,7 +1118,7 @@ Registry), Settings, Schedules e Suporte.
   `Command::DeployEngineStatus` (ver os `eng_*`); sem backend novo. A fila é **global** (um
   deploy por vez): o primeiro é o próximo a rodar. Arrasta-se pela alça (⋮) para reordenar,
   ↑ fura a fila, ✕ cancela, e pausar/retomar interrompe o worker de puxar o próximo (o que já
-  está rodando segue). Tudo em `handlers/deploy_queue.luau`. São três abas (`eng_tab`: fila, executando, histórico; handler `eng_tab` em `handlers/nav.luau`),
+  está rodando segue). Tudo em `handlers/deploy_queue.luau`. São três abas (`deploy_engine_tab`: fila, executando, histórico; handler `deploy_engine_tab` em `handlers/nav.luau`),
   cada uma num arquivo de `views/home/deploy_engine/`. Separadas, cada lista tem a tela toda:
   quando eram três seções empilhadas, uma fila grande empurrava as outras para fora da janela.
 - **Docker.** Sub-abas Containers / Images / Volumes / Networks / Registry. As três do meio
@@ -1152,17 +1152,17 @@ Registry), Settings, Schedules e Suporte.
 - **Ingress.** Os estados vazios das listas usam o `fallback`. As portas TCP de host são
   exposição direta de porta, fora do proxy HTTP por domínio: um serviço pode ter as duas, só
   uma, ou nenhuma.
-- **Settings → Git.** OAuth: o Luau não abre o navegador; guarda a URL em `gp_oauth_url` e o
+- **Settings → Git.** OAuth: o Luau não abre o navegador; guarda a URL em `git_provider_oauth_url` e o
   built-in `open:<chave>` do glacier abre no navegador padrão.
 - **Settings → Infra as Code.** O manifesto é um `.zip` com exatamente `rustploy.yml`
   (projetos/serviços; variáveis de ambiente sempre como `${VAR}`) + `rustploy.vars.toml` (os
   valores reais, aninhados por escopo). Exportar/importar usam os diálogos nativos do SO, e o
-  import rejeita um zip que tenha qualquer outra coisa. Ver `iac_export`/`iac_import` em
+  import rejeita um zip que tenha qualquer outra coisa. Ver `manifest_export`/`manifest_import` em
   `handlers/settings.luau` e a ponte do zip na [seção 3](#3-a-ponte-do-zip-do-infra-as-code).
 - **Settings → Manutenção.** Limpeza automática de recursos Docker sem uso (ver
   `docs/plano-limpeza-automatica-docker.md`): as mesmas funções dos botões manuais da aba
   Docker, disparadas por agendamento em vez de clique.
-  - O **dia da semana** eram sete `<TabButton>` escritos à mão mais o handler `dc_weekday` só
+  - O **dia da semana** eram sete `<TabButton>` escritos à mão mais o handler `docker_cleanup_weekday` só
     para gravar a escolha. O `<radiogroup>` (glacier-ui 0.66) grava a chave sozinho, no update
     dele em Rust, então o handler foi embora junto. As opções vêm de `weekdays`, semeada em
     `handlers/connection.luau` a partir de `fmt.WEEKDAYS_JSON`; a aparência agora é de radio
@@ -1172,7 +1172,7 @@ Registry), Settings, Schedules e Suporte.
     `tonumber(...) or 0` e agendava a limpeza para a meia-noite sem avisar ninguém. O
     `<timeedit>` (glacier-ui 0.68) é um campo só, editado por seções (clique na hora, setas ▴▾
     mexem nela), onde não dá para digitar e portanto não dá para digitar errado. A chave
-    `dc_time` é `"HH:MM"`; `fmt.hm_join`/`fmt.hm_split` fazem a ponte com o `{hour, minute}`
+    `docker_cleanup_time` é `"HH:MM"`; `fmt.hm_join`/`fmt.hm_split` fazem a ponte com o `{hour, minute}`
     que o daemon espera — o contrato HTTP não mudou.
 
 ### 6.5 O detalhe do serviço (`views/service.gvb` e `views/service/`)
@@ -1189,7 +1189,7 @@ conforme o serviço).
 - **Timer de deploy.** O "1s, 2s, 3s…" só aparece enquanto um deploy iniciado por este painel
   (Deploy/Rebuild) está em andamento. É incrementado uma vez por segundo pela subscription de
   poll (`sec_tick`, em `net::poll_stream`) e some quando o deploy termina; o desfecho e o
-  tempo total aparecem então em `svc_action_msg`, logo abaixo.
+  tempo total aparecem então em `service_action_message`, logo abaixo.
 - **Ações responsivas.** As ações compactas (ícones) ficam **empilhadas** abaixo do título e
   só valem até 1240 px; ficam dentro da coluna do título de propósito: quando aperta, a
   fileira de rótulos à direita some (`@media`) e `header_titles` passa a ocupar a largura toda,
@@ -1220,7 +1220,7 @@ conforme o serviço).
   nome é só de exibição para Compose (stack e volumes ficam gravados), e em Application o alias
   de rede acompanha o nome no próximo deploy — o aviso abaixo do campo diz qual dos dois vale. A
   aba "Gitea/GitHub" vale para qualquer conta conectada em Settings → Git; o `target`/`action`
-  seguem `gitea` por ser a chave de estado (`prov_tab`), não o nome do provedor. O `placeholder`
+  seguem `gitea` por ser a chave de estado (`provider_tab`), não o nome do provedor. O `placeholder`
   do editor Compose é um `l"""…"""` (glacier-ui 0.119+): um texto em que a quebra de linha é
   conteúdo. `"…"` não interpreta `\n` e só aceitaria a quebra literal, com as linhas de
   continuação coladas na margem; `"""` dobra as linhas em espaços. O `l"""` (de *linhas*, não de
@@ -1232,14 +1232,14 @@ conforme o serviço).
   (`{e.__dragging}` vem do glacier-ui durante o arrasto).
 - **Deployments.** A URL do webhook e os botões ficam em **linhas separadas**: a URL é longa
   (~100 caracteres) e, com `width: fill`, empurraria os botões para fora do painel. Ela é exibida
-  **truncada** (`svc_webhook_url_short`), porque inteira estoura o card em janelas estreitas; o
+  **truncada** (`service_webhook_url_short`), porque inteira estoura o card em janelas estreitas; o
   valor completo vai no tooltip e no clipboard. As ações da linha são ícone + tooltip (ver
   [6.1](#61-regras-que-valem-para-todos-os-templates)), e o build log abre em janela isolada.
 - **Domains.** Lista de rotas HTTP (domínio → porta de container, TLS por rota), mais o form de
   adição e a porta TCP crua do host.
 - **Advanced.** O teto de 20 réplicas é arbitrário mas deliberado: um número acima disso num
   single-node é quase sempre engano de digitação, e o widget não deixa mais chegar lá. O piso de
-  1 substitui o `if r < 1 then r = 1` do `adv_save`, que fica como rede redundante. A **fila de
+  1 substitui o `if r < 1 then r = 1` do `advanced_save`, que fica como rede redundante. A **fila de
   pré-deploy** é editável com efeito imediato (como Domains, não passa pelo Save do form acima):
   cada item roda em **ordem** antes do deploy, e a primeira falha para a fila inteira.
 - **Healthcheck.** O *expected status* era um `<input>` de texto livre com uma linha de erro
@@ -1270,8 +1270,8 @@ no `open_window{ size = … }`.
 
 - **Logs (`log_window.gvb`).** Janela de **logs ao vivo** (runtime ou build), aberta por
   `handlers/services.luau` (`open_logs_window`/`open_build_logs_window`). É genérica: o script
-  decide o tipo pelos dados semeados — `api_url`/`api_token`, `lw_title`, `lw_stream_url`
-  (endpoint SSE dedicado) e `lw_seed` (histórico inicial); ver `scripts/log_window.luau`. O motivo
+  decide o tipo pelos dados semeados — `api_url`/`api_token`, `log_window_title`, `log_window_stream_url`
+  (endpoint SSE dedicado) e `log_window_seed` (histórico inicial); ver `scripts/log_window.luau`. O motivo
   da janela está em [6.1](#61-regras-que-valem-para-todos-os-templates). Não tem `title` no
   cabeçalho de propósito: o título é dinâmico ("Logs — nginx", "Build — abc123", "Job — …") e
   quem o sabe é quem a abre, no `open_window{ title = … }`; o tamanho (900×560) vai no
@@ -1295,9 +1295,9 @@ no `open_window{ size = … }`.
     arquivo a cada execução, em vez do colado acima.
   - *Env vars:* as próprias do job têm a **maior precedência** na resolução (por cima de projeto +
     serviço gatilho); formato `.env` colado, igual ao editor de projeto/serviço, parseado em
-    `njob_create`.
+    `new_job_create`.
   - *Recorrência diária:* os pares HORA/MINUTO de texto livre viraram um `<timeedit>` só (chave
-    `njob_time`, `"HH:MM"`) — a mesma troca e o mesmo motivo da limpeza automática (ver 6.4).
+    `new_job_time`, `"HH:MM"`) — a mesma troca e o mesmo motivo da limpeza automática (ver 6.4).
 - **Novo projeto (`new_project_form.gvb`).** Aberta por `handlers/projects.luau`
   (`open_new_project_window`). Ao concluir, o script (`scripts/new_project_window.luau`) emite
   `broadcast("project_created")` e chama `close_window()`. A validação é declarada no `<form>` (ver
@@ -1315,9 +1315,9 @@ no `open_window{ size = … }`.
   lógica vem de `handlers/wizard.luau`, carregada pelo script de entrada. Ao criar, o wizard emite
   `broadcast("service_created")` e chama `close_window()`. O wizard espelha o fluxo do antigo
   remote-client (Application / Database / Compose / Template): tipo → formulário por tipo; o passo
-  corrente vive em `{ns_step}` e os campos são chaves de contexto `ns_*` (os handlers `ns_*`). O
-  status do wizard mostra um spinner enquanto o RPC de criação está no ar (`{ns_busy}`), e o
-  texto acompanha `{ns_msg}` ("criando…" / "erro: …").
+  corrente vive em `{new_service_step}` e os campos são chaves de contexto `ns_*` (os handlers `ns_*`). O
+  status do wizard mostra um spinner enquanto o RPC de criação está no ar (`{new_service_busy}`), e o
+  texto acompanha `{new_service_message}` ("criando…" / "erro: …").
 
 ### 6.7 Os componentes
 

@@ -55,14 +55,14 @@ function queue_reorder(v: string?): ()
     Stream.refresh_now()
 end
 
--- Pausa/retoma a fila. `ctx.eng_paused` ("true"/"false") reflete o estado atual
+-- Pausa/retoma a fila. `ctx.deploy_engine_paused` ("true"/"false") reflete o estado atual
 -- vindo do snapshot; aqui só invertemos.
 function queue_toggle_pause(): ()
     local api = State.api
     if not api then
         return
     end
-    local paused = ctx.eng_paused ~= "true"
+    local paused = ctx.deploy_engine_paused ~= "true"
     local ok, res = api:rpc_checked{ DeployQueuePause = { paused = paused } }
     if ok then
         toast{ message = tostring(paused and "Fila pausada" or "Fila retomada"), kind = "success" }
@@ -72,14 +72,14 @@ function queue_toggle_pause(): ()
     Stream.refresh_now()
 end
 
-function eng_open_detail(service_id: string): ()
+function deploy_engine_open_detail(service_id: string): ()
     local snap = State.snap
-    ctx.eng_detail_id = service_id
-    ctx.eng_detail_open = "true"
-    Stream.refresh_eng_detail(snap and snap.engine and snap.engine.active)
+    ctx.deploy_engine_detail_id = service_id
+    ctx.deploy_engine_detail_open = "true"
+    Stream.refresh_deploy_engine_detail(snap and snap.engine and snap.engine.active)
 end
 
-function eng_close_detail(): ()
-    ctx.eng_detail_id = ""
-    ctx.eng_detail_open = "false"
+function deploy_engine_close_detail(): ()
+    ctx.deploy_engine_detail_id = ""
+    ctx.deploy_engine_detail_open = "false"
 end

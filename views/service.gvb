@@ -16,127 +16,119 @@ component {
 
     style """
       /* Cabeçalho + ações */
-      .svc_head      { width: fill; align-y: start; }
-      .svc_title_row { width: fill; spacing: 14; align-y: center; }
-      .svc_title     { width: fill; }
+      .service__head      { width: fill; align-y: start; }
+      .service__title-row { width: fill; spacing: 14; align-y: center; }
+      .service__title     { width: fill; }
       /* Sub-linha de status (badge + timer) logo abaixo do nome. */
-      .svc_substatus { spacing: 10; align-y: center; }
-      .tabs_scroll   { width: fill; }
-      .tabs_main     { width: shrink; spacing: 4; }
-      .svc_actions   { spacing: 10; align-y: center; }
-      .btn_blue      { color: var(--blue); padding: 11 22; border-radius: 5 }
-      .btn_blue:disabled { color: var(--border); text-color: var(--faint); }
+      .service__substatus { spacing: 10; align-y: center; }
+      .service__actions   { spacing: 10; align-y: center; }
+      .service__panels    { width: fill; spacing: 14; }
+      .tabs__scroll       { width: fill; }
+      .tabs__main         { width: shrink; spacing: 4; }
       /* Corpo: conteúdo da aba + painel lateral */
-      .svc_body      { width: fill; height: fill; spacing: 20; }
-      .svc_main      { width: fill; height: fill; spacing: 16; }
-      .svc_aside     { width: 360; height: fill; spacing: 16; }
-      .svc_err       { size: 13; color: var(--error); }
-      /* Connection (pares chave/valor) */
-      .kv_key        { width: fill; size: 13; color: var(--muted); }
-      .kv_val        { size: 16; bold: true; color: var(--text); }
-      .select        { width: fill; padding: 12 14; background: var(--raised); border-radius: 4; border-width: 1; border-color: #30363D; color: var(--text-2); }
+      .service__body      { width: fill; height: fill; spacing: 20; }
+      .service__main      { width: fill; height: fill; spacing: 16; }
+      .service__aside     { width: 360; height: fill; spacing: 16; }
+      .service__err       { size: 13; color: var(--error); }
       /* Deployments (lista + build log) */
-      .col_dep_id    { width: 130; }
-      .col_dep_start { width: fill; }
-      .dep_image     { size: 11; color: var(--faint); padding: 2 0 0 0; }
-      .dep_wrap      { width: fill; height: fill; spacing: 8; }
-      .dep_list_scroll { width: fill; height: 240; }
-      .dep_actions   { spacing: 8; align-y: center; }
-      .dep_logs_btn  { color: var(--border); padding: 5 12; border-radius: 3 }
-      .dep_del_btn   { color: var(--danger); padding: 5 12; border-radius: 3 }
-      .label_cap_fill { width: fill; size: 11; bold: true; color: var(--faint); }
+      .table__col-dep-id        { width: 130; }
+      .table__col-dep-start     { width: fill; }
+      .deployments__image       { size: 11; color: var(--faint); padding: 2 0 0 0; }
+      .deployments__wrap        { width: fill; height: fill; spacing: 8; }
+      .deployments__list-scroll { width: fill; height: 240; }
+      .deployments__actions     { spacing: 8; align-y: center; }
       /* Logs (aba Logs = launcher da janela isolada; painel usado só p/ layout) */
-      .log_panel     { width: fill; height: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 14 16; spacing: 8; }
-      .log_body      { width: fill; spacing: 2; }
-      .log_line      { width: fill; spacing: 12; }
-      .log_time      { width: 76; size: 11; color: var(--faint); }
-      .log_text      { width: fill; size: 12; color: #9DA7B3; }
-      /* Painel lateral */
-      .aside_panel   { width: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 18; spacing: 8; }
-      .aside_panel_fill { width: fill; height: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 14 16; spacing: 8; }
+      .log-panel       { width: fill; height: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 14 16; spacing: 8; }
+      .log-panel__body { width: fill; spacing: 2; }
+      .log-panel__line { width: fill; spacing: 12; }
+      .log-panel__time { width: 76; size: 11; color: var(--faint); }
+      .log-panel__text { width: fill; size: 12; color: #9DA7B3; }
+      /* Painel lateral (o `--fill` troca só a altura e o respiro) */
+      .aside-panel        { width: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 18; spacing: 8; }
+      .aside-panel--fill  { height: fill; padding: 14 16; }
       /* Responsivo: estreita o painel lateral e aperta o corpo (glacier-ui 0.9.0+). */
       @media (max-width: 900) {
-        .svc_aside { width: 240; }
-        .svc_body  { spacing: 12; }
+        .service__aside { width: 240; }
+        .service__body  { spacing: 12; }
       }
       @media (max-width: 560) {
-        .svc_aside { width: 170; }
+        .service__aside { width: 170; }
       }
     """
   }
 
   column(class = content) {
     // ── Header: nome + estado + ações ──────────────────────────────────
-    row(class = svc_head) {
-      column(class = header_titles) {
-        row(class = svc_title_row) {
+    row(class = service__head) {
+      column(class = page-head__titles) {
+        row(class = service__title-row) {
           button(
-            class = btn_ghost,
-            on_click = open_project:@svc_project_id,
+            class = "btn btn--ghost",
+            on_click = open_project:@service_project_id,
             disabled = @busy_open_project,
-            text = "‹ @svc_project",
+            text = "‹ @service_project",
           )
 
-          text(class = "title svc_title", content = "@svc_name")
+          text(class = "page-head__title service__title", content = "@service_name")
         }
 
-        row(class = svc_substatus) {
-          rp-badge(color = @svc_status_color, label = @svc_status_label)
+        row(class = service__substatus) {
+          rp-badge(color = @service_status_color, label = @service_status_label)
 
-          row(class = badge, if = @svc_deploy_running, equals = true) {
-            text(class = state_dot, color = #58A6FF, content = "⏱")
+          row(class = badge, if = @service_deploy_running, equals = true) {
+            text(class = status-dot, color = #58A6FF, content = "⏱")
 
             text(
-              class = badge_lbl,
+              class = badge__label,
               color = #58A6FF,
-              content = "@svc_deploy_elapsed",
+              content = "@service_deploy_elapsed",
             )
           }
         }
 
         text(
-          if = @svc_action_msg,
+          if = @service_action_message,
           not_equals = "",
-          class = muted,
-          color = @svc_action_color,
-          content = "@svc_action_msg",
+          class = u-muted,
+          color = @service_action_color,
+          content = "@service_action_message",
         )
 
-        row(class = "svc_actions svc_actions_compact") {
+        row(class = "service__actions service__actions--compact") {
           button(
-            class = btn_primary,
-            on_click = svc_deploy,
-            disabled = @busy_svc_deploy,
+            class = "btn btn--primary",
+            on_click = service_deploy,
+            disabled = @busy_service_deploy,
             text = "▶",
             tooltip = Deploy,
           )
 
           button(
-            class = btn_blue,
-            on_click = svc_reload,
-            disabled = @busy_svc_reload,
+            class = "btn btn--blue btn--wide",
+            on_click = service_reload,
+            disabled = @busy_service_reload,
             text = "⟳",
             tooltip = Reload,
           )
 
           button(
-            class = btn_blue,
-            on_click = svc_rebuild,
-            disabled = @busy_svc_rebuild,
+            class = "btn btn--blue btn--wide",
+            on_click = service_rebuild,
+            disabled = @busy_service_rebuild,
             text = "⚙",
             tooltip = Rebuild,
           )
 
           button(
-            class = btn_danger,
-            on_click = svc_stop,
-            disabled = @busy_svc_stop,
+            class = "btn btn--danger",
+            on_click = service_stop,
+            disabled = @busy_service_stop,
             text = "■",
             tooltip = Stop,
           )
 
           button(
-            class = btn_ghost,
+            class = "btn btn--ghost",
             on_click = open_export_window,
             disabled = @busy_open_export_window,
             text = "⇪",
@@ -145,13 +137,13 @@ component {
         }
       }
 
-      row(class = "svc_actions svc_actions_full") {
-        button(class = btn_primary, on_click = svc_deploy, disabled = @busy_svc_deploy, text = Deploy)
-        button(class = btn_blue, on_click = svc_reload, disabled = @busy_svc_reload, text = Reload)
-        button(class = btn_blue, on_click = svc_rebuild, disabled = @busy_svc_rebuild, text = Rebuild)
-        button(class = btn_danger, on_click = svc_stop, disabled = @busy_svc_stop, text = Stop)
+      row(class = "service__actions service__actions--full") {
+        button(class = "btn btn--primary", on_click = service_deploy, disabled = @busy_service_deploy, text = Deploy)
+        button(class = "btn btn--blue btn--wide", on_click = service_reload, disabled = @busy_service_reload, text = Reload)
+        button(class = "btn btn--blue btn--wide", on_click = service_rebuild, disabled = @busy_service_rebuild, text = Rebuild)
+        button(class = "btn btn--danger", on_click = service_stop, disabled = @busy_service_stop, text = Stop)
         button(
-          class = btn_ghost,
+          class = "btn btn--ghost",
           on_click = open_export_window,
           disabled = @busy_open_export_window,
           text = "Exportar serviço",
@@ -160,8 +152,8 @@ component {
     }
 
     // ── Abas ───────────────────────────────────────────────────────────
-    scroll(class = tabs_scroll, direction = horizontal) {
-      row(class = tabs_main) {
+    scroll(class = tabs__scroll, direction = horizontal) {
+      row(class = tabs__main) {
         TabButton(
           label = General,
           current = @tab,
@@ -197,7 +189,7 @@ component {
           action = tab:deployments,
         )
 
-        if @svc_shared == "true" {
+        if @service_shared == "true" {
           TabButton(
             label = Databases,
             current = @tab,
@@ -206,7 +198,7 @@ component {
           )
         }
 
-        if @svc_can_migrate == "true" {
+        if @service_can_migrate == "true" {
           TabButton(
             label = Migrar,
             current = @tab,
@@ -241,13 +233,13 @@ component {
     hr
 
     // ── Corpo: conteúdo da aba + painel lateral ────────────────────────
-    row(class = svc_body) {
-      column(class = svc_main) {
+    row(class = service__body) {
+      column(class = service__main) {
         text(
-          if = @svc_error,
+          if = @service_error,
           not_equals = "",
-          class = svc_err,
-          content = "@svc_error",
+          class = service__err,
+          content = "@service_error",
         )
         ServiceGeneralTab(if = @tab, equals = general)
         ServiceConnectionTab(if = @tab, equals = connection)
@@ -261,27 +253,27 @@ component {
         ServiceAdvancedTab(if = @tab, equals = advanced)
       }
 
-      column(class = svc_aside) {
-        column(class = aside_panel) {
-          text(class = label_cap, content = "STATUS")
-          rp-badge(color = @svc_status_color, label = @svc_status_label)
-          text(class = label_cap, content = "UPTIME")
-          text(class = kv_val, content = "@daemon_uptime")
-          text(class = label_cap, content = "SERVICES")
-          text(class = kv_val, content = "@services_label")
+      column(class = service__aside) {
+        column(class = aside-panel) {
+          text(class = u-label-cap, content = "STATUS")
+          rp-badge(color = @service_status_color, label = @service_status_label)
+          text(class = u-label-cap, content = "UPTIME")
+          text(class = kv-list__val, content = "@daemon_uptime")
+          text(class = u-label-cap, content = "SERVICES")
+          text(class = kv-list__val, content = "@services_label")
         }
 
-        column(class = aside_panel_fill) {
-          text(class = label_cap, content = "LOGS")
+        column(class = "aside-panel aside-panel--fill") {
+          text(class = u-label-cap, content = "LOGS")
 
           text(
-            class = muted,
+            class = u-muted,
             content = "Runtime e build logs abrem em janelas próprias (isoladas).",
           )
 
-          row(class = env_add) {
+          row(class = env__add) {
             button(
-              class = tab,
+              class = tabs__tab,
               on_click = open_logs_window,
               disabled = @busy_open_logs_window,
               text = "Logs de runtime",

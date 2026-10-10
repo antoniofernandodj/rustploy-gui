@@ -25,7 +25,12 @@ local Api = require("net/api")
 -- afirmou: além de `deployment_id`/`service_id`/`state`/`timestamp`, ele traz
 -- `message` — o motivo da falha — que o handler de stream usa na notificação e
 -- no toast. Ver docs/plano-erro-de-deploy-invisivel.md.)
-export type DeployTrack = { service_id: string, deployment_id: string, running: boolean, name: string }
+export type DeployTrack = {
+    service_id: string,
+    deployment_id: string,
+    running: boolean,
+    name: string
+}
 
 export type State = {
     api: Api.Client?,                 -- cliente Api conectado
@@ -37,12 +42,12 @@ export type State = {
     -- Logs (runtime/build) NÃO vivem mais aqui: cada tipo roda numa janela
     -- isolada (log_window.luau) com seu próprio ring e SSE dedicada, para não
     -- pesar na reavaliação da árvore da janela principal. Ver handlers/services
-    -- (open_logs_window / dep_logs) e o daemon (endpoints /api/.../logs).
+    -- (open_logs_window / deployment_logs) e o daemon (endpoints /api/.../logs).
     deploy_track: DeployTrack,
-    ns_templates_all: { any },         -- catálogo completo de templates (filtrar busca)
+    new_service_templates_all: { any },         -- catálogo completo de templates (filtrar busca)
     jobs_by_id: { [string]: any },     -- job_id → Job cru (do snapshot) — job_toggle precisa do compose/name/main_service completos pra reenviar o JobUpdate.
     jobs_inflight: { [string]: boolean }, -- job_id → true entre o click em "Rodar agora" e o refresh_now() que confirma o novo job_run — trava double-click durante o round-trip da RPC (o botão só reflete `running` do snapshot DEPOIS disso).
-    dc_last_run_at_raw: any,           -- DockerCleanupConfig.last_run_at cru (ISO8601 ou nil), round-trip opaco: preserva o horário real entre saves do formulário de Manutenção, pra um agendamento IntervalHours não reiniciar a contagem a cada "Save" — ver handlers/settings.luau.
+    docker_cleanup_last_run_at_raw: any,           -- DockerCleanupConfig.last_run_at cru (ISO8601 ou nil), round-trip opaco: preserva o horário real entre saves do formulário de Manutenção, pra um agendamento IntervalHours não reiniciar a contagem a cada "Save" — ver handlers/settings.luau.
 }
 
 local S: State = {
@@ -53,10 +58,10 @@ local S: State = {
     metrics_by_id = {},
     search_term = "",
     deploy_track = { service_id = "", deployment_id = "", running = false, name = "" },
-    ns_templates_all = {},
+    new_service_templates_all = {},
     jobs_by_id = {},
     jobs_inflight = {},
-    dc_last_run_at_raw = nil,
+    docker_cleanup_last_run_at_raw = nil,
 }
 
 return S

@@ -11,44 +11,29 @@ component {
 
   resources {
     style """
-    .tpl_row {
-      width: fill;
-      padding: 12 0;
-      align-y: center;
-      spacing: 14;
-    }
-
-    .tpl_logo_box {
-      width: 34;
-      height: 34;
-      align-x: center;
-      align-y: center;
-    }
-
-    .tpl_logo {
-      width: 30;
-      height: 30;
-    }
+    .tpl-row          { width: fill; padding: 12 0; align-y: center; spacing: 14; }
+    .tpl-row__logo-box { width: 34; height: 34; align-x: center; align-y: center; }
+    .tpl-row__logo    { width: 30; height: 30; }
     """
   }
 
-  row(class = tpl_row) {
-    column(class = tpl_logo_box) {
-      svg(class = tpl_logo, src = @logo, if = @logo_kind, equals = svg)
-      image(class = tpl_logo, src = @logo, if = @logo_kind, equals = img)
+  row(class = tpl-row) {
+    column(class = tpl-row__logo-box) {
+      svg(class = tpl-row__logo, src = @logo, if = @logo_kind, equals = svg)
+      image(class = tpl-row__logo, src = @logo, if = @logo_kind, equals = img)
     }
 
-    column(class = header_titles) {
-      text(class = env_key, content = "@name")
+    column(class = page-head__titles) {
+      text(class = env__key, content = "@name")
 
       text(
-        class = muted,
+        class = u-muted,
         if = @description,
         not_equals = "",
         content = "@description",
       )
     }
 
-    button(class = btn_primary, on_click = @action, text = "Escolher ›")
+    button(class = "btn btn--primary", on_click = @action, text = "Escolher ›")
   }
 }

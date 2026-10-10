@@ -16,97 +16,37 @@ component {
 
   resources {
     style """
-    .card_stats    {
-      width: fill;
-      spacing: 12;
-    }
-
-    .card_stat     {
-      width: fill;
-      spacing: 4;
-    }
-
-    .card_stat_num {
-      size: 18;
-      bold: true;
-      color: var(--text-2);
-    }
-
-    .card_ctr {
-      width: fill;
-      spacing: 6;
-    }
-
-    .card_actions  {
-      width: fill;
-      spacing: 8;
-    }
-
-    .card_stop     {
-      width: fill;
-      color: var(--border);
-      padding: 9 10;
-      text-align: center;
-      border-radius: 5
-    }
-
-    .card_icon     {
-      width: fill;
-      color: var(--border);
-      padding: 9 0;
-      text-align: center;
-      border-radius: 5
-    }
-
-    .card_icon_danger {
-      width: fill;
-      color: var(--danger);
-      padding: 9 0;
-      text-align: center;
-      border-radius: 5
-    }
-
-    .c_name {
-      size: 16;
-      bold: true;
-      color: var(--text);
-    }
-
-    .c_port {
-      size: 12; color: var(--muted);
-    }
-
-    .fill {
-      width: fill;
-    }
-
-    .align-y-center {
-      alignY: end;
-    }
+    .card__stats     { width: fill; spacing: 12; }
+    .card__stat      { width: fill; spacing: 4; }
+    .card__stat-num  { size: 18; bold: true; color: var(--text-2); }
+    .card__container { width: fill; spacing: 6; }
+    .card__actions   { width: fill; spacing: 8; }
+    .card__title     { size: 16; bold: true; color: var(--text); }
+    .card__port      { size: 12; color: var(--muted); }
     """
   }
 
-  column(if = @filler, equals = 1, class = card_filler)
+  column(if = @filler, equals = 1, class = u-fill)
 
   column(else, class = card) {
-    row(class = card_head) {
-      row(class = "fill align-y-center") {
-        text(class = c_name, content = "@name")
-        text(class = c_port, content = ":@port")
+    row(class = card__head) {
+      row(class = "u-fill u-align-y-end") {
+        text(class = card__title, content = "@name")
+        text(class = card__port, content = ":@port")
       }
 
       rp-badge(color = @status_color, label = @status_label)
     }
 
-    row(class = card_ctr) {
-      text(class = muted, content = "name: @container_name")
+    row(class = card__container) {
+      text(class = u-muted, content = "name: @container_name")
     }
 
     row {
-      text(class = muted, content = "id: @container_id")
+      text(class = u-muted, content = "id: @container_id")
 
       text(
-        class = muted,
+        class = u-muted,
         if = @container_extra,
         not_equals = "",
         content = "extra: @container_extra",
@@ -115,33 +55,33 @@ component {
 
     hr
 
-    row(class = card_stats) {
-      column(class = card_stat) {
-        text(class = label_cap, content = "CPU")
-        text(class = card_stat_num, content = "@cpu")
+    row(class = card__stats) {
+      column(class = card__stat) {
+        text(class = u-label-cap, content = "CPU")
+        text(class = card__stat-num, content = "@cpu")
       }
 
-      column(class = card_stat) {
-        text(class = label_cap, content = "MEM")
-        text(class = card_stat_num, content = "@mem")
+      column(class = card__stat) {
+        text(class = u-label-cap, content = "MEM")
+        text(class = card__stat-num, content = "@mem")
       }
     }
 
     // Ações empilhadas: 3 botões numa linha só transbordam no tamanho mínimo
     // de janela (grade de 3 colunas).
-    button(class = card_open, on_click = open_service:@id, disabled = @busy_open_service, text = "Abrir  ›")
+    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "Abrir  ›")
 
-    row(class = card_actions) {
+    row(class = card__actions) {
       button(
-        class = card_icon,
-        on_click = svc_stop_id:@id,
-        disabled = @busy_svc_stop_id,
+        class = "card__action card__action--icon",
+        on_click = service_stop_id:@id,
+        disabled = @busy_service_stop_id,
         text = "■",
         tooltip = Parar,
       )
 
       button(
-        class = card_icon_danger,
+        class = "card__action card__action--icon card__action--danger",
         on_click = stop_delete_service:@id,
         disabled = @busy_stop_delete_service,
         text = "✕",
@@ -149,7 +89,7 @@ component {
       )
 
       button(
-        class = card_icon,
+        class = "card__action card__action--icon",
         on_click = open_export_window:@id,
         disabled = @busy_open_export_window,
         text = "⇪",

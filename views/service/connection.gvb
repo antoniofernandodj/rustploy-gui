@@ -3,92 +3,92 @@ component {
   resources {
     // Estado vazio da lista de containers (`fallback` do <foreach>).
     component(name = SemContainers) {
-      text(class = muted, content = "Nenhum container em execução.")
+      text(class = u-muted, content = "Nenhum container em execução.")
     }
   }
 
-  column(class = kv_list) {
-    row(class = kv_row) {
-      text(class = kv_key, content = "Container port")
-      text(class = kv_val_fill, content = "@svc_port")
+  column(class = kv-list) {
+    row(class = kv-list__row) {
+      text(class = kv-list__key, content = "Container port")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_port")
       text(content = " ")
 
       button(
-        class = copy_btn,
-        on_click = clipboard:svc_port,
+        class = "btn btn--ghost btn--xs",
+        on_click = clipboard:service_port,
         text = Copiar,
       )
     }
 
-    row(class = kv_row) {
-      text(class = kv_key, content = "Host port")
-      text(class = kv_val_fill, content = "@svc_host_port")
+    row(class = kv-list__row) {
+      text(class = kv-list__key, content = "Host port")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_host_port")
       text(content = " ")
 
       button(
-        class = copy_btn,
-        on_click = clipboard:svc_host_port,
+        class = "btn btn--ghost btn--xs",
+        on_click = clipboard:service_host_port,
         text = Copiar,
       )
     }
 
-    row(class = kv_row) {
-      text(class = kv_key, content = "Domain")
-      text(class = kv_val_fill, content = "@svc_domain")
+    row(class = kv-list__row) {
+      text(class = kv-list__key, content = "Domain")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_domain")
       text(content = " ")
 
       button(
-        class = copy_btn,
-        on_click = clipboard:svc_domain,
+        class = "btn btn--ghost btn--xs",
+        on_click = clipboard:service_domain,
         text = Copiar,
       )
     }
 
-    row(class = kv_row) {
-      text(class = kv_key, content = "TLS")
-      text(class = kv_val_fill, content = "@svc_tls")
+    row(class = kv-list__row) {
+      text(class = kv-list__key, content = "TLS")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_tls")
     }
 
-    row(class = kv_row) {
-      text(class = kv_key, content = "External URL")
-      text(class = kv_val_fill, content = "@svc_external_url_short")
+    row(class = kv-list__row) {
+      text(class = kv-list__key, content = "External URL")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_external_url_short")
       text(content = " ")
 
       button(
-        class = copy_btn,
-        on_click = clipboard:svc_external_url,
+        class = "btn btn--ghost btn--xs",
+        on_click = clipboard:service_external_url,
         text = Copiar,
       )
     }
 
-    row(class = kv_row) {
-      text(class = kv_key, content = "Internal URL")
-      text(class = kv_val_fill, content = "@svc_internal_url_short")
+    row(class = kv-list__row) {
+      text(class = kv-list__key, content = "Internal URL")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_internal_url_short")
       text(content = " ")
 
       button(
-        class = copy_btn,
-        on_click = clipboard:svc_internal_url,
+        class = "btn btn--ghost btn--xs",
+        on_click = clipboard:service_internal_url,
         text = Copiar,
       )
     }
 
-    row(class = kv_row, if = @svc_can_share, equals = true) {
-      text(class = kv_key, content = "Compartilhado")
-      text(class = kv_val_fill, content = "@svc_shared")
+    row(class = kv-list__row, if = @service_can_share, equals = true) {
+      text(class = kv-list__key, content = "Compartilhado")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_shared")
 
-      if @svc_shared == "false" {
+      if @service_shared == "false" {
         button(
-          class = copy_btn,
+          class = "btn btn--ghost btn--xs",
           on_click = shared_enable,
           disabled = @busy_shared_enable,
           text = Compartilhar,
         )
       }
 
-      if @svc_shared == "true" {
+      if @service_shared == "true" {
         button(
-          class = copy_btn,
+          class = "btn btn--ghost btn--xs",
           on_click = shared_disable,
           disabled = @busy_shared_disable,
           text = Desligar,
@@ -96,26 +96,26 @@ component {
       }
     }
 
-    row(class = kv_row, if = @svc_db_kind, not_equals = "—") {
-      text(class = kv_key, content = "Tipo")
-      text(class = kv_val_fill, content = "@svc_db_kind")
+    row(class = kv-list__row, if = @service_database_kind, not_equals = "—") {
+      text(class = kv-list__key, content = "Tipo")
+      text(class = "kv-list__val kv-list__val--compact", content = "@service_database_kind")
     }
 
     // Containers reais em execução para este serviço (id + nome + estado).
     hr
 
     text(
-      class = label_cap,
-      content = "CONTAINERS (@svc_containers_count)",
+      class = u-label-cap,
+      content = "CONTAINERS (@service_containers_count)",
     )
 
-    each @svc_containers as c (fallback = SemContainers) {
-      row(class = kv_row) {
+    each @service_containers as c (fallback = SemContainers) {
+      row(class = kv-list__row) {
         rp-badge(color = @c.state_color, label = @c.state)
-        text(class = kv_val_fill, content = "  ")
-        text(class = kv_val_fill, content = "@c.name")
-        text(class = kv_val_fill, content = "  ")
-        text(class = muted, content = "@c.id_short")
+        text(class = "kv-list__val kv-list__val--compact", content = "  ")
+        text(class = "kv-list__val kv-list__val--compact", content = "@c.name")
+        text(class = "kv-list__val kv-list__val--compact", content = "  ")
+        text(class = u-muted, content = "@c.id_short")
       }
     }
   }

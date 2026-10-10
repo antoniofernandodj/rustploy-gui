@@ -2,36 +2,36 @@
 component {
   resources {
     component(name = SemDeploysDoServico) {
-      text(class = muted, content = "Nenhum deploy ainda.")
+      text(class = u-muted, content = "Nenhum deploy ainda.")
     }
   }
 
-  column(class = dep_wrap) {
+  column(class = deployments__wrap) {
     // Webhook de deploy: servido pelo MESMO listener da API (base
     // derivada de [api] domain/port). Compose não tem webhook.
     column(
-      if = @svc_webhook_supported,
+      if = @service_webhook_supported,
       equals = true,
-      class = form_panel,
+      class = form-panel,
     ) {
-      text(class = label_cap, content = "WEBHOOK DE DEPLOY")
+      text(class = u-label-cap, content = "WEBHOOK DE DEPLOY")
 
-      column(if = @svc_webhook_url, not_equals = "", class = wh_block) {
+      column(if = @service_webhook_url, not_equals = "", class = webhook) {
         text(
-          class = wh_url,
-          tooltip = @svc_webhook_url,
-          content = "@svc_webhook_url_short",
+          class = webhook__url,
+          tooltip = @service_webhook_url,
+          content = "@service_webhook_url_short",
         )
 
-        row(class = wh_actions) {
+        row(class = webhook__actions) {
           button(
-            class = copy_btn,
-            on_click = clipboard:svc_webhook_url,
+            class = "btn btn--ghost btn--xs",
+            on_click = clipboard:service_webhook_url,
             text = Copiar,
           )
 
           button(
-            class = dep_del_btn,
+            class = "btn btn--danger btn--xs",
             on_click = regen_webhook,
             disabled = @busy_regen_webhook,
             text = Regenerar,
@@ -40,9 +40,9 @@ component {
       }
 
       text(
-        if = @svc_webhook_url,
+        if = @service_webhook_url,
         equals = "",
-        class = muted,
+        class = u-muted,
         content = """
           O token nasce no primeiro deploy deste serviço — rode um deploy
           para a URL aparecer.
@@ -50,7 +50,7 @@ component {
       )
 
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Um POST nesta URL dispara um deploy. O corpo é ignorado: o token
           na própria URL é a autenticação. Regenerar invalida a URL
@@ -59,23 +59,23 @@ component {
       )
     }
 
-    text(class = muted, content = "@svc_deployments_count deployments")
+    text(class = u-muted, content = "@service_deployments_count deployments")
 
-    scrollable(direction = vertical, class = dep_list_scroll) {
-      column(class = table_body) {
-        each @svc_deployments as d (fallback = SemDeploysDoServico) {
-          column(class = row_wrap) {
-            row(class = trow) {
-              text(class = "td_key col_dep_id", content = "@d.id")
+    scrollable(direction = vertical, class = deployments__list-scroll) {
+      column(class = u-fill) {
+        each @service_deployments as d (fallback = SemDeploysDoServico) {
+          column(class = u-fill) {
+            row(class = table__row) {
+              text(class = "table__cell table__cell--key table__col-dep-id", content = "@d.id")
               StateCell(kind = @d.state_kind, label = @d.state_label)
-              text(class = "td col_dur", content = "@d.duration")
-              text(class = "muted col_dep_start", content = "@d.start")
+              text(class = "table__cell table__col-dur", content = "@d.duration")
+              text(class = "u-muted table__col-dep-start", content = "@d.start")
 
-              row(class = dep_actions) {
+              row(class = deployments__actions) {
                 button(
-                  class = dep_logs_btn,
-                  on_click = dep_logs:@d.id_full,
-                  disabled = @busy_dep_logs,
+                  class = "btn btn--ghost btn--xs",
+                  on_click = deployment_logs:@d.id_full,
+                  disabled = @busy_deployment_logs,
                   text = "≡",
                   tooltip = "Ver build log",
                 )
@@ -83,7 +83,7 @@ component {
                 button(
                   if = @d.can_delete,
                   equals = 1,
-                  class = dep_del_btn,
+                  class = "btn btn--danger btn--xs",
                   on_click = delete_deployment:@d.id_full,
                   disabled = @busy_delete_deployment,
                   text = "✕",
@@ -92,7 +92,7 @@ component {
               }
             }
 
-            text(class = dep_image, content = "@d.image")
+            text(class = deployments__image, content = "@d.image")
             hr
           }
         }

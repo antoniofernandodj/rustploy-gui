@@ -49,11 +49,11 @@ M.docker_networks = Dashboard.docker_networks
 M.ingress = Dashboard.ingress
 M.host_ports = Dashboard.host_ports
 M.monitoring = Dashboard.monitoring
-M.eng_active = Dashboard.eng_active
-M.eng_detail = Dashboard.eng_detail
-M.eng_detail_steps = Dashboard.eng_detail_steps
-M.eng_queued = Dashboard.eng_queued
-M.eng_recent = Dashboard.eng_recent
+M.deploy_engine_active = Dashboard.deploy_engine_active
+M.deploy_engine_detail = Dashboard.deploy_engine_detail
+M.deploy_engine_detail_steps = Dashboard.deploy_engine_detail_steps
+M.deploy_engine_queued = Dashboard.deploy_engine_queued
+M.deploy_engine_recent = Dashboard.deploy_engine_recent
 
 -- Service detail: source/healthcheck/env/logs/deployments/domains/connection
 -- (fmt_service_detail.luau)

@@ -3,41 +3,41 @@ component {
   resources {
     component(name = SemChecks) {
       text(
-        class = muted,
+        class = u-muted,
         content = "Nenhum check configurado — deploy segue direto.",
       )
     }
   }
 
   form(
-    class = form_panel,
+    class = form-panel,
     name = healthcheck,
-    on_submit = hc_save,
+    on_submit = healthcheck_save,
   ) {
-    text(class = label_cap, content = "KIND")
+    text(class = u-label-cap, content = "KIND")
 
     tabbar(
-      :value = f_hc_kind, active = @f_hc_kind, :items = hc_kinds,
-      tab_class = tab, tab_active_class = tab_on, padding = "9 16", size = 14,
+      :value = service_form_healthcheck_kind, active = @service_form_healthcheck_kind, :items = healthcheck_kinds,
+      tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
     )
 
-    if @f_hc_kind == "http" {
-      text(class = label_cap, content = "HTTP PATH")
+    if @service_form_healthcheck_kind == "http" {
+      text(class = u-label-cap, content = "HTTP PATH")
 
       input(
-        class = field_input,
-        form_control = f_hc_path,
-        :value = f_hc_path,
-        on_change = field:f_hc_path,
+        class = field__input,
+        form_control = service_form_healthcheck_path,
+        :value = service_form_healthcheck_path,
+        on_change = field:service_form_healthcheck_path,
         placeholder = "/health",
       )
 
-      text(class = label_cap, content = "EXPECTED STATUS")
+      text(class = u-label-cap, content = "EXPECTED STATUS")
 
       spinbox(
-        field_class = spin_field,
-        form_control = f_hc_status,
-        :value = f_hc_status,
+        field_class = field__spin,
+        form_control = service_form_healthcheck_status,
+        :value = service_form_healthcheck_status,
         min = 100,
         max = 599,
         width = 90,
@@ -45,27 +45,27 @@ component {
       )
     }
 
-    row(class = hc_grid) {
-      column(class = hc_field) {
-        text(class = label_cap, content = "INTERVAL (s)")
+    row(class = healthcheck__grid) {
+      column(class = healthcheck__field) {
+        text(class = u-label-cap, content = "INTERVAL (s)")
 
         spinbox(
-          field_class = spin_field,
-          form_control = f_hc_interval,
-          :value = f_hc_interval,
+          field_class = field__spin,
+          form_control = service_form_healthcheck_interval,
+          :value = service_form_healthcheck_interval,
           min = 1,
           max = 3600,
           width = 90,
         )
       }
 
-      column(class = hc_field) {
-        text(class = label_cap, content = "TIMEOUT (s)")
+      column(class = healthcheck__field) {
+        text(class = u-label-cap, content = "TIMEOUT (s)")
 
         spinbox(
-          field_class = spin_field,
-          form_control = f_hc_timeout,
-          :value = f_hc_timeout,
+          field_class = field__spin,
+          form_control = service_form_healthcheck_timeout,
+          :value = service_form_healthcheck_timeout,
           min = 1,
           max = 3600,
           width = 90,
@@ -73,27 +73,27 @@ component {
       }
     }
 
-    row(class = hc_grid) {
-      column(class = hc_field) {
-        text(class = label_cap, content = "RETRIES")
+    row(class = healthcheck__grid) {
+      column(class = healthcheck__field) {
+        text(class = u-label-cap, content = "RETRIES")
 
         spinbox(
-          field_class = spin_field,
-          form_control = f_hc_retries,
-          :value = f_hc_retries,
+          field_class = field__spin,
+          form_control = service_form_healthcheck_retries,
+          :value = service_form_healthcheck_retries,
           min = 1,
           max = 10,
           width = 90,
         )
       }
 
-      column(class = hc_field) {
-        text(class = label_cap, content = "START PERIOD (s)")
+      column(class = healthcheck__field) {
+        text(class = u-label-cap, content = "START PERIOD (s)")
 
         spinbox(
-          field_class = spin_field,
-          form_control = f_hc_start,
-          :value = f_hc_start,
+          field_class = field__spin,
+          form_control = service_form_healthcheck_start,
+          :value = service_form_healthcheck_start,
           min = 0,
           max = 3600,
           width = 90,
@@ -101,9 +101,9 @@ component {
       }
     }
 
-    row(class = env_add) {
-      button(class = btn_primary, on_click = hc_save, disabled = @busy_hc_save, text = Save)
-      text(class = muted, content = "@svc_action_msg")
+    row(class = env__add) {
+      button(class = "btn btn--primary", on_click = healthcheck_save, disabled = @busy_healthcheck_save, text = Save)
+      text(class = u-muted, content = "@service_action_message")
     }
   }
 }

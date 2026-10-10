@@ -6,55 +6,55 @@ component {
     link(rel = import, href = "deploy_engine/historico.gvb", as = EngineHistoricoTab)
   }
 
-  row(class = header_row) {
-    column(class = header_titles) {
-      text(class = title, content = "Deploy Engine")
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text(class = page-head__title, content = "Deploy Engine")
 
       text(
-        class = subtitle,
+        class = page-head__subtitle,
         content = "Pipeline de deploy: em andamento e histórico recente.",
       )
     }
 
     // 5 cards + valor largo (UPTIME) ao lado do título: deixa de caber
     // bem antes dos breakpoints gerais — some mais cedo (xl).
-    row(class = "stats_row stats_hide_xl") {
-      StatCard(label = ATIVOS, value = @eng_active_count, accent = 1)
-      StatCard(label = "SUCESSO 24H", value = @eng_success_24h)
-      StatCard(label = "FALHAS 24H", value = @eng_failed_24h)
-      StatCard(label = "TOTAL 24H", value = @eng_total_24h)
-      StatCard(label = UPTIME, value = @eng_uptime)
+    row(class = "page-head__stats page-head__stats--hide-xl") {
+      StatCard(label = ATIVOS, value = @deploy_engine_active_count, accent = 1)
+      StatCard(label = "SUCESSO 24H", value = @deploy_engine_success_24h)
+      StatCard(label = "FALHAS 24H", value = @deploy_engine_failed_24h)
+      StatCard(label = "TOTAL 24H", value = @deploy_engine_total_24h)
+      StatCard(label = UPTIME, value = @deploy_engine_uptime)
     }
   }
 
   row(class = tabs) {
     TabButton(
-      label = "Fila (@eng_queued_count)",
-      current = @eng_tab,
+      label = "Fila (@deploy_engine_queued_count)",
+      current = @deploy_engine_tab,
       target = fila,
-      action = eng_tab:fila,
+      action = deploy_engine_tab:fila,
     )
 
     TabButton(
-      label = "Executando (@eng_active_count)",
-      current = @eng_tab,
+      label = "Executando (@deploy_engine_active_count)",
+      current = @deploy_engine_tab,
       target = executando,
-      action = eng_tab:executando,
+      action = deploy_engine_tab:executando,
     )
 
     TabButton(
-      label = "Histórico 24h (@eng_recent_count)",
-      current = @eng_tab,
+      label = "Histórico 24h (@deploy_engine_recent_count)",
+      current = @deploy_engine_tab,
       target = historico,
-      action = eng_tab:historico,
+      action = deploy_engine_tab:historico,
     )
   }
 
   hr
 
-  EngineFilaTab(if = @eng_tab, equals = fila)
+  EngineFilaTab(if = @deploy_engine_tab, equals = fila)
 
-  EngineExecutandoTab(if = @eng_tab, equals = executando)
+  EngineExecutandoTab(if = @deploy_engine_tab, equals = executando)
 
-  EngineHistoricoTab(if = @eng_tab, equals = historico)
+  EngineHistoricoTab(if = @deploy_engine_tab, equals = historico)
 }

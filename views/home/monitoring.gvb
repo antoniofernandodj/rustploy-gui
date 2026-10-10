@@ -4,7 +4,7 @@ component {
     // Vazio das listas Docker/Monitoring e dos repositórios do registry.
     component(name = SemMetricas) {
       text(
-        class = muted,
+        class = u-muted,
         content = """
           Nenhuma métrica ainda — aguardando o primeiro container em execução.
         """,
@@ -12,47 +12,47 @@ component {
     }
   }
 
-  row(class = header_row) {
-    column(class = header_titles) {
-      text(class = title, content = "Monitoring")
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text(class = page-head__title, content = "Monitoring")
 
       text(
-        class = subtitle,
+        class = page-head__subtitle,
         content = "Host and per-container resource usage.",
       )
     }
   }
 
-  row(class = "stats_row stats_hide_md") {
-    StatCard(label = CPU, value = @sys_cpu)
-    StatCard(label = MEMORY, value = @sys_mem, accent = 1)
-    StatCard(label = DISK, value = @sys_disk)
-    StatCard(label = LOAD, value = @sys_load)
+  row(class = "page-head__stats page-head__stats--hide-md") {
+    StatCard(label = CPU, value = @host_cpu)
+    StatCard(label = MEMORY, value = @host_memory, accent = 1)
+    StatCard(label = DISK, value = @host_disk)
+    StatCard(label = LOAD, value = @host_load)
   }
 
-  column(class = panel_fill) {
+  column(class = "panel panel--fill") {
     tableview(
       :items = monitoring,
       :sort = monitoring_sort,
       var = m,
-      header_class = "thead th",
-      row_class = "trow td tv_row",
-      class = scroll_fill,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = CONTAINER, class = col_svc) {
-        text(class = td_key, content = "@m.name")
+      tablecolumn(key = name, label = CONTAINER, class = table__col-svc) {
+        text(class = "table__cell table__cell--key", content = "@m.name")
       }
 
-      tablecolumn(key = project, label = PROJETO, class = col_proj)
-      tablecolumn(key = cpu, sort_key = cpu_n, label = CPU, class = col_dur)
-      tablecolumn(key = mem, sort_key = mem_n, label = MEM, class = col_dur)
+      tablecolumn(key = project, label = PROJETO, class = table__col-proj)
+      tablecolumn(key = cpu, sort_key = cpu_n, label = CPU, class = table__col-dur)
+      tablecolumn(key = mem, sort_key = mem_n, label = MEM, class = table__col-dur)
 
-      tablecolumn(key = rx, sort_key = rx_n, label = RX, class = col_dur) {
-        text(class = muted, content = "@m.rx")
+      tablecolumn(key = rx, sort_key = rx_n, label = RX, class = table__col-dur) {
+        text(class = u-muted, content = "@m.rx")
       }
 
-      tablecolumn(key = tx, sort_key = tx_n, label = TX, class = col_start) {
-        text(class = muted, content = "@m.tx")
+      tablecolumn(key = tx, sort_key = tx_n, label = TX, class = table__col-start) {
+        text(class = u-muted, content = "@m.tx")
       }
 
       if @data_loading == "true" {

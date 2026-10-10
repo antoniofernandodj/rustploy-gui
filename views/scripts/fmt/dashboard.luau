@@ -513,10 +513,17 @@ local function iso_epoch(iso: string?): number
     if not y then
         return 0
     end
-    return os.time({ year = tonumber(y), month = tonumber(mo), day = tonumber(d), hour = tonumber(h), min = tonumber(mi), sec = tonumber(s) } :: any)
+    return os.time({
+        year = tonumber(y),
+        month = tonumber(mo),
+        day = tonumber(d),
+        hour = tonumber(h),
+        min = tonumber(mi),
+        sec = tonumber(s)
+    } :: any)
 end
 
-function M.eng_detail(info: any): string
+function M.deploy_engine_detail(info: any): string
     local log = info.states or {}
     local rows = {}
     for i, t in ipairs(log) do
@@ -533,17 +540,22 @@ function M.eng_detail(info: any): string
         elseif last and info.state == t.to then
             kind = "info"
         end
-        table.insert(rows, { label = t.to, kind = kind, dur = dur, msg = Util.short_reason(t.message) })
+        table.insert(rows, {
+            label = t.to,
+            kind = kind,
+            dur = dur,
+            msg = Util.short_reason(t.message)
+        })
     end
     return Util.enc_array(rows)
 end
 
-function M.eng_detail_steps(info: any): string
+function M.deploy_engine_detail_steps(info: any): string
     return Util.enc_array(deploy_stepper(info))
 end
 
 -- Deploy Engine: "Executando agora".
-function M.eng_active(active: {any}?): string
+function M.deploy_engine_active(active: {any}?): string
     local B = Util.col_budgets()
     local rows = {}
     for _, info in ipairs(active or {}) do
@@ -564,7 +576,7 @@ end
 
 -- Deploy Engine: "Na fila" (deploys esperando; o primeiro é o próximo a rodar).
 -- Inclui deployment_id (para cancelar/promover) e uma posição 1-based.
-function M.eng_queued(queued: {any}?): string
+function M.deploy_engine_queued(queued: {any}?): string
     local B = Util.col_budgets()
     local rows = {}
     for i, info in ipairs(queued or {}) do
@@ -579,7 +591,7 @@ function M.eng_queued(queued: {any}?): string
 end
 
 -- Deploy Engine: "Histórico 24h".
-function M.eng_recent(recent: {any}?): string
+function M.deploy_engine_recent(recent: {any}?): string
     local B = Util.col_budgets()
     local rows = {}
     for _, info in ipairs(recent or {}) do

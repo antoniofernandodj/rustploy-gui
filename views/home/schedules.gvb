@@ -2,16 +2,16 @@
 component {
   resources {
     component(name = SemJobs) {
-      text(class = muted, content = "Nenhum job cadastrado ainda.")
+      text(class = u-muted, content = "Nenhum job cadastrado ainda.")
     }
   }
 
-  row(class = header_row) {
-    column(class = header_titles) {
-      text(class = title, content = "Schedules")
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text(class = page-head__title, content = "Schedules")
 
       text(
-        class = subtitle,
+        class = page-head__subtitle,
         content = """
           Tarefas one-shot (docker-compose) agendadas ou manuais, de todos
           os projetos.
@@ -19,57 +19,57 @@ component {
       )
     }
 
-    row(class = "stats_row stats_hide_md") {
+    row(class = "page-head__stats page-head__stats--hide-md") {
       StatCard(label = JOBS, value = @jobs_count)
     }
 
     button(
-      class = btn_primary,
+      class = "btn btn--primary",
       on_click = open_new_job_window,
       disabled = @busy_open_new_job_window,
       text = "+ Novo job",
     )
   }
 
-  column(class = panel_fill) {
+  column(class = "panel panel--fill") {
     tableview(
       :items = jobs_summary,
       :sort = jobs_sort,
       var = j,
-      header_class = "thead th",
-      row_class = "trow td tv_row",
-      class = scroll_fill,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = NOME, class = col_svc) {
-        text(class = td_key, content = "@j.name")
+      tablecolumn(key = name, label = NOME, class = table__col-svc) {
+        text(class = "table__cell table__cell--key", content = "@j.name")
       }
 
-      tablecolumn(key = owner, label = "PROJETO / GATILHO", class = col_proj)
+      tablecolumn(key = owner, label = "PROJETO / GATILHO", class = table__col-proj)
 
       tablecolumn(
         key = last_run_label,
         label = "ÚLTIMA EXECUÇÃO",
-        class = col_state,
+        class = table__col-state,
       ) {
         StateCell(kind = @j.last_run_kind, label = @j.last_run_label)
       }
 
-      tablecolumn(key = recurrence, label = "RECORRÊNCIA", class = col_dur) {
-        text(class = muted, content = "@j.recurrence")
+      tablecolumn(key = recurrence, label = "RECORRÊNCIA", class = table__col-dur) {
+        text(class = u-muted, content = "@j.recurrence")
       }
 
       tablecolumn(
         key = next_run_at,
         label = "PRÓXIMA EXECUÇÃO",
-        class = col_dur,
+        class = table__col-dur,
       ) {
-        text(class = muted, content = "@j.next_run_at")
+        text(class = u-muted, content = "@j.next_run_at")
       }
 
-      tablecolumn(label = "AÇÕES", class = col_act_5, align = right) {
-        row(class = col_act_5) {
+      tablecolumn(label = "AÇÕES", class = table__col-act-5, align = right) {
+        row(class = table__col-act-5) {
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             if = @j.running,
             not_equals = true,
             on_click = job_run_now:@j.id,
@@ -79,7 +79,7 @@ component {
           )
 
           button(
-            class = env_del,
+            class = env__del,
             if = @j.running,
             equals = true,
             on_click = job_run_cancel:@j.last_run_id,
@@ -89,7 +89,7 @@ component {
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             if = @j.last_run_id,
             not_equals = "",
             on_click = open_job_logs_window:@j.last_run_id,
@@ -99,7 +99,7 @@ component {
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             if = @j.enabled,
             equals = true,
             on_click = job_toggle:@j.id,
@@ -109,7 +109,7 @@ component {
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             if = @j.enabled,
             not_equals = true,
             on_click = job_toggle:@j.id,
@@ -119,7 +119,7 @@ component {
           )
 
           button(
-            class = copy_btn,
+            class = "btn btn--ghost btn--xs",
             on_click = open_edit_job_window:@j.id,
             disabled = @busy_open_edit_job_window,
             text = "✎",
@@ -127,9 +127,9 @@ component {
           )
 
           button(
-            class = env_del,
-            on_click = job_del:@j.id,
-            disabled = @busy_job_del,
+            class = env__del,
+            on_click = job_delete:@j.id,
+            disabled = @busy_job_delete,
             text = "✕",
             tooltip = Remover,
           )

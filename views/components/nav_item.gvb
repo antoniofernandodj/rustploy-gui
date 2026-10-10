@@ -11,28 +11,30 @@ component {
 
   resources {
     style """
-    .nav_row_on  { width: fill; padding: 11 14; spacing: 10; align-y: center; color: var(--blue); cursor: pointer; }
-    .nav_row_off { width: fill; padding: 11 14; spacing: 10; align-y: center; color: var(--surface); cursor: pointer; }
-    .nav_icon_on   { size: 14; color: var(--text); }
-    .nav_icon_off  { size: 14; color: var(--faint); }
-    .nav_label_on  { color: var(--text); }
-    .nav_label_off { color: var(--muted); }
+    /* Bloco `nav-item`: o modificador `--active` na raiz recolore os filhos pelo
+       combinador `>`, em vez de cada filho levar um par de classes _on/_off. */
+    .nav-item         { width: fill; padding: 11 14; spacing: 10; align-y: center; color: var(--surface); cursor: pointer; }
+    .nav-item--active { color: var(--blue); }
+    .nav-item__icon   { size: 14; color: var(--faint); }
+    .nav-item__label  { color: var(--muted); }
+    .nav-item--active > .nav-item__icon  { color: var(--text); }
+    .nav-item--active > .nav-item__label { color: var(--text); }
     """
   }
 
   button(
-    class = nav_row_on,
+    class = "nav-item nav-item--active",
     if = @view,
     one_of = @target,
     on_click = @action,
     tooltip = @label,
   ) {
-    text(class = nav_icon_on, content = "@icon")
-    text(class = nav_label_on, content = "@label")
+    text(class = nav-item__icon, content = "@icon")
+    text(class = nav-item__label, content = "@label")
   }
 
-  button(class = nav_row_off, else, on_click = @action, tooltip = @label) {
-    text(class = nav_icon_off, content = "@icon")
-    text(class = nav_label_off, content = "@label")
+  button(class = nav-item, else, on_click = @action, tooltip = @label) {
+    text(class = nav-item__icon, content = "@icon")
+    text(class = nav-item__label, content = "@label")
   }
 }

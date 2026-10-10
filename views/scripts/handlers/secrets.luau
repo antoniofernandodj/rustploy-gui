@@ -9,7 +9,7 @@
 -- (o SecretSet do daemon faz ON CONFLICT DO UPDATE). Ver docs/secrets.md.
 --
 -- A lista em si não é buscada aqui: vem no snapshot (`projects[].secrets`),
--- montada por handlers/stream.luau em ctx.proj_secrets/proj_secrets_count.
+-- montada por handlers/stream.luau em ctx.project_secrets/project_secrets_count.
 
 local State = require("../state")
 local Helpers = require("../helpers")
@@ -19,7 +19,7 @@ local Stream = require("stream")
 -- SecretSet cria ou substitui — o daemon não distingue os dois casos.
 local function known_names(): { [string]: boolean }
     local set = {}
-    local ok, rows = pcall(json.decode, ctx.proj_secrets or "[]")
+    local ok, rows = pcall(json.decode, ctx.project_secrets or "[]")
     if ok and type(rows) == "table" then
         for _, r in ipairs(rows) do
             set[tostring(r.name)] = true
@@ -29,9 +29,9 @@ local function known_names(): { [string]: boolean }
 end
 
 -- on_validation_error do form(name = secret_add) — NOME e valor são
--- `rules="required"` no form(...); o motor publica {erro_sec_new_name} /
--- {erro_sec_new_val} e acende o :invalid. Aqui é só o aviso.
-function secret_add_apontar(_erros_json: string?): ()
+-- `rules="required"` no form(...); o motor publica {error_project_secret_new_name} /
+-- {error_project_secret_new_value} e acende o :invalid. Aqui é só o aviso.
+function secret_add_show_validation_errors(_erros_json: string?): ()
     toast{ message = "Preencha nome e valor do secret", kind = "warning" }
 end
 
@@ -42,15 +42,15 @@ function secret_add(): ()
         return
     end
     -- rules="required" no form(...) garante nome e valor preenchidos aqui.
-    local name = Helpers.trim(ctx.sec_new_name)
-    local value = ctx.sec_new_val or ""
+    local name = Helpers.trim(ctx.project_secret_new_name)
+    local value = ctx.project_secret_new_value or ""
     local replacing = known_names()[name] == true
     local ok, res = api:rpc_checked{
         SecretSet = { project_id = pid, name = name, value = value }
     }
     if ok then
-        ctx.sec_new_name = ""
-        ctx.sec_new_val = ""
+        ctx.project_secret_new_name = ""
+        ctx.project_secret_new_value = ""
         toast{
             message = tostring(
                 replacing
@@ -65,7 +65,7 @@ function secret_add(): ()
     end
 end
 
-function secret_del(name: string): ()
+function secret_delete(name: string): ()
     local pid = ctx.selected_project_id or ""
     if pid == "" or name == "" then
         return
@@ -95,18 +95,18 @@ function secret_del(name: string): ()
 end
 
 -- Chip "usar secret" (aba Variáveis): arma o form de adicionar var em modo
--- secret com o nome escolhido. Quem grava é penv_add (handlers/projects.luau),
+-- secret com o nome escolhido. Quem grava é project_env_add (handlers/projects.luau),
 -- que nesse modo monta { Secret = nome } em vez de { Plain = valor }.
 function secret_use(name: string): ()
-    ctx.penv_new_is_secret = "true"
-    ctx.penv_new_val = name
-    if Helpers.trim(ctx.penv_new_key) == "" then
-        ctx.penv_new_key = name
+    ctx.project_env_new_is_secret = "true"
+    ctx.project_env_new_value = name
+    if Helpers.trim(ctx.project_env_new_key) == "" then
+        ctx.project_env_new_key = name
     end
 end
 
-function penv_secret_toggle(): ()
-    local on = ctx.penv_new_is_secret == "true"
-    ctx.penv_new_is_secret = on and "false" or "true"
-    ctx.penv_new_val = ""
+function project_env_secret_toggle(): ()
+    local on = ctx.project_env_new_is_secret == "true"
+    ctx.project_env_new_is_secret = on and "false" or "true"
+    ctx.project_env_new_value = ""
 end

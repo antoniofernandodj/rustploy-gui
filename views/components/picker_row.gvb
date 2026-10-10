@@ -8,12 +8,12 @@ component {
     prop(name = action)
   }
 
-  row(class = kv_row) {
-    column(class = header_titles) {
-      text(class = env_key, content = "@title")
-      text(class = muted, content = "@subtitle")
+  row(class = kv-list__row) {
+    column(class = page-head__titles) {
+      text(class = env__key, content = "@title")
+      text(class = u-muted, content = "@subtitle")
     }
 
-    button(class = btn_primary, on_click = @action, text = @button_label)
+    button(class = "btn btn--primary", on_click = @action, text = @button_label)
   }
 }

@@ -2,65 +2,65 @@
 component {
   resources {
     component(name = FilaVazia) {
-      text(class = empty_state, content = "Nenhum deploy na fila.")
+      text(class = empty-state, content = "Nenhum deploy na fila.")
     }
   }
 
-  column(class = section_fill) {
-    row(class = section_head) {
-      text(class = section_title, content = "NA FILA (@eng_queued_count)")
+  column(class = "section section--fill") {
+    row(class = section__head) {
+      text(class = section__title, content = "NA FILA (@deploy_engine_queued_count)")
 
       button(
-        if = @eng_paused,
+        if = @deploy_engine_paused,
         equals = true,
-        class = copy_btn,
+        class = "btn btn--ghost btn--xs",
         on_click = queue_toggle_pause,
         disabled = @busy_queue_toggle_pause,
         text = "Retomar fila",
       )
 
       button(
-        if = @eng_paused,
+        if = @deploy_engine_paused,
         not_equals = true,
-        class = copy_btn,
+        class = "btn btn--ghost btn--xs",
         on_click = queue_toggle_pause,
         disabled = @busy_queue_toggle_pause,
         text = "Pausar fila",
       )
     }
 
-    column(class = section_body) {
+    column(class = section__body) {
       text(
-        if = @eng_paused,
+        if = @deploy_engine_paused,
         equals = true,
-        class = banner_warn,
+        class = "banner banner--warn",
         content = "Fila pausada — deploys esperam até você retomar.",
       )
     }
 
-    scrollable(direction = vertical, class = section_scroll) {
-      column(class = table_body) {
+    scrollable(direction = vertical, class = section__scroll) {
+      column(class = u-fill) {
         template(
-          :for-each = eng_queued,
+          :for-each = deploy_engine_queued,
           foreach_fallback = FilaVazia,
           var = q,
           on_reorder = queue_reorder,
           reorder_key = deployment_id,
         ) {
-          row(class = trow) {
-            text(class = env_drag_handle, drag_handle = true, content = "⋮")
-            text(class = "td_key col_svc", content = "@q.pos. @q.service")
-            text(class = "td col_start", content = "@q.project")
+          row(class = table__row) {
+            text(class = env__drag-handle, drag_handle = true, content = "⋮")
+            text(class = "table__cell table__cell--key table__col-svc", content = "@q.pos. @q.service")
+            text(class = "table__cell table__col-start", content = "@q.project")
 
             button(
-              class = copy_btn,
+              class = "btn btn--ghost btn--xs",
               on_click = queue_promote:@q.deployment_id,
               disabled = @busy_queue_promote,
               text = "↑ topo",
             )
 
             button(
-              class = env_del,
+              class = env__del,
               on_click = queue_cancel:@q.deployment_id,
               disabled = @busy_queue_cancel,
               text = "✕",

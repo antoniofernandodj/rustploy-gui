@@ -3,129 +3,129 @@
 component {
   resources {
     component(name = SemDominios) {
-      text(class = muted, content = "Nenhum domínio configurado.")
+      text(class = u-muted, content = "Nenhum domínio configurado.")
     }
   }
 
-  column(class = form_panel) {
-    text(class = label_cap, content = "DOMÍNIOS (@svc_domains_count)")
+  column(class = form-panel) {
+    text(class = u-label-cap, content = "DOMÍNIOS (@service_domains_count)")
 
     text(
-      class = muted,
+      class = u-muted,
       content = """
         Cada domínio pode apontar para uma porta de container diferente.
       """,
     )
 
-    scrollable(direction = vertical, class = env_list_scroll) {
-      column(class = kv_list) {
-        each @svc_domains as d (fallback = SemDominios) {
-          row(class = kv_row) {
+    scrollable(direction = vertical, class = u-fill-all) {
+      column(class = kv-list) {
+        each @service_domains as d (fallback = SemDominios) {
+          row(class = kv-list__row) {
             button(
-              class = env_del,
-              on_click = dom_del:@d.domain,
-              disabled = @busy_dom_del,
+              class = env__del,
+              on_click = domain_delete:@d.domain,
+              disabled = @busy_domain_delete,
               text = "✕",
             )
 
-            text(class = env_sep)
-            text(class = env_key, content = "@d.domain")
-            text(class = kv_val_fill, content = "→ @d.port")
-            text(class = muted, content = "@d.tls_label")
+            text(class = env__sep)
+            text(class = env__key, content = "@d.domain")
+            text(class = "kv-list__val kv-list__val--compact", content = "→ @d.port")
+            text(class = u-muted, content = "@d.tls_label")
           }
         }
       }
     }
 
-    text(class = label_cap, content = "ADICIONAR DOMÍNIO")
+    text(class = u-label-cap, content = "ADICIONAR DOMÍNIO")
 
     input(
-      class = field_input,
-      form_control = f_domain,
-      :value = f_domain,
-      on_change = field:f_domain,
+      class = field__input,
+      form_control = service_form_domain,
+      :value = service_form_domain,
+      on_change = field:service_form_domain,
       placeholder = app.exemplo.com,
     )
 
     text(
-      if = @erro_f_domain,
+      if = @error_service_form_domain,
       not_equals = "",
-      class = err,
-      content = "@erro_f_domain",
+      class = u-error,
+      content = "@error_service_form_domain",
     )
 
-    text(class = label_cap, content = "PORTA DO CONTAINER (opcional)")
+    text(class = u-label-cap, content = "PORTA DO CONTAINER (opcional)")
 
     input(
-      class = field_input,
-      form_control = f_port,
-      :value = f_port,
-      on_change = field:f_port,
+      class = field__input,
+      form_control = service_form_port,
+      :value = service_form_port,
+      on_change = field:service_form_port,
       placeholder = "(padrão do serviço)",
     )
 
     text(
-      if = @erro_f_port,
+      if = @error_service_form_port,
       not_equals = "",
-      class = err,
-      content = "@erro_f_port",
+      class = u-error,
+      content = "@error_service_form_port",
     )
 
     toggle(
-      :checked = f_tls,
-      on_toggle = field:f_tls,
+      :checked = service_form_tls,
+      on_toggle = field:service_form_tls,
       label = "  HTTPS / TLS",
     )
 
-    row(class = env_add) {
+    row(class = env__add) {
       button(
-        class = btn_primary,
-        on_click = dom_add,
-        disabled = @busy_dom_add,
+        class = "btn btn--primary",
+        on_click = domain_add,
+        disabled = @busy_domain_add,
         text = "Adicionar domínio",
       )
 
-      text(class = muted, content = "@svc_action_msg")
+      text(class = u-muted, content = "@service_action_message")
     }
 
     text(
-      class = label_cap,
+      class = u-label-cap,
       content = "PORTA TCP DO HOST (passthrough, opcional)",
     )
 
     input(
-      class = field_input,
-      form_control = f_host_port,
-      :value = f_host_port,
-      on_change = field:f_host_port,
+      class = field__input,
+      form_control = service_form_host_port,
+      :value = service_form_host_port,
+      on_change = field:service_form_host_port,
       placeholder = "(padrão do serviço)",
     )
 
     text(
-      if = @erro_f_host_port,
+      if = @error_service_form_host_port,
       not_equals = "",
-      class = err,
-      content = "@erro_f_host_port",
+      class = u-error,
+      content = "@error_service_form_host_port",
     )
 
-    row(class = env_add) {
+    row(class = env__add) {
       button(
-        class = btn_ghost,
-        on_click = dom_hostport_save,
-        disabled = @busy_dom_hostport_save,
+        class = "btn btn--ghost",
+        on_click = domain_hostport_save,
+        disabled = @busy_domain_hostport_save,
         text = "Salvar porta",
       )
 
       button(
-        class = btn_ghost,
-        on_click = dom_hostport_auto,
-        disabled = @busy_dom_hostport_auto,
+        class = "btn btn--ghost",
+        on_click = domain_hostport_auto,
+        disabled = @busy_domain_hostport_auto,
         text = Automática,
       )
     }
 
     text(
-      class = muted,
+      class = u-muted,
       content = """
         "Automática" aloca uma porta livre e a libera no firewall do host.
       """,
