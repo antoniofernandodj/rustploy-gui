@@ -793,18 +793,18 @@ principal — o `POST /agent/deploys` com `wait`.
   fechada de propósito) é **502**, não 500 — a distinção diz ao agente se adianta
   repetir. Credencial de repositório não vaza para uma listagem de serviços.
 
-### 5.2 Os testes de `fmt` em Luau (`tests/fmt_*.rs`)
+### 5.2 Os testes de `format` em Luau (`tests/format_*.rs`)
 
 Rodam módulos Luau de formatação no motor de verdade, com uma **fixture** — uma tela
 mínima que carrega o módulo e exibe o resultado. A fixture mora fora da árvore de
-scripts do app (para não virar script do app), então o `require("fmt/…")` dela
+scripts do app (para não virar script do app), então o `require("format/…")` dela
 precisa de uma raiz extra, adicionada por variável de ambiente dentro de um bloco
 `unsafe`.
 
 - **`fmt_service_detail`** (`compose_host` e `internal_url`) existe desde o rename
   de serviço: o hostname interno de um serviço Compose é a **chave do YAML**, que
   não muda quando o serviço é renomeado, e o card "Internal URL" da aba Connection
-  depende disso. O mesmo cálculo existe em JS (`webui/fmt.js::composeHost`), coberto
+  depende disso. O mesmo cálculo existe em JS (`webui/format.js::composeHost`), coberto
   pelo teste `renomear_servico_na_aba_general` do daemon; aqui é a metade Luau. Num
   Compose o nome do serviço (`meu_banco`) não aparece — vale a chave do YAML; numa
   Application é `rp_<nome>`, e sem `db_kind` a GUI põe `http://` (a webui, hoje, não
@@ -942,7 +942,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   de propósito: acrescentar um `.gvb` não deve obrigar a editar o teste.
 - **As grades de cards passam o item inteiro** ao componente via `spread="{c}"`
   (glacier-ui 0.62). Isso troca um atributo por campo por um só — e move a checagem
-  do contrato para o **dado**: um campo que o `fmt/dashboard.luau` não emitir vira
+  do contrato para o **dado**: um campo que o `format/dashboard.luau` não emitir vira
   `MissingProp` e derruba a tela inteira, não um `{placeholder}` vazio como antes. O
   caso perigoso é o **filler** (o card vazio que completa a fileira): ele nasce de
   um único `FILLER` compartilhado pelas duas grades, e em Lua um campo `= nil`
@@ -970,7 +970,7 @@ busca, stream SSE e ações) vive em Luau, no script que o `app.gvb` carrega
 (`scripts/app.luau`, sucessor de `app/root.rs` + `app/net/*`). É o único script ativo.
 Como o contexto do glacier é **global**, os templates importados (login, shell, home,
 service) só têm markup, e os handlers deles resolvem para as funções desse script.
-`require("net/api")` e `require("fmt")` resolvem em `scripts/`, relativo ao diretório do
+`require("net/api")` e `require("format")` resolvem em `scripts/`, relativo ao diretório do
 script. As janelas auxiliares são a exceção: cada uma tem o próprio script e o próprio
 motor.
 
@@ -1135,7 +1135,7 @@ Registry), Settings, Schedules e Suporte.
     CLI; sem auth ainda). Leitura + delete (metadados) + GC (libera do disco blobs/manifests
     órfãos). As tags de um repositório são buscadas **sob demanda**, ao clicar "Ver tags" —
     não vêm no snapshot periódico, diferente das outras sub-abas. `registry_repos` chega
-    **filtrado** pela busca (`fmt.registry_repos(snap.registry_repos, term)` em
+    **filtrado** pela busca (`format.registry_repos(snap.registry_repos, term)` em
     `stream.luau`), enquanto o `registry_repos_count` é da lista crua; por isso a mensagem de
     "Faça `docker push`…" usa o count (trocar pelo `empty` de `registry_repos`, como nos
     outros pares lista/count, a faria aparecer quando a busca só não achou nada, não quando o
@@ -1165,14 +1165,14 @@ Registry), Settings, Schedules e Suporte.
   - O **dia da semana** eram sete `<TabButton>` escritos à mão mais o handler `docker_cleanup_weekday` só
     para gravar a escolha. O `<radiogroup>` (glacier-ui 0.66) grava a chave sozinho, no update
     dele em Rust, então o handler foi embora junto. As opções vêm de `weekdays`, semeada em
-    `handlers/connection.luau` a partir de `fmt.WEEKDAYS_JSON`; a aparência agora é de radio
+    `handlers/connection.luau` a partir de `format.WEEKDAYS_JSON`; a aparência agora é de radio
     buttons redondos, não da fileira de pílulas.
   - O **horário** era um par de campos de texto livre ("HORA (0-23)" e "MINUTO (0-59)"), e a
     faixa no próprio rótulo era a confissão de que nada impedia digitar 99: o handler fazia
     `tonumber(...) or 0` e agendava a limpeza para a meia-noite sem avisar ninguém. O
     `<timeedit>` (glacier-ui 0.68) é um campo só, editado por seções (clique na hora, setas ▴▾
     mexem nela), onde não dá para digitar e portanto não dá para digitar errado. A chave
-    `docker_cleanup_time` é `"HH:MM"`; `fmt.hm_join`/`fmt.hm_split` fazem a ponte com o `{hour, minute}`
+    `docker_cleanup_time` é `"HH:MM"`; `format.hour_minute_join`/`format.hour_minute_split` fazem a ponte com o `{hour, minute}`
     que o daemon espera — o contrato HTTP não mudou.
 
 ### 6.5 O detalhe do serviço (`views/service.gvb` e `views/service/`)

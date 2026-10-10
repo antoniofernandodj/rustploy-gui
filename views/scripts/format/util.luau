@@ -1,6 +1,6 @@
 --!strict
--- fmt/util.luau — busca, codificação de array e mapas de estado (paleta =
--- view.rs). Usado pelos demais submódulos fmt/*.luau.
+-- format/util.luau — busca, codificação de array e mapas de estado (paleta =
+-- view.rs). Usado pelos demais submódulos format/*.luau.
 
 local Types = require("types")
 type ServicePair = Types.ServicePair
@@ -65,7 +65,7 @@ end
 -- dado (nome de serviço/volume, tag, domínio…) passa por M.ellipsis com estes
 -- limites. Recalculado a cada snapshot (~2s), como grid_cols em dashboard.luau.
 export type ColBudgets = { svc: number, proj: number, state: number, img: number }
-function M.col_budgets(): ColBudgets
+function M.column_budgets(): ColBudgets
     local viewport_width = viewport().width
     if viewport_width < 560 then
         return { svc = 12, proj = 9, state = 12, img = 15 }
@@ -95,7 +95,7 @@ end
 -- ── Codificação de arrays ────────────────────────────────────────────────
 -- CUIDADO: uma tabela Luau vazia vira `{}` (objeto) no json.encode, não `[]`.
 -- Os templates iteram arrays, então forçamos "[]" quando vazio.
-function M.enc_array(items: {any}): string
+function M.encode_array(items: {any}): string
     if #items == 0 then return "[]" end
     return json.encode(items)
 end
@@ -213,7 +213,7 @@ end
 
 -- `services` do snapshot é uma lista de { project_name, service }.
 -- Normaliza para pares { svc = Service, proj = "nome" }.
-function M.pair_list(services: {any}?): {ServicePair}
+function M.service_pair_list(services: {any}?): {ServicePair}
     local out: {ServicePair} = {}
     for _, service in ipairs(services or {}) do
         table.insert(out, { svc = service.service, proj = service.project_name or "" })

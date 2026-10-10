@@ -74,7 +74,7 @@ component {
               label = Git,
               current = @provider_tab,
               target = git,
-              action = prov:git,
+              action = select_provider_tab:git,
             )
 
             template(if = @gitea_providers, not_empty) {
@@ -82,7 +82,7 @@ component {
                 label = "Gitea/GitHub",
                 current = @provider_tab,
                 target = gitea,
-                action = prov:gitea,
+                action = select_provider_tab:gitea,
               )
             }
 
@@ -90,7 +90,7 @@ component {
               label = Zip,
               current = @provider_tab,
               target = zip,
-              action = prov:zip,
+              action = select_provider_tab:zip,
             )
           }
 

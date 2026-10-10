@@ -1,5 +1,5 @@
 --!strict
--- fmt/docker_cleanup.luau — resumo textual da limpeza automática de Docker
+-- format/docker_cleanup.luau — resumo textual da limpeza automática de Docker
 -- (Settings → Manutenção). Usado tanto ao carregar a tela (`DockerCleanupConfig`)
 -- quanto ao vivo, quando `Event::DockerCleanupCompleted` chega (stream.luau).
 
@@ -37,7 +37,7 @@ function M.last_run_summary(last_run: any): string
             table.insert(parts, M.resource_label(result.resource) .. " " .. tostring(result.count or 0))
         end
     end
-    local head = Time.date_dm_hms(last_run.at) .. " · " .. Time.fmt_bytes(total_bytes) .. " liberados"
+    local head = Time.date_day_month_hour_minute_second(last_run.at) .. " · " .. Time.format_bytes(total_bytes) .. " liberados"
     if #parts == 0 then
         return head
     end

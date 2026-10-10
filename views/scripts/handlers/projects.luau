@@ -6,7 +6,7 @@
 
 local State = require("../state")
 local Helpers = require("../helpers")
-local fmt = require("../fmt")
+local format = require("../format")
 local Stream = require("stream")
 local Registry = require("registry")
 
@@ -251,11 +251,17 @@ local function with_project_env(mutate: (project_env_record: any) -> ()): ()
         }
     }
     if project_env_set_ok then
-        ctx.project_env = fmt.env_json_with_comments(project_env_record.env_vars, project_env_record.env_comments)
+        ctx.project_env = format.env_json_with_comments(
+            project_env_record.env_vars,
+            project_env_record.env_comments
+        )
         ctx.project_env_count = tostring(#project_env_record.env_vars)
         -- Não sobrescrever o textarea enquanto o usuário edita (ver stream.luau).
         if ctx.project_env_text_open ~= "true" then
-            local dotenv = fmt.env_dotenv_with_comments(project_env_record.env_vars, project_env_record.env_comments)
+            local dotenv = format.env_dotenv_with_comments(
+                project_env_record.env_vars,
+                project_env_record.env_comments
+            )
             ctx.project_env_text = dotenv
             ctx.project_env_text_original = dotenv
         end

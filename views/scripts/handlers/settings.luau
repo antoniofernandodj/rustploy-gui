@@ -5,7 +5,7 @@
 
 local State = require("../state")
 local Helpers = require("../helpers")
-local fmt = require("../fmt")
+local format = require("../format")
 local Stream = require("stream")
 
 local M = {}
@@ -65,7 +65,7 @@ local function git_provider_refresh_list(): ()
     end
     local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
     if git_provider_list_ok and git_provider_list_response.GitProviders then
-        ctx.gitea_providers = fmt.git_providers(git_provider_list_response.GitProviders)
+        ctx.gitea_providers = format.git_providers(git_provider_list_response.GitProviders)
         ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
     end
 end
@@ -390,9 +390,9 @@ local function docker_cleanup_apply_config(config: any): ()
     -- Uma chave só, "HH:MM", porque quem edita agora é o <timeedit> em home.gvb.
     -- `docker_cleanup_unpack_recurrence` continua devolvendo hora e minuto separados (é o
     -- formato do daemon); a junção acontece aqui, na fronteira.
-    ctx.docker_cleanup_time = fmt.hm_join(hour, minute)
+    ctx.docker_cleanup_time = format.hour_minute_join(hour, minute)
     ctx.docker_cleanup_weekday = weekday
-    ctx.docker_cleanup_next_run_label = config.next_run_at and fmt.date_dm_hm(config.next_run_at) or "—"
+    ctx.docker_cleanup_next_run_label = config.next_run_at and format.date_day_month_hour_minute(config.next_run_at) or "—"
     State.docker_cleanup_last_run_at_raw = config.last_run_at
 end
 
@@ -408,7 +408,7 @@ function M.docker_cleanup_load(): ()
     local docker_cleanup_config_get_ok, docker_cleanup_config_get_response = api:rpc("DockerCleanupConfigGet")
     if docker_cleanup_config_get_ok and docker_cleanup_config_get_response.DockerCleanupConfig then
         docker_cleanup_apply_config(docker_cleanup_config_get_response.DockerCleanupConfig.config)
-        ctx.docker_cleanup_last_run_text = fmt.docker_cleanup_last_run_summary(
+        ctx.docker_cleanup_last_run_text = format.docker_cleanup_last_run_summary(
             docker_cleanup_config_get_response.DockerCleanupConfig.last_run
         )
     end
@@ -435,7 +435,7 @@ local function docker_cleanup_build_recurrence(): any
     end
     -- O caminho de volta do <timeedit>: a chave única vira os dois campos que
     -- Recurrence::Daily/Weekly declaram no daemon.
-    local hour, minute = fmt.hm_split(ctx.docker_cleanup_time)
+    local hour, minute = format.hour_minute_split(ctx.docker_cleanup_time)
     if ctx.docker_cleanup_kind == "weekly" then
         return {
             Weekly = {
@@ -477,7 +477,7 @@ function docker_cleanup_save(): ()
     }
     if docker_cleanup_config_set_ok and docker_cleanup_config_set_response.DockerCleanupConfig then
         docker_cleanup_apply_config(docker_cleanup_config_set_response.DockerCleanupConfig.config)
-        ctx.docker_cleanup_last_run_text = fmt.docker_cleanup_last_run_summary(
+        ctx.docker_cleanup_last_run_text = format.docker_cleanup_last_run_summary(
             docker_cleanup_config_set_response.DockerCleanupConfig.last_run
         )
         ctx.docker_cleanup_message = "configurações salvas"
@@ -491,7 +491,7 @@ end
 -- Botão "Executar agora": roda os recursos marcados fora do horário
 -- agendado, independente do interruptor geral (é um botão de teste). Roda em
 -- background no daemon — `ctx.docker_cleanup_running` volta a "false" quando
--- `Event::DockerCleanupCompleted` chega (stream.luau::apply_bus), não pela
+-- `Event::DockerCleanupCompleted` chega (stream.luau::apply_bus_event), não pela
 -- resposta deste RPC.
 function docker_cleanup_run_now(): ()
     local api = State.api

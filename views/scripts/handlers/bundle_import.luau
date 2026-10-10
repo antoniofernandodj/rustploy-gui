@@ -48,7 +48,7 @@ end
 
 -- "CHAVE=valor" por linha ⇄ tabela. Texto pré-preenchido com as chaves que
 -- faltam, o usuário só completa o valor.
-local function parse_kv(text: string?, target: { [string]: string }): ()
+local function parse_key_value_lines(text: string?, target: { [string]: string }): ()
     for line in string.gmatch((text or "") .. "\n", "([^\n]*)\n") do
         local key, value = line:match("^%s*([^=%s]+)%s*=(.*)$")
         if key then
@@ -57,7 +57,7 @@ local function parse_kv(text: string?, target: { [string]: string }): ()
     end
 end
 
-local function kv_text(keys: { any }, values_by_key: { [string]: string }): string
+local function key_value_text(keys: { any }, values_by_key: { [string]: string }): string
     local out = {}
     for _, key in ipairs(keys) do
         table.insert(out, tostring(key) .. "=" .. (values_by_key[tostring(key)] or ""))
@@ -77,10 +77,10 @@ local function nonempty(values: { [string]: string }): { [string]: string }?
     return has_any and out or nil
 end
 
-local function build_req(dry_run: boolean): any
-    parse_kv(ctx.import_service_text, service_values)
-    parse_kv(ctx.import_project_text, project_values)
-    parse_kv(ctx.import_secret_text, secret_vals)
+local function build_import_request(dry_run: boolean): any
+    parse_key_value_lines(ctx.import_service_text, service_values)
+    parse_key_value_lines(ctx.import_project_text, project_values)
+    parse_key_value_lines(ctx.import_secret_text, secret_vals)
 
     local name = Helpers.trim(ctx.import_name)
     local provider = ctx.import_provider_id or ""
@@ -143,9 +143,9 @@ local function show_report(report: any): ()
     ctx.import_warnings = json.encode(warns)
     ctx.import_has_warnings = #warns > 0 and "true" or "false"
 
-    ctx.import_service_text = kv_text(report.missing_service_vars or {}, service_values)
-    ctx.import_project_text = kv_text(report.missing_project_vars or {}, project_values)
-    ctx.import_secret_text = kv_text(report.missing_secrets or {}, secret_vals)
+    ctx.import_service_text = key_value_text(report.missing_service_vars or {}, service_values)
+    ctx.import_project_text = key_value_text(report.missing_project_vars or {}, project_values)
+    ctx.import_secret_text = key_value_text(report.missing_secrets or {}, secret_vals)
     ctx.import_has_service_missing = #(report.missing_service_vars or {}) > 0 and "true" or "false"
     ctx.import_has_project_missing = #(report.missing_project_vars or {}) > 0 and "true" or "false"
     ctx.import_has_secret_missing = #(report.missing_secrets or {}) > 0 and "true" or "false"
@@ -185,7 +185,7 @@ local function analyze_core(): boolean
     ctx.import_error = ""
     ctx.import_message = "analisando…"
     ctx.import_busy = "true"
-    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_req(true) }
+    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_import_request(true) }
     ctx.import_busy = ""
     ctx.import_message = ""
 
@@ -314,7 +314,7 @@ function import_create(): ()
     ctx.import_error = ""
     ctx.import_message = "criando…"
     ctx.import_busy = "true"
-    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_req(false) }
+    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_import_request(false) }
     ctx.import_busy = ""
     ctx.import_message = ""
 

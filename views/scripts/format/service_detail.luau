@@ -1,5 +1,5 @@
 --!strict
--- fmt/service_detail.luau — builders da tela de detalhe de serviço (source,
+-- format/service_detail.luau — builders da tela de detalhe de serviço (source,
 -- healthcheck, env vars, logs, deployments, domains, connection URLs).
 -- Equivalente às partes de view.rs usadas por services.rs.
 
@@ -31,7 +31,7 @@ function M.containers(containers: { Types.ManagedContainer }?): string
             state_color = color,
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 local function is_terminal(state: string?): boolean
@@ -39,7 +39,7 @@ local function is_terminal(state: string?): boolean
 end
 
 -- ServiceSource → (kind, detail, build_engine) — source_summary().
-function M.source_summary3(source: any): (string, string, string)
+function M.source_summary_parts(source: any): (string, string, string)
     if type(source) ~= "table" then return "—", "—", "—" end
     if source.Registry then return "Registry", source.Registry.image or "—", "—"
     elseif source.Git then
@@ -98,7 +98,7 @@ function M.secret_rows(names: {string}?): string
     for _, name in ipairs(names or {}) do
         table.insert(rows, { name = name, name_display = Util.ellipsis(name, ENV_KEY_MAX) })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Env vars como linhas JSON, re-interleaving os comentários `# ...` ancorados
@@ -126,7 +126,7 @@ function M.env_json_with_comments(vars: {EnvVar}?, comments: {EnvComment}?): str
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Env vars como blob `.env` (KEY=VALUE, secrets por referência), com comentários.
@@ -175,7 +175,7 @@ local function log_rows(log_entries: {any}?): string
         local line = Util.ellipsis(Util.strip_ansi(log_entry.line), LINE_MAX)
         table.insert(rows, { time = Time.time_hms(log_entry.timestamp), line = line, color = color })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 M.logs_json = log_rows
 M.build_logs_json = log_rows
@@ -201,12 +201,12 @@ function M.deployments_detail(deployments: {any}?): string
             image = deployment.image,
             state_label = label,
             state_kind = Util.state_kind(deployment.state),
-            duration = Time.fmt_duration(deployment),
-            start = Time.date_dm_hms(deployment.started_at),
+            duration = Time.format_duration(deployment),
+            start = Time.date_day_month_hour_minute_second(deployment.started_at),
             can_delete = is_terminal(deployment.state) and "1" or "0",
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Rotas HTTP de um spec (aba Domains).
@@ -221,7 +221,7 @@ function M.domains_json(spec: ServiceSpec): string
             tls_label = route.tls and "TLS" or "—",
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- normalize_name: minúsculas, não-alfanumérico → '_' (colapsado), trim '_'.
@@ -306,7 +306,7 @@ end
 -- Credenciais (database/user/password) de um serviço de banco/broker, lidas das
 -- env vars nas mesmas convenções que o wizard grava (ver shared::wizard).
 -- Retorna nil em cada campo que não se aplica ao db_kind.
-local function db_credentials(db_kind: string?, vars: {EnvVar}?): (string?, string?, string?)
+local function database_credentials(db_kind: string?, vars: {EnvVar}?): (string?, string?, string?)
     local normalized_kind = db_kind and string.lower(db_kind) or nil
     if normalized_kind == "postgres" or normalized_kind == "postgresql" then
         return env_plain(vars, "POSTGRES_DB"), env_plain(vars, "POSTGRES_USER"), env_plain(vars, "POSTGRES_PASSWORD")
@@ -325,7 +325,7 @@ end
 -- Anexa `/database?user=…&password=…` a uma URL de banco, no formato pedido
 -- (query-params, ex.: postgresql://host:5432/app?user=app&password=…).
 -- Só inclui os campos presentes; sem credenciais, retorna a base intacta.
-local function with_db_credentials(base: string, database: string?, user: string?, password: string?): string
+local function with_database_credentials(base: string, database: string?, user: string?, password: string?): string
     local url = base
     if database and database ~= "" then
         url = url .. "/" .. database
@@ -342,7 +342,7 @@ end
 -- Percent-encode de um componente de userinfo (user/password) — protege chars
 -- estruturais do URI (`@`, `:`, `/`, `?`, `#`, …). Senhas do wizard usam base64
 -- url-safe (só passa reto), mas senhas custom podem ter reservados.
-local function pct(text: string): string
+local function percent_encode(text: string): string
     return (text:gsub("[^%w%-._~]", function(character: string): string
         return string.format("%%%02X", string.byte(character))
     end))
@@ -352,8 +352,8 @@ end
 --   user+pass → "user:pass@"  |  só pass (ex.: Redis) → ":pass@"
 --   só user   → "user@"       |  nenhum → "" (sem `@`)
 local function userinfo(user: string?, password: string?): string
-    local encoded_user = (user and user ~= "") and pct(user) or ""
-    local encoded_password = (password and password ~= "") and pct(password) or ""
+    local encoded_user = (user and user ~= "") and percent_encode(user) or ""
+    local encoded_password = (password and password ~= "") and percent_encode(password) or ""
     if encoded_user == "" and encoded_password == "" then return "" end
     if encoded_password == "" then return encoded_user .. "@" end
     return encoded_user .. ":" .. encoded_password .. "@"
@@ -376,13 +376,13 @@ end
 
 -- URL de conexão externa por tipo de banco, sobre o host:porta do daemon.
 --   • Postgres → string JDBC (jdbc:postgresql://host:porta/db?user=&password=),
---     reaproveitando `with_db_credentials` (formato que os drivers JDBC/libpq
+--     reaproveitando `with_database_credentials` (formato que os drivers JDBC/libpq
 --     aceitam — confirmado em uso).
 --   • Demais → URI padrão RFC com credenciais no userinfo
 --     (scheme://user:pass@host:porta/db). Redis omite user (":pass@"); Mongo põe
 --     barra final + `?authSource=admin` (o root do MONGO_INITDB mora no admin).
 --   • Sem esquema de banco (Kafka/serviço comum) → só `host:porta`.
-local function db_connection_url(
+local function database_connection_url(
     db_kind: string?,
     host: string,
     port: string,
@@ -394,7 +394,7 @@ local function db_connection_url(
     local host_and_port = host .. ":" .. port
 
     if normalized_kind == "postgres" or normalized_kind == "postgresql" then
-        return "jdbc:" .. with_db_credentials("postgresql://" .. host_and_port, database, user, password)
+        return "jdbc:" .. with_database_credentials("postgresql://" .. host_and_port, database, user, password)
     end
 
     local scheme = external_scheme(normalized_kind)
@@ -416,7 +416,7 @@ end
 
 -- Domínio HTTP tem prioridade (rota de ingress); na ausência dele, cai para o
 -- passthrough TCP (`host_port`) usando o host do daemon (`api_url` da sessão) e a
--- URL de conexão idiomática do `db_kind` (ver `db_connection_url`), com database
+-- URL de conexão idiomática do `db_kind` (ver `database_connection_url`), com database
 -- + credenciais lidas das env vars.
 function M.external_url(
     domain: string?,
@@ -426,14 +426,14 @@ function M.external_url(
     api_url: string?,
     env_vars: {EnvVar}?
 ): string
-    local database, user, password = db_credentials(db_kind, env_vars)
+    local database, user, password = database_credentials(db_kind, env_vars)
     if domain and domain:gsub("%s", "") ~= "" then
         local clean_domain = domain:gsub("/+$", "")
         return (tls and "https" or "http") .. "://" .. clean_domain
     end
     if host_port and tostring(host_port) ~= "" then
         local host = url_host(api_url) or "<host>"
-        return db_connection_url(db_kind, host, tostring(host_port), database, user, password)
+        return database_connection_url(db_kind, host, tostring(host_port), database, user, password)
     end
     return "—"
 end

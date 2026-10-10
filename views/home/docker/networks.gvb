@@ -13,7 +13,7 @@ component {
         content = "@docker_networks_count network(s)",
       )
 
-      // O filtro mora em fmt.docker_networks — ver images.gvb.
+      // O filtro mora em format.docker_networks — ver images.gvb.
       checkbox(
         :checked = docker_networks_only_used,
         on_toggle = docker_only_used:docker_networks_only_used,

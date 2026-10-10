@@ -9,12 +9,12 @@
 -- executor), mesma razão de `new_service_window.luau`.
 --
 -- require resolve relativo a ESTE arquivo (scripts/): "net/api", "helpers" e
--- "fmt" (só os builders de git_providers/git_repos/git_branches, reusados da
+-- "format" (só os builders de git_providers/git_repos/git_branches, reusados da
 -- aba Gitea de serviço — ver handlers/services.luau).
 
 local Api = require("net/api")
 local Helpers = require("helpers")
-local fmt = require("fmt")
+local format = require("format")
 
 local function client(): Api.Client?
     local url = ctx.api_url or ""
@@ -90,11 +90,11 @@ function init(): ()
     ctx.new_job_hours = "6"
     -- Uma chave só, "HH:MM": quem edita o horário agora é o <timeedit> do
     -- .gvb. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
-    -- formato do daemon) e fmt.hm_join/hm_split fazem a ponte.
+    -- formato do daemon) e format.hour_minute_join/hour_minute_split fazem a ponte.
     ctx.new_job_time = "03:00"
     ctx.new_job_weekday = "0"
     -- Coleção fixa do <radiogroup> de dia da semana (recorrência Semanal).
-    ctx.weekdays = fmt.WEEKDAYS_JSON
+    ctx.weekdays = format.WEEKDAYS_JSON
     ctx.new_job_error = ""
     ctx.new_job_message = ""
 
@@ -123,12 +123,12 @@ function init(): ()
                 ctx.new_job_compose = job.compose or ""
             end
 
-            ctx.new_job_env_text = fmt.env_dotenv_with_comments(job.env_vars, job.env_comments)
+            ctx.new_job_env_text = format.env_dotenv_with_comments(job.env_vars, job.env_comments)
 
             local kind, hours, hour, minute, weekday = unpack_recurrence(job.recurrence)
             ctx.new_job_kind = kind
             ctx.new_job_hours = hours
-            ctx.new_job_time = fmt.hm_join(hour, minute)
+            ctx.new_job_time = format.hour_minute_join(hour, minute)
             ctx.new_job_weekday = weekday
         end
     end
@@ -158,7 +158,7 @@ function new_job_source(kind: string): ()
         local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
         ctx.new_job_git_busy = ""
         if git_provider_list_ok and git_provider_list_response.GitProviders then
-            ctx.new_job_git_providers = fmt.git_providers(git_provider_list_response.GitProviders)
+            ctx.new_job_git_providers = format.git_providers(git_provider_list_response.GitProviders)
             ctx.new_job_git_message = ""
         else
             ctx.new_job_git_message = "erro ao listar contas conectadas"
@@ -182,7 +182,7 @@ function new_job_git_provider_pick(provider_id: string): ()
     }
     ctx.new_job_git_busy = ""
     if git_repo_list_ok and git_repo_list_response.GitRepos then
-        ctx.new_job_git_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+        ctx.new_job_git_repos = format.git_repos(git_repo_list_response.GitRepos)
         ctx.new_job_git_message = tostring(#git_repo_list_response.GitRepos) .. " repositório(s)"
     else
         ctx.new_job_git_message = "erro ao listar repositórios"
@@ -216,7 +216,7 @@ function new_job_git_repo_pick(full_name: string): ()
     }
     ctx.new_job_git_busy = ""
     if git_branch_list_ok and git_branch_list_response.GitBranches then
-        ctx.new_job_git_branches = fmt.git_branches(git_branch_list_response.GitBranches)
+        ctx.new_job_git_branches = format.git_branches(git_branch_list_response.GitBranches)
         ctx.new_job_git_message = ""
     else
         ctx.new_job_git_message = "erro ao listar branches"
@@ -350,7 +350,7 @@ function new_job_create(): ()
 
     -- O caminho de volta do <timeedit>: a chave única "HH:MM" vira os dois
     -- campos que Recurrence::Daily/Weekly declaram no daemon.
-    local hour, minute = fmt.hm_split(ctx.new_job_time)
+    local hour, minute = format.hour_minute_split(ctx.new_job_time)
     local recurrence: any = nil
     if ctx.new_job_kind == "interval" then
         recurrence = { IntervalHours = math.max(1, tonumber(ctx.new_job_hours) or 1) }

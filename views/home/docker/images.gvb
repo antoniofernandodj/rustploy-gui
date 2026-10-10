@@ -11,7 +11,7 @@ component {
     row(class = env__head) {
       text(class = "u-muted u-fill", content = "@docker_images_count imagem(ns)")
 
-      // O filtro mora em fmt.docker_images (a tableview desenha toda linha
+      // O filtro mora em format.docker_images (a tableview desenha toda linha
       // que recebe): o toggle grava a chave e remonta a lista.
       checkbox(
         :checked = docker_images_only_used,

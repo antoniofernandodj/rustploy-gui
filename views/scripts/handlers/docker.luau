@@ -4,7 +4,7 @@
 -- redes). A aba se atualiza no próximo snapshot (2s).
 
 local State = require("../state")
-local fmt = require("../fmt")
+local format = require("../format")
 local Stream = require("stream")
 
 local function prune(command: any, label: string): ()
@@ -16,7 +16,7 @@ local function prune(command: any, label: string): ()
     local rpc_ok, rpc_response = api:rpc_checked(command)
     if rpc_ok and rpc_response.PruneResult then
         ctx.docker_message = string.format("removidos: %d · %s liberados",
-            rpc_response.PruneResult.count or 0, fmt.fmt_bytes(rpc_response.PruneResult.reclaimed_bytes))
+            rpc_response.PruneResult.count or 0, format.format_bytes(rpc_response.PruneResult.reclaimed_bytes))
     elseif rpc_ok then
         ctx.docker_message = "limpeza concluída"
     else
@@ -161,7 +161,7 @@ function docker_remove_volume(name: string): ()
 end
 
 -- "Somente em uso" (on_toggle="docker_only_used:<chave>"): grava a chave e
--- remonta as listas — o filtro mora em fmt.docker_* (a tableview desenha toda
+-- remonta as listas — o filtro mora em format.docker_* (a tableview desenha toda
 -- linha que recebe).
 function docker_only_used(key: string?, value: string?): ()
     if key then

@@ -6,7 +6,7 @@
 
 local State = require("../state")
 local Stream = require("stream")
-local fmt = require("../fmt")
+local format = require("../format")
 
 -- Bloqueia o botão IMEDIATAMENTE ao clicar (antes de qualquer resposta do
 -- backend chegar) e trava double-click: `State.jobs_inflight[id] = true` +
@@ -28,7 +28,9 @@ function job_run_now(job_id: string): ()
     Stream.update_open_project()
     Stream.refresh_jobs_summary_local()
 
-    local job_run_now_ok, job_run_now_response = api:rpc_checked{ JobRunNow = { id = job_id } }
+    local job_run_now_ok, job_run_now_response = api:rpc_checked{
+        JobRunNow = { id = job_id }
+    }
     if not job_run_now_ok then
         toast{ message = tostring(job_run_now_response), kind = "error" }
         State.jobs_inflight[job_id] = nil
@@ -52,7 +54,9 @@ function job_run_cancel(job_run_id: string): ()
     if not api or not job_run_id or job_run_id == "" then
         return
     end
-    local job_run_cancel_ok, job_run_cancel_response = api:rpc_checked{ JobRunCancel = { job_run_id = job_run_id } }
+    local job_run_cancel_ok, job_run_cancel_response = api:rpc_checked{
+        JobRunCancel = { job_run_id = job_run_id }
+    }
     if job_run_cancel_ok then
         toast{ message = tostring("Cancelamento solicitado"), kind = "success" }
     else
@@ -71,7 +75,10 @@ function job_toggle(job_id: string): ()
     end
     local job = State.jobs_by_id[job_id]
     if not job then
-        toast{ message = tostring("job não encontrado (tela desatualizada — tenta de novo)"), kind = "error" }
+        toast{
+            message = tostring("job não encontrado (tela desatualizada — tenta de novo)"),
+            kind = "error"
+        }
         return
     end
     local job_update_ok, job_update_response = api:rpc_checked{
@@ -170,11 +177,17 @@ function open_edit_job_window(job_id: string): ()
             }
             local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
             if git_provider_list_ok and git_provider_list_response.GitProviders then
-                new_job_git_providers = fmt.git_providers(git_provider_list_response.GitProviders)
+                new_job_git_providers = format.git_providers(
+                    git_provider_list_response.GitProviders
+                )
             end
-            local git_repo_list_ok, git_repo_list_response = api:rpc{ GitRepoList = { provider_id = provider_id } }
+            local git_repo_list_ok, git_repo_list_response = api:rpc{
+                GitRepoList = {
+                    provider_id = provider_id
+                }
+            }
             if git_repo_list_ok and git_repo_list_response.GitRepos then
-                new_job_git_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+                new_job_git_repos = format.git_repos(git_repo_list_response.GitRepos)
                 for _, git_repo in ipairs(git_repo_list_response.GitRepos) do
                     if git_repo.clone_url == job.git_source.url then
                         new_job_git_repo = git_repo.full_name
@@ -189,7 +202,9 @@ function open_edit_job_window(job_id: string): ()
                         },
                     }
                     if git_branch_list_ok and git_branch_list_response.GitBranches then
-                        new_job_git_branches = fmt.git_branches(git_branch_list_response.GitBranches)
+                        new_job_git_branches = format.git_branches(
+                            git_branch_list_response.GitBranches
+                        )
                     end
                 end
             end
@@ -252,7 +267,11 @@ function job_delete(job_id: string): ()
     if not api then
         return
     end
-    local job_delete_ok, job_delete_response = api:rpc_checked{ JobDelete = { id = job_id } }
+    local job_delete_ok, job_delete_response = api:rpc_checked{
+        JobDelete = {
+            id = job_id
+        }
+    }
     if job_delete_ok then
         toast{ message = tostring("Job removido"), kind = "success" }
     else

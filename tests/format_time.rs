@@ -1,4 +1,4 @@
-//! O `fmt/time.luau` rodando no motor de verdade.
+//! O `format/time.luau` rodando no motor de verdade.
 
 use glacier_ui::GlacierUI;
 
@@ -12,14 +12,14 @@ fn boot() -> GlacierUI {
     }
 
     let mut m = GlacierUI::new();
-    m.register_component("tempo", "tests/fixtures/tempo.gvb")
+    m.register_component("time", "tests/fixtures/time.gvb")
         .expect("registrar a fixture");
-    m.set_initial_screen("tempo");
+    m.set_initial_screen("time");
     m
 }
 
 #[test]
-fn time_luau_converte_utc_para_hora_local() {
+fn time_luau_converts_utc_to_local_time() {
     let m = boot();
     let g = |k: &str| m.context().get(k).cloned().unwrap_or_default();
 
@@ -33,12 +33,12 @@ fn time_luau_converte_utc_para_hora_local() {
     assert_eq!(z, g("hms_frac"));
 
     let offset = offset_local_segundos();
-    let esperado = hora_deslocada("12:34:56", offset);
-    assert_eq!(z, esperado, "offset local de {offset}s não foi aplicado");
+    let expected = shifted_time("12:34:56", offset);
+    assert_eq!(z, expected, "offset local de {offset}s não foi aplicado");
 }
 
 #[test]
-fn time_luau_formata_data_e_hora_e_tolera_vazio() {
+fn time_luau_formats_date_and_time_and_tolerates_empty() {
     let m = boot();
     let g = |k: &str| m.context().get(k).cloned().unwrap_or_default();
 
@@ -48,12 +48,12 @@ fn time_luau_formata_data_e_hora_e_tolera_vazio() {
     assert_eq!(g("dm_hms").len(), 14, "dd/mm HH:MM:SS");
     assert!(g("dm_hms").starts_with(&dm_hm));
 
-    assert_eq!(g("vazio_nil"), "");
-    assert_eq!(g("vazio_lixo"), "");
+    assert_eq!(g("empty_nil"), "");
+    assert_eq!(g("empty_garbage"), "");
 }
 
 #[test]
-fn time_luau_mede_duracao_entre_instantes_com_fuso() {
+fn time_luau_measures_duration_between_instants_with_timezone() {
     let m = boot();
     let g = |k: &str| m.context().get(k).cloned().unwrap_or_default();
 
@@ -81,7 +81,7 @@ fn offset_local_segundos() -> i64 {
 }
 
 /// `HH:MM:SS` + offset, com a virada de dia descartada (só as horas importam).
-fn hora_deslocada(hms: &str, offset: i64) -> String {
+fn shifted_time(hms: &str, offset: i64) -> String {
     let partes: Vec<i64> = hms.split(':').map(|p| p.parse().unwrap()).collect();
     let total = (partes[0] * 3600 + partes[1] * 60 + partes[2] + offset).rem_euclid(86400);
     format!(

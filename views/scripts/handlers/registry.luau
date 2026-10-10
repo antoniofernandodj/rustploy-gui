@@ -6,7 +6,7 @@
 -- docker CLI); esta tela não cria/edita nada.
 
 local State = require("../state")
-local fmt = require("../fmt")
+local format = require("../format")
 local Stream = require("stream")
 
 local M = {}
@@ -22,7 +22,7 @@ function registry_open_repo(name: string): ()
     ctx.registry_tags_loading = "true"
     local registry_tag_list_ok, registry_tag_list_response = api:rpc_checked{ RegistryTagList = { repo = name } }
     if registry_tag_list_ok and registry_tag_list_response.RegistryTags then
-        ctx.registry_tags = fmt.registry_tags(registry_tag_list_response.RegistryTags)
+        ctx.registry_tags = format.registry_tags(registry_tag_list_response.RegistryTags)
         ctx.registry_tags_count = tostring(#registry_tag_list_response.RegistryTags)
         ctx.registry_message = ""
     else
@@ -132,7 +132,7 @@ function registry_gc(): ()
     if registry_gc_ok and registry_gc_response.RegistryGcResult then
         ctx.registry_message = string.format("GC: %d arquivo(s) removido(s) · %s liberados",
             registry_gc_response.RegistryGcResult.blobs_removed or 0,
-            fmt.fmt_bytes(registry_gc_response.RegistryGcResult.bytes_freed or 0))
+            format.format_bytes(registry_gc_response.RegistryGcResult.bytes_freed or 0))
         Stream.refresh_now()
     else
         ctx.registry_message = "erro: " .. tostring(registry_gc_response)
@@ -151,7 +151,7 @@ function registry_refresh_tokens(): ()
     end
     local registry_token_list_ok, registry_token_list_response = api:rpc("RegistryTokenList")
     if registry_token_list_ok and registry_token_list_response.RegistryTokens then
-        ctx.registry_tokens = fmt.registry_tokens(registry_token_list_response.RegistryTokens)
+        ctx.registry_tokens = format.registry_tokens(registry_token_list_response.RegistryTokens)
         ctx.registry_tokens_count = tostring(#registry_token_list_response.RegistryTokens)
     end
 end

@@ -32,8 +32,8 @@ component {
 
           button(
             class = "btn btn--danger btn--xs",
-            on_click = regen_webhook,
-            disabled = @busy_regen_webhook,
+            on_click = regenerate_webhook,
+            disabled = @busy_regenerate_webhook,
             text = Regenerar,
           )
         }

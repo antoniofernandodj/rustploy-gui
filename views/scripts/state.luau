@@ -9,11 +9,11 @@
 -- CHANGELOG do glacier-ui e docs/luau-modularizacao-pacotes.md):
 --   - Irmão no MESMO diretório/pacote → nome nu: `require("stream")` de
 --     dentro de `handlers/` acha `handlers/stream.luau`.
---   - Pacote PAI (este arquivo, `helpers.luau`, `fmt.luau`, `net/api.luau`,
+--   - Pacote PAI (este arquivo, `helpers.luau`, `format.luau`, `net/api.luau`,
 --     todos na raiz de `views/scripts/`) a partir de dentro de `handlers/`
---     ou `fmt/` → prefixo explícito `../`: `require("../state")`.
+--     ou `format/` → prefixo explícito `../`: `require("../state")`.
 --   - Do script de ENTRADA (`app.luau`, que fica na raiz) → caminho completo
---     nu: `require("handlers/connection")`, `require("fmt/time")`.
+--     nu: `require("handlers/connection")`, `require("format/time")`.
 -- Ver `docs/luau-modularizacao-pacotes.md` (raiz do repo rustploy) para a
 -- investigação completa que motivou essa convenção.
 

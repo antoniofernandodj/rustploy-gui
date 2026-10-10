@@ -94,7 +94,7 @@ function tab(tab_name: string): ()
     ctx.tab = tab_name
 end
 
-function prov(tab_name: string): ()
+function select_provider_tab(tab_name: string): ()
     ctx.provider_tab = tab_name
 end
 

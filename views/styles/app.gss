@@ -184,7 +184,7 @@
 /* Coluna IMAGEM da sub-aba Containers (Docker): mais larga que a de projeto
    porque uma referência de imagem (registry/repo:tag ou sha256:<digest>) é
    tipicamente mais longa que "projeto/serviço" — e, sem espaços, não quebra
-   linha (ver fmt.docker_containers, que trunca com Util.ellipsis para nunca
+   linha (ver format.docker_containers, que trunca com Util.ellipsis para nunca
    estourar). */
 .table__col-img    { width: 340; }
 

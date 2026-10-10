@@ -22,10 +22,10 @@
 -- o histórico inicial vai por um SET completo (ctx.log_window_logs_text) no init, e só as
 -- linhas VIVAS (no on_message da sse, ação despachada) usam append_textarea.
 --
--- require resolve relativo a ESTE arquivo (scripts/): "fmt" (fachada de fmt/*)
+-- require resolve relativo a ESTE arquivo (scripts/): "format" (fachada de format/*)
 -- e "net/api" (daqui só sai `auth_headers`, o mesmo Authorization do app).
 
-local fmt = require("fmt")
+local format = require("format")
 local Api = require("net/api")
 
 -- Buffer de eventos {stream?,line,timestamp} p/ reconstrução em corte (trim). O
@@ -39,7 +39,7 @@ local log_rows: { any } = {}
 -- Set COMPLETO do textarea a partir do buf (usado no seed e no corte). Mantém o
 -- fim com "\n" para os appends seguintes começarem em linha nova.
 local function set_full(): ()
-    local text = fmt.join_log_lines(log_rows)
+    local text = format.join_log_lines(log_rows)
     ctx.log_window_logs_text = (#log_rows > 0) and (text .. "\n") or ""
     ctx.log_window_count = tostring(#log_rows)
 end
@@ -59,7 +59,7 @@ local function push_batch(events: { any }): ()
         end
         set_full()
     else
-        append_textarea("log_window_logs_text", fmt.join_log_lines(events) .. "\n")
+        append_textarea("log_window_logs_text", format.join_log_lines(events) .. "\n")
         ctx.log_window_count = tostring(#log_rows)
     end
 end
@@ -67,7 +67,7 @@ end
 -- Um evento do bus: os endpoints já filtram por id; pegamos o LogLine (runtime),
 -- BuildLog (build) ou JobLogLine (job one-shot), o que vier. BuildLog não traz
 -- `stream` (cor padrão).
-local function to_row(event: any): any?
+local function log_event_to_row(event: any): any?
     if type(event) ~= "table" then
         return nil
     end
@@ -97,14 +97,14 @@ function init(): ()
                 return
             end
             if decoded.kind == "bus" then
-                local row = to_row(decoded.event)
+                local row = log_event_to_row(decoded.event)
                 if row then
                     push_batch{ row }
                 end
             elseif decoded.kind == "bus_batch" then
                 local rows = {}
                 for _, event in ipairs(decoded.events or {}) do
-                    local row = to_row(event)
+                    local row = log_event_to_row(event)
                     if row then
                         table.insert(rows, row)
                     end

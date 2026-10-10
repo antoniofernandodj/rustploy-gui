@@ -6,7 +6,7 @@
 -- handlers (login, busca, abrir projeto, mutações que refletem na hora).
 
 local State = require("../state")
-local fmt = require("../fmt")
+local format = require("../format")
 local Api = require("../net/api")
 local Services = require("services")
 
@@ -20,23 +20,23 @@ local function rebuild_lists(): ()
         return
     end
     local term = State.search_term
-    ctx.deployments = fmt.deployments(snap.deployments, term)
-    ctx.projects = fmt.projects(snap.projects, State.last_pairs, term)
-    ctx.project_rows = fmt.project_rows(snap.projects, State.last_pairs, term)
-    ctx.services = fmt.services(State.last_pairs, State.metrics_by_id, term)
-    ctx.service_rows = fmt.service_rows(State.last_pairs, State.metrics_by_id, term)
+    ctx.deployments = format.deployments(snap.deployments, term)
+    ctx.projects = format.projects(snap.projects, State.last_pairs, term)
+    ctx.project_rows = format.project_rows(snap.projects, State.last_pairs, term)
+    ctx.services = format.services(State.last_pairs, State.metrics_by_id, term)
+    ctx.service_rows = format.service_rows(State.last_pairs, State.metrics_by_id, term)
     -- ctx.docker_rows: a antiga sub-aba Containers (só serviços rustploy) foi
-    -- substituída pela lista host-wide (docker_containers). fmt.docker_rows fica
+    -- substituída pela lista host-wide (docker_containers). format.docker_rows fica
     -- disponível para reuso; não recalculamos aqui à toa.
-    -- ctx.docker_rows = fmt.docker_rows(State.last_pairs, term)
-    ctx.docker_containers = fmt.docker_containers(snap.docker_containers, term)
-    ctx.docker_images = fmt.docker_images(
+    -- ctx.docker_rows = format.docker_rows(State.last_pairs, term)
+    ctx.docker_containers = format.docker_containers(snap.docker_containers, term)
+    ctx.docker_images = format.docker_images(
         snap.docker_images, term, ctx.docker_images_only_used == "true")
-    ctx.docker_volumes = fmt.docker_volumes(
+    ctx.docker_volumes = format.docker_volumes(
         snap.docker_volumes, term, ctx.docker_volumes_only_used == "true")
-    ctx.docker_networks = fmt.docker_networks(
+    ctx.docker_networks = format.docker_networks(
         snap.docker_networks, term, ctx.docker_networks_only_used == "true")
-    ctx.registry_repos = fmt.registry_repos(snap.registry_repos, term)
+    ctx.registry_repos = format.registry_repos(snap.registry_repos, term)
 end
 M.rebuild_lists = rebuild_lists
 
@@ -70,7 +70,7 @@ local function update_open_project(): ()
     ctx.project_description = found_project.description or ""
     ctx.project_can_delete = (#project_pairs == 0) and "1" or "0"
     ctx.project_loading = "false"
-    ctx.project_services = fmt.service_rows(
+    ctx.project_services = format.service_rows(
         project_pairs,
         State.metrics_by_id,
         State.search_term
@@ -79,13 +79,13 @@ local function update_open_project(): ()
     -- nasce "Variáveis ()" até a primeira edição.
     local project_env_vars = found_project.env_vars or {}
     local project_comments = found_project.env_comments or {}
-    ctx.project_env = fmt.env_json_with_comments(project_env_vars, project_comments)
+    ctx.project_env = format.env_json_with_comments(project_env_vars, project_comments)
     ctx.project_env_count = tostring(#project_env_vars)
     -- O snapshot chega ~1x/s; se reescrevêssemos project_env_text (o value do
     -- textarea) toda vez, o que o usuário digita seria resetado. Só
     -- ressincroniza o editor .env quando ele está fechado.
     if ctx.project_env_text_open ~= "true" then
-        local project_dotenv = fmt.env_dotenv_with_comments(project_env_vars, project_comments)
+        local project_dotenv = format.env_dotenv_with_comments(project_env_vars, project_comments)
         ctx.project_env_text = project_dotenv
         ctx.project_env_text_original = project_dotenv
     end
@@ -94,7 +94,7 @@ local function update_open_project(): ()
     -- (ver http_api.rs::snapshot), nunca o valor. A mesma lista alimenta os
     -- chips de "usar secret" da aba Variáveis.
     local secrets = found_project.secrets or {}
-    ctx.project_secrets = fmt.secret_rows(secrets)
+    ctx.project_secrets = format.secret_rows(secrets)
     ctx.project_secrets_count = tostring(#secrets)
 
     -- Aba "Jobs (N)": jobs deste projeto (filtrados do `msg.jobs` global —
@@ -105,7 +105,7 @@ local function update_open_project(): ()
             table.insert(project_jobs, job)
         end
     end
-    local jobs_json, jobs_count = fmt.job_summaries(project_jobs, State.jobs_inflight)
+    local jobs_json, jobs_count = format.job_summaries(project_jobs, State.jobs_inflight)
     ctx.project_jobs = jobs_json
     ctx.project_jobs_count = tostring(jobs_count)
 end
@@ -122,7 +122,7 @@ local function refresh_jobs_summary_local(): ()
     if not snap then
         return
     end
-    local jobs_summary, jobs_count = fmt.job_summaries(snap.jobs, State.jobs_inflight)
+    local jobs_summary, jobs_count = format.job_summaries(snap.jobs, State.jobs_inflight)
     ctx.jobs_summary = jobs_summary
     ctx.jobs_count = tostring(jobs_count)
 end
@@ -136,8 +136,8 @@ local function refresh_deploy_engine_detail(active: {any}?): ()
     for _, info in ipairs(active or {}) do
         if info.service_id == detail_deployment_id then
             ctx.deploy_engine_detail_title = info.service_name
-            ctx.deploy_engine_detail_steps = fmt.deploy_engine_detail_steps(info)
-            ctx.deploy_engine_detail_rows = fmt.deploy_engine_detail(info)
+            ctx.deploy_engine_detail_steps = format.deploy_engine_detail_steps(info)
+            ctx.deploy_engine_detail_rows = format.deploy_engine_detail(info)
             return
         end
     end
@@ -148,13 +148,13 @@ M.refresh_deploy_engine_detail = refresh_deploy_engine_detail
 
 local function apply_snapshot(snapshot: any): ()
     State.snap = snapshot
-    State.last_pairs = fmt.pair_list(snapshot.services)
+    State.last_pairs = format.service_pair_list(snapshot.services)
 
     -- Status do daemon.
     local daemon_status = snapshot.status
     if daemon_status then
         ctx.daemon_version = daemon_status.version or ""
-        ctx.daemon_uptime = fmt.fmt_uptime(daemon_status.uptime_secs)
+        ctx.daemon_uptime = format.format_uptime(daemon_status.uptime_secs)
         ctx.services_running = tostring(daemon_status.services_running or 0)
         ctx.services_total = tostring(daemon_status.services_total or 0)
         ctx.services_label = (
@@ -169,19 +169,19 @@ local function apply_snapshot(snapshot: any): ()
         ctx.deploy_engine_success_24h = tostring(engine.successful_24h or 0)
         ctx.deploy_engine_failed_24h = tostring(engine.failed_24h or 0)
         ctx.deploy_engine_total_24h = tostring(engine.total_24h or 0)
-        ctx.deploy_engine_uptime = fmt.fmt_uptime(engine.uptime_secs)
-        ctx.deploy_engine_active = fmt.deploy_engine_active(engine.active)
+        ctx.deploy_engine_uptime = format.format_uptime(engine.uptime_secs)
+        ctx.deploy_engine_active = format.deploy_engine_active(engine.active)
         M.refresh_deploy_engine_detail(engine.active)
-        ctx.deploy_engine_recent = fmt.deploy_engine_recent(engine.recent)
+        ctx.deploy_engine_recent = format.deploy_engine_recent(engine.recent)
         ctx.deploy_engine_recent_count = tostring(#(engine.recent or {}))
         -- Fila global (um por vez): itens esperando + estado pausado.
-        ctx.deploy_engine_queued = fmt.deploy_engine_queued(engine.queued)
+        ctx.deploy_engine_queued = format.deploy_engine_queued(engine.queued)
         ctx.deploy_engine_queued_count = tostring(#(engine.queued or {}))
         ctx.deploy_engine_paused = (engine.paused and "true" or "false")
 
         -- Timer decorrido do deploy em voo do serviço aberto (granularidade de
         -- 2s — sem timer no Luau, vem do próprio snapshot; ver o plano de
-        -- migração). O desfecho terminal vem por DeployStateChanged (apply_bus).
+        -- migração). O desfecho terminal vem por DeployStateChanged (apply_bus_event).
         if
             State.deploy_track.running and
             ctx.selected_service == State.deploy_track.service_id
@@ -189,7 +189,7 @@ local function apply_snapshot(snapshot: any): ()
             for _, active_deployment in ipairs(engine.active or {}) do
                 if active_deployment.service_id == State.deploy_track.service_id then
                     ctx.service_deploy_running = "true"
-                    ctx.service_deploy_elapsed = fmt.fmt_secs(active_deployment.elapsed_secs)
+                    ctx.service_deploy_elapsed = format.format_seconds(active_deployment.elapsed_secs)
                     break
                 end
             end
@@ -213,18 +213,18 @@ local function apply_snapshot(snapshot: any): ()
         ctx.registry_status_enabled = tostring(registry_status.enabled)
         ctx.registry_host = (registry_status.domain and registry_status.domain ~= "") and registry_status.domain or ("127.0.0.1:" .. tostring(registry_status.port))
         ctx.registry_status_label = registry_status.enabled and ("ativo em " .. ctx.registry_host) or "desabilitado"
-        ctx.registry_storage_human = fmt.fmt_bytes(registry_status.storage_bytes or 0)
+        ctx.registry_storage_human = format.format_bytes(registry_status.storage_bytes or 0)
     end
     ctx.registry_repos_count = tostring(#(snapshot.registry_repos or {}))
 
     -- Ingress + Monitoring (não filtrados pela busca).
-    local ingress, ingress_count = fmt.ingress(State.last_pairs)
+    local ingress, ingress_count = format.ingress(State.last_pairs)
     ctx.ingress = ingress
     ctx.ingress_count = tostring(ingress_count)
-    local host_ports, host_ports_count = fmt.host_ports(State.last_pairs)
+    local host_ports, host_ports_count = format.host_ports(State.last_pairs)
     ctx.host_ports = host_ports
     ctx.host_ports_count = tostring(host_ports_count)
-    ctx.monitoring = fmt.monitoring(State.last_pairs, State.metrics_by_id)
+    ctx.monitoring = format.monitoring(State.last_pairs, State.metrics_by_id)
 
     -- Jobs one-shot (tela global "Schedules"): guarda o Job cru por id
     -- (job_toggle precisa do compose/name/main_service completos pra
@@ -234,7 +234,7 @@ local function apply_snapshot(snapshot: any): ()
         jobs_by_id[job.job.id] = job.job
     end
     State.jobs_by_id = jobs_by_id
-    local jobs_summary, jobs_count = fmt.job_summaries(snapshot.jobs, State.jobs_inflight)
+    local jobs_summary, jobs_count = format.job_summaries(snapshot.jobs, State.jobs_inflight)
     ctx.jobs_summary = jobs_summary
     ctx.jobs_count = tostring(jobs_count)
 
@@ -325,7 +325,7 @@ end
 -- por endpoints dedicados, consumidos só pelas janelas de log isoladas (ver
 -- log_window.luau; open_logs_window / deployment_logs em handlers/services.luau). Assim
 -- a janela principal não reprocessa (reavalia) sua árvore inteira por linha.
-local function apply_bus(bus_event: any): ()
+local function apply_bus_event(bus_event: any): ()
     -- Eventos unit-variant chegam como string JSON (ex.: "DeployQueueChanged"),
     -- não table — tratados antes do guard de table abaixo.
     if bus_event == "DeployQueueChanged" then
@@ -343,7 +343,7 @@ local function apply_bus(bus_event: any): ()
         -- devolveria um módulo incompleto. Atualiza os 3 campos direto.
         local cleanup_event = bus_event.DockerCleanupCompleted
         ctx.docker_cleanup_running = "false"
-        ctx.docker_cleanup_last_run_text = fmt.docker_cleanup_last_run_summary({
+        ctx.docker_cleanup_last_run_text = format.docker_cleanup_last_run_summary({
             at = cleanup_event.at, results = cleanup_event.results
         })
         State.docker_cleanup_last_run_at_raw = cleanup_event.at
@@ -356,10 +356,10 @@ local function apply_bus(bus_event: any): ()
         local system_metrics = bus_event.SystemMetrics
         ctx.host_cpu = string.format("%.0f%%", system_metrics.cpu_percent or 0)
         ctx.host_memory = (
-            fmt.fmt_bytes(system_metrics.mem_used_bytes) .. " / " .. fmt.fmt_bytes(system_metrics.mem_total_bytes)
+            format.format_bytes(system_metrics.mem_used_bytes) .. " / " .. format.format_bytes(system_metrics.mem_total_bytes)
         )
         ctx.host_disk = (
-            fmt.fmt_bytes(system_metrics.disk_used_bytes) .. " / " .. fmt.fmt_bytes(system_metrics.disk_total_bytes)
+            format.format_bytes(system_metrics.disk_used_bytes) .. " / " .. format.format_bytes(system_metrics.disk_total_bytes)
         )
         ctx.host_load = string.format(
             "%.2f %.2f %.2f",
@@ -391,7 +391,7 @@ local function apply_bus(bus_event: any): ()
                 -- este consumidor que o descartava, e a notificação dizia só
                 -- "Failed" — o usuário ficava sem hipótese nenhuma. Ver
                 -- docs/plano-erro-de-deploy-invisivel.md.
-                local failure_reason = fmt.short_reason(deploy_event.message)
+                local failure_reason = format.short_reason(deploy_event.message)
                 if live then
                     notify{
                         title = "Deploy concluído",
@@ -459,7 +459,7 @@ function M.open_stream(): ()
     State.state_conn = sse(sse_url, {
         -- Cada evento SSE traz um `data:` JSON auto-descritivo com `kind`.
         -- Nota: o firehose /api/events não manda mais `bus_batch` (era só p/
-        -- logs, que saíram daqui — ver apply_bus). Os lotes de log vivem no
+        -- logs, que saíram daqui — ver apply_bus_event). Os lotes de log vivem no
         -- endpoint dedicado consumido pela janela isolada (log_window.luau).
         headers = Api.auth_headers(ctx.api_token),
 
@@ -471,7 +471,7 @@ function M.open_stream(): ()
             if decoded.kind == "snapshot" then
                 apply_snapshot(decoded)
             elseif decoded.kind == "bus" then
-                apply_bus(decoded.event)
+                apply_bus_event(decoded.event)
             end
         end,
 

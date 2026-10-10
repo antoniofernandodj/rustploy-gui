@@ -46,8 +46,8 @@ component {
             :value = url,
             placeholder = "https://rustploy.domain.com",
             class = field__input,
-            onChange = servidor_escolhido,
-            onSelect = servidor_escolhido,
+            onChange = choose_server,
+            onSelect = choose_server,
             width = fill,
           )
 
@@ -61,8 +61,8 @@ component {
           row(class = login__forget-row) {
             button(
               class = login__forget-btn,
-              on_click = esquecer_servidor,
-              disabled = @busy_esquecer_servidor,
+              on_click = forget_server,
+              disabled = @busy_forget_server,
               text = "Esquecer este servidor",
             )
           }

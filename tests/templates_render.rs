@@ -723,7 +723,7 @@ fn service_actions_collapse_to_icons_when_narrow() {
 /// A avaliação do glacier é **escopada** (0.38+): só a tela ativa é construída,
 /// não todo template registrado.
 #[test]
-fn so_a_tela_ativa_e_avaliada() {
+fn only_the_active_screen_is_evaluated() {
     let m = boot();
 
     for importado in ["Login", "Shell"] {
@@ -746,7 +746,7 @@ fn so_a_tela_ativa_e_avaliada() {
 /// no contexto (nomes de projeto, linhas de log, o próprio api_token) — foi um
 /// bug real, porque o `disconnect` antigo limpava só quatro chaves à mão.
 #[test]
-fn disconnect_limpa_o_contexto_da_sessao() {
+fn disconnect_clears_the_session_context() {
     let mut m = boot();
 
     for (k, v) in [
@@ -801,7 +801,7 @@ fn disconnect_limpa_o_contexto_da_sessao() {
 /// comparava `{view}` contra um `target` de UMA view só (`equals`), e
 /// `project_services`/`service` não são `"projects"`.
 #[test]
-fn nav_item_projects_fica_aceso_nas_sub_telas() {
+fn nav_item_projects_stays_lit_on_sub_screens() {
     use glacier_ui::parser::NodeType;
 
     fn projects_nav_button_lit<'a>(node: &'a glacier_ui::parser::UiNode) -> Option<bool> {
@@ -816,7 +816,7 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
     }
 
     let mut m = boot();
-    for (view, esperado_aceso) in [
+    for (view, expected_lit) in [
         ("deployments", false),
         ("projects", true),
         ("project_services", true),
@@ -831,9 +831,9 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
         let aceso = projects_nav_button_lit(ast).expect("item Projects deveria existir na sidebar");
         assert_eq!(
             aceso,
-            esperado_aceso,
+            expected_lit,
             "view={view}: item Projects deveria estar {} ",
-            if esperado_aceso { "aceso" } else { "apagado" }
+            if expected_lit { "aceso" } else { "apagado" }
         );
     }
 }
@@ -843,7 +843,7 @@ fn nav_item_projects_fica_aceso_nas_sub_telas() {
 /// `.nav-item--active > .nav-item__icon`. Se a regra composta não casasse, o
 /// item aceso ficaria com as cores base (`--faint`/`--muted`) — sem erro algum.
 #[test]
-fn nav_item_aceso_recolore_os_filhos_por_combinador() {
+fn lit_nav_item_recolors_children_via_combinator() {
     use glacier_ui::parser::{NodeType, UiNode};
 
     fn nav_cores(node: &UiNode) -> Option<Vec<Option<String>>> {
@@ -887,7 +887,7 @@ fn nav_item_aceso_recolore_os_filhos_por_combinador() {
 /// `open_window{ component = "…", size = "…" }` dos handlers, porque a `screen` é
 /// só conteúdo.
 #[test]
-fn janelas_declaram_titulo_e_tamanho() {
+fn windows_declare_title_and_size() {
     cd_ws_root();
 
     let mut m = GlacierUI::new();
@@ -926,7 +926,7 @@ fn janelas_declaram_titulo_e_tamanho() {
 /// (glacier-ui 0.119): fontes, fonte padrão, antialiasing, período dos toasts e
 /// `application_id`.
 #[test]
-fn app_declara_fontes_e_ajustes_do_daemon() {
+fn app_declares_fonts_and_daemon_settings() {
     cd_ws_root();
     let src = std::fs::read_to_string("views/app.gvb").expect("ler app.gvb");
     let xml = glacier_ui::gvb::desugar(&src).expect("desugar app.gvb");
@@ -946,7 +946,7 @@ fn app_declara_fontes_e_ajustes_do_daemon() {
 /// Remove os comentários (`//` e `/* … */`) para que "a primeira tag" seja a
 /// primeira tag de verdade: todo template daqui abre com um comentário de
 /// cabeçalho.
-fn comentarios_fora(src: &str) -> String {
+fn comments_outside(src: &str) -> String {
     let mut out = String::with_capacity(src.len());
     let mut resto = src;
     while let Some(i) = resto.find("/*") {
@@ -966,7 +966,7 @@ fn comentarios_fora(src: &str) -> String {
 /// Todo `.gvb` abre com a casca certa: `app` no manifesto (`views/app.gvb`),
 /// `screen` nas telas abertas em outra janela e `component` no resto.
 #[test]
-fn todo_template_comeca_com_cabecalho() {
+fn every_template_starts_with_a_header() {
     cd_ws_root();
 
     let raiz = std::path::Path::new("views");
@@ -983,8 +983,8 @@ fn todo_template_comeca_com_cabecalho() {
         for caminho in arquivos {
             let src = std::fs::read_to_string(&caminho)
                 .unwrap_or_else(|e| panic!("ler {}: {e}", caminho.display()));
-            let sem_comentarios = comentarios_fora(&src);
-            let primeira: String = sem_comentarios
+            let without_comments = comments_outside(&src);
+            let primeira: String = without_comments
                 .trim_start()
                 .chars()
                 .take_while(|c| c.is_alphanumeric() || *c == '_')
@@ -1023,7 +1023,7 @@ fn todo_template_comeca_com_cabecalho() {
 /// As grades de cards (projetos e serviços) passam o item INTEIRO ao componente
 /// via `spread="{c}"` (glacier-ui 0.62).
 #[test]
-fn grades_de_cards_renderizam_com_spread() {
+fn card_grids_render_with_spread() {
     let mut m = boot();
     m.define_data("screen", "shell");
     m.define_data("data_loading", "false");
@@ -1072,7 +1072,7 @@ fn grades_de_cards_renderizam_com_spread() {
 /// botão do template o liga em `disabled`; uma ação que suspende num `fetch`
 /// deixa o flag em "true" até terminar, e um segundo clique é ignorado.
 #[test]
-fn acao_em_andamento_trava_o_botao() {
+fn action_in_progress_locks_the_button() {
     let mut m = boot();
     m.reevaluate_all().expect("eval inicial");
 

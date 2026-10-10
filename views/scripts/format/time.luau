@@ -1,5 +1,5 @@
 --!strict
--- fmt/time.luau — timestamps e durações.
+-- format/time.luau — timestamps e durações.
 --
 -- Os timestamps chegam do daemon em RFC 3339 UTC ("2026-07-06T12:34:56Z") e a
 -- tela mostra hora local. Desde a glacier-ui 0.73 essa tradução é do motor: o
@@ -29,17 +29,17 @@ function M.time_hms(iso_timestamp: string?): string
 end
 
 -- "dd/mm HH:MM" local.
-function M.date_dm_hm(iso_timestamp: string?): string
+function M.date_day_month_hour_minute(iso_timestamp: string?): string
     return date.format(date.to_local(iso_timestamp), "DD/MM HH:mm") or ""
 end
 
 -- "dd/mm HH:MM:SS" local.
-function M.date_dm_hms(iso_timestamp: string?): string
+function M.date_day_month_hour_minute_second(iso_timestamp: string?): string
     return date.format(date.to_local(iso_timestamp), "DD/MM HH:mm:SS") or ""
 end
 
 -- Ns ou Mm Ns.
-function M.fmt_secs(seconds: any): string
+function M.format_seconds(seconds: any): string
     local num_secs = math.floor(tonumber(seconds) or 0)
     local minutes = math.floor(num_secs / 60)
     local remaining_seconds = num_secs % 60
@@ -47,7 +47,7 @@ function M.fmt_secs(seconds: any): string
     return string.format("%ds", remaining_seconds)
 end
 
-function M.fmt_uptime(seconds: any): string
+function M.format_uptime(seconds: any): string
     local num_secs = math.floor(tonumber(seconds) or 0)
     local days = math.floor(num_secs / 86400)
     local hours = math.floor((num_secs % 86400) / 3600)
@@ -58,8 +58,8 @@ function M.fmt_uptime(seconds: any): string
     return string.format("%dm %ds", minutes, remaining_seconds)
 end
 
--- Tamanho de bytes legível ("—" para 0), igual a view::fmt_bytes.
-function M.fmt_bytes(bytes_value: any): string
+-- Tamanho de bytes legível ("—" para 0), igual a view::format_bytes.
+function M.format_bytes(bytes_value: any): string
     local total_bytes = tonumber(bytes_value) or 0
     local KB = 1024.0
     local MB = KB * 1024.0
@@ -71,17 +71,17 @@ function M.fmt_bytes(bytes_value: any): string
     return string.format("%.0f KB", bytes_float / KB)
 end
 
--- Duração de um deployment (finished_at ou agora) − started_at, em fmt_secs.
+-- Duração de um deployment (finished_at ou agora) − started_at, em format_seconds.
 --
 -- `date.diff_seconds` compara INSTANTES, não texto: ele traz cada lado para a
 -- hora local antes de subtrair, e é por isso que dá para misturar o
 -- `finished_at` do daemon (RFC 3339 com "Z") com o `date.now()` da máquina
 -- (sem fuso, hora local) sem converter nenhum dos dois na mão.
-function M.fmt_duration(deployment: any): string
+function M.format_duration(deployment: any): string
     local finished_at: string = deployment.finished_at or date.now(true)
     local elapsed_seconds: number? = date.diff_seconds(finished_at, deployment.started_at)
     if elapsed_seconds == nil or elapsed_seconds < 0 then return "0s" end
-    return M.fmt_secs(elapsed_seconds)
+    return M.format_seconds(elapsed_seconds)
 end
 
 -- Dias da semana no formato que o <radiogroup> do glacier-ui pede: uma coleção
@@ -105,7 +105,7 @@ M.WEEKDAYS_JSON = [=[[{"id":"0","label":"Seg"},{"id":"1","label":"Ter"},{"id":"2
 -- (hour, minute) -> "HH:MM". Aceita número ou string (o unpack das recurrences
 -- devolve string) e satura na faixa válida, para que um valor corrompido vindo
 -- do servidor não produza uma chave que o widget não consegue parsear.
-function M.hm_join(hour: any, minute: any): string
+function M.hour_minute_join(hour: any, minute: any): string
     local hour_value = math.floor(tonumber(hour) or 0)
     local minute_value = math.floor(tonumber(minute) or 0)
     if hour_value < 0 then hour_value = 0 elseif hour_value > 23 then hour_value = 23 end
@@ -115,7 +115,7 @@ end
 
 -- "HH:MM" -> hour, minute (números). Uma chave vazia ou malformada vira 0h00,
 -- que é o mesmo default que o `tonumber(...) or 0` dos handlers já usava.
-function M.hm_split(hour_minute_text: any): (number, number)
+function M.hour_minute_split(hour_minute_text: any): (number, number)
     local time_text = tostring(hour_minute_text or "")
     local hour_text, minute_text = string.match(time_text, "^(%d+):(%d+)$")
     if not hour_text then return 0, 0 end

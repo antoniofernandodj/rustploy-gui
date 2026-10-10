@@ -6,7 +6,7 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 local Api = require("../net/api")
-local fmt = require("../fmt")
+local format = require("../format")
 local Stream = require("stream")
 local Settings = require("settings")
 
@@ -60,14 +60,14 @@ end
 -- LIMPA o token — sem isso, trocar de um servidor salvo pra um digitado na
 -- mão mantinha o token do servidor anterior no campo, e um Connect apressado
 -- mandava o token errado pro servidor novo.
-function servidor_escolhido(value: string): ()
+function choose_server(value: string): ()
     ctx.token = token_for(value) or ""
 end
 
 -- Botão "Esquecer" ao lado do combo: remove o servidor atual da lista salva
 -- e limpa os campos — sem isso a tela continuava mostrando o par recém
 -- esquecido até a próxima troca de servidor ou reabertura do app.
-function esquecer_servidor(): ()
+function forget_server(): ()
     local url = ctx.url or ""
     for index = #saved_servers, 1, -1 do
         if saved_servers[index].url == url then
@@ -103,7 +103,7 @@ function init(): ()
     -- Coleção fixa do <radiogroup> de dia da semana (aba Manutenção). Semeada
     -- aqui, e não no docker_cleanup_apply_config, porque não depende da config carregada:
     -- se o load falhasse, a lista sumiria e o grupo ficaria vazio.
-    ctx.weekdays = fmt.WEEKDAYS_JSON
+    ctx.weekdays = format.WEEKDAYS_JSON
     -- Itens das <tabbar> de rótulo fixo ({id,label}); a barra grava o id na
     -- chave `:value` sozinha, sem handler.
     ctx.settings_tabs = [=[[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]]=]

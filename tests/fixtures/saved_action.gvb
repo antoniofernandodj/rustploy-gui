@@ -2,7 +2,7 @@
 // fetch (o "reler o serviço" dos handlers reais).
 screen(title = fixture, size = "200 200") {
   resources {
-    script(src = acao_salva.luau)
+    script(src = saved_action.luau)
   }
 
   column {

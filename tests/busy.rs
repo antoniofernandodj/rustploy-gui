@@ -4,7 +4,7 @@
 use glacier_ui::{EngineMessage, GlacierUI};
 
 #[test]
-fn botao_libera_no_toast_e_nao_no_fim_do_handler() {
+fn button_releases_on_toast_not_at_handler_end() {
     let crate_dir = env!("CARGO_MANIFEST_DIR");
     std::env::set_current_dir(std::path::Path::new(crate_dir)).expect("cd workspace root");
     unsafe {
@@ -12,9 +12,9 @@ fn botao_libera_no_toast_e_nao_no_fim_do_handler() {
     }
 
     let mut m = GlacierUI::new();
-    m.register_component("acao_salva", "tests/fixtures/acao_salva.gvb")
+    m.register_component("saved_action", "tests/fixtures/saved_action.gvb")
         .expect("registrar a fixture");
-    m.set_initial_screen("acao_salva");
+    m.set_initial_screen("saved_action");
 
     let flag = |m: &GlacierUI| m.context().get("busy_salvar").cloned();
     assert_eq!(flag(&m).as_deref(), Some("false"), "init() semeia o flag");

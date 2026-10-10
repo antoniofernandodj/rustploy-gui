@@ -1,5 +1,5 @@
 --!strict
--- fmt/git.luau — builders dos provedores/repositórios/branches Git conectados
+-- format/git.luau — builders dos provedores/repositórios/branches Git conectados
 -- (Gitea/GitHub) — Settings → Git e o picker da aba General do serviço.
 
 local Util = require("util")
@@ -46,7 +46,7 @@ function M.git_providers(providers: {any}?): string
             connected = connected and "true" or "false",
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 function M.git_repos(repositories: {any}?): string
@@ -59,7 +59,7 @@ function M.git_repos(repositories: {any}?): string
             private = repository.private and "private" or "public",
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 function M.git_branches(branches: {any}?): string
@@ -67,7 +67,7 @@ function M.git_branches(branches: {any}?): string
     for _, branch in ipairs(branches or {}) do
         table.insert(rows, { name = branch.name })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 return M

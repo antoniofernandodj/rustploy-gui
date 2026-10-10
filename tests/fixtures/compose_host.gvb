@@ -1,5 +1,5 @@
-// Fixture do teste fmt_service_detail.rs: tela mínima que roda o
-// fmt/service_detail.luau e exibe um resultado.
+// Fixture do teste format_service_detail.rs: tela mínima que roda o
+// format/service_detail.luau e exibe um resultado.
 screen(title = fixture, size = "200 200") {
   resources {
     script(src = compose_host.luau)

@@ -25,7 +25,7 @@ path = "src/main.rs"
 # 0.57.5+ é REQUISITO, não preferência: até a 0.57.4 a thread da bandeja deixava
 # o processo no locale do usuário depois do `gtk::init()`, e num locale de
 # vírgula decimal (pt_BR…) o lexer do Luau rejeitava todo literal decimal com
-# "Malformed number" — `require("fmt")` falhava e a janela de logs não abria.
+# "Malformed number" — `require("format")` falhava e a janela de logs não abria.
 # 0.58.6+ é REQUISITO da API de agente (`src/agent/`): `external::sender()` é o
 # canal que deixa a thread do servidor HTTP injetar ações no motor da janela —
 # sem ele, conectar/navegar/abrir janela só aconteceria por clique humano.

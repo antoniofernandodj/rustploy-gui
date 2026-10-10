@@ -11,7 +11,7 @@ component {
     row(class = env__head) {
       text(class = "u-muted u-fill", content = "@docker_volumes_count volume(s)")
 
-      // O filtro mora em fmt.docker_volumes — ver images.gvb.
+      // O filtro mora em format.docker_volumes — ver images.gvb.
       checkbox(
         :checked = docker_volumes_only_used,
         on_toggle = docker_only_used:docker_volumes_only_used,

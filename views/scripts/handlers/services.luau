@@ -8,7 +8,7 @@
 
 local State = require("../state")
 local Helpers = require("../helpers")
-local fmt = require("../fmt")
+local format = require("../format")
 
 local M = {}
 
@@ -82,8 +82,8 @@ function M.fetch_service_detail(service_id: string): ()
     local deploy_history_ok, deploy_history_response = api:rpc{ DeployHistory = { service_id = service_id, limit = 30 } }
     if deploy_history_ok and deploy_history_response.Deployments then deployments = deploy_history_response.Deployments end
 
-    local status_label, status_color = fmt.status_label_color(service_record.status)
-    local source_kind, source_detail, source_build = fmt.source_summary3(spec.source)
+    local status_label, status_color = format.status_label_color(service_record.status)
+    local source_kind, source_detail, source_build = format.source_summary_parts(spec.source)
 
     -- Campos editáveis da aba General (source).
     local source_fields = {
@@ -174,7 +174,7 @@ function M.fetch_service_detail(service_id: string): ()
             end
         end
     end
-    ctx.service_containers = fmt.containers(service_containers)
+    ctx.service_containers = format.containers(service_containers)
     ctx.service_containers_count = tostring(#service_containers)
     ctx.service_source_kind = source_kind
     ctx.service_source_detail = source_detail
@@ -186,7 +186,7 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_domain = pr_domain or "—"
     ctx.service_tls = pr_tls and "enabled" or "disabled"
     ctx.service_replicas = tostring(spec.replicas)
-    ctx.service_domains = fmt.domains_json(spec)
+    ctx.service_domains = format.domains_json(spec)
     ctx.service_domains_count = tostring(#routes)
     -- Credenciais para a URL externa: mesma fusão que o daemon faz em
     -- resolve_env (projeto = base, serviço sobrescreve). Serviços Compose de
@@ -197,45 +197,45 @@ function M.fetch_service_detail(service_id: string): ()
     for _, env_var in ipairs(project_env) do table.insert(merged_env, env_var) end
     -- Valor completo (`*_url`) alimenta o clipboard; `*_url_short` é o que a
     -- markup exibe, truncado para não empurrar o botão "Copiar" para fora.
-    ctx.service_external_url = fmt.external_url(
+    ctx.service_external_url = format.external_url(
         pr_domain, pr_tls,
         spec.host_port,
         spec.db_kind,
         ctx.api_url,
         merged_env
     )
-    ctx.service_external_url_short = fmt.ellipsis(ctx.service_external_url, 20)
+    ctx.service_external_url_short = format.ellipsis(ctx.service_external_url, 20)
     -- Internal URL vem pronta do daemon (`shared::connection`): host real,
-    -- usuário/senha/database. `fmt.internal_url` fica só de fallback.
+    -- usuário/senha/database. `format.internal_url` fica só de fallback.
     local service_connection_info_ok, service_connection_info_response = api:rpc{ ServiceConnectionInfo = { service_id = service_id } }
     if service_connection_info_ok and type(service_connection_info_response) == "table" and service_connection_info_response.ConnectionInfo then
         ctx.service_internal_url = service_connection_info_response.ConnectionInfo.internal_url
     else
         local compose_src = spec.source.Compose
-        local compose_host = compose_src and fmt.compose_host(
+        local compose_host = compose_src and format.compose_host(
             compose_src.content, compose_src.ingress_service
         ) or nil
-        ctx.service_internal_url = fmt.internal_url(
+        ctx.service_internal_url = format.internal_url(
             spec.db_kind,
-            fmt.safe_name(spec.name),
+            format.safe_name(spec.name),
             spec.port, compose_host
         )
     end
-    ctx.service_internal_url_short = fmt.ellipsis(ctx.service_internal_url, 20)
+    ctx.service_internal_url_short = format.ellipsis(ctx.service_internal_url, 20)
     ctx.service_database_kind = spec.db_kind or "—"
     M.load_shared_state(spec, service_id)
     M.load_migration_state(spec, service_id, project_env)
-    ctx.service_healthcheck = fmt.healthcheck_summary(spec.healthcheck)
+    ctx.service_healthcheck = format.healthcheck_summary(spec.healthcheck)
     ctx.service_run_command = spec.run_command or "—"
     ctx.service_run_args = (
         spec.run_args and #spec.run_args > 0
     ) and table.concat(spec.run_args, " ") or "—"
-    ctx.service_env = fmt.env_json_with_comments(spec.env_vars, spec.env_comments)
+    ctx.service_env = format.env_json_with_comments(spec.env_vars, spec.env_comments)
     ctx.service_env_count = tostring(#(spec.env_vars or {}))
-    local dotenv = fmt.env_dotenv_with_comments(spec.env_vars, spec.env_comments)
+    local dotenv = format.env_dotenv_with_comments(spec.env_vars, spec.env_comments)
     ctx.service_env_text = dotenv
     ctx.service_env_text_original = dotenv
-    ctx.service_deployments = fmt.deployments_detail(deployments)
+    ctx.service_deployments = format.deployments_detail(deployments)
     ctx.service_deployments_count = tostring(#deployments)
     -- Webhook de deploy (aba Deployments). Só serviços Application (Git ou
     -- Registry) têm token, e ele nasce no PRIMEIRO deploy — antes disso o
@@ -283,20 +283,20 @@ function M.fetch_service_detail(service_id: string): ()
     -- docs/plano-pre-deploy-gate.md.
     local job_list_ok, job_list_response = api:rpc{ JobList = { project_id = spec.project_id } }
     local project_jobs = job_list_ok and job_list_response.Jobs or nil
-    ctx.pre_deploy_checks = fmt.pre_deploy_queue(spec, project_jobs)
+    ctx.pre_deploy_checks = format.pre_deploy_queue(spec, project_jobs)
     ctx.pre_deploy_checks_count = tostring(#(pre_deploy_checks_ids(spec)))
-    ctx.pre_deploy_available_jobs = fmt.pre_deploy_available(spec, project_jobs)
+    ctx.pre_deploy_available_jobs = format.pre_deploy_available(spec, project_jobs)
 
     -- Provedores Gitea conectados (para o picker de conta).
     local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
     if git_provider_list_ok and git_provider_list_response.GitProviders then
-        ctx.gitea_providers = fmt.git_providers(git_provider_list_response.GitProviders)
+        ctx.gitea_providers = format.git_providers(git_provider_list_response.GitProviders)
         ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
         -- Serviço já ligado a um provedor: pré-carrega repos/branches.
         if gen_provider_id ~= "" then
             local git_repo_list_ok, git_repo_list_response = api:rpc{ GitRepoList = { provider_id = gen_provider_id } }
             if git_repo_list_ok and git_repo_list_response.GitRepos then
-                ctx.gitea_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+                ctx.gitea_repos = format.git_repos(git_repo_list_response.GitRepos)
                 ctx.gitea_message = tostring(#git_repo_list_response.GitRepos) .. " repositório(s)"
                 local full
                 for _, git_repo in ipairs(git_repo_list_response.GitRepos) do
@@ -314,7 +314,7 @@ function M.fetch_service_detail(service_id: string): ()
                         }
                     }
                     if git_branch_list_ok and git_branch_list_response.GitBranches then
-                        ctx.gitea_branches = fmt.git_branches(git_branch_list_response.GitBranches)
+                        ctx.gitea_branches = format.git_branches(git_branch_list_response.GitBranches)
                     end
                 end
             end
@@ -494,7 +494,7 @@ end
 
 local STEP_ICON = { ok = "✓", running = "…", failed = "✗", skipped = "–", pending = "·" }
 
-local function default_source_db(spec: any, project_env: { any }?): string
+local function default_source_database(spec: any, project_env: { any }?): string
     -- Serviço primeiro, depois o projeto (mesma precedência do deploy).
     for _, vars in ipairs({ spec.env_vars or {}, project_env or {} }) do
         for _, key in ipairs({ "POSTGRES_DB", "MYSQL_DATABASE" }) do
@@ -520,7 +520,7 @@ function M.load_migration_state(spec: any, service_id: string, project_env: { an
     for _, key in ipairs({ "service_form_migration_destination", "service_form_migration_env", "migration_status", "migration_id", "migration_message" }) do
         if ctx[key] == nil then ctx[key] = "" end
     end
-    if ctx.service_form_migration_database == nil or ctx.service_form_migration_database == "" then ctx.service_form_migration_database = default_source_db(spec, project_env) end
+    if ctx.service_form_migration_database == nil or ctx.service_form_migration_database == "" then ctx.service_form_migration_database = default_source_database(spec, project_env) end
     local managed_database_list_all_ok, managed_database_list_all_response = api:rpc("ManagedDatabaseListAll")
     local dests = {}
     if managed_database_list_all_ok and managed_database_list_all_response.ManagedDatabases then
@@ -818,11 +818,11 @@ function general_save(): ()
     with_spec(function(spec: any): ()
         local port = tonumber(Helpers.trim(ctx.service_form_general_port))
         if port then spec.port = math.floor(port) end
-        local function ne(raw_value: any, fallback: string): string
+        local function non_empty_or_default(raw_value: any, fallback: string): string
             local trimmed = Helpers.trim(raw_value)
             if trimmed == "" then return fallback else return trimmed end
         end
-        local function opt(raw_value: any): string?
+        local function non_empty_or_nil(raw_value: any): string?
             local trimmed = Helpers.trim(raw_value)
             if trimmed == "" then return nil else return trimmed end
         end
@@ -832,16 +832,16 @@ function general_save(): ()
             local trimmed_part = Helpers.trim(part); if trimmed_part ~= "" then table.insert(watch, trimmed_part) end
         end
         local git = { Git = {
-            url = repo, branch = ne(ctx.service_form_branch, "main"),
-            root_path = ne(ctx.service_form_build_path, "."),
+            url = repo, branch = non_empty_or_default(ctx.service_form_branch, "main"),
+            root_path = non_empty_or_default(ctx.service_form_build_path, "."),
             watch_paths = watch,
             submodules = ctx.service_form_submodules == "true",
-            dockerfile_path = ne(ctx.service_form_dockerfile, "Dockerfile"),
-            build_context = ne(ctx.service_form_context_path, "."),
-            build_stage = opt(ctx.service_form_build_stage),
-            credentials = opt(ctx.service_form_credentials),
-            username = opt(ctx.service_form_username),
-            provider_id = opt(ctx.gitea_provider_id),
+            dockerfile_path = non_empty_or_default(ctx.service_form_dockerfile, "Dockerfile"),
+            build_context = non_empty_or_default(ctx.service_form_context_path, "."),
+            build_stage = non_empty_or_nil(ctx.service_form_build_stage),
+            credentials = non_empty_or_nil(ctx.service_form_credentials),
+            username = non_empty_or_nil(ctx.service_form_username),
+            provider_id = non_empty_or_nil(ctx.gitea_provider_id),
         } }
         if spec.source.Compose then
             -- inalterado
@@ -1077,13 +1077,13 @@ end
 -- `service_webhook_url` para o clipboard (e no tooltip).
 function M.set_webhook_url(url: string): ()
     ctx.service_webhook_url = url
-    ctx.service_webhook_url_short = fmt.ellipsis(url, 46)
+    ctx.service_webhook_url_short = format.ellipsis(url, 46)
 end
 
 -- Regenerar invalida o token antigo NA HORA: qualquer webhook já cadastrado no
 -- GitHub/Gitea/Docker Hub com a URL anterior passa a receber 401. Por isso passa
 -- pelo confirm.
-function regen_webhook(): ()
+function regenerate_webhook(): ()
     local confirmed = confirm{
         title = "Regenerar token do webhook?",
         message = "A URL atual para de funcionar imediatamente. Você precisará recadastrá-la no provedor (GitHub, Gitea, Docker Hub…).",
@@ -1231,7 +1231,7 @@ function gitea_provider_pick(provider_id: string): ()
     local git_repo_list_ok, git_repo_list_response = api:rpc{ GitRepoList = { provider_id = provider_id } }
     ctx.gitea_busy = ""
     if git_repo_list_ok and git_repo_list_response.GitRepos then
-        ctx.gitea_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+        ctx.gitea_repos = format.git_repos(git_repo_list_response.GitRepos)
         ctx.gitea_message = tostring(#git_repo_list_response.GitRepos) .. " repositório(s)"
     else
         ctx.gitea_message = "erro ao listar repositórios"
@@ -1274,7 +1274,7 @@ function gitea_repo_pick(full_name: string): ()
     }
     ctx.gitea_busy = ""
     if git_branch_list_ok and git_branch_list_response.GitBranches then
-        ctx.gitea_branches = fmt.git_branches(git_branch_list_response.GitBranches)
+        ctx.gitea_branches = format.git_branches(git_branch_list_response.GitBranches)
         ctx.gitea_message = tostring(#git_branch_list_response.GitBranches) .. " branch(es)"
     else
         ctx.gitea_message = "erro ao listar branches"

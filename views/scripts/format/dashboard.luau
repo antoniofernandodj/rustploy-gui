@@ -1,7 +1,7 @@
 --!strict
--- fmt/dashboard.luau — builders de lista do dashboard (deployments/projects/
+-- format/dashboard.luau — builders de lista do dashboard (deployments/projects/
 -- services/docker/ingress/monitoring/deploy engine), mesma forma JSON que
--- view.rs produzia. Iterado pelos ForEach dos templates via a fachada fmt.luau.
+-- view.rs produzia. Iterado pelos ForEach dos templates via a fachada format.luau.
 
 local Types = require("types")
 type ServicePair = Types.ServicePair
@@ -66,10 +66,10 @@ local FILLER: GridCard = {
 }
 
 -- Deployments (aba Deployments). `list` = Vec<DeploymentSummary>.
--- Nomes truncados por Util.col_budgets (o filtro `matches` roda antes, sobre o
+-- Nomes truncados por Util.column_budgets (o filtro `matches` roda antes, sobre o
 -- valor completo — a busca continua casando com o que foi cortado).
 function M.deployments(deployments: {any}?, term: string?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, deployment_entry in ipairs(deployments or {}) do
         if Util.matches(term, { deployment_entry.service_name, deployment_entry.project_name }) then
@@ -80,13 +80,13 @@ function M.deployments(deployments: {any}?, term: string?): string
                 project = Util.ellipsis(deployment_entry.project_name, column_budgets.proj),
                 state_label = label,
                 state_kind = Util.state_kind(deployment.state),
-                duration = Time.fmt_duration(deployment),
-                start = Time.date_dm_hms(deployment.started_at),
+                duration = Time.format_duration(deployment),
+                start = Time.date_day_month_hour_minute_second(deployment.started_at),
                 start_iso = deployment.started_at or "", -- `sort_key` da coluna INÍCIO
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Escolhe o container "primário" de um serviço p/ exibir no card: o live, senão
@@ -111,7 +111,7 @@ local function service_card(service: Types.Service, project_name: string, metric
     local metrics_point = metrics and metrics[service.id]
     if metrics_point then
         cpu = string.format("%.1f%%", metrics_point.cpu_percent or 0)
-        mem = Time.fmt_bytes(metrics_point.mem_used_bytes)
+        mem = Time.format_bytes(metrics_point.mem_used_bytes)
     end
     local container_name, container_id, container_extra = primary_container(service)
     return {
@@ -138,7 +138,7 @@ function M.services(service_pairs: {ServicePair}, metrics: MetricsMap?, term: st
             table.insert(rows, service_card(pair.svc, pair.proj, metrics))
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Cards de serviço em linhas de N colunas (grid_cols), com filler (glacier
@@ -162,7 +162,7 @@ function M.service_rows(service_pairs: {ServicePair}, metrics: MetricsMap?, term
         table.insert(rows, { cards = cards })
         row_start = row_start + columns
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Card de projeto, agregando contagem de serviços de `pairs_`.
@@ -192,7 +192,7 @@ function M.projects(projects: {any}?, service_pairs: {ServicePair}, term: string
             table.insert(rows, project_card(project, service_pairs))
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 function M.project_rows(projects: {any}?, service_pairs: {ServicePair}, term: string?): string
@@ -214,7 +214,7 @@ function M.project_rows(projects: {any}?, service_pairs: {ServicePair}, term: st
         table.insert(rows, { cards = cards })
         row_start = row_start + columns
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Linhas Docker (containers gerenciados) derivadas dos serviços, ordenadas.
@@ -242,13 +242,13 @@ function M.docker_rows(service_pairs: {ServicePair}, term: string?): string
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- `only_used`: o "Somente em uso" da aba — filtrado aqui porque a tabela
 -- (tableview) desenha toda linha que recebe.
 function M.docker_images(images: {any}?, term: string?, only_used: boolean?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local sorted = {}
     for _, image in ipairs(images or {}) do table.insert(sorted, image) end
     table.sort(sorted, function(left: any, right: any)
@@ -271,12 +271,12 @@ function M.docker_images(images: {any}?, term: string?, only_used: boolean?): st
                 id = string.sub(image_id, 1, 12),
                 id_full = image_id, -- sem "sha256:" (o `:` quebraria a ação nome:sufixo)
                 tags = tags,
-                size = Time.fmt_bytes(image.size_bytes),
+                size = Time.format_bytes(image.size_bytes),
                 -- Crus, para o `sort_key` da coluna: "1.2 GB" e "08/10 14:03"
                 -- não ordenam como texto.
                 size_bytes = image.size_bytes or 0,
                 created_iso = image.created or "",
-                created = Time.date_dm_hm(image.created),
+                created = Time.date_day_month_hour_minute(image.created),
                 project = image.project or "—",
                 service = image.service or "—",
                 -- "PROJETO / SERVIÇO" já combinado e truncado pra col_proj (o
@@ -287,11 +287,11 @@ function M.docker_images(images: {any}?, term: string?, only_used: boolean?): st
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 function M.docker_volumes(volumes: {any}?, term: string?, only_used: boolean?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local sorted = {}
     for _, volume in ipairs(volumes or {}) do table.insert(sorted, volume) end
     table.sort(sorted, function(left: any, right: any) return left.name < right.name end)
@@ -305,18 +305,18 @@ function M.docker_volumes(volumes: {any}?, term: string?, only_used: boolean?): 
                 name_full = item.name,
                 driver = item.driver,
                 mountpoint = item.mountpoint,
-                size = (item.size_bytes and item.size_bytes >= 0) and Time.fmt_bytes(item.size_bytes) or "—",
+                size = (item.size_bytes and item.size_bytes >= 0) and Time.format_bytes(item.size_bytes) or "—",
                 size_bytes = item.size_bytes or -1,
                 in_use_label = item.in_use and "EM USO" or "SEM USO",
                 in_use_kind = Util.in_use_kind(item.in_use),
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 function M.docker_networks(networks: {any}?, term: string?, only_used: boolean?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local sorted = {}
     for _, network in ipairs(networks or {}) do table.insert(sorted, network) end
     table.sort(sorted, function(left: any, right: any) return left.name < right.name end)
@@ -335,7 +335,7 @@ function M.docker_networks(networks: {any}?, term: string?, only_used: boolean?)
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Containers do host (DockerContainerInfo): todos, rodando + parados. `can_remove`
@@ -343,7 +343,7 @@ end
 -- mostra projeto/serviço quando atribuído (label rustploy.service_id), senão
 -- "rustploy" (managed) ou "—".
 function M.docker_containers(containers: {any}?, term: string?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local sorted = {}
     for _, container in ipairs(containers or {}) do table.insert(sorted, container) end
     table.sort(sorted, function(left: any, right: any) return (left.name or "") < (right.name or "") end)
@@ -378,12 +378,12 @@ function M.docker_containers(containers: {any}?, term: string?): string
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Ingress: uma linha por rota de domínio (não filtrado pela busca). Retorna (json, count).
 function M.ingress(service_pairs: {ServicePair}): (string, number)
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, pair in ipairs(service_pairs) do
         local spec = pair.svc.spec
@@ -403,7 +403,7 @@ function M.ingress(service_pairs: {ServicePair}): (string, number)
             end
         end
     end
-    return Util.enc_array(rows), #rows
+    return Util.encode_array(rows), #rows
 end
 
 -- Portas TCP de host: uma linha por serviço com `host_port` configurado —
@@ -411,7 +411,7 @@ end
 -- domínio acima (um serviço pode ter as duas, só uma, ou nenhuma). Não
 -- filtrado pela busca (mesma convenção de `M.ingress`).
 function M.host_ports(service_pairs: {ServicePair}): (string, number)
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, pair in ipairs(service_pairs) do
         local spec = pair.svc.spec
@@ -426,12 +426,12 @@ function M.host_ports(service_pairs: {ServicePair}): (string, number)
         end
     end
     table.sort(rows, function(left: any, right: any) return left.host_port_n < right.host_port_n end)
-    return Util.enc_array(rows), #rows
+    return Util.encode_array(rows), #rows
 end
 
 -- Monitoring: uma linha por serviço COM métricas vivas.
 function M.monitoring(service_pairs: {ServicePair}, metrics: MetricsMap?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, pair in ipairs(service_pairs) do
         local metrics_point = metrics and metrics[pair.svc.id]
@@ -440,9 +440,9 @@ function M.monitoring(service_pairs: {ServicePair}, metrics: MetricsMap?): strin
                 name = Util.ellipsis(pair.svc.spec.name, column_budgets.svc),
                 project = Util.ellipsis(pair.proj, column_budgets.proj),
                 cpu = string.format("%.1f%%", metrics_point.cpu_percent or 0),
-                mem = Time.fmt_bytes(metrics_point.mem_used_bytes),
-                rx = Time.fmt_bytes(metrics_point.net_rx_bytes),
-                tx = Time.fmt_bytes(metrics_point.net_tx_bytes),
+                mem = Time.format_bytes(metrics_point.mem_used_bytes),
+                rx = Time.format_bytes(metrics_point.net_rx_bytes),
+                tx = Time.format_bytes(metrics_point.net_tx_bytes),
                 -- Crus, para o `sort_key` das colunas (o texto não ordena).
                 cpu_n = metrics_point.cpu_percent or 0,
                 mem_n = metrics_point.mem_used_bytes or 0,
@@ -451,7 +451,7 @@ function M.monitoring(service_pairs: {ServicePair}, metrics: MetricsMap?): strin
             })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 local DEPLOY_STEPS = {
@@ -467,7 +467,7 @@ local DEPLOY_STEPS = {
 
 local STEP_ICON = { done = "✓ ", current = "● ", failed = "✕ ", pending = "○ " }
 
-local function step_of(state: any): number
+local function deploy_step_index(state: any): number
     for index, step in ipairs(DEPLOY_STEPS) do
         if table.find(step.states, state) then
             return index
@@ -478,14 +478,14 @@ end
 
 local function deploy_stepper(info: any): {any}
     local state = info.state
-    local current_step = step_of(state)
+    local current_step = deploy_step_index(state)
     local failed = 0
     if state == "Live" or state == "Stopped" or state == "Pruning" then
         current_step = #DEPLOY_STEPS + 1
     elseif state == "Failed" or state == "RollingBack" then
         local log = info.states or {}
         for index = #log, 1, -1 do
-            local step_index = step_of(log[index].from)
+            local step_index = deploy_step_index(log[index].from)
             if step_index > 0 then
                 failed = step_index
                 break
@@ -508,7 +508,7 @@ local function deploy_stepper(info: any): {any}
     return out
 end
 
-local function iso_epoch(iso_timestamp: string?): number
+local function iso_to_epoch_seconds(iso_timestamp: string?): number
     local year_text, month_text, day_text, hour_text, minute_text, second_text = string.match(iso_timestamp or "", "^(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
     if not year_text then
         return 0
@@ -530,9 +530,9 @@ function M.deploy_engine_detail(info: any): string
         local last = index == #log
         local duration = "—"
         if index < #log then
-            duration = Time.fmt_secs(math.max(0, iso_epoch(log[index + 1].at) - iso_epoch(transition.at)))
+            duration = Time.format_seconds(math.max(0, iso_to_epoch_seconds(log[index + 1].at) - iso_to_epoch_seconds(transition.at)))
         elseif not (transition.to == "Failed" or transition.to == "Live" or transition.to == "Stopped") then
-            duration = Time.fmt_secs(info.current_state_secs)
+            duration = Time.format_seconds(info.current_state_secs)
         end
         local kind = "ok"
         if transition.to == "Failed" then
@@ -547,16 +547,16 @@ function M.deploy_engine_detail(info: any): string
             msg = Util.short_reason(transition.message)
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 function M.deploy_engine_detail_steps(info: any): string
-    return Util.enc_array(deploy_stepper(info))
+    return Util.encode_array(deploy_stepper(info))
 end
 
 -- Deploy Engine: "Executando agora".
 function M.deploy_engine_active(active: {any}?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, info in ipairs(active or {}) do
         local label, _ = Util.state_label_color(info.state)
@@ -566,18 +566,18 @@ function M.deploy_engine_active(active: {any}?): string
             state_label = label,
             state_kind = Util.state_kind(info.state),
             steps = deploy_stepper(info),
-            total = Time.fmt_secs(info.elapsed_secs),
-            phase = Time.fmt_secs(info.current_state_secs),
+            total = Time.format_seconds(info.elapsed_secs),
+            phase = Time.format_seconds(info.current_state_secs),
             service_id = info.service_id,
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Deploy Engine: "Na fila" (deploys esperando; o primeiro é o próximo a rodar).
 -- Inclui deployment_id (para cancelar/promover) e uma posição 1-based.
 function M.deploy_engine_queued(queued: {any}?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for index, info in ipairs(queued or {}) do
         table.insert(rows, {
@@ -587,12 +587,12 @@ function M.deploy_engine_queued(queued: {any}?): string
             project = Util.ellipsis(info.project_name, column_budgets.proj),
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Deploy Engine: "Histórico 24h".
 function M.deploy_engine_recent(recent: {any}?): string
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, info in ipairs(recent or {}) do
         local label, _ = Util.state_label_color(info.state)
@@ -605,14 +605,14 @@ function M.deploy_engine_recent(recent: {any}?): string
             project = Util.ellipsis(info.project_name, column_budgets.proj),
             state_label = label,
             state_kind = Util.state_kind(info.state),
-            duration = Time.fmt_secs(info.elapsed_secs),
+            duration = Time.format_seconds(info.elapsed_secs),
             start = Time.time_hms(info.started_at),
             -- Crus, para o `sort_key` das colunas DURAÇÃO e INÍCIO.
             elapsed_secs = info.elapsed_secs or 0,
             start_iso = info.started_at or "",
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 return M

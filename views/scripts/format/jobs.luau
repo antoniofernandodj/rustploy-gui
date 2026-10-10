@@ -1,5 +1,5 @@
 --!strict
--- fmt/jobs.luau — formata Job/JobSummary/JobRun (tarefas one-shot via
+-- format/jobs.luau — formata Job/JobSummary/JobRun (tarefas one-shot via
 -- docker-compose) pra exibição: tela global "Schedules" (sidebar) e aba
 -- "Jobs" do detalhe do projeto. Recorrência é estruturada (Interval/Daily/
 -- Weekly, ou nil = só manual) — resumida em texto curto pra tabela.
@@ -52,7 +52,7 @@ end
 -- job_run_now). Sem isso, `running` só reflete o snapshot já confirmado
 -- pelo daemon, deixando o botão clicável durante todo o round-trip da RPC.
 function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?): (string, number)
-    local column_budgets = Util.col_budgets()
+    local column_budgets = Util.column_budgets()
     local rows = {}
     for _, job_summary in ipairs(job_summaries or {}) do
         local job = job_summary.job
@@ -78,10 +78,10 @@ function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?):
             -- intervalo entre o click e essa confirmação chegar.
             running = status_kind == "warn" or (inflight ~= nil and inflight[job.id] == true),
             last_run_id = job_summary.last_run and job_summary.last_run.id or "",
-            next_run_at = job.next_run_at and Time.date_dm_hm(job.next_run_at) or "—",
+            next_run_at = job.next_run_at and Time.date_day_month_hour_minute(job.next_run_at) or "—",
         })
     end
-    return Util.enc_array(rows), #rows
+    return Util.encode_array(rows), #rows
 end
 
 -- Fila de checks de pré-deploy do serviço (aba Advanced), na ORDEM
@@ -104,7 +104,7 @@ function M.pre_deploy_queue(spec: any, jobs: { any }?): string
             index = tostring(position),
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Jobs do projeto que AINDA NÃO estão na fila — opções do `<select>` de
@@ -120,7 +120,7 @@ function M.pre_deploy_available(spec: any, jobs: { any }?): string
             table.insert(rows, { id = job.id, name = job.name })
         end
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 -- Histórico de execuções (`Command::JobRunHistory`) — usado pra listar runs e
@@ -131,14 +131,14 @@ function M.runs(runs: { any }?): string
         local label, kind = M.run_status(run)
         table.insert(rows, {
             id = run.id,
-            started_at = Time.date_dm_hms(run.started_at),
-            finished_at = run.finished_at and Time.date_dm_hms(run.finished_at) or "—",
+            started_at = Time.date_day_month_hour_minute_second(run.started_at),
+            finished_at = run.finished_at and Time.date_day_month_hour_minute_second(run.finished_at) or "—",
             exit_code = run.exit_code ~= nil and tostring(run.exit_code) or "—",
             status_label = label,
             status_kind = kind,
         })
     end
-    return Util.enc_array(rows)
+    return Util.encode_array(rows)
 end
 
 return M

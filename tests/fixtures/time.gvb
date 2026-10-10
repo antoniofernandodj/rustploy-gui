@@ -1,8 +1,8 @@
-// Fixture do teste fmt_time.rs: tela mínima que roda o fmt/time.luau e exibe o
+// Fixture do teste format_time.rs: tela mínima que roda o format/time.luau e exibe o
 // resultado.
 screen(title = fixture, size = "200 200") {
   resources {
-    script(src = tempo.luau)
+    script(src = time.luau)
   }
 
   column {
