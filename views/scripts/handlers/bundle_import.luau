@@ -32,15 +32,15 @@ local CHOICE_LABEL: { [string]: string } = {
     Ignore = "não trazer",
 }
 
-local function choice_label(s: any, c: string): string
-    if c == "Keep" then
-        return s.state == "New" and "criar no projeto" or "manter a do projeto"
+local function choice_label(status_entry: any, choice: string): string
+    if choice == "Keep" then
+        return status_entry.state == "New" and "criar no projeto" or "manter a do projeto"
     end
-    return CHOICE_LABEL[c] or c
+    return CHOICE_LABEL[choice] or choice
 end
 
-local function options_for(s: any): { string }
-    if s.state == "Conflict" then
+local function options_for(status_entry: any): { string }
+    if status_entry.state == "Conflict" then
         return { "Keep", "Overwrite", "ServiceOnly", "Ignore" }
     end
     return { "Keep", "ServiceOnly", "Ignore" }
@@ -48,36 +48,36 @@ end
 
 -- "CHAVE=valor" por linha ⇄ tabela. Texto pré-preenchido com as chaves que
 -- faltam, o usuário só completa o valor.
-local function parse_kv(text: string?, into: { [string]: string }): ()
+local function parse_kv(text: string?, target: { [string]: string }): ()
     for line in string.gmatch((text or "") .. "\n", "([^\n]*)\n") do
-        local k, v = line:match("^%s*([^=%s]+)%s*=(.*)$")
-        if k then
-            into[k] = Helpers.trim(v)
+        local key, value = line:match("^%s*([^=%s]+)%s*=(.*)$")
+        if key then
+            target[key] = Helpers.trim(value)
         end
     end
 end
 
-local function kv_text(keys: { any }, vals: { [string]: string }): string
+local function kv_text(keys: { any }, values_by_key: { [string]: string }): string
     local out = {}
-    for _, k in ipairs(keys) do
-        table.insert(out, tostring(k) .. "=" .. (vals[tostring(k)] or ""))
+    for _, key in ipairs(keys) do
+        table.insert(out, tostring(key) .. "=" .. (values_by_key[tostring(key)] or ""))
     end
     return table.concat(out, "\n")
 end
 
-local function nonempty(m: { [string]: string }): { [string]: string }?
+local function nonempty(values: { [string]: string }): { [string]: string }?
     local out: { [string]: string } = {}
-    local any = false
-    for k, v in pairs(m) do
-        if v ~= "" then
-            out[k] = v
-            any = true
+    local has_any = false
+    for key, value in pairs(values) do
+        if value ~= "" then
+            out[key] = value
+            has_any = true
         end
     end
-    return any and out or nil
+    return has_any and out or nil
 end
 
-local function build_req(dry: boolean): any
+local function build_req(dry_run: boolean): any
     parse_kv(ctx.import_service_text, service_values)
     parse_kv(ctx.import_project_text, project_values)
     parse_kv(ctx.import_secret_text, secret_vals)
@@ -85,8 +85,8 @@ local function build_req(dry: boolean): any
     local name = Helpers.trim(ctx.import_name)
     local provider = ctx.import_provider_id or ""
     local project_env: { [string]: string } = {}
-    for k, c in pairs(choices) do
-        project_env[k] = c
+    for key, choice in pairs(choices) do
+        project_env[key] = choice
     end
 
     -- Mapas vazios ficam de fora: o daemon tem `serde(default)` e o `{}` Lua
@@ -102,69 +102,69 @@ local function build_req(dry: boolean): any
         secrets = nonempty(secret_vals),
         project_env = next(project_env) ~= nil and project_env or nil,
         deploy = ctx.import_deploy == "true",
-        dry_run = dry,
+        dry_run = dry_run,
     }
 end
 
 local function load_providers(api: any): ()
-    local ok, res = api:rpc("GitProviderList")
-    local list = json.array{}
-    if ok and type(res) == "table" and res.GitProviders then
-        for _, p in ipairs(res.GitProviders) do
-            table.insert(list, { id = p.id, label = p.name })
+    local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+    local provider_options = json.array{}
+    if git_provider_list_ok and type(git_provider_list_response) == "table" and git_provider_list_response.GitProviders then
+        for _, git_provider in ipairs(git_provider_list_response.GitProviders) do
+            table.insert(provider_options, { id = git_provider.id, label = git_provider.name })
         end
     end
-    providers = list
+    providers = provider_options
 end
 
 local function render_providers(): ()
     local rows = json.array{}
-    for _, p in ipairs(providers or {}) do
+    for _, provider in ipairs(providers or {}) do
         table.insert(rows, {
-            id = p.id,
-            label = p.label,
-            mark = (ctx.import_provider_id == p.id) and "◉" or "○",
+            id = provider.id,
+            label = provider.label,
+            mark = (ctx.import_provider_id == provider.id) and "◉" or "○",
         })
     end
     ctx.import_providers = json.encode(rows)
 end
 
-local function show_report(r: any): ()
+local function show_report(report: any): ()
     ctx.import_report = "true"
-    ctx.import_conflict = r.name_conflict and "true" or "false"
+    ctx.import_conflict = report.name_conflict and "true" or "false"
     if Helpers.trim(ctx.import_name) == "" then
-        ctx.import_name = r.service_name
+        ctx.import_name = report.service_name
     end
 
     local warns = json.array{}
-    for _, w in ipairs(r.warnings or {}) do
-        table.insert(warns, { text = "• " .. tostring(w.message) })
+    for _, warning in ipairs(report.warnings or {}) do
+        table.insert(warns, { text = "• " .. tostring(warning.message) })
     end
     ctx.import_warnings = json.encode(warns)
     ctx.import_has_warnings = #warns > 0 and "true" or "false"
 
-    ctx.import_service_text = kv_text(r.missing_service_vars or {}, service_values)
-    ctx.import_project_text = kv_text(r.missing_project_vars or {}, project_values)
-    ctx.import_secret_text = kv_text(r.missing_secrets or {}, secret_vals)
-    ctx.import_has_service_missing = #(r.missing_service_vars or {}) > 0 and "true" or "false"
-    ctx.import_has_project_missing = #(r.missing_project_vars or {}) > 0 and "true" or "false"
-    ctx.import_has_secret_missing = #(r.missing_secrets or {}) > 0 and "true" or "false"
-    ctx.import_has_missing = (#(r.missing_service_vars or {}) + #(r.missing_project_vars or {}) > 0) and "true" or "false"
+    ctx.import_service_text = kv_text(report.missing_service_vars or {}, service_values)
+    ctx.import_project_text = kv_text(report.missing_project_vars or {}, project_values)
+    ctx.import_secret_text = kv_text(report.missing_secrets or {}, secret_vals)
+    ctx.import_has_service_missing = #(report.missing_service_vars or {}) > 0 and "true" or "false"
+    ctx.import_has_project_missing = #(report.missing_project_vars or {}) > 0 and "true" or "false"
+    ctx.import_has_secret_missing = #(report.missing_secrets or {}) > 0 and "true" or "false"
+    ctx.import_has_missing = (#(report.missing_service_vars or {}) + #(report.missing_project_vars or {}) > 0) and "true" or "false"
 
-    ctx.import_missing_provider = r.missing_git_provider or ""
+    ctx.import_missing_provider = report.missing_git_provider or ""
 
-    status = r.project_env or {}
+    status = report.project_env or {}
     local rows = json.array{}
-    for _, s in ipairs(status) do
-        if not choices[s.key] then
-            choices[s.key] = s.choice
+    for _, status_entry in ipairs(status) do
+        if not choices[status_entry.key] then
+            choices[status_entry.key] = status_entry.choice
         end
-        local info = (s.is_secret and "secret · " or "") .. (STATE_LABEL[s.state] or s.state)
+        local info = (status_entry.is_secret and "secret · " or "") .. (STATE_LABEL[status_entry.state] or status_entry.state)
         table.insert(rows, {
-            key = s.key,
+            key = status_entry.key,
             info = info,
-            can_choose = s.state ~= "Same" and "true" or "false",
-            choice = choice_label(s, choices[s.key]),
+            can_choose = status_entry.state ~= "Same" and "true" or "false",
+            choice = choice_label(status_entry, choices[status_entry.key]),
         })
     end
     ctx.import_project_env = json.encode(rows)
@@ -185,17 +185,17 @@ local function analyze_core(): boolean
     ctx.import_error = ""
     ctx.import_message = "analisando…"
     ctx.import_busy = "true"
-    local ok, res = api:rpc_checked{ ServiceImport = build_req(true) }
+    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_req(true) }
     ctx.import_busy = ""
     ctx.import_message = ""
 
-    if not ok or type(res) ~= "table" or not res.ServiceImportReport then
+    if not service_import_ok or type(service_import_response) ~= "table" or not service_import_response.ServiceImportReport then
         ctx.import_report = "false"
-        ctx.import_error = "erro: " .. tostring(res)
+        ctx.import_error = "erro: " .. tostring(service_import_response)
         return false
     end
 
-    local report = res.ServiceImportReport
+    local report = service_import_response.ServiceImportReport
     if report.missing_git_provider and providers == nil then
         load_providers(api)
     end
@@ -252,44 +252,44 @@ end
 -- Passa para a próxima escolha da variável do projeto (ciclo). Sobrescrever
 -- mexe no projeto e vale para os outros serviços dele: pede confirmação.
 function import_choice(key: string): ()
-    local s: any = nil
-    for _, x in ipairs(status) do
-        if x.key == key then
-            s = x
+    local matched_status: any = nil
+    for _, status_entry in ipairs(status) do
+        if status_entry.key == key then
+            matched_status = status_entry
         end
     end
-    if not s then
+    if not matched_status then
         return
     end
 
-    local opts = options_for(s)
-    local cur = choices[key] or s.choice
-    local idx = 1
-    for i, o in ipairs(opts) do
-        if o == cur then
-            idx = i
+    local options = options_for(matched_status)
+    local current_choice = choices[key] or matched_status.choice
+    local current_index = 1
+    for index, option in ipairs(options) do
+        if option == current_choice then
+            current_index = index
         end
     end
 
-    local nxt = opts[(idx % #opts) + 1]
-    if nxt == "Overwrite" then
-        local sure = confirm{
+    local next_choice = options[(current_index % #options) + 1]
+    if next_choice == "Overwrite" then
+        local confirmed = confirm{
             title = "Sobrescrever no projeto?",
             message = "Trocar " .. key .. " no projeto altera o valor que os OUTROS serviços do projeto também enxergam.",
             confirm_label = "Sobrescrever",
             destructive = true,
         }
-        if not sure then
-            nxt = opts[((idx + 1) % #opts) + 1]
+        if not confirmed then
+            next_choice = options[((current_index + 1) % #options) + 1]
         end
     end
 
-    choices[key] = nxt
+    choices[key] = next_choice
     analyze_core()
 end
 
-function import_use_provider(id: string): ()
-    ctx.import_provider_id = (ctx.import_provider_id == id) and "" or id
+function import_use_provider(provider_id: string): ()
+    ctx.import_provider_id = (ctx.import_provider_id == provider_id) and "" or provider_id
     analyze_core()
 end
 
@@ -314,19 +314,19 @@ function import_create(): ()
     ctx.import_error = ""
     ctx.import_message = "criando…"
     ctx.import_busy = "true"
-    local ok, res = api:rpc_checked{ ServiceImport = build_req(false) }
+    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_req(false) }
     ctx.import_busy = ""
     ctx.import_message = ""
 
-    if not ok or type(res) ~= "table" or not res.ServiceImportReport then
-        ctx.import_error = "erro: " .. tostring(res)
+    if not service_import_ok or type(service_import_response) ~= "table" or not service_import_response.ServiceImportReport then
+        ctx.import_error = "erro: " .. tostring(service_import_response)
         return
     end
 
-    local done = res.ServiceImportReport
+    local report = service_import_response.ServiceImportReport
     broadcast("service_created", {
         project_id = ctx.selected_project_id or "",
-        name = done.service_name,
+        name = report.service_name,
     })
     close_window()
 end

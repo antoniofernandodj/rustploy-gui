@@ -34,8 +34,8 @@ function init(): ()
 
     -- Decodifica os templates semeados para State (usado por new_service_pick_template/
     -- new_service_template_search, que leem State.new_service_templates_all, não o contexto).
-    local okt, all = pcall(json.decode, ctx.new_service_templates or "[]")
-    State.new_service_templates_all = (okt and type(all) == "table") and all or {}
+    local json_decode_ok, all = pcall(json.decode, ctx.new_service_templates or "[]")
+    State.new_service_templates_all = (json_decode_ok and type(all) == "table") and all or {}
 
     -- Estado inicial do wizard (o catálogo já veio no contexto via data).
     ctx.new_service_name = ""
@@ -63,9 +63,9 @@ end
 -- Precisa existir NESTE motor: `field` mora em handlers/nav.luau, que a janela
 -- não carrega (só carrega handlers/wizard); sem ele, digitar nos inputs não
 -- escrevia nada no contexto. Mesmo papel do `field` de new_project_window.luau.
-function field(key: string?, v: string?): ()
+function field(key: string?, value: string?): ()
     if key then
-        ctx[key] = v or ""
+        ctx[key] = value or ""
     end
 end
 

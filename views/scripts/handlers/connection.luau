@@ -25,17 +25,17 @@ local saved_servers: { { url: string, token: string } } = {}
 -- Publica só as URLs (o `<ComboEdit>` não precisa do token pra montar a
 -- lista — o token vem de `token_for` quando um item é escolhido).
 local function publish_saved_servers(): ()
-    local urls = json.array{}
-    for _, s in ipairs(saved_servers) do
-        table.insert(urls, s.url)
+    local server_urls = json.array{}
+    for _, saved_server in ipairs(saved_servers) do
+        table.insert(server_urls, saved_server.url)
     end
-    ctx.saved_servers = json.encode(urls)
+    ctx.saved_servers = json.encode(server_urls)
 end
 
 local function token_for(url: string): string?
-    for _, s in ipairs(saved_servers) do
-        if s.url == url then
-            return s.token
+    for _, saved_server in ipairs(saved_servers) do
+        if saved_server.url == url then
+            return saved_server.token
         end
     end
     return nil
@@ -44,9 +44,9 @@ end
 -- Salva/atualiza um par e o move pro topo da lista — o mais usado por último
 -- fica em primeiro, e é também o que `init()` pré-preenche no próximo boot.
 local function remember_server(url: string, token: string): ()
-    for i = #saved_servers, 1, -1 do
-        if saved_servers[i].url == url then
-            table.remove(saved_servers, i)
+    for index = #saved_servers, 1, -1 do
+        if saved_servers[index].url == url then
+            table.remove(saved_servers, index)
         end
     end
     table.insert(saved_servers, 1, { url = url, token = token })
@@ -69,9 +69,9 @@ end
 -- esquecido até a próxima troca de servidor ou reabertura do app.
 function esquecer_servidor(): ()
     local url = ctx.url or ""
-    for i = #saved_servers, 1, -1 do
-        if saved_servers[i].url == url then
-            table.remove(saved_servers, i)
+    for index = #saved_servers, 1, -1 do
+        if saved_servers[index].url == url then
+            table.remove(saved_servers, index)
         end
     end
     storage.set("saved_servers", saved_servers)
@@ -111,7 +111,7 @@ function init(): ()
     ctx.git_provider_modes = [=[[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]]=]
     ctx.healthcheck_kinds = [=[[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]]=]
     -- Listas vazias como "[]" (não nil) para os ForEach não verem literal.
-    for _, k in ipairs{
+    for _, key in ipairs{
         "deployments",
         "projects",
         "project_rows",
@@ -130,8 +130,8 @@ function init(): ()
         "deploy_engine_recent",
         "project_services",
     } do
-        if not ctx[k] or ctx[k] == "" then
-            ctx[k] = "[]"
+        if not ctx[key] or ctx[key] == "" then
+            ctx[key] = "[]"
         end
     end
     -- Contadores nascem "…", não "0": antes do primeiro snapshot não sabemos
@@ -141,7 +141,7 @@ function init(): ()
     -- handlers/stream.luau, junto de `data_loading = "false"`). Os `equals="0"`
     -- dos templates continuam valendo: com "…" não casam, então o estado vazio
     -- só pinta quando o dado realmente chegou e é zero.
-    for _, k in ipairs{
+    for _, key in ipairs{
         "deployments_count",
         "projects_count",
         "services_count",
@@ -162,8 +162,8 @@ function init(): ()
         "services_running",
         "services_total",
     } do
-        if not ctx[k] or ctx[k] == "" then
-            ctx[k] = "…"
+        if not ctx[key] or ctx[key] == "" then
+            ctx[key] = "…"
         end
     end
     -- Semeia o formulário de login com a lista de servidores salvos, e
@@ -185,20 +185,20 @@ end
 local function load_settings(): ()
     local api = State.api
     if not api then return end
-    local ok, res = api:rpc("GetDaemonSettings")
-    if ok and res.DaemonSettings then
+    local get_daemon_settings_ok, get_daemon_settings_response = api:rpc("GetDaemonSettings")
+    if get_daemon_settings_ok and get_daemon_settings_response.DaemonSettings then
         -- Base pública derivada pelo daemon a partir de [api] domain/port — é
         -- só-leitura (não há setter no protocolo), serve para exibir a base do
         -- webhook e montar a redirect URI do OAuth.
-        local base = res.DaemonSettings.public_base_url or ""
+        local base = get_daemon_settings_response.DaemonSettings.public_base_url or ""
         ctx.server_settings_public_base = base
-        ctx.server_settings_email = res.DaemonSettings.acme_email or ""
-        ctx.server_settings_registry_domain = res.DaemonSettings.registry_domain or ""
+        ctx.server_settings_email = get_daemon_settings_response.DaemonSettings.acme_email or ""
+        ctx.server_settings_registry_domain = get_daemon_settings_response.DaemonSettings.registry_domain or ""
         ctx.git_provider_redirect = Helpers.oauth_redirect_uri(base)
     end
-    local ok2, res2 = api:rpc("GitProviderList")
-    if ok2 and res2.GitProviders then
-        ctx.gitea_count = tostring(#res2.GitProviders)
+    local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+    if git_provider_list_ok and git_provider_list_response.GitProviders then
+        ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
     end
     Settings.docker_cleanup_load()
 end
@@ -220,10 +220,10 @@ function connect(): ()
 
     local client = Api.new(base, token)
     State.api = client
-    local ok, res = client:rpc("DaemonStatus")
-    if not ok then
+    local daemon_status_ok, daemon_status_response = client:rpc("DaemonStatus")
+    if not daemon_status_ok then
         State.api = nil
-        ctx.error = res
+        ctx.error = daemon_status_response
         ctx.status_line = "falha na conexão"
         ctx.connected = "false"
         return
@@ -277,11 +277,11 @@ function disconnect(): ()
     -- `pairs` sobre ela é comportamento indefinido.
     local data = ctx :: { [string]: any }
     local keys: { string } = {}
-    for k in pairs(data) do
-        table.insert(keys, k)
+    for key in pairs(data) do
+        table.insert(keys, key)
     end
-    for _, k in ipairs(keys) do
-        data[k] = nil
+    for _, key in ipairs(keys) do
+        data[key] = nil
     end
 
     init()

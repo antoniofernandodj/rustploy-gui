@@ -13,19 +13,19 @@ local WEEKDAYS = { "seg", "ter", "qua", "qui", "sex", "sáb", "dom" }
 
 -- Resumo textual de uma `Recurrence?` (serde externally-tagged: `nil` = só
 -- manual; `{IntervalHours=6}` / `{Daily={hour=,minute=}}` / `{Weekly={...}}`).
-function M.recurrence_label(r: any): string
-    if r == nil then
+function M.recurrence_label(recurrence: any): string
+    if recurrence == nil then
         return "manual"
     end
-    if r.IntervalHours ~= nil then
-        return "a cada " .. tostring(r.IntervalHours) .. "h"
+    if recurrence.IntervalHours ~= nil then
+        return "a cada " .. tostring(recurrence.IntervalHours) .. "h"
     end
-    if r.Daily ~= nil then
-        return string.format("diariamente às %02d:%02d", r.Daily.hour, r.Daily.minute)
+    if recurrence.Daily ~= nil then
+        return string.format("diariamente às %02d:%02d", recurrence.Daily.hour, recurrence.Daily.minute)
     end
-    if r.Weekly ~= nil then
-        local wd = WEEKDAYS[(r.Weekly.weekday % 7) + 1] or "?"
-        return string.format("semanalmente %s às %02d:%02d", wd, r.Weekly.hour, r.Weekly.minute)
+    if recurrence.Weekly ~= nil then
+        local weekday_name = WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1] or "?"
+        return string.format("semanalmente %s às %02d:%02d", weekday_name, recurrence.Weekly.hour, recurrence.Weekly.minute)
     end
     return "—"
 end
@@ -51,22 +51,22 @@ end
 -- em "Rodar agora" e a confirmação do servidor (ver handlers/jobs.luau::
 -- job_run_now). Sem isso, `running` só reflete o snapshot já confirmado
 -- pelo daemon, deixando o botão clicável durante todo o round-trip da RPC.
-function M.summaries(list: { any }?, inflight: { [string]: boolean }?): (string, number)
-    local B = Util.col_budgets()
+function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?): (string, number)
+    local column_budgets = Util.col_budgets()
     local rows = {}
-    for _, s in ipairs(list or {}) do
-        local job = s.job
-        local status_label, status_kind = M.run_status(s.last_run)
+    for _, job_summary in ipairs(job_summaries or {}) do
+        local job = job_summary.job
+        local status_label, status_kind = M.run_status(job_summary.last_run)
         table.insert(rows, {
             id = job.id,
-            name = Util.ellipsis(job.name, B.svc),
-            project = s.project_name,
-            trigger_service = s.trigger_service_name,
+            name = Util.ellipsis(job.name, column_budgets.svc),
+            project = job_summary.project_name,
+            trigger_service = job_summary.trigger_service_name,
             -- trigger_service_name é nil quando o job é autônomo (sem
             -- serviço gatilho) — mostra só o projeto nesse caso.
-            owner = s.trigger_service_name
-                and Util.ellipsis(tostring(s.project_name) .. " / " .. tostring(s.trigger_service_name), B.proj)
-                or Util.ellipsis(tostring(s.project_name), B.proj),
+            owner = job_summary.trigger_service_name
+                and Util.ellipsis(tostring(job_summary.project_name) .. " / " .. tostring(job_summary.trigger_service_name), column_budgets.proj)
+                or Util.ellipsis(tostring(job_summary.project_name), column_budgets.proj),
             recurrence = M.recurrence_label(job.recurrence),
             enabled = job.enabled,
             enabled_label = job.enabled and "Pausar" or "Ativar",
@@ -77,7 +77,7 @@ function M.summaries(list: { any }?, inflight: { [string]: boolean }?): (string,
             -- é o estado CONFIRMADO pelo servidor; `inflight[job.id]` cobre o
             -- intervalo entre o click e essa confirmação chegar.
             running = status_kind == "warn" or (inflight ~= nil and inflight[job.id] == true),
-            last_run_id = s.last_run and s.last_run.id or "",
+            last_run_id = job_summary.last_run and job_summary.last_run.id or "",
             next_run_at = job.next_run_at and Time.date_dm_hm(job.next_run_at) or "—",
         })
     end
@@ -91,17 +91,17 @@ end
 -- fila nova está vazia). Um job apagado por fora (Schedules) mas ainda
 -- referenciado aparece com rótulo "(job removido)" em vez de sumir — assim
 -- dá pra removê-lo da fila pela própria UI.
-function M.pre_deploy_queue(spec: any, list: { any }?): string
+function M.pre_deploy_queue(spec: any, jobs: { any }?): string
     local by_id = {}
-    for _, job in ipairs(list or {}) do
+    for _, job in ipairs(jobs or {}) do
         by_id[job.id] = job.name
     end
     local rows = {}
-    for i, id in ipairs(Util.pre_deploy_checks(spec)) do
+    for position, job_id in ipairs(Util.pre_deploy_checks(spec)) do
         table.insert(rows, {
-            id = id,
-            name = by_id[id] or ("(job removido: " .. id .. ")"),
-            index = tostring(i),
+            id = job_id,
+            name = by_id[job_id] or ("(job removido: " .. job_id .. ")"),
+            index = tostring(position),
         })
     end
     return Util.enc_array(rows)
@@ -109,13 +109,13 @@ end
 
 -- Jobs do projeto que AINDA NÃO estão na fila — opções do `<select>` de
 -- "adicionar à fila" (evita duplicar o mesmo job na sequência).
-function M.pre_deploy_available(spec: any, list: { any }?): string
+function M.pre_deploy_available(spec: any, jobs: { any }?): string
     local in_queue = {}
-    for _, id in ipairs(Util.pre_deploy_checks(spec)) do
-        in_queue[id] = true
+    for _, job_id in ipairs(Util.pre_deploy_checks(spec)) do
+        in_queue[job_id] = true
     end
     local rows = {}
-    for _, job in ipairs(list or {}) do
+    for _, job in ipairs(jobs or {}) do
         if not in_queue[job.id] then
             table.insert(rows, { id = job.id, name = job.name })
         end
@@ -125,15 +125,15 @@ end
 
 -- Histórico de execuções (`Command::JobRunHistory`) — usado pra listar runs e
 -- abrir "Ver logs" (log_window apontando pro `job_run_id`).
-function M.runs(list: { any }?): string
+function M.runs(runs: { any }?): string
     local rows = {}
-    for _, r in ipairs(list or {}) do
-        local label, kind = M.run_status(r)
+    for _, run in ipairs(runs or {}) do
+        local label, kind = M.run_status(run)
         table.insert(rows, {
-            id = r.id,
-            started_at = Time.date_dm_hms(r.started_at),
-            finished_at = r.finished_at and Time.date_dm_hms(r.finished_at) or "—",
-            exit_code = r.exit_code ~= nil and tostring(r.exit_code) or "—",
+            id = run.id,
+            started_at = Time.date_dm_hms(run.started_at),
+            finished_at = run.finished_at and Time.date_dm_hms(run.finished_at) or "—",
+            exit_code = run.exit_code ~= nil and tostring(run.exit_code) or "—",
             status_label = label,
             status_kind = kind,
         })

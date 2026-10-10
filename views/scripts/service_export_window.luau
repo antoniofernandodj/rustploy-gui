@@ -25,52 +25,52 @@ end
 -- Reconstrói a lista exibida (☑/☐ por variável do projeto) a partir de `picked`.
 local function render(): ()
     local rows = json.array{}
-    local n = 0
+    local picked_count = 0
 
-    for _, v in ipairs(plan.project_env or {}) do
-        local on = picked[v.key] == true
+    for _, env_var in ipairs(plan.project_env or {}) do
+        local on = picked[env_var.key] == true
         if on then
-            n += 1
+            picked_count += 1
         end
 
         local tags = {}
-        if v.is_secret then
+        if env_var.is_secret then
             table.insert(tags, "secret")
         end
-        if v.suggested then
+        if env_var.suggested then
             table.insert(tags, "citada pelo serviço")
         end
 
         table.insert(rows, {
-            key = v.key,
+            key = env_var.key,
             mark = on and "☑" or "☐",
             tag = table.concat(tags, " · "),
         })
     end
 
     ctx.export_vars = json.encode(rows)
-    ctx.export_picked_count = tostring(n)
+    ctx.export_picked_count = tostring(picked_count)
 end
 
-local function pick(rule: (v: any) -> boolean): ()
+local function pick(rule: (env_var: any) -> boolean): ()
     picked = {}
-    for _, v in ipairs(plan.project_env or {}) do
-        picked[v.key] = rule(v)
+    for _, env_var in ipairs(plan.project_env or {}) do
+        picked[env_var.key] = rule(env_var)
     end
     render()
 end
 
 function init(): ()
-    local ok, p = pcall(json.decode, ctx.export_plan or "{}")
-    plan = (ok and type(p) == "table") and p or {}
+    local json_decode_ok, decoded = pcall(json.decode, ctx.export_plan or "{}")
+    plan = (json_decode_ok and type(decoded) == "table") and decoded or {}
 
     ctx.export_service = plan.service_name or ""
     ctx.export_project = plan.project_name or ""
     ctx.export_blocked = plan.blocked or ""
 
     local names = {}
-    for _, v in ipairs(plan.service_env or {}) do
-        table.insert(names, v.key .. (v.is_secret and " 🔒" or ""))
+    for _, env_var in ipairs(plan.service_env or {}) do
+        table.insert(names, env_var.key .. (env_var.is_secret and " 🔒" or ""))
     end
     ctx.export_service_vars = #names > 0 and table.concat(names, ", ") or "(este serviço não tem variáveis próprias)"
     ctx.export_service_count = tostring(#names)
@@ -81,14 +81,14 @@ function init(): ()
     ctx.export_error = ""
     ctx.export_message = ""
 
-    pick(function(v: any): boolean
-        return v.suggested == true
+    pick(function(env_var: any): boolean
+        return env_var.suggested == true
     end)
 end
 
-function field(key: string?, v: string?): ()
+function field(key: string?, value: string?): ()
     if key then
-        ctx[key] = v or ""
+        ctx[key] = value or ""
     end
 end
 
@@ -98,8 +98,8 @@ function export_toggle(key: string): ()
 end
 
 function export_suggested(): ()
-    pick(function(v: any): boolean
-        return v.suggested == true
+    pick(function(env_var: any): boolean
+        return env_var.suggested == true
     end)
 end
 
@@ -125,15 +125,15 @@ local function generate(): (string?, string?)
     end
 
     local keys = json.array{}
-    for _, v in ipairs(plan.project_env or {}) do
-        if picked[v.key] then
-            table.insert(keys, v.key)
+    for _, env_var in ipairs(plan.project_env or {}) do
+        if picked[env_var.key] then
+            table.insert(keys, env_var.key)
         end
     end
 
     ctx.export_error = ""
     ctx.export_message = "gerando…"
-    local ok, res = api:rpc_checked{
+    local service_export_ok, service_export_response = api:rpc_checked{
         ServiceExport = {
             service_id = ctx.export_service_id,
             include_values = ctx.export_values == "true",
@@ -142,12 +142,12 @@ local function generate(): (string?, string?)
     }
     ctx.export_message = ""
 
-    if not ok or type(res) ~= "table" or not res.ServiceBundleYaml then
-        ctx.export_error = "erro: " .. tostring(res)
+    if not service_export_ok or type(service_export_response) ~= "table" or not service_export_response.ServiceBundleYaml then
+        ctx.export_error = "erro: " .. tostring(service_export_response)
         return nil, nil
     end
 
-    return res.ServiceBundleYaml.yaml, res.ServiceBundleYaml.filename
+    return service_export_response.ServiceBundleYaml.yaml, service_export_response.ServiceBundleYaml.filename
 end
 
 function export_save(): ()
@@ -166,9 +166,9 @@ function export_save(): ()
         return
     end
 
-    local okw, werr = write_file(path, yaml)
-    if not okw then
-        ctx.export_error = "falha ao gravar: " .. tostring(werr)
+    local write_ok, write_error = write_file(path, yaml)
+    if not write_ok then
+        ctx.export_error = "falha ao gravar: " .. tostring(write_error)
         return
     end
     ctx.export_message = "salvo em " .. path

@@ -35,37 +35,37 @@ function M.auth_headers(token: string?): { [string]: string }
 end
 
 function M:headers(): { [string]: string }
-    local h = M.auth_headers(self.token)
-    h["Content-Type"] = "application/json"
+    local headers = M.auth_headers(self.token)
+    headers["Content-Type"] = "application/json"
 
-    return h
+    return headers
 end
 
 --- Executa um Command. Retorna (true, response_table) em sucesso HTTP, ou
 --- (false, mensagem) em falha de transporte / corpo inválido.
-function M:rpc(cmd: any): (boolean, any)
-    local res = fetch(tostring(self.base_url) .. "/api/rpc", {
+function M:rpc(command: any): (boolean, any)
+    local http_response = fetch(tostring(self.base_url) .. "/api/rpc", {
         method = "POST",
-        body = json.encode(cmd),
+        body = json.encode(command),
         headers = self:headers(),
         timeout = M.RPC_TIMEOUT_MS,
     })
 
-    if not res.ok then
-        local msg =
-            (res.error ~= nil and res.error ~= "")
-                and res.error
-                or ("HTTP " .. tostring(res.status))
+    if not http_response.ok then
+        local error_message =
+            (http_response.error ~= nil and http_response.error ~= "")
+                and http_response.error
+                or ("HTTP " .. tostring(http_response.status))
 
-        return false, msg
+        return false, error_message
     end
 
-    local ok, decoded = pcall(json.decode, res.body)
+    local json_decode_ok, decoded = pcall(json.decode, http_response.body)
 
     -- Aceita QUALQUER valor decodificado: uma Response de variante UNITÁRIA
     -- (ex.: `Response::Ok`) é serializada pelo serde como a string bare "Ok"
     -- (não um objeto). Só o parse falhando é resposta inválida.
-    if not ok then
+    if not json_decode_ok then
         return false, "resposta inválida do daemon"
     end
 
@@ -73,18 +73,18 @@ function M:rpc(cmd: any): (boolean, any)
 end
 
 --- Como `rpc`, mas trata `Response::Err { code, message }` como falha.
-function M:rpc_checked(cmd: any): (boolean, any)
-    local ok, res = self:rpc(cmd)
+function M:rpc_checked(command: any): (boolean, any)
+    local rpc_ok, rpc_response = self:rpc(command)
 
-    if not ok then
-        return false, res
+    if not rpc_ok then
+        return false, rpc_response
     end
 
-    if type(res) == "table" and res.Err ~= nil then
-        return false, tostring(res.Err.code) .. ": " .. tostring(res.Err.message)
+    if type(rpc_response) == "table" and rpc_response.Err ~= nil then
+        return false, tostring(rpc_response.Err.code) .. ": " .. tostring(rpc_response.Err.message)
     end
 
-    return true, res
+    return true, rpc_response
 end
 
 function M:upload_archive(
@@ -92,21 +92,21 @@ function M:upload_archive(
     filename: string,
     body_base64: string
 ): (boolean, any)
-    local h = self:headers()
-    h["Content-Type"] = "application/zip"
-    h["X-Rustploy-Filename"] = filename
+    local headers = self:headers()
+    headers["Content-Type"] = "application/zip"
+    headers["X-Rustploy-Filename"] = filename
 
-    local res = fetch(tostring(self.base_url) .. "/api/services/" .. service_id .. "/archive", {
+    local http_response = fetch(tostring(self.base_url) .. "/api/services/" .. service_id .. "/archive", {
         method = "POST",
         body_base64 = body_base64,
-        headers = h,
+        headers = headers,
         timeout = M.UPLOAD_TIMEOUT_MS,
     })
-    if not res.ok then
-        return false, (res.error ~= nil and res.error ~= "") and res.error or ("HTTP " .. tostring(res.status))
+    if not http_response.ok then
+        return false, (http_response.error ~= nil and http_response.error ~= "") and http_response.error or ("HTTP " .. tostring(http_response.status))
     end
-    local ok, decoded = pcall(json.decode, res.body)
-    if not ok then
+    local json_decode_ok, decoded = pcall(json.decode, http_response.body)
+    if not json_decode_ok then
         return false, "resposta inválida do daemon"
     end
     if type(decoded) == "table" and decoded.Err ~= nil then

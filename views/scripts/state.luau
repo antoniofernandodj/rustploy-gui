@@ -50,7 +50,7 @@ export type State = {
     docker_cleanup_last_run_at_raw: any,           -- DockerCleanupConfig.last_run_at cru (ISO8601 ou nil), round-trip opaco: preserva o horário real entre saves do formulário de Manutenção, pra um agendamento IntervalHours não reiniciar a contagem a cada "Save" — ver handlers/settings.luau.
 }
 
-local S: State = {
+local shared_state: State = {
     api = nil,
     state_conn = nil,
     snap = nil,
@@ -64,4 +64,4 @@ local S: State = {
     docker_cleanup_last_run_at_raw = nil,
 }
 
-return S
+return shared_state

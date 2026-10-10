@@ -56,20 +56,20 @@ function new_registry_token_create(): ()
     ctx.new_registry_token_message = "criando…"
     ctx.new_registry_token_busy = "true"
 
-    local ok, res = api:rpc_checked{
+    local registry_token_create_ok, registry_token_create_response = api:rpc_checked{
         RegistryTokenCreate = {
             name = name,
             scope = ctx.new_registry_token_scope
         },
     }
     ctx.new_registry_token_busy = ""
-    if not ok then
+    if not registry_token_create_ok then
         ctx.new_registry_token_message = ""
-        ctx.new_registry_token_error = "erro: " .. tostring(res)
+        ctx.new_registry_token_error = "erro: " .. tostring(registry_token_create_response)
         return
     end
 
-    local created = (type(res) == "table" and res.RegistryTokenCreated) or {}
+    local created = (type(registry_token_create_response) == "table" and registry_token_create_response.RegistryTokenCreated) or {}
     local secret = created.secret or ""
     ctx.new_registry_token_login_command = string.format(
         "docker login %s -u %s -p %s",

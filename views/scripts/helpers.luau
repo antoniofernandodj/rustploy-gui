@@ -4,8 +4,8 @@
 
 local M = {}
 
-function M.trim(s: any): string
-    return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", ""));
+function M.trim(value: any): string
+    return (tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", ""));
 end
 
 -- Referência a secret num valor de env var → nome do secret (ou nil se o valor
@@ -18,9 +18,9 @@ end
 -- "secret:NOME" no lugar do segredo. Um único ponto de verdade para os quatro
 -- call sites (env do serviço e do projeto, editor .env e campo valor) — foi a
 -- duplicação entre eles que deixou as sintaxes divergirem.
-function M.parse_secret_ref(v: string?): string?
-    local s = M.trim(v)
-    local name = s:match("^<secret:(.+)>$") or s:match("^secret:(.+)$")
+function M.parse_secret_ref(text: string?): string?
+    local trimmed = M.trim(text)
+    local name = trimmed:match("^<secret:(.+)>$") or trimmed:match("^secret:(.+)$")
     if name == nil then
         return nil
     end
@@ -37,30 +37,30 @@ function M.parse_dotenv(text: string?): ({any}, {any})
     local comments = json.array{}
     local pending = {}
     for line in string.gmatch((text or "") .. "\n", "([^\n]*)\n") do
-        local l = M.trim(line)
-        if l == "" then
+        local trimmed_line = M.trim(line)
+        if trimmed_line == "" then
             -- ignora
-        elseif l:sub(1, 1) == "#" then
-            table.insert(pending, l)
+        elseif trimmed_line:sub(1, 1) == "#" then
+            table.insert(pending, trimmed_line)
         else
-            local k, v = l:match("^([^=]+)=(.*)$")
-            if k and v then
-                local key = M.trim(k)
+            local raw_key, raw_value = trimmed_line:match("^([^=]+)=(.*)$")
+            if raw_key and raw_value then
+                local key = M.trim(raw_key)
                 if key ~= "" then
-                    for _, c in ipairs(pending) do
-                        table.insert(comments, { text = c, before_key = key })
+                    for _, comment_text in ipairs(pending) do
+                        table.insert(comments, { text = comment_text, before_key = key })
                     end
                     pending = {}
-                    v = M.trim(v)
-                    local secret = M.parse_secret_ref(v)
-                    local value = secret and { Secret = secret } or { Plain = v }
+                    raw_value = M.trim(raw_value)
+                    local secret = M.parse_secret_ref(raw_value)
+                    local value = secret and { Secret = secret } or { Plain = raw_value }
                     table.insert(vars, { key = key, value = value })
                 end
             end
         end
     end
-    for _, c in ipairs(pending) do
-        table.insert(comments, { text = c, before_key = nil })
+    for _, comment_text in ipairs(pending) do
+        table.insert(comments, { text = comment_text, before_key = nil })
     end
     return vars, comments
 end
@@ -69,39 +69,39 @@ end
 -- URL pública do daemon (`DaemonSettings.public_base_url`), derivada de [api]
 -- domain/port — o callback OAuth é servido pelo mesmo listener da API. `seg` é o
 -- segmento do path por provedor ("gitea" | "github"), default "gitea".
-function M.oauth_redirect_uri(base: string?, seg: string?): string
-    local s = (seg == "github") and "github" or "gitea"
-    local d = M.trim(base):gsub("/+$", "");
-    if d == "" then
-        return "<URL pública do daemon indisponível>/oauth/" .. s .. "/callback";
+function M.oauth_redirect_uri(base: string?, provider_segment: string?): string
+    local provider_slug = (provider_segment == "github") and "github" or "gitea"
+    local trimmed_base = M.trim(base):gsub("/+$", "");
+    if trimmed_base == "" then
+        return "<URL pública do daemon indisponível>/oauth/" .. provider_slug .. "/callback";
     end
-    return d .. "/oauth/" .. s .. "/callback";
+    return trimmed_base .. "/oauth/" .. provider_slug .. "/callback";
 end
 
 -- Heurística: a URL denota um repo Git (clonar+buildar) e não uma imagem.
-function M.looks_like_git_url(u: string?): boolean
-    local s = M.trim(u);
-    return s:match("^https://") ~= nil or s:match("^http://") ~= nil
-        or s:match("^git@") ~= nil or s:match("^ssh://") ~= nil
-        or s:match("^file://") ~= nil or s:match("%.git$") ~= nil
+function M.looks_like_git_url(url: string?): boolean
+    local trimmed = M.trim(url);
+    return trimmed:match("^https://") ~= nil or trimmed:match("^http://") ~= nil
+        or trimmed:match("^git@") ~= nil or trimmed:match("^ssh://") ~= nil
+        or trimmed:match("^file://") ~= nil or trimmed:match("%.git$") ~= nil
 end
 
 -- Normaliza a entrada de URL do login para uma base HTTP(S) sem barra final.
 -- Aceita "https://host:porta", "http://host:porta", "host:porta", "host".
 -- Sem esquema → https. Outros esquemas (ex.: ws, ftp) são rejeitados.
 function M.normalize_url(raw: string): string?
-    local u = (raw or ""):gsub("^%s+", ""):gsub("%s+$", "");
-    if u == "" then
+    local trimmed_url = (raw or ""):gsub("^%s+", ""):gsub("%s+$", "");
+    if trimmed_url == "" then
         return nil;
     end
-    local scheme, rest = string.match(u, "^([%a][%w+.-]*)://(.*)$");
+    local scheme, rest = string.match(trimmed_url, "^([%a][%w+.-]*)://(.*)$");
     if scheme then
         scheme = string.lower(scheme);
         if scheme ~= "http" and scheme ~= "https" then
             return nil;
         end
     else
-        scheme, rest = "https", u
+        scheme, rest = "https", trimmed_url
     end
     -- corta path/query/fragment: só queremos o authority (host[:porta]).
     rest = string.match(rest or "", "^([^/?#]*)") or rest;

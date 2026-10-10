@@ -29,35 +29,35 @@ end
 -- Abrir o detalhe de um serviço: navega e dispara o fetch (spec + logs +
 -- deployments + provedores Git). O fetch suspende a corrotina, sem travar a
 -- UI; service_loading=true segura os Selects até tudo chegar.
-function open_service(id: string): ()
-    ctx.selected_service = id
+function open_service(service_id: string): ()
+    ctx.selected_service = service_id
     ctx.view = "service"
     ctx.tab = "general"
     ctx.service_error = ""
     ctx.deployment_selected = ""
     ctx.service_action_message = ""
     ctx.service_action_color = "#8B949E"
-    if State.deploy_track.service_id ~= id then
+    if State.deploy_track.service_id ~= service_id then
         ctx.service_deploy_running = "false"
         ctx.service_deploy_elapsed = ""
     end
     ctx.service_loading = "true"
-    M.fetch_service_detail(id)
+    M.fetch_service_detail(service_id)
 end
 
 -- One-shot: monta TODAS as chaves svc_*/f_* do painel de detalhe (equivalente
 -- a net/services.rs::fetch_detail_inner).
-function M.fetch_service_detail(sid: string): ()
+function M.fetch_service_detail(service_id: string): ()
     local api = State.api
-    if not api or sid == "" then return end
-    local ok, res = api:rpc{ ServiceGet = { id = sid } }
-    if not ok or not res.Service then
+    if not api or service_id == "" then return end
+    local service_get_ok, service_get_response = api:rpc{ ServiceGet = { id = service_id } }
+    if not service_get_ok or not service_get_response.Service then
         ctx.service_loading = "false"
-        ctx.service_error = ok and "serviço não encontrado" or res
+        ctx.service_error = service_get_ok and "serviço não encontrado" or service_get_response
         return
     end
-    local svc = res.Service
-    local spec = svc.spec
+    local service_record = service_get_response.Service
+    local spec = service_record.spec
 
     -- Nome + env vars do projeto (ServiceGet só traz o id). As env vars do
     -- projeto são a base herdada por todos os serviços; usamos elas junto do
@@ -66,10 +66,10 @@ function M.fetch_service_detail(sid: string): ()
     local project_env = {}
     local snap = State.snap
     if snap then
-        for _, p in ipairs(snap.projects or {}) do
-            if p.id == spec.project_id then
-                project_name = p.name
-                project_env = p.env_vars or {}
+        for _, project in ipairs(snap.projects or {}) do
+            if project.id == spec.project_id then
+                project_name = project.name
+                project_env = project.env_vars or {}
                 break
             end
         end
@@ -79,14 +79,14 @@ function M.fetch_service_detail(sid: string): ()
     -- (open_logs_window, que busca o próprio tail). A janela principal não os
     -- renderiza nem os transmite, para não pagar reavaliação por linha.
     local deployments = {}
-    local okd, resd = api:rpc{ DeployHistory = { service_id = sid, limit = 30 } }
-    if okd and resd.Deployments then deployments = resd.Deployments end
+    local deploy_history_ok, deploy_history_response = api:rpc{ DeployHistory = { service_id = service_id, limit = 30 } }
+    if deploy_history_ok and deploy_history_response.Deployments then deployments = deploy_history_response.Deployments end
 
-    local status_label, status_color = fmt.status_label_color(svc.status)
-    local skind, sdetail, sbuild = fmt.source_summary3(spec.source)
+    local status_label, status_color = fmt.status_label_color(service_record.status)
+    local source_kind, source_detail, source_build = fmt.source_summary3(spec.source)
 
     -- Campos editáveis da aba General (source).
-    local g = {
+    local source_fields = {
         repo_url = "",
         branch = "",
         username = "",
@@ -101,59 +101,59 @@ function M.fetch_service_detail(sid: string): ()
     local compose_content = ""
     local provider_tab, gen_provider_id, bound_url = "git", "", ""
     if spec.source.Git then
-        local gs = spec.source.Git
-        g.repo_url = gs.url or ""
-        g.branch = gs.branch or ""
-        g.username = gs.username or ""
-        g.credentials = gs.credentials or ""
-        g.build_path = gs.root_path or ""
-        g.watch_paths = table.concat(gs.watch_paths or {}, ", ")
-        g.submodules = gs.submodules == true
-        g.dockerfile = gs.dockerfile_path or ""
-        g.context_path = gs.build_context or ""
-        g.build_stage = gs.build_stage or ""
-        if gs.provider_id and gs.provider_id ~= "" then
-            provider_tab, gen_provider_id, bound_url = "gitea", gs.provider_id, gs.url or ""
+        local git_source = spec.source.Git
+        source_fields.repo_url = git_source.url or ""
+        source_fields.branch = git_source.branch or ""
+        source_fields.username = git_source.username or ""
+        source_fields.credentials = git_source.credentials or ""
+        source_fields.build_path = git_source.root_path or ""
+        source_fields.watch_paths = table.concat(git_source.watch_paths or {}, ", ")
+        source_fields.submodules = git_source.submodules == true
+        source_fields.dockerfile = git_source.dockerfile_path or ""
+        source_fields.context_path = git_source.build_context or ""
+        source_fields.build_stage = git_source.build_stage or ""
+        if git_source.provider_id and git_source.provider_id ~= "" then
+            provider_tab, gen_provider_id, bound_url = "gitea", git_source.provider_id, git_source.url or ""
         end
     elseif spec.source.Registry then
-        g.repo_url = spec.source.Registry.image or ""
+        source_fields.repo_url = spec.source.Registry.image or ""
     elseif spec.source.Compose then
         compose_content = spec.source.Compose.content or ""
     end
 
     -- Healthcheck → campos do form.
-    local hc = spec.healthcheck
-    local hk, hpath, hstatus = "tcp", "", ""
-    if type(hc.kind) == "table" and hc.kind.Http then
-        hk, hpath, hstatus = "http", hc.kind.Http.path or "", tostring(hc.kind.Http.expected_status)
-    elseif hc.kind == "None" then
-        hk = "none"
-    elseif hc.kind == "DockerNative" then
-        hk = "docker"
+    local healthcheck = spec.healthcheck
+    local healthcheck_kind, healthcheck_path, healthcheck_status = "tcp", "", ""
+    if type(healthcheck.kind) == "table" and healthcheck.kind.Http then
+        healthcheck_kind, healthcheck_path, healthcheck_status = "http", healthcheck.kind.Http.path or "", tostring(healthcheck.kind.Http.expected_status)
+    elseif healthcheck.kind == "None" then
+        healthcheck_kind = "none"
+    elseif healthcheck.kind == "DockerNative" then
+        healthcheck_kind = "docker"
     else
-        hk = "tcp"
+        healthcheck_kind = "tcp"
     end
 
     -- Rota primária (Connection) + provedores Gitea conectados.
     local routes = {}
     if spec.domains and #spec.domains > 0 then
-        for _, r in ipairs(spec.domains) do table.insert(routes, r) end
+        for _, domain in ipairs(spec.domains) do table.insert(routes, domain) end
     elseif spec.domain and spec.domain ~= "" then
         routes = { { domain = spec.domain, tls = spec.tls_enabled == true } }
     end
-    local pr = routes[1]
-    local pr_domain = pr and pr.domain or nil
-    local pr_tls = pr and pr.tls == true or false
+    local primary_route = routes[1]
+    local pr_domain = primary_route and primary_route.domain or nil
+    local pr_tls = primary_route and primary_route.tls == true or false
 
     ctx.service_loading = "false"
     ctx.service_error = ""
-    ctx.service_id = svc.id
+    ctx.service_id = service_record.id
     ctx.service_name = spec.name
     -- Aba General → "Nome do serviço": campo do form de rename + o aviso do que
     -- o rename muda (ou não) para este tipo de serviço.
     ctx.edit_service_name = spec.name
     ctx.error_edit_service_name = ""
-    if skind == "Compose" then
+    if source_kind == "Compose" then
         ctx.service_rename_note = "A stack e os volumes do Docker não mudam com o nome: os dados continuam os mesmos."
     else
         ctx.service_rename_note = "O hostname interno (rp_<nome>) só passa a valer no próximo deploy. "
@@ -167,20 +167,20 @@ function M.fetch_service_detail(sid: string): ()
     -- serviço; buscamos pelo id (ServiceGet não carrega essa informação).
     local service_containers = {}
     if snap then
-        for _, e in ipairs(snap.services or {}) do
-            if e.service and e.service.id == sid then
-                service_containers = e.service.containers or {}
+        for _, service in ipairs(snap.services or {}) do
+            if service.service and service.service.id == service_id then
+                service_containers = service.service.containers or {}
                 break
             end
         end
     end
     ctx.service_containers = fmt.containers(service_containers)
     ctx.service_containers_count = tostring(#service_containers)
-    ctx.service_source_kind = skind
-    ctx.service_source_detail = sdetail
+    ctx.service_source_kind = source_kind
+    ctx.service_source_detail = source_detail
     ctx.service_compose = compose_content
     ctx.service_compose_original = compose_content
-    ctx.service_build = sbuild
+    ctx.service_build = source_build
     ctx.service_port = tostring(spec.port)
     ctx.service_host_port = spec.host_port and tostring(spec.host_port) or "—"
     ctx.service_domain = pr_domain or "—"
@@ -193,8 +193,8 @@ function M.fetch_service_detail(sid: string): ()
     -- banco têm spec.env_vars vazio — os ${POSTGRES_*} vêm do projeto. Como
     -- env_plain retorna o primeiro match por chave, o serviço vem primeiro.
     local merged_env = {}
-    for _, v in ipairs(spec.env_vars or {}) do table.insert(merged_env, v) end
-    for _, v in ipairs(project_env) do table.insert(merged_env, v) end
+    for _, env_var in ipairs(spec.env_vars or {}) do table.insert(merged_env, env_var) end
+    for _, env_var in ipairs(project_env) do table.insert(merged_env, env_var) end
     -- Valor completo (`*_url`) alimenta o clipboard; `*_url_short` é o que a
     -- markup exibe, truncado para não empurrar o botão "Copiar" para fora.
     ctx.service_external_url = fmt.external_url(
@@ -207,24 +207,24 @@ function M.fetch_service_detail(sid: string): ()
     ctx.service_external_url_short = fmt.ellipsis(ctx.service_external_url, 20)
     -- Internal URL vem pronta do daemon (`shared::connection`): host real,
     -- usuário/senha/database. `fmt.internal_url` fica só de fallback.
-    local okc, resc = api:rpc{ ServiceConnectionInfo = { service_id = sid } }
-    if okc and type(resc) == "table" and resc.ConnectionInfo then
-        ctx.service_internal_url = resc.ConnectionInfo.internal_url
+    local service_connection_info_ok, service_connection_info_response = api:rpc{ ServiceConnectionInfo = { service_id = service_id } }
+    if service_connection_info_ok and type(service_connection_info_response) == "table" and service_connection_info_response.ConnectionInfo then
+        ctx.service_internal_url = service_connection_info_response.ConnectionInfo.internal_url
     else
         local compose_src = spec.source.Compose
-        local chost = compose_src and fmt.compose_host(
+        local compose_host = compose_src and fmt.compose_host(
             compose_src.content, compose_src.ingress_service
         ) or nil
         ctx.service_internal_url = fmt.internal_url(
             spec.db_kind,
             fmt.safe_name(spec.name),
-            spec.port, chost
+            spec.port, compose_host
         )
     end
     ctx.service_internal_url_short = fmt.ellipsis(ctx.service_internal_url, 20)
     ctx.service_database_kind = spec.db_kind or "—"
-    M.load_shared_state(spec, sid)
-    M.load_migration_state(spec, sid, project_env)
+    M.load_shared_state(spec, service_id)
+    M.load_migration_state(spec, service_id, project_env)
     ctx.service_healthcheck = fmt.healthcheck_summary(spec.healthcheck)
     ctx.service_run_command = spec.run_command or "—"
     ctx.service_run_args = (
@@ -244,9 +244,9 @@ function M.fetch_service_detail(sid: string): ()
     ctx.service_webhook_url = ""
     ctx.service_webhook_url_short = ""
     if not spec.source.Compose then
-        local okw, resw = api:rpc{ GetWebhookUrl = { service_id = sid } }
-        if okw and type(resw) == "table" and resw.WebhookUrl then
-            M.set_webhook_url(resw.WebhookUrl)
+        local get_webhook_url_ok, get_webhook_url_response = api:rpc{ GetWebhookUrl = { service_id = service_id } }
+        if get_webhook_url_ok and type(get_webhook_url_response) == "table" and get_webhook_url_response.WebhookUrl then
+            M.set_webhook_url(get_webhook_url_response.WebhookUrl)
         end
     end
     -- Campos editáveis.
@@ -254,26 +254,26 @@ function M.fetch_service_detail(sid: string): ()
     ctx.service_form_port = ""
     ctx.service_form_tls = "false"
     ctx.service_form_host_port = spec.host_port and tostring(spec.host_port) or ""
-    ctx.service_form_healthcheck_kind = hk
-    ctx.service_form_healthcheck_path = hpath
-    ctx.service_form_healthcheck_status = hstatus
-    ctx.service_form_healthcheck_interval = tostring(hc.interval_secs)
-    ctx.service_form_healthcheck_timeout = tostring(hc.timeout_secs)
-    ctx.service_form_healthcheck_retries = tostring(hc.retries)
-    ctx.service_form_healthcheck_start = tostring(hc.start_period_secs)
+    ctx.service_form_healthcheck_kind = healthcheck_kind
+    ctx.service_form_healthcheck_path = healthcheck_path
+    ctx.service_form_healthcheck_status = healthcheck_status
+    ctx.service_form_healthcheck_interval = tostring(healthcheck.interval_secs)
+    ctx.service_form_healthcheck_timeout = tostring(healthcheck.timeout_secs)
+    ctx.service_form_healthcheck_retries = tostring(healthcheck.retries)
+    ctx.service_form_healthcheck_start = tostring(healthcheck.start_period_secs)
     ctx.service_form_replicas = tostring(spec.replicas)
     ctx.service_form_run_command = spec.run_command or ""
     ctx.service_form_pre_deploy_check_add_job_id = ""
-    ctx.service_form_repo_url = g.repo_url
-    ctx.service_form_branch = g.branch
-    ctx.service_form_username = g.username
-    ctx.service_form_credentials = g.credentials
-    ctx.service_form_build_path = g.build_path
-    ctx.service_form_watch_paths = g.watch_paths
-    ctx.service_form_submodules = g.submodules and "true" or "false"
-    ctx.service_form_dockerfile = g.dockerfile
-    ctx.service_form_context_path = g.context_path
-    ctx.service_form_build_stage = g.build_stage
+    ctx.service_form_repo_url = source_fields.repo_url
+    ctx.service_form_branch = source_fields.branch
+    ctx.service_form_username = source_fields.username
+    ctx.service_form_credentials = source_fields.credentials
+    ctx.service_form_build_path = source_fields.build_path
+    ctx.service_form_watch_paths = source_fields.watch_paths
+    ctx.service_form_submodules = source_fields.submodules and "true" or "false"
+    ctx.service_form_dockerfile = source_fields.dockerfile
+    ctx.service_form_context_path = source_fields.context_path
+    ctx.service_form_build_stage = source_fields.build_stage
     ctx.service_form_archive_path = ""
     ctx.service_form_general_port = tostring(spec.port)
     ctx.provider_tab = provider_tab
@@ -281,40 +281,40 @@ function M.fetch_service_detail(sid: string): ()
 
     -- Jobs do projeto (aba Advanced → fila de pré-deploy check). Ver
     -- docs/plano-pre-deploy-gate.md.
-    local okj, resj = api:rpc{ JobList = { project_id = spec.project_id } }
-    local pdj = okj and resj.Jobs or nil
-    ctx.pre_deploy_checks = fmt.pre_deploy_queue(spec, pdj)
+    local job_list_ok, job_list_response = api:rpc{ JobList = { project_id = spec.project_id } }
+    local project_jobs = job_list_ok and job_list_response.Jobs or nil
+    ctx.pre_deploy_checks = fmt.pre_deploy_queue(spec, project_jobs)
     ctx.pre_deploy_checks_count = tostring(#(pre_deploy_checks_ids(spec)))
-    ctx.pre_deploy_available_jobs = fmt.pre_deploy_available(spec, pdj)
+    ctx.pre_deploy_available_jobs = fmt.pre_deploy_available(spec, project_jobs)
 
     -- Provedores Gitea conectados (para o picker de conta).
-    local okp, resp = api:rpc("GitProviderList")
-    if okp and resp.GitProviders then
-        ctx.gitea_providers = fmt.git_providers(resp.GitProviders)
-        ctx.gitea_count = tostring(#resp.GitProviders)
+    local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+    if git_provider_list_ok and git_provider_list_response.GitProviders then
+        ctx.gitea_providers = fmt.git_providers(git_provider_list_response.GitProviders)
+        ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
         -- Serviço já ligado a um provedor: pré-carrega repos/branches.
         if gen_provider_id ~= "" then
-            local okr, resr = api:rpc{ GitRepoList = { provider_id = gen_provider_id } }
-            if okr and resr.GitRepos then
-                ctx.gitea_repos = fmt.git_repos(resr.GitRepos)
-                ctx.gitea_message = tostring(#resr.GitRepos) .. " repositório(s)"
+            local git_repo_list_ok, git_repo_list_response = api:rpc{ GitRepoList = { provider_id = gen_provider_id } }
+            if git_repo_list_ok and git_repo_list_response.GitRepos then
+                ctx.gitea_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+                ctx.gitea_message = tostring(#git_repo_list_response.GitRepos) .. " repositório(s)"
                 local full
-                for _, r in ipairs(resr.GitRepos) do
-                    if r.clone_url == bound_url then
-                        full = r.full_name;
+                for _, git_repo in ipairs(git_repo_list_response.GitRepos) do
+                    if git_repo.clone_url == bound_url then
+                        full = git_repo.full_name;
                         break
                     end
                 end
                 if full then
                     ctx.gitea_repo = full
-                    local okb, resb = api:rpc{
+                    local git_branch_list_ok, git_branch_list_response = api:rpc{
                         GitBranchList = {
                             provider_id = gen_provider_id,
                             repo_full_name = full
                         }
                     }
-                    if okb and resb.GitBranches then
-                        ctx.gitea_branches = fmt.git_branches(resb.GitBranches)
+                    if git_branch_list_ok and git_branch_list_response.GitBranches then
+                        ctx.gitea_branches = fmt.git_branches(git_branch_list_response.GitBranches)
                     end
                 end
             end
@@ -328,13 +328,13 @@ end
 -- fetch do detalhe. As validações (campo vazio etc.) vivem nos handlers, antes
 -- de chamar with_spec; os closures só mutam o spec em lugar, sem retornar erro.
 local function with_spec(mutate: (spec: any) -> ()): ()
-    local sid = ctx.selected_service
+    local service_id = ctx.selected_service
     local api = State.api
-    if not api or sid == "" then
+    if not api or service_id == "" then
         return
     end
-    local ok, res = api:rpc{ ServiceGet = { id = sid } }
-    if not ok or not res.Service then
+    local service_get_ok, service_get_response = api:rpc{ ServiceGet = { id = service_id } }
+    if not service_get_ok or not service_get_response.Service then
         ctx.service_action_message = "erro ao carregar spec"
         toast{
             message = tostring("erro ao carregar o serviço"),
@@ -342,21 +342,21 @@ local function with_spec(mutate: (spec: any) -> ()): ()
         }
         return
     end
-    local spec = res.Service.spec
+    local spec = service_get_response.Service.spec
     mutate(spec)
-    local ok2, res2 = api:rpc_checked{
+    local service_update_ok, service_update_response = api:rpc_checked{
         ServiceUpdate = {
-            id = sid,
+            id = service_id,
             spec = spec
         }
     }
-    if ok2 then
+    if service_update_ok then
         ctx.service_action_message = "salvo"
         toast{ message = tostring("Salvo"), kind = "success" }
-        M.fetch_service_detail(sid)
+        M.fetch_service_detail(service_id)
     else
-        ctx.service_action_message = "erro: " .. res2
-        toast{ message = tostring(res2), kind = "error" }
+        ctx.service_action_message = "erro: " .. service_update_response
+        toast{ message = tostring(service_update_response), kind = "error" }
     end
 end
 
@@ -368,18 +368,18 @@ local SHAREABLE = { postgres = true, postgresql = true, mysql = true, mariadb = 
 
 -- Preenche service_can_share / service_shared e, se compartilhado, a lista de databases
 -- e de projetos (para o <select>).
-function M.load_shared_state(spec: any, sid: string): ()
+function M.load_shared_state(spec: any, service_id: string): ()
     local api = State.api
-    for _, k in ipairs({ "service_form_shared_database_name", "service_form_shared_database_project", "service_form_shared_database_env", "service_form_shared_database_limit", "service_form_shared_database_timeout", "shared_database_url", "shared_database_url_short" }) do
-        if ctx[k] == nil then ctx[k] = "" end
+    for _, key in ipairs({ "service_form_shared_database_name", "service_form_shared_database_project", "service_form_shared_database_env", "service_form_shared_database_limit", "service_form_shared_database_timeout", "shared_database_url", "shared_database_url_short" }) do
+        if ctx[key] == nil then ctx[key] = "" end
     end
     if ctx.service_form_shared_database_overwrite == nil then ctx.service_form_shared_database_overwrite = "false" end
     if ctx.service_form_shared_database_skip_env == nil then ctx.service_form_shared_database_skip_env = "false" end
     if ctx.service_shared_database_projects == nil then ctx.service_shared_database_projects = "[]" end
     local kind = spec.db_kind and string.lower(spec.db_kind) or ""
-    local can = SHAREABLE[kind] == true and spec.source.Compose ~= nil
-    ctx.service_can_share = can and "true" or "false"
-    local shared = can and spec.shared ~= nil
+    local can_share = SHAREABLE[kind] == true and spec.source.Compose ~= nil
+    ctx.service_can_share = can_share and "true" or "false"
+    local shared = can_share and spec.shared ~= nil
     ctx.service_shared = shared and "true" or "false"
     ctx.service_shared_databases = "[]"
     ctx.service_shared_databases_count = "0"
@@ -387,26 +387,26 @@ function M.load_shared_state(spec: any, sid: string): ()
         if ctx.tab == "databases" then ctx.tab = "general" end
         return
     end
-    local okp, resp = api:rpc("ProjectList")
+    local project_list_ok, project_list_response = api:rpc("ProjectList")
     local names = {}
     local projs = {}
-    if okp and resp.Projects then
-        for _, p in ipairs(resp.Projects) do
-            names[p.id] = p.name
-            table.insert(projs, { id = p.id, name = p.name })
+    if project_list_ok and project_list_response.Projects then
+        for _, project in ipairs(project_list_response.Projects) do
+            names[project.id] = project.name
+            table.insert(projs, { id = project.id, name = project.name })
         end
     end
     ctx.service_shared_database_projects = json.encode(projs)
-    local ok, res = api:rpc{ ManagedDatabaseList = { server_service_id = sid } }
+    local managed_database_list_ok, managed_database_list_response = api:rpc{ ManagedDatabaseList = { server_service_id = service_id } }
     local rows = {}
-    if ok and res.ManagedDatabases then
-        for _, d in ipairs(res.ManagedDatabases) do
+    if managed_database_list_ok and managed_database_list_response.ManagedDatabases then
+        for _, managed_database in ipairs(managed_database_list_response.ManagedDatabases) do
             table.insert(rows, {
-                id = d.id,
-                name = d.name,
-                project = names[d.project_id] or d.project_id,
-                env_var = d.env_var,
-                url = d.connection_url,
+                id = managed_database.id,
+                name = managed_database.name,
+                project = names[managed_database.project_id] or managed_database.project_id,
+                env_var = managed_database.env_var,
+                url = managed_database.connection_url,
             })
         end
     end
@@ -430,11 +430,11 @@ function shared_disable(): ()
     end)
 end
 
-function shared_database_show(id: string): ()
-    for _, d in ipairs(json.decode(ctx.service_shared_databases)) do
-        if d.id == id then
-            ctx.shared_database_url = d.url
-            ctx.shared_database_url_short = d.name .. " → " .. d.env_var
+function shared_database_show(shared_database_id: string): ()
+    for _, service_shared_database in ipairs(json.decode(ctx.service_shared_databases)) do
+        if service_shared_database.id == shared_database_id then
+            ctx.shared_database_url = service_shared_database.url
+            ctx.shared_database_url_short = service_shared_database.name .. " → " .. service_shared_database.env_var
             return
         end
     end
@@ -447,7 +447,7 @@ function shared_database_create(): ()
         toast{ message = "Informe o nome e o projeto consumidor", kind = "warning" }
         return
     end
-    local req = {
+    local create_request = {
         server_service_id = ctx.selected_service,
         project_id = ctx.service_form_shared_database_project,
         name = name,
@@ -458,32 +458,32 @@ function shared_database_create(): ()
         statement_timeout_ms = tonumber(Helpers.trim(ctx.service_form_shared_database_timeout)),
     }
     ctx.service_action_message = "criando database…"
-    local ok, res = api:rpc_checked{ ManagedDatabaseCreate = req }
-    if ok then
+    local managed_database_create_ok, managed_database_create_response = api:rpc_checked{ ManagedDatabaseCreate = create_request }
+    if managed_database_create_ok then
         toast{ message = "Database criado", kind = "success" }
         ctx.service_action_message = "database criado"
         ctx.service_form_shared_database_name = ""
         M.fetch_service_detail(ctx.selected_service)
     else
-        ctx.service_action_message = "erro: " .. res
-        toast{ message = tostring(res), kind = "error" }
+        ctx.service_action_message = "erro: " .. managed_database_create_response
+        toast{ message = tostring(managed_database_create_response), kind = "error" }
     end
 end
 
-function shared_database_delete(id: string): ()
-    local ok = confirm{
+function shared_database_delete(shared_database_id: string): ()
+    local confirmed = confirm{
         title = "Remover database?",
         message = "O database e o usuário são apagados do servidor, com todos os dados. Ação irreversível.",
         confirm_label = "Remover",
         destructive = true,
     }
-    if not ok then return end
-    local ok2, res = State.api:rpc_checked{ ManagedDatabaseDelete = { id = id } }
-    if ok2 then
+    if not confirmed then return end
+    local managed_database_delete_ok, managed_database_delete_response = State.api:rpc_checked{ ManagedDatabaseDelete = { id = shared_database_id } }
+    if managed_database_delete_ok then
         ctx.shared_database_url = ""
         M.fetch_service_detail(ctx.selected_service)
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(managed_database_delete_response), kind = "error" }
     end
 end
 
@@ -498,56 +498,56 @@ local function default_source_db(spec: any, project_env: { any }?): string
     -- Serviço primeiro, depois o projeto (mesma precedência do deploy).
     for _, vars in ipairs({ spec.env_vars or {}, project_env or {} }) do
         for _, key in ipairs({ "POSTGRES_DB", "MYSQL_DATABASE" }) do
-            for _, v in ipairs(vars) do
-                if v.key == key and v.value and v.value.Plain then return v.value.Plain end
+            for _, variable in ipairs(vars) do
+                if variable.key == key and variable.value and variable.value.Plain then return variable.value.Plain end
             end
         end
     end
     return ""
 end
 
-function M.load_migration_state(spec: any, sid: string, project_env: { any }?): ()
+function M.load_migration_state(spec: any, service_id: string, project_env: { any }?): ()
     local api = State.api
     local kind = spec.db_kind and string.lower(spec.db_kind) or ""
-    local can = SHAREABLE[kind] == true and spec.source.Compose ~= nil and spec.shared == nil
-    ctx.service_can_migrate = can and "true" or "false"
+    local can_migrate = SHAREABLE[kind] == true and spec.source.Compose ~= nil and spec.shared == nil
+    ctx.service_can_migrate = can_migrate and "true" or "false"
     ctx.migration_has = "false"
     ctx.migration_can_finish = "false"
-    if not can or not api then
+    if not can_migrate or not api then
         if ctx.tab == "migrar" then ctx.tab = "general" end
         return
     end
-    for _, k in ipairs({ "service_form_migration_destination", "service_form_migration_env", "migration_status", "migration_id", "migration_message" }) do
-        if ctx[k] == nil then ctx[k] = "" end
+    for _, key in ipairs({ "service_form_migration_destination", "service_form_migration_env", "migration_status", "migration_id", "migration_message" }) do
+        if ctx[key] == nil then ctx[key] = "" end
     end
     if ctx.service_form_migration_database == nil or ctx.service_form_migration_database == "" then ctx.service_form_migration_database = default_source_db(spec, project_env) end
-    local okd, resd = api:rpc("ManagedDatabaseListAll")
+    local managed_database_list_all_ok, managed_database_list_all_response = api:rpc("ManagedDatabaseListAll")
     local dests = {}
-    if okd and resd.ManagedDatabases then
-        for _, d in ipairs(resd.ManagedDatabases) do
-            if d.project_id == spec.project_id then
-                table.insert(dests, { id = d.id, name = d.name .. " (" .. d.env_var .. ")" })
+    if managed_database_list_all_ok and managed_database_list_all_response.ManagedDatabases then
+        for _, managed_database in ipairs(managed_database_list_all_response.ManagedDatabases) do
+            if managed_database.project_id == spec.project_id then
+                table.insert(dests, { id = managed_database.id, name = managed_database.name .. " (" .. managed_database.env_var .. ")" })
             end
         end
     end
     ctx.migration_destinations = json.encode(dests)
-    local ok, res = api:rpc{ MigrationList = { project_id = spec.project_id } }
-    if ok and res.Migrations then
-        for _, m in ipairs(res.Migrations) do
-            if m.source_service_id == sid then
+    local migration_list_ok, migration_list_response = api:rpc{ MigrationList = { project_id = spec.project_id } }
+    if migration_list_ok and migration_list_response.Migrations then
+        for _, migration in ipairs(migration_list_response.Migrations) do
+            if migration.source_service_id == service_id then
                 local steps = {}
-                for _, st in ipairs(m.steps) do
+                for _, step in ipairs(migration.steps) do
                     table.insert(steps, {
-                        name = st.name,
-                        icon = STEP_ICON[st.state] or "·",
-                        detail = st.detail or "",
+                        name = step.name,
+                        icon = STEP_ICON[step.state] or "·",
+                        detail = step.detail or "",
                     })
                 end
                 ctx.migration_steps = json.encode(steps)
-                ctx.migration_status = m.status
-                ctx.migration_id = m.id
+                ctx.migration_status = migration.status
+                ctx.migration_id = migration.id
                 ctx.migration_has = "true"
-                ctx.migration_can_finish = m.status == "Completed" and "true" or "false"
+                ctx.migration_can_finish = migration.status == "Completed" and "true" or "false"
                 return
             end
         end
@@ -568,58 +568,58 @@ function migration_start(): ()
         }
         return
     end
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Iniciar migração?",
         message = "Os serviços do projeto que usam este banco serão parados durante o dump/restore e subirão de novo no banco novo. O banco antigo é mantido (parado) para rollback.",
         confirm_label = "Migrar",
     }
-    if not ok then return end
-    local ok2, res = State.api:rpc_checked{ MigrationStart = {
+    if not confirmed then return end
+    local migration_start_ok, migration_start_response = State.api:rpc_checked{ MigrationStart = {
         source_service_id = ctx.selected_service,
         source_database = Helpers.trim(ctx.service_form_migration_database),
         dest_database_id = ctx.service_form_migration_destination,
         env_var = Helpers.trim(ctx.service_form_migration_env),
     } }
-    if ok2 then
+    if migration_start_ok then
         toast{ message = "Migração iniciada — use Atualizar para acompanhar", kind = "success" }
         M.fetch_service_detail(ctx.selected_service)
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(migration_start_response), kind = "error" }
     end
 end
 
 function migration_rollback(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Reverter a migração?",
         message = "A app volta ao banco antigo. O que foi escrito no banco novo depois da migração se perde.",
         confirm_label = "Reverter",
         destructive = true,
     }
-    if not ok then return end
-    local ok2, res = State.api:rpc_checked{
+    if not confirmed then return end
+    local migration_rollback_ok, migration_rollback_response = State.api:rpc_checked{
         MigrationRollback = {
             id = ctx.migration_id
         }
     }
-    if not ok2 then toast{ message = tostring(res), kind = "error" } end
+    if not migration_rollback_ok then toast{ message = tostring(migration_rollback_response), kind = "error" } end
     M.fetch_service_detail(ctx.selected_service)
 end
 
 function migration_discard(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Descartar o banco antigo?",
         message = "O serviço do banco antigo é removido, com os dados dele. Sem volta.",
         confirm_label = "Descartar",
         destructive = true,
     }
-    if not ok then return end
-    local ok2, res = State.api:rpc_checked{
+    if not confirmed then return end
+    local migration_discard_ok, migration_discard_response = State.api:rpc_checked{
         MigrationDiscard = {
             id = ctx.migration_id
         }
     }
-    if not ok2 then
-        toast{ message = tostring(res), kind = "error" }
+    if not migration_discard_ok then
+        toast{ message = tostring(migration_discard_response), kind = "error" }
         return
     end
     ctx.view = "projects"
@@ -672,8 +672,8 @@ function domain_add(): ()
             tls = ctx.service_form_tls == "true"
         }
         local found = false
-        for i, r in ipairs(spec.domains) do
-            if r.domain == domain then spec.domains[i] = route; found = true; break end
+        for index, existing_route in ipairs(spec.domains) do
+            if existing_route.domain == domain then spec.domains[index] = route; found = true; break end
         end
         if not found then table.insert(spec.domains, route) end
     end)
@@ -683,8 +683,8 @@ function domain_delete(domain: string): ()
     with_spec(function(spec: any): ()
         materialize_domains(spec)
         local kept = json.array{}
-        for _, r in ipairs(spec.domains) do
-            if r.domain ~= domain then table.insert(kept, r) end
+        for _, route in ipairs(spec.domains) do
+            if route.domain ~= domain then table.insert(kept, route) end
         end
         spec.domains = kept
     end)
@@ -720,12 +720,12 @@ end
 function healthcheck_save(): ()
     with_spec(function(spec: any): ()
         local kind = ctx.service_form_healthcheck_kind
-        local hk: any
+        local healthcheck_kind: any
         if kind == "none" then
-            hk = "None"
+            healthcheck_kind = "None"
         elseif kind == "http" then
             local path = Helpers.trim(ctx.service_form_healthcheck_path); if path == "" then path = "/" end
-            hk = {
+            healthcheck_kind = {
                 Http = {
                     path = path,
                     expected_status = tonumber(
@@ -734,36 +734,36 @@ function healthcheck_save(): ()
                 },
             }
         elseif kind == "docker" then
-            hk = "DockerNative"
+            healthcheck_kind = "DockerNative"
         else
-            hk = "Tcp"
+            healthcheck_kind = "Tcp"
         end
-        local cur = spec.healthcheck
+        local current_healthcheck = spec.healthcheck
         spec.healthcheck = {
-            kind = hk,
+            kind = healthcheck_kind,
             interval_secs = tonumber(
                 Helpers.trim(ctx.service_form_healthcheck_interval)
-            ) or cur.interval_secs,
+            ) or current_healthcheck.interval_secs,
             timeout_secs = tonumber(
                 Helpers.trim(ctx.service_form_healthcheck_timeout)
-            ) or cur.timeout_secs,
+            ) or current_healthcheck.timeout_secs,
             retries = tonumber(
                 Helpers.trim(ctx.service_form_healthcheck_retries)
-            ) or cur.retries,
+            ) or current_healthcheck.retries,
             start_period_secs = tonumber(
                 Helpers.trim(ctx.service_form_healthcheck_start)
-            ) or cur.start_period_secs,
+            ) or current_healthcheck.start_period_secs,
         }
     end)
 end
 
 function advanced_save(): ()
     with_spec(function(spec: any): ()
-        local r = tonumber(Helpers.trim(ctx.service_form_replicas)) or 1
-        if r < 1 then r = 1 end
-        spec.replicas = math.floor(r)
-        local rc = Helpers.trim(ctx.service_form_run_command)
-        spec.run_command = (rc ~= "") and rc or nil
+        local replicas = tonumber(Helpers.trim(ctx.service_form_replicas)) or 1
+        if replicas < 1 then replicas = 1 end
+        spec.replicas = math.floor(replicas)
+        local run_command = Helpers.trim(ctx.service_form_run_command)
+        spec.run_command = (run_command ~= "") and run_command or nil
     end)
 end
 
@@ -784,8 +784,8 @@ function pre_deploy_check_add(): ()
     with_spec(function(spec: any): ()
         materialize_pre_deploy(spec)
         local already = false
-        for _, id in ipairs(spec.pre_deploy_job_ids) do
-            if id == job_id then already = true; break end
+        for _, queued_job_id in ipairs(spec.pre_deploy_job_ids) do
+            if queued_job_id == job_id then already = true; break end
         end
         if not already then table.insert(spec.pre_deploy_job_ids, job_id) end
     end)
@@ -795,8 +795,8 @@ function pre_deploy_check_delete(job_id: string): ()
     with_spec(function(spec: any): ()
         materialize_pre_deploy(spec)
         local kept = json.array{}
-        for _, id in ipairs(spec.pre_deploy_job_ids) do
-            if id ~= job_id then table.insert(kept, id) end
+        for _, queued_job_id in ipairs(spec.pre_deploy_job_ids) do
+            if queued_job_id ~= job_id then table.insert(kept, queued_job_id) end
         end
         spec.pre_deploy_job_ids = kept
     end)
@@ -804,13 +804,13 @@ end
 
 -- Reordena a fila (arraste): `v` é um JSON array de job_ids na nova ordem
 -- (mesmo formato de `env_reorder` — o `reorder_key` do foreach é `id`).
-function pre_deploy_check_reorder(v: string?): ()
-    if not v then return end
-    local ok, ids = pcall(json.decode, v)
-    if not ok or type(ids) ~= "table" then return end
+function pre_deploy_check_reorder(reorder_json: string?): ()
+    if not reorder_json then return end
+    local json_decode_ok, job_ids = pcall(json.decode, reorder_json)
+    if not json_decode_ok or type(job_ids) ~= "table" then return end
     with_spec(function(spec: any): ()
         materialize_pre_deploy(spec)
-        spec.pre_deploy_job_ids = json.array(ids)
+        spec.pre_deploy_job_ids = json.array(job_ids)
     end)
 end
 
@@ -818,18 +818,18 @@ function general_save(): ()
     with_spec(function(spec: any): ()
         local port = tonumber(Helpers.trim(ctx.service_form_general_port))
         if port then spec.port = math.floor(port) end
-        local function ne(v: any, d: string): string
-            local t = Helpers.trim(v)
-            if t == "" then return d else return t end
+        local function ne(raw_value: any, fallback: string): string
+            local trimmed = Helpers.trim(raw_value)
+            if trimmed == "" then return fallback else return trimmed end
         end
-        local function opt(v: any): string?
-            local t = Helpers.trim(v)
-            if t == "" then return nil else return t end
+        local function opt(raw_value: any): string?
+            local trimmed = Helpers.trim(raw_value)
+            if trimmed == "" then return nil else return trimmed end
         end
         local repo = Helpers.trim(ctx.service_form_repo_url)
         local watch = json.array{}
         for part in string.gmatch(ctx.service_form_watch_paths or "", "[^,]+") do
-            local t = Helpers.trim(part); if t ~= "" then table.insert(watch, t) end
+            local trimmed_part = Helpers.trim(part); if trimmed_part ~= "" then table.insert(watch, trimmed_part) end
         end
         local git = { Git = {
             url = repo, branch = ne(ctx.service_form_branch, "main"),
@@ -855,9 +855,9 @@ end
 
 function archive_upload(): ()
     local api = State.api
-    local sid = ctx.selected_service or ""
+    local service_id = ctx.selected_service or ""
     local path = Helpers.trim(ctx.service_form_archive_path)
-    if not api or sid == "" then return end
+    if not api or service_id == "" then return end
     if path == "" then
         ctx.service_action_message = "informe o caminho do zip"
         return
@@ -873,14 +873,14 @@ function archive_upload(): ()
 
     ctx.service_action_message = "enviando zip…"
     local filename = path:match("([^/\\]+)$") or "archive.zip"
-    local ok, res = api:upload_archive(sid, filename, read.body)
-    if ok and res.Service then
+    local upload_archive_ok, upload_archive_response = api:upload_archive(service_id, filename, read.body)
+    if upload_archive_ok and upload_archive_response.Service then
         ctx.service_action_message = "zip enviado"
         toast{ message = tostring("Zip enviado"), kind = "success" }
-        M.fetch_service_detail(sid)
+        M.fetch_service_detail(service_id)
     else
-        ctx.service_action_message = "erro: " .. tostring(res)
-        toast{ message = tostring(res), kind = "error" }
+        ctx.service_action_message = "erro: " .. tostring(upload_archive_response)
+        toast{ message = tostring(upload_archive_response), kind = "error" }
     end
 end
 
@@ -891,36 +891,36 @@ end
 local function reorder_env(vars: {any}, comments: {any}, keys: {any}): ({any}, {any})
     local var_keys = {}
     local by_key = {}
-    for _, v in ipairs(vars) do var_keys[v.key] = true; by_key[v.key] = v end
+    for _, variable in ipairs(vars) do var_keys[variable.key] = true; by_key[variable.key] = variable end
     local seen = {}
     local new_vars = json.array{}
     local new_comments = json.array{}
-    for pos, k in ipairs(keys) do
-        local ci = k:match("^__c(%d+)$")
-        if ci then
-            local idx = (tonumber(ci) or 0) + 1 -- __c é 0-based
-            local c = comments[idx]
-            if c then
-                seen[idx] = true
+    for key_position, key in ipairs(keys) do
+        local comment_index_text = key:match("^__c(%d+)$")
+        if comment_index_text then
+            local comment_index = (tonumber(comment_index_text) or 0) + 1 -- __c é 0-based
+            local comment = comments[comment_index]
+            if comment then
+                seen[comment_index] = true
                 local anchor = nil
-                for j = pos + 1, #keys do
-                    if var_keys[keys[j]] then anchor = keys[j]; break end
+                for key_index = key_position + 1, #keys do
+                    if var_keys[keys[key_index]] then anchor = keys[key_index]; break end
                 end
-                table.insert(new_comments, { text = c.text, before_key = anchor })
+                table.insert(new_comments, { text = comment.text, before_key = anchor })
             end
-        elseif by_key[k] then
-            table.insert(new_vars, by_key[k])
-            by_key[k] = nil
+        elseif by_key[key] then
+            table.insert(new_vars, by_key[key])
+            by_key[key] = nil
         end
     end
-    for _, v in ipairs(vars) do
-        if by_key[v.key] then
-            table.insert(new_vars, v)
+    for _, variable in ipairs(vars) do
+        if by_key[variable.key] then
+            table.insert(new_vars, variable)
         end
     end
-    for idx, c in ipairs(comments) do
-        if not seen[idx] then
-            table.insert(new_comments, c)
+    for index, comment in ipairs(comments) do
+        if not seen[index] then
+            table.insert(new_comments, comment)
         end
     end
     return new_vars, new_comments
@@ -935,18 +935,18 @@ end
 function env_add(): ()
     -- rules="required" no form(...) garante a chave preenchida aqui.
     local key = Helpers.trim(ctx.env_new_key)
-    local val = ctx.env_new_value or ""
+    local raw_value = ctx.env_new_value or ""
     -- `<secret:NOME>`/`secret:NOME` digitado no campo valor vira referência de
     -- secret, como no editor .env (parse_dotenv) — é o caminho para valores
     -- sensíveis aqui, já que a aba do serviço não tem o toggle "usar secret" do
     -- projeto. O daemon decifra no deploy (deploy/env_resolve.rs).
-    local secret = Helpers.parse_secret_ref(val)
+    local secret = Helpers.parse_secret_ref(raw_value)
     with_spec(function(spec: any): ()
         local kept = json.array{}
-        for _, v in ipairs(spec.env_vars or {}) do
-            if v.key ~= key then table.insert(kept, v) end
+        for _, env_var in ipairs(spec.env_vars or {}) do
+            if env_var.key ~= key then table.insert(kept, env_var) end
         end
-        local value = secret and { Secret = secret } or { Plain = val }
+        local value = secret and { Secret = secret } or { Plain = raw_value }
         table.insert(kept, { key = key, value = value })
         spec.env_vars = kept
     end)
@@ -957,19 +957,19 @@ end
 function env_delete(key: string): ()
     with_spec(function(spec: any): ()
         local kept = json.array{}
-        for _, v in ipairs(spec.env_vars or {}) do
-            if v.key ~= key then
-                table.insert(kept, v)
+        for _, env_var in ipairs(spec.env_vars or {}) do
+            if env_var.key ~= key then
+                table.insert(kept, env_var)
             end
         end
         spec.env_vars = kept
-        local kc = json.array{}
-        for _, c in ipairs(spec.env_comments or {}) do
-            if c.before_key ~= key then
-                table.insert(kc, c)
+        local new_env_comments = json.array{}
+        for _, env_comment in ipairs(spec.env_comments or {}) do
+            if env_comment.before_key ~= key then
+                table.insert(new_env_comments, env_comment)
             end
         end
-        spec.env_comments = kc
+        spec.env_comments = new_env_comments
     end)
 end
 
@@ -998,16 +998,16 @@ function env_text_cancel(): ()
 end
 
 -- Reordena env (arraste): `value` é um JSON array de keys na nova ordem.
-function env_reorder(v: string?): ()
-    if not v then return end
-    local ok, keys = pcall(json.decode, v)
-    if not ok or type(keys) ~= "table" then
+function env_reorder(reorder_json: string?): ()
+    if not reorder_json then return end
+    local json_decode_ok, keys = pcall(json.decode, reorder_json)
+    if not json_decode_ok or type(keys) ~= "table" then
         return
     end
     with_spec(function(spec: any): ()
-        local nv, nc = reorder_env(spec.env_vars or {}, spec.env_comments or {}, keys)
-        spec.env_vars = nv
-        spec.env_comments = nc
+        local reordered_vars, reordered_comments = reorder_env(spec.env_vars or {}, spec.env_comments or {}, keys)
+        spec.env_vars = reordered_vars
+        spec.env_comments = reordered_comments
     end)
 end
 
@@ -1018,41 +1018,41 @@ end
 -- GetBuildLogs (ação despachada → fetch funciona) e semeia; a janela então segue
 -- ao vivo pelo endpoint dedicado /api/deployments/<id>/build-logs. Isola o custo
 -- de rolar milhares de linhas de build fora da árvore da janela principal.
-function deployment_logs(id: string): ()
-    if not id or id == "" then
+function deployment_logs(deployment_id: string): ()
+    if not deployment_id or deployment_id == "" then
         return
     end
     local seed = "[]"
     local api = State.api
     if api then
-        local ok, res = api:rpc{ GetBuildLogs = { deployment_id = id } }
-        if ok and res.BuildLogs then
-            seed = json.encode(res.BuildLogs)
+        local get_build_logs_ok, get_build_logs_response = api:rpc{ GetBuildLogs = { deployment_id = deployment_id } }
+        if get_build_logs_ok and get_build_logs_response.BuildLogs then
+            seed = json.encode(get_build_logs_response.BuildLogs)
         end
     end
     open_window{
         component = "log", size = "900 560", decorations = false,
-        title = "Build — " .. string.sub(id, 1, 12),
+        title = "Build — " .. string.sub(deployment_id, 1, 12),
         resizable = true,
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            log_window_title = "Build logs · " .. string.sub(id, 1, 12),
-            log_window_stream_url = "/api/deployments/" .. id .. "/build-logs",
+            log_window_title = "Build logs · " .. string.sub(deployment_id, 1, 12),
+            log_window_stream_url = "/api/deployments/" .. deployment_id .. "/build-logs",
             log_window_seed = seed,
         },
     }
 end
 
-function delete_deployment(id: string): ()
-    local ok_confirm = confirm{
+function delete_deployment(deployment_id: string): ()
+    local confirmed = confirm{
         title = "Remover deployment?",
         message = "O registro do deployment e seus build logs serão removidos. Essa ação não pode ser desfeita.",
         confirm_label = "Remover",
         destructive = true,
     }
 
-    if not ok_confirm then
+    if not confirmed then
         return
     end
 
@@ -1060,10 +1060,10 @@ function delete_deployment(id: string): ()
     if not api then
         return
     end
-    local ok, res = api:rpc_checked{ DeployDelete = { deployment_id = id } }
-    ctx.service_action_message = ok and "deployment removido" or ("erro: " .. res)
-    if not ok then
-        toast{ message = tostring(res), kind = "error" }
+    local deploy_delete_ok, deploy_delete_response = api:rpc_checked{ DeployDelete = { deployment_id = deployment_id } }
+    ctx.service_action_message = deploy_delete_ok and "deployment removido" or ("erro: " .. deploy_delete_response)
+    if not deploy_delete_ok then
+        toast{ message = tostring(deploy_delete_response), kind = "error" }
     end
     M.fetch_service_detail(ctx.selected_service)
 end
@@ -1084,97 +1084,97 @@ end
 -- GitHub/Gitea/Docker Hub com a URL anterior passa a receber 401. Por isso passa
 -- pelo confirm.
 function regen_webhook(): ()
-    local ok_confirm = confirm{
+    local confirmed = confirm{
         title = "Regenerar token do webhook?",
         message = "A URL atual para de funcionar imediatamente. Você precisará recadastrá-la no provedor (GitHub, Gitea, Docker Hub…).",
         confirm_label = "Regenerar",
         destructive = true,
     }
 
-    if not ok_confirm then
+    if not confirmed then
         return
     end
 
     local api = State.api
-    local sid = ctx.selected_service
-    if not api or sid == "" then
+    local service_id = ctx.selected_service
+    if not api or service_id == "" then
         return
     end
-    local ok, res = api:rpc_checked{
+    local regenerate_webhook_token_ok, regenerate_webhook_token_response = api:rpc_checked{
         RegenerateWebhookToken = {
-            service_id = sid
+            service_id = service_id
         }
     }
-    if ok and type(res) == "table" and res.WebhookUrl then
-        M.set_webhook_url(res.WebhookUrl)
+    if regenerate_webhook_token_ok and type(regenerate_webhook_token_response) == "table" and regenerate_webhook_token_response.WebhookUrl then
+        M.set_webhook_url(regenerate_webhook_token_response.WebhookUrl)
         ctx.service_action_message = "token do webhook regenerado"
         toast{ message = tostring("Token do webhook regenerado"), kind = "success" }
     else
-        local msg = type(res) == "string" and res or "falha ao regenerar o token"
-        ctx.service_action_message = "erro: " .. msg
-        toast{ message = tostring(msg), kind = "error" }
+        local error_message = type(regenerate_webhook_token_response) == "string" and regenerate_webhook_token_response or "falha ao regenerar o token"
+        ctx.service_action_message = "erro: " .. error_message
+        toast{ message = tostring(error_message), kind = "error" }
     end
 end
 
 
 -- ── Ciclo de vida do serviço ─────────────────────────────────────────────────
 
-local function service_lifecycle(cmd: any, msg: string): ()
-    local sid = ctx.selected_service
+local function service_lifecycle(command: any, message: string): ()
+    local service_id = ctx.selected_service
     local api = State.api
-    if not api or sid == "" then
+    if not api or service_id == "" then
         return
     end
-    ctx.service_action_message = msg
-    local ok, res = api:rpc_checked(cmd)
-    if not ok then
-        ctx.service_action_message = "erro: " .. res
+    ctx.service_action_message = message
+    local rpc_ok, rpc_response = api:rpc_checked(command)
+    if not rpc_ok then
+        ctx.service_action_message = "erro: " .. rpc_response
     end
-    M.fetch_service_detail(sid)
+    M.fetch_service_detail(service_id)
 end
 
 -- Deploy de um serviço (a partir de um card / detalhe). Arma deploy_track para
 -- o timer decorrido (atualizado pelo snapshot de 2s, via engine.active) e o
 -- desfecho (via evento bus DeployStateChanged, ver handlers/stream.luau).
-local function start_deploy(id: string?): ()
-    local sid = (id and id ~= "") and id or ctx.selected_service
+local function start_deploy(requested_service_id: string?): ()
+    local service_id = (requested_service_id and requested_service_id ~= "") and requested_service_id or ctx.selected_service
     local api = State.api
-    if not api or not sid or sid == "" then
+    if not api or not service_id or service_id == "" then
         return
     end
     ctx.service_action_message = "iniciando deploy…"
     ctx.service_action_color = "#58A6FF"
     -- Nome do serviço (para a notificação do SO no desfecho, ver stream.luau):
     -- resolvido agora, do snapshot corrente, pois o evento só traz o service_id.
-    local sname = ""
-    for _, e in ipairs(State.last_pairs) do
-        if e.svc.id == sid then
-            sname = e.svc.spec.name
+    local service_name = ""
+    for _, last_pair in ipairs(State.last_pairs) do
+        if last_pair.svc.id == service_id then
+            service_name = last_pair.svc.spec.name
             break
         end
     end
-    local ok, res = api:rpc_checked{
+    local deploy_start_ok, deploy_start_response = api:rpc_checked{
         DeployStart = {
-            service_id = sid
+            service_id = service_id
         }
     }
-    if ok and res.Deployment then
+    if deploy_start_ok and deploy_start_response.Deployment then
         State.deploy_track = {
-            service_id = sid,
-            deployment_id = res.Deployment.id,
-            running = true, name = sname
+            service_id = service_id,
+            deployment_id = deploy_start_response.Deployment.id,
+            running = true, name = service_name
         }
         ctx.service_deploy_running = "true"
         ctx.service_deploy_elapsed = "0s"
-        ctx.service_action_message = "deploy iniciado · " .. tostring(res.Deployment.state)
+        ctx.service_action_message = "deploy iniciado · " .. tostring(deploy_start_response.Deployment.state)
         toast{ message = tostring("Deploy iniciado"), kind = "success" }
     else
-        ctx.service_action_message = ok and "resposta inesperada" or ("erro: " .. res)
+        ctx.service_action_message = deploy_start_ok and "resposta inesperada" or ("erro: " .. deploy_start_response)
         ctx.service_action_color = "#F85149"
-        toast{ message = tostring(ok and "resposta inesperada do daemon" or res), kind = "error" }
+        toast{ message = tostring(deploy_start_ok and "resposta inesperada do daemon" or deploy_start_response), kind = "error" }
     end
-    if ctx.selected_service == sid then
-        M.fetch_service_detail(sid)
+    if ctx.selected_service == service_id then
+        M.fetch_service_detail(service_id)
     end
 end
 
@@ -1195,14 +1195,14 @@ function service_reload(): ()
 end
 
 function service_stop(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Parar serviço?",
         message = "O tráfego para este serviço será interrompido até um novo deploy.",
         confirm_label = "Parar",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
@@ -1217,22 +1217,22 @@ end
 
 -- ── Picker Gitea (conta → repos → branches) ─────────────────────────────────
 
-function gitea_provider_pick(id: string): ()
-    ctx.gitea_provider_id = id or ""
+function gitea_provider_pick(provider_id: string): ()
+    ctx.gitea_provider_id = provider_id or ""
     ctx.gitea_repo = ""
     ctx.gitea_repos = "[]"
     ctx.gitea_branches = "[]"
     local api = State.api
-    if not api or id == "" then
+    if not api or provider_id == "" then
         return
     end
     ctx.gitea_message = "carregando repositórios…"
     ctx.gitea_busy = "true"
-    local ok, res = api:rpc{ GitRepoList = { provider_id = id } }
+    local git_repo_list_ok, git_repo_list_response = api:rpc{ GitRepoList = { provider_id = provider_id } }
     ctx.gitea_busy = ""
-    if ok and res.GitRepos then
-        ctx.gitea_repos = fmt.git_repos(res.GitRepos)
-        ctx.gitea_message = tostring(#res.GitRepos) .. " repositório(s)"
+    if git_repo_list_ok and git_repo_list_response.GitRepos then
+        ctx.gitea_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+        ctx.gitea_message = tostring(#git_repo_list_response.GitRepos) .. " repositório(s)"
     else
         ctx.gitea_message = "erro ao listar repositórios"
     end
@@ -1244,38 +1244,38 @@ function gitea_repo_pick(full_name: string): ()
     end
     ctx.gitea_repo = full_name
     -- Resolve clone_url/branch a partir da lista já carregada.
-    local ok, repos = pcall(json.decode, ctx.gitea_repos or "[]")
-    if ok and type(repos) == "table" then
-        for _, r in ipairs(repos) do
-            if r.full_name == full_name then
-                if r.clone_url and r.clone_url ~= "" then
-                    ctx.service_form_repo_url = r.clone_url
+    local json_decode_ok, repos = pcall(json.decode, ctx.gitea_repos or "[]")
+    if json_decode_ok and type(repos) == "table" then
+        for _, repo in ipairs(repos) do
+            if repo.full_name == full_name then
+                if repo.clone_url and repo.clone_url ~= "" then
+                    ctx.service_form_repo_url = repo.clone_url
                 end
-                if r.default_branch and r.default_branch ~= "" then
-                    ctx.service_form_branch = r.default_branch
+                if repo.default_branch and repo.default_branch ~= "" then
+                    ctx.service_form_branch = repo.default_branch
                 end
                 break
             end
         end
     end
     ctx.gitea_branches = "[]"
-    local pid = ctx.gitea_provider_id or ""
+    local provider_id = ctx.gitea_provider_id or ""
     local api = State.api
-    if not api or pid == "" then
+    if not api or provider_id == "" then
         return
     end
     ctx.gitea_message = "carregando branches…"
     ctx.gitea_busy = "true"
-    local okb, resb = api:rpc{
+    local git_branch_list_ok, git_branch_list_response = api:rpc{
         GitBranchList = {
-            provider_id = pid,
+            provider_id = provider_id,
             repo_full_name = full_name
         }
     }
     ctx.gitea_busy = ""
-    if okb and resb.GitBranches then
-        ctx.gitea_branches = fmt.git_branches(resb.GitBranches)
-        ctx.gitea_message = tostring(#resb.GitBranches) .. " branch(es)"
+    if git_branch_list_ok and git_branch_list_response.GitBranches then
+        ctx.gitea_branches = fmt.git_branches(git_branch_list_response.GitBranches)
+        ctx.gitea_message = tostring(#git_branch_list_response.GitBranches) .. " branch(es)"
     else
         ctx.gitea_message = "erro ao listar branches"
     end
@@ -1289,32 +1289,32 @@ end
 -- contrário do init de uma janela) — pegamos o tail na hora para não haver vão
 -- entre o que a principal tinha e o que a stream ao vivo passa a entregar.
 function open_logs_window(): ()
-    local sid = ctx.selected_service or ""
-    if sid == "" then
+    local service_id = ctx.selected_service or ""
+    if service_id == "" then
         return
     end
     local seed = "[]"
     local api = State.api
     if api then
-        local ok, res = api:rpc{
+        local logs_get_ok, logs_get_response = api:rpc{
             LogsGet = {
-                service_id = sid,
+                service_id = service_id,
                 tail = 500
             }
         }
-        if ok and res.Logs then
-            seed = json.encode(res.Logs)
+        if logs_get_ok and logs_get_response.Logs then
+            seed = json.encode(logs_get_response.Logs)
         end
     end
     open_window{
         component = "log", size = "900 560", decorations = false,
-        title = "Logs — " .. (ctx.service_name or sid),
+        title = "Logs — " .. (ctx.service_name or service_id),
         resizable = true,
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            log_window_title = "Logs · " .. (ctx.service_name or sid),
-            log_window_stream_url = "/api/services/" .. sid .. "/logs",
+            log_window_title = "Logs · " .. (ctx.service_name or service_id),
+            log_window_stream_url = "/api/services/" .. service_id .. "/logs",
             log_window_seed = seed,
         },
     }

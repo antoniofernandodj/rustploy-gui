@@ -15,19 +15,19 @@ local M = {}
 
 -- Lista de containers do serviço (id + nome + estado) → linhas para a UI de
 -- detalhe. `list` = Vec<ManagedContainer> anexado ao serviço no snapshot.
-function M.containers(list: { Types.ManagedContainer }?): string
+function M.containers(containers: { Types.ManagedContainer }?): string
     local rows = {}
-    for _, c in ipairs(list or {}) do
+    for _, container in ipairs(containers or {}) do
         local color = "#8B949E"
-        if c.state == "running" then color = "#3FB950"
-        elseif c.state == "restarting" or c.state == "created" or c.state == "paused" then
+        if container.state == "running" then color = "#3FB950"
+        elseif container.state == "restarting" or container.state == "created" or container.state == "paused" then
             color = "#D29922"
         end
         table.insert(rows, {
-            id = c.id or "",
-            id_short = string.sub(c.id or "", 1, 12),
-            name = c.name or "—",
-            state = c.state or "—",
+            id = container.id or "",
+            id_short = string.sub(container.id or "", 1, 12),
+            name = container.name or "—",
+            state = container.state or "—",
             state_color = color,
         })
     end
@@ -43,29 +43,29 @@ function M.source_summary3(source: any): (string, string, string)
     if type(source) ~= "table" then return "—", "—", "—" end
     if source.Registry then return "Registry", source.Registry.image or "—", "—"
     elseif source.Git then
-        local g = source.Git
-        return "Git", (g.url or "") .. " @ " .. (g.branch or ""), g.dockerfile_path or "Dockerfile"
+        local git_source = source.Git
+        return "Git", (git_source.url or "") .. " @ " .. (git_source.branch or ""), git_source.dockerfile_path or "Dockerfile"
     elseif source.Archive then
-        local a = source.Archive
-        return "Zip", a.original_filename or a.archive_id or "zip enviado", a.dockerfile_path or "Dockerfile"
+        local archive_source = source.Archive
+        return "Zip", archive_source.original_filename or archive_source.archive_id or "zip enviado", archive_source.dockerfile_path or "Dockerfile"
     elseif source.Compose then return "Compose", "docker-compose", "Compose"
     end
     return "—", "—", "—"
 end
 
 -- Resumo de uma linha do healthcheck.
-function M.healthcheck_summary(hc: any): string
-    local k = hc.kind
+function M.healthcheck_summary(healthcheck: any): string
+    local healthcheck_kind = healthcheck.kind
     local kind: string
-    if type(k) == "table" and k.Http then
-        kind = "HTTP " .. (k.Http.path or "") .. " → " .. tostring(k.Http.expected_status)
-    elseif k == "None" then
+    if type(healthcheck_kind) == "table" and healthcheck_kind.Http then
+        kind = "HTTP " .. (healthcheck_kind.Http.path or "") .. " → " .. tostring(healthcheck_kind.Http.expected_status)
+    elseif healthcheck_kind == "None" then
         return "disabled"
-    elseif k == "Tcp" then kind = "TCP"
-    elseif k == "DockerNative" then kind = "Docker"
-    else kind = tostring(k) end
+    elseif healthcheck_kind == "Tcp" then kind = "TCP"
+    elseif healthcheck_kind == "DockerNative" then kind = "Docker"
+    else kind = tostring(healthcheck_kind) end
     return string.format("%s · every %ss · timeout %ss · %s retries",
-        kind, tostring(hc.interval_secs), tostring(hc.timeout_secs), tostring(hc.retries))
+        kind, tostring(healthcheck.interval_secs), tostring(healthcheck.timeout_secs), tostring(healthcheck.retries))
 end
 
 -- Nome máximo (em caracteres) de uma chave de env var na lista da UI — nomes
@@ -79,15 +79,15 @@ local ENV_KEY_MAX = 30
 -- literal `Plain("secret:t")` renderizavam EXATAMENTE igual ("secret:t"), e não
 -- havia como saber, olhando a lista, se o container ia receber o segredo ou a
 -- string crua — que é o sintoma de quem errou a sintaxe da referência.
-local function env_var_row(v: EnvVar)
+local function env_var_row(env_var: EnvVar)
     local value: string
     local kind: string
-    if v.value and v.value.Secret ~= nil then
-        value, kind = "🔒 secret:" .. (v.value.Secret :: string), "secret"
+    if env_var.value and env_var.value.Secret ~= nil then
+        value, kind = "🔒 secret:" .. (env_var.value.Secret :: string), "secret"
     else
-        value, kind = (v.value and v.value.Plain) or "", "plain"
+        value, kind = (env_var.value and env_var.value.Plain) or "", "plain"
     end
-    return { key = v.key, key_display = Util.ellipsis(v.key, ENV_KEY_MAX), value = value, kind = kind }
+    return { key = env_var.key, key_display = Util.ellipsis(env_var.key, ENV_KEY_MAX), value = value, kind = kind }
 end
 
 -- Secrets do projeto como linhas JSON. Só nomes: o daemon nunca devolve o valor
@@ -95,8 +95,8 @@ end
 -- write-only — cria/sobrescreve e apaga, sem nunca exibir o conteúdo.
 function M.secret_rows(names: {string}?): string
     local rows = {}
-    for _, n in ipairs(names or {}) do
-        table.insert(rows, { name = n, name_display = Util.ellipsis(n, ENV_KEY_MAX) })
+    for _, name in ipairs(names or {}) do
+        table.insert(rows, { name = name, name_display = Util.ellipsis(name, ENV_KEY_MAX) })
     end
     return Util.enc_array(rows)
 end
@@ -107,22 +107,22 @@ function M.env_json_with_comments(vars: {EnvVar}?, comments: {EnvComment}?): str
     local active_vars = vars or {}
     local active_comments = comments or {}
     local rows = {}
-    for _, v in ipairs(active_vars) do
-        for i, c in ipairs(active_comments) do
-            if c.before_key == v.key then
+    for _, active_var in ipairs(active_vars) do
+        for index, active_comment in ipairs(active_comments) do
+            if active_comment.before_key == active_var.key then
                 table.insert(rows, {
-                    key = "__c" .. (i - 1),
-                    value = c.text, kind = "comment"
+                    key = "__c" .. (index - 1),
+                    value = active_comment.text, kind = "comment"
                 })
             end
         end
-        table.insert(rows, env_var_row(v))
+        table.insert(rows, env_var_row(active_var))
     end
-    for i, c in ipairs(active_comments) do
-        if c.before_key == nil then
+    for index, active_comment in ipairs(active_comments) do
+        if active_comment.before_key == nil then
             table.insert(rows, {
-                key = "__c" .. (i - 1),
-                value = c.text, kind = "comment"
+                key = "__c" .. (index - 1),
+                value = active_comment.text, kind = "comment"
             })
         end
     end
@@ -134,20 +134,20 @@ function M.env_dotenv_with_comments(vars: {EnvVar}?, comments: {EnvComment}?): s
     local active_vars = vars or {}
     local active_comments = comments or {}
     local lines: {string} = {}
-    for _, v in ipairs(active_vars) do
-        for _, c in ipairs(active_comments) do
-            if c.before_key == v.key then table.insert(lines, c.text) end
+    for _, active_var in ipairs(active_vars) do
+        for _, active_comment in ipairs(active_comments) do
+            if active_comment.before_key == active_var.key then table.insert(lines, active_comment.text) end
         end
-        local val: string
-        if v.value and v.value.Secret ~= nil then
-            val = "<secret:" .. (v.value.Secret :: string) .. ">"
+        local display_value: string
+        if active_var.value and active_var.value.Secret ~= nil then
+            display_value = "<secret:" .. (active_var.value.Secret :: string) .. ">"
         else
-            val = (v.value and v.value.Plain) or ""
+            display_value = (active_var.value and active_var.value.Plain) or ""
         end
-        table.insert(lines, tostring(v.key) .. "=" .. val)
+        table.insert(lines, tostring(active_var.key) .. "=" .. display_value)
     end
-    for _, c in ipairs(active_comments) do
-        if c.before_key == nil then table.insert(lines, c.text) end
+    for _, active_comment in ipairs(active_comments) do
+        if active_comment.before_key == nil then table.insert(lines, active_comment.text) end
     end
     return table.concat(lines, "\n")
 end
@@ -165,15 +165,15 @@ local LINE_MAX = 2000
 -- Linhas de log (LogEntry/BuildLogLine: {stream, line, timestamp}) coloridas,
 -- limpas de ANSI e limitadas à cauda (RENDER_ROWS) p/ o custo de render ficar
 -- limitado independentemente do tamanho do histórico.
-local function log_rows(list: {any}?): string
-    local src = list or {}
+local function log_rows(log_entries: {any}?): string
+    local src = log_entries or {}
     local start = math.max(1, #src - RENDER_ROWS + 1)
     local rows = {}
-    for i = start, #src do
-        local e = src[i]
-        local color = (e.stream == "Stderr") and "#F85149" or "#9DA7B3"
-        local line = Util.ellipsis(Util.strip_ansi(e.line), LINE_MAX)
-        table.insert(rows, { time = Time.time_hms(e.timestamp), line = line, color = color })
+    for index = start, #src do
+        local log_entry = src[index]
+        local color = (log_entry.stream == "Stderr") and "#F85149" or "#9DA7B3"
+        local line = Util.ellipsis(Util.strip_ansi(log_entry.line), LINE_MAX)
+        table.insert(rows, { time = Time.time_hms(log_entry.timestamp), line = line, color = color })
     end
     return Util.enc_array(rows)
 end
@@ -182,28 +182,28 @@ M.build_logs_json = log_rows
 
 -- Junta linhas de log num blob de texto ("HH:MM:SS line") p/ o TextArea/copiar.
 -- Sem ANSI (mas sem cap de linhas: é o conteúdo completo p/ copiar).
-function M.join_log_lines(list: {any}?): string
+function M.join_log_lines(log_entries: {any}?): string
     local out: {string} = {}
-    for _, e in ipairs(list or {}) do
-        table.insert(out, Time.time_hms(e.timestamp) .. " " .. Util.strip_ansi(e.line))
+    for _, log_entry in ipairs(log_entries or {}) do
+        table.insert(out, Time.time_hms(log_entry.timestamp) .. " " .. Util.strip_ansi(log_entry.line))
     end
     return table.concat(out, "\n")
 end
 
 -- Histórico de deployments de um serviço (aba Deployments).
-function M.deployments_detail(list: {any}?): string
+function M.deployments_detail(deployments: {any}?): string
     local rows = {}
-    for _, d in ipairs(list or {}) do
-        local label = Util.state_label_color(d.state)
+    for _, deployment in ipairs(deployments or {}) do
+        local label = Util.state_label_color(deployment.state)
         table.insert(rows, {
-            id = string.sub(d.id, 1, 12),
-            id_full = d.id,
-            image = d.image,
+            id = string.sub(deployment.id, 1, 12),
+            id_full = deployment.id,
+            image = deployment.image,
             state_label = label,
-            state_kind = Util.state_kind(d.state),
-            duration = Time.fmt_duration(d),
-            start = Time.date_dm_hms(d.started_at),
-            can_delete = is_terminal(d.state) and "1" or "0",
+            state_kind = Util.state_kind(deployment.state),
+            duration = Time.fmt_duration(deployment),
+            start = Time.date_dm_hms(deployment.started_at),
+            can_delete = is_terminal(deployment.state) and "1" or "0",
         })
     end
     return Util.enc_array(rows)
@@ -212,13 +212,13 @@ end
 -- Rotas HTTP de um spec (aba Domains).
 function M.domains_json(spec: ServiceSpec): string
     local rows = {}
-    for _, r in ipairs(Util.domain_routes(spec)) do
-        local cport = r.port or spec.port
+    for _, route in ipairs(Util.domain_routes(spec)) do
+        local route_port = route.port or spec.port
         table.insert(rows, {
-            domain = r.domain,
-            port = tostring(cport),
-            tls = r.tls and "true" or "false",
-            tls_label = r.tls and "TLS" or "—",
+            domain = route.domain,
+            port = tostring(route_port),
+            tls = route.tls and "true" or "false",
+            tls_label = route.tls and "TLS" or "—",
         })
     end
     return Util.enc_array(rows)
@@ -228,29 +228,29 @@ end
 function M.safe_name(name: string): string
     local out: {string} = {}
     local last_dash = true
-    for i = 1, #name do
-        local ch = string.sub(name, i, i)
-        if string.match(ch, "%w") then
-            table.insert(out, string.lower(ch))
+    for index = 1, #name do
+        local character = string.sub(name, index, index)
+        if string.match(character, "%w") then
+            table.insert(out, string.lower(character))
             last_dash = false
         elseif not last_dash then
             table.insert(out, "_")
             last_dash = true
         end
     end
-    local s = table.concat(out)
-    return (s:gsub("^_+", ""):gsub("_+$", ""))
+    local slug = table.concat(out)
+    return (slug:gsub("^_+", ""):gsub("_+$", ""))
 end
 
 local function internal_scheme(db_kind: string?): string?
-    local k = db_kind and string.lower(db_kind) or nil
-    if k == "postgres" or k == "postgresql" then return "postgresql"
-    elseif k == "mysql" or k == "mariadb" then return "mysql"
-    elseif k == "redis" then return "redis"
-    elseif k == "mongodb" or k == "mongo" then return "mongodb"
-    elseif k == "rabbitmq" then return "amqp"
-    elseif k == "nats" then return "nats"
-    elseif k == "kafka" then return nil
+    local normalized_kind = db_kind and string.lower(db_kind) or nil
+    if normalized_kind == "postgres" or normalized_kind == "postgresql" then return "postgresql"
+    elseif normalized_kind == "mysql" or normalized_kind == "mariadb" then return "mysql"
+    elseif normalized_kind == "redis" then return "redis"
+    elseif normalized_kind == "mongodb" or normalized_kind == "mongo" then return "mongodb"
+    elseif normalized_kind == "rabbitmq" then return "amqp"
+    elseif normalized_kind == "nats" then return "nats"
+    elseif normalized_kind == "kafka" then return nil
     else return "http" end
 end
 
@@ -286,18 +286,18 @@ end
 
 -- Extrai só o host (sem esquema/porta) de uma api_url tipo "https://1.2.3.4:8443".
 local function url_host(api_url: string?): string?
-    local u = api_url and api_url:gsub("%s", "") or ""
-    if u == "" then return nil end
-    local rest = string.match(u, "^[%a][%w+.-]*://(.*)$") or u
+    local normalized_url = api_url and api_url:gsub("%s", "") or ""
+    if normalized_url == "" then return nil end
+    local rest = string.match(normalized_url, "^[%a][%w+.-]*://(.*)$") or normalized_url
     local host = string.match(rest, "^([^:/]+)")
     return host and host ~= "" and host or nil
 end
 
 -- Valor Plain de uma env var pela chave (secrets/ausentes → nil).
 local function env_plain(vars: {EnvVar}?, key: string): string?
-    for _, v in ipairs(vars or {}) do
-        if v.key == key and v.value and v.value.Plain ~= nil and v.value.Plain ~= "" then
-            return v.value.Plain
+    for _, variable in ipairs(vars or {}) do
+        if variable.key == key and variable.value and variable.value.Plain ~= nil and variable.value.Plain ~= "" then
+            return variable.value.Plain
         end
     end
     return nil
@@ -307,16 +307,16 @@ end
 -- env vars nas mesmas convenções que o wizard grava (ver shared::wizard).
 -- Retorna nil em cada campo que não se aplica ao db_kind.
 local function db_credentials(db_kind: string?, vars: {EnvVar}?): (string?, string?, string?)
-    local k = db_kind and string.lower(db_kind) or nil
-    if k == "postgres" or k == "postgresql" then
+    local normalized_kind = db_kind and string.lower(db_kind) or nil
+    if normalized_kind == "postgres" or normalized_kind == "postgresql" then
         return env_plain(vars, "POSTGRES_DB"), env_plain(vars, "POSTGRES_USER"), env_plain(vars, "POSTGRES_PASSWORD")
-    elseif k == "mysql" or k == "mariadb" then
+    elseif normalized_kind == "mysql" or normalized_kind == "mariadb" then
         return env_plain(vars, "MYSQL_DATABASE"), env_plain(vars, "MYSQL_USER"), env_plain(vars, "MYSQL_PASSWORD")
-    elseif k == "mongodb" or k == "mongo" then
+    elseif normalized_kind == "mongodb" or normalized_kind == "mongo" then
         return nil, env_plain(vars, "MONGO_INITDB_ROOT_USERNAME"), env_plain(vars, "MONGO_INITDB_ROOT_PASSWORD")
-    elseif k == "redis" then
+    elseif normalized_kind == "redis" then
         return nil, nil, env_plain(vars, "REDIS_PASSWORD")
-    elseif k == "rabbitmq" then
+    elseif normalized_kind == "rabbitmq" then
         return nil, env_plain(vars, "RABBITMQ_DEFAULT_USER"), env_plain(vars, "RABBITMQ_DEFAULT_PASS")
     end
     return nil, nil, nil
@@ -342,9 +342,9 @@ end
 -- Percent-encode de um componente de userinfo (user/password) — protege chars
 -- estruturais do URI (`@`, `:`, `/`, `?`, `#`, …). Senhas do wizard usam base64
 -- url-safe (só passa reto), mas senhas custom podem ter reservados.
-local function pct(s: string): string
-    return (s:gsub("[^%w%-._~]", function(c: string): string
-        return string.format("%%%02X", string.byte(c))
+local function pct(text: string): string
+    return (text:gsub("[^%w%-._~]", function(character: string): string
+        return string.format("%%%02X", string.byte(character))
     end))
 end
 
@@ -352,24 +352,24 @@ end
 --   user+pass → "user:pass@"  |  só pass (ex.: Redis) → ":pass@"
 --   só user   → "user@"       |  nenhum → "" (sem `@`)
 local function userinfo(user: string?, password: string?): string
-    local u = (user and user ~= "") and pct(user) or ""
-    local p = (password and password ~= "") and pct(password) or ""
-    if u == "" and p == "" then return "" end
-    if p == "" then return u .. "@" end
-    return u .. ":" .. p .. "@"
+    local encoded_user = (user and user ~= "") and pct(user) or ""
+    local encoded_password = (password and password ~= "") and pct(password) or ""
+    if encoded_user == "" and encoded_password == "" then return "" end
+    if encoded_password == "" then return encoded_user .. "@" end
+    return encoded_user .. ":" .. encoded_password .. "@"
 end
 
 -- Esquema de URI externo por banco (userinfo). Difere do `internal_scheme` em
 -- dois pontos: MariaDB ganha `mariadb://` próprio (mais preciso que `mysql://`),
 -- e Postgres NÃO entra aqui (é tratado à parte como string JDBC). `nil` = sem
 -- esquema de banco (Kafka/serviço comum) → passthrough TCP puro `host:porta`.
-local function external_scheme(k: string?): string?
-    if k == "mysql" then return "mysql"
-    elseif k == "mariadb" then return "mariadb"
-    elseif k == "redis" then return "redis"
-    elseif k == "mongodb" or k == "mongo" then return "mongodb"
-    elseif k == "rabbitmq" then return "amqp"
-    elseif k == "nats" then return "nats"
+local function external_scheme(database_kind: string?): string?
+    if database_kind == "mysql" then return "mysql"
+    elseif database_kind == "mariadb" then return "mariadb"
+    elseif database_kind == "redis" then return "redis"
+    elseif database_kind == "mongodb" or database_kind == "mongo" then return "mongodb"
+    elseif database_kind == "rabbitmq" then return "amqp"
+    elseif database_kind == "nats" then return "nats"
     end
     return nil
 end
@@ -390,25 +390,25 @@ local function db_connection_url(
     user: string?,
     password: string?
 ): string
-    local k = db_kind and string.lower(db_kind) or nil
-    local hp = host .. ":" .. port
+    local normalized_kind = db_kind and string.lower(db_kind) or nil
+    local host_and_port = host .. ":" .. port
 
-    if k == "postgres" or k == "postgresql" then
-        return "jdbc:" .. with_db_credentials("postgresql://" .. hp, database, user, password)
+    if normalized_kind == "postgres" or normalized_kind == "postgresql" then
+        return "jdbc:" .. with_db_credentials("postgresql://" .. host_and_port, database, user, password)
     end
 
-    local scheme = external_scheme(k)
+    local scheme = external_scheme(normalized_kind)
     if not scheme then
-        return hp
+        return host_and_port
     end
 
-    local url = scheme .. "://" .. userinfo(user, password) .. hp
+    local url = scheme .. "://" .. userinfo(user, password) .. host_and_port
     if database and database ~= "" then
         url = url .. "/" .. database
-    elseif k == "mongodb" or k == "mongo" then
+    elseif normalized_kind == "mongodb" or normalized_kind == "mongo" then
         url = url .. "/"
     end
-    if (k == "mongodb" or k == "mongo") and user and user ~= "" then
+    if (normalized_kind == "mongodb" or normalized_kind == "mongo") and user and user ~= "" then
         url = url .. "?authSource=admin"
     end
     return url

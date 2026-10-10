@@ -46,12 +46,12 @@ local function owner(): any
     return coroutine.running() or MAIN
 end
 
-local function release(th: any): ()
-    local keys = held[th]
+local function release(thread: any): ()
+    local keys = held[thread]
 
     if keys then
         for _, key in keys do
-            if running[key] == th then
+            if running[key] == thread then
                 running[key] = nil
                 ctx[key] = "false"
             end
@@ -64,9 +64,9 @@ function M.install(names: { string }): ()
     local installed: { string } = {}
 
     for _, name in names do
-        local fn = env[name]
+        local handler_function = env[name]
 
-        if type(fn) == "function" then
+        if type(handler_function) == "function" then
             local key = M.key(name)
             table.insert(installed, name)
 
@@ -75,42 +75,42 @@ function M.install(names: { string }): ()
                     return
                 end
 
-                local th = owner()
-                running[key] = th
+                local thread = owner()
+                running[key] = thread
                 ctx[key] = "true"
-                held[th] = held[th] or {}
-                table.insert(held[th], key)
+                held[thread] = held[thread] or {}
+                table.insert(held[thread], key)
 
-                local res = table.pack(pcall(fn, ...))
+                local call_results = table.pack(pcall(handler_function, ...))
 
                 -- Larga só a chave DESTA ação (a externa, se houver, segue presa).
-                if running[key] == th then
+                if running[key] == thread then
                     running[key] = nil
                     ctx[key] = "false"
                 end
 
-                local keys = held[th]
+                local keys = held[thread]
                 if keys then
                     table.remove(keys, table.find(keys, key))
                     if #keys == 0 then
-                        held[th] = nil
+                        held[thread] = nil
                     end
                 end
 
-                if not res[1] then
-                    error(res[2], 0)
+                if not call_results[1] then
+                    error(call_results[2], 0)
                 end
 
-                return table.unpack(res, 2, res.n)
+                return table.unpack(call_results, 2, call_results.n)
             end
         end
     end
 
     local real_toast = env.toast
-    env.toast = function(opts)
+    env.toast = function(toast_options)
         release(owner())
 
-        return real_toast(opts)
+        return real_toast(toast_options)
     end
 
     local init = env.init

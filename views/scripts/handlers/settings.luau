@@ -25,15 +25,15 @@ function settings_save(): ()
     local email = Helpers.trim(ctx.server_settings_email)
     local registry_domain = Helpers.trim(ctx.server_settings_registry_domain)
     ctx.settings_message = "salvando…"
-    local ok, res = api:rpc_checked{ SetDaemonSettings = {
+    local set_daemon_settings_ok, set_daemon_settings_response = api:rpc_checked{ SetDaemonSettings = {
         acme_email = (email ~= "" and email or nil),
         registry_domain = (registry_domain ~= "" and registry_domain or nil),
     } }
-    ctx.settings_message = ok and "configurações salvas" or ("erro: " .. res)
-    if ok then
+    ctx.settings_message = set_daemon_settings_ok and "configurações salvas" or ("erro: " .. set_daemon_settings_response)
+    if set_daemon_settings_ok then
         toast{ message = tostring("Configurações salvas"), kind = "success" }
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(set_daemon_settings_response), kind = "error" }
     end
 end
 
@@ -46,8 +46,8 @@ end
 
 -- Alterna o tipo de provedor (gitea | github) e recomputa a redirect URI, que
 -- tem path por provedor (/oauth/gitea/callback vs /oauth/github/callback).
-function git_provider_kind(k: string): ()
-    local kind = (k == "github") and "github" or "gitea"
+function git_provider_kind(selected_kind: string): ()
+    local kind = (selected_kind == "github") and "github" or "gitea"
     ctx.git_provider_kind = kind
     ctx.git_provider_redirect = Helpers.oauth_redirect_uri(ctx.server_settings_public_base, kind)
     -- GitHub conecta ao github.com por padrão; Base URL só p/ Enterprise.
@@ -63,10 +63,10 @@ local function git_provider_refresh_list(): ()
     if not api then
         return
     end
-    local ok, res = api:rpc("GitProviderList")
-    if ok and res.GitProviders then
-        ctx.gitea_providers = fmt.git_providers(res.GitProviders)
-        ctx.gitea_count = tostring(#res.GitProviders)
+    local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+    if git_provider_list_ok and git_provider_list_response.GitProviders then
+        ctx.gitea_providers = fmt.git_providers(git_provider_list_response.GitProviders)
+        ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
     end
 end
 
@@ -101,32 +101,32 @@ function git_provider_connect(): ()
         name = label
     end
     local is_oauth = (ctx.git_provider_mode or "oauth") ~= "pat"
-    local cmd: any
+    local provider_command: any
     if is_oauth then
-        local cid = Helpers.trim(ctx.git_provider_client_id)
-        local csec = ctx.git_provider_client_secret or ""
-        if cid == "" or Helpers.trim(csec) == "" then
+        local client_id = Helpers.trim(ctx.git_provider_client_id)
+        local client_secret = ctx.git_provider_client_secret or ""
+        if client_id == "" or Helpers.trim(client_secret) == "" then
             ctx.git_provider_message = "Client ID e Client Secret são obrigatórios";
             return
         end
-        cmd = {
+        provider_command = {
             GitProviderCreate = {
                 kind = kind_wire,
                 name = name,
                 base_url = base,
                 auth_mode = "OAuth",
-                oauth_client_id = cid,
-                oauth_client_secret = csec,
+                oauth_client_id = client_id,
+                oauth_client_secret = client_secret,
                 pat = nil
             }
         }
     else
-        local pat = ctx.git_provider_personal_access_token or ""
-        if Helpers.trim(pat) == "" then
+        local personal_access_token = ctx.git_provider_personal_access_token or ""
+        if Helpers.trim(personal_access_token) == "" then
             ctx.git_provider_message = "informe o Personal Access Token";
             return
         end
-        cmd = {
+        provider_command = {
             GitProviderCreate = {
                 kind = kind_wire,
                 name = name,
@@ -134,25 +134,25 @@ function git_provider_connect(): ()
                 auth_mode = "Pat",
                 oauth_client_id = nil,
                 oauth_client_secret = nil,
-                pat = pat
+                pat = personal_access_token
             }
         }
     end
     ctx.git_provider_message = "conectando…"
-    local ok, res = api:rpc(cmd)
-    if not ok or not res.GitProviderInfo then
-        ctx.git_provider_message = "erro: " .. (ok and "resposta inesperada" or res);
+    local rpc_ok, rpc_response = api:rpc(provider_command)
+    if not rpc_ok or not rpc_response.GitProviderInfo then
+        ctx.git_provider_message = "erro: " .. (rpc_ok and "resposta inesperada" or rpc_response);
         return
     end
-    local pid = res.GitProviderInfo.id
+    local provider_id = rpc_response.GitProviderInfo.id
     if is_oauth then
         -- OAuth precisa de round-trip no navegador. O Luau não abre o browser;
         -- surface a URL para o usuário abrir (built-in open:<chave> no template)
         -- e depois clicar em "Atualizar lista".
-        local oko, reso = api:rpc{ GitOAuthStart = { provider_id = pid } }
-        if oko and reso.OAuthUrl then
-            ctx.git_provider_oauth_url = reso.OAuthUrl
-            ctx.git_provider_message = "abra para autorizar: " .. reso.OAuthUrl
+        local git_o_auth_start_ok, git_o_auth_start_response = api:rpc{ GitOAuthStart = { provider_id = provider_id } }
+        if git_o_auth_start_ok and git_o_auth_start_response.OAuthUrl then
+            ctx.git_provider_oauth_url = git_o_auth_start_response.OAuthUrl
+            ctx.git_provider_message = "abra para autorizar: " .. git_o_auth_start_response.OAuthUrl
         else
             ctx.git_provider_message = "provider criado; inicie o OAuth manualmente"
         end
@@ -167,15 +167,15 @@ function git_provider_connect(): ()
     git_provider_refresh_list()
 end
 
-function git_provider_delete(id: string): ()
+function git_provider_delete(provider_id: string): ()
     local api = State.api
     if not api then
         return
     end
-    local ok, res = api:rpc_checked{ GitProviderDelete = { id = id } }
-    ctx.git_provider_message = ok and "provider removido" or ("erro: " .. res)
-    if not ok then
-        toast{ message = tostring(res), kind = "error" }
+    local git_provider_delete_ok, git_provider_delete_response = api:rpc_checked{ GitProviderDelete = { id = provider_id } }
+    ctx.git_provider_message = git_provider_delete_ok and "provider removido" or ("erro: " .. git_provider_delete_response)
+    if not git_provider_delete_ok then
+        toast{ message = tostring(git_provider_delete_response), kind = "error" }
     end
     git_provider_refresh_list()
 end
@@ -194,21 +194,21 @@ end
 -- ligado/desligado em volta sem repetir o reset em cada early-return.
 local function do_export(api: any, zip_path: string): ()
     ctx.manifest_export_message = "exportando…"
-    local ok, res = api:rpc_checked("ManifestExportAll")
-    if not ok or type(res) ~= "table" or not res.ManifestBundle then
-        ctx.manifest_export_message = "erro: " .. tostring(res)
-        toast{ message = tostring(tostring(res)), kind = "error" }
+    local manifest_export_all_ok, manifest_export_all_response = api:rpc_checked("ManifestExportAll")
+    if not manifest_export_all_ok or type(manifest_export_all_response) ~= "table" or not manifest_export_all_response.ManifestBundle then
+        ctx.manifest_export_message = "erro: " .. tostring(manifest_export_all_response)
+        toast{ message = tostring(tostring(manifest_export_all_response)), kind = "error" }
         return
     end
 
-    local okz, zerr = manifest_zip_write(
+    local zip_write_ok, zip_write_error = manifest_zip_write(
         zip_path,
-        res.ManifestBundle.yaml or "",
-        res.ManifestBundle.dotenv or ""
+        manifest_export_all_response.ManifestBundle.yaml or "",
+        manifest_export_all_response.ManifestBundle.dotenv or ""
     )
-    if not okz then
-        ctx.manifest_export_message = "erro ao gravar o zip: " .. tostring(zerr)
-        toast{ message = "Falha ao gravar o zip: " .. tostring(zerr), kind = "error" }
+    if not zip_write_ok then
+        ctx.manifest_export_message = "erro ao gravar o zip: " .. tostring(zip_write_error)
+        toast{ message = "Falha ao gravar o zip: " .. tostring(zip_write_error), kind = "error" }
         return
     end
     ctx.manifest_export_message = "salvo em " .. zip_path
@@ -246,7 +246,7 @@ local function do_import(api: any, yaml: string, toml: string, prune: boolean, d
     ctx.manifest_report_lines = {}
 
     ctx.manifest_import_message = "importando…"
-    local ok, res = api:rpc{
+    local manifest_import_ok, manifest_import_response = api:rpc{
         ManifestImport = {
             yaml = yaml,
             dotenv = toml,
@@ -254,43 +254,43 @@ local function do_import(api: any, yaml: string, toml: string, prune: boolean, d
             deploy = deploy,
         },
     }
-    if not ok then
-        ctx.manifest_import_message = "erro: " .. tostring(res)
-        toast{ message = tostring(tostring(res)), kind = "error" }
+    if not manifest_import_ok then
+        ctx.manifest_import_message = "erro: " .. tostring(manifest_import_response)
+        toast{ message = tostring(tostring(manifest_import_response)), kind = "error" }
         return
     end
 
-    if type(res) == "table" and res.MissingEnvVars ~= nil then
+    if type(manifest_import_response) == "table" and manifest_import_response.MissingEnvVars ~= nil then
         ctx.manifest_has_missing = "true"
-        ctx.manifest_missing_vars = table.concat(res.MissingEnvVars, ", ")
+        ctx.manifest_missing_vars = table.concat(manifest_import_response.MissingEnvVars, ", ")
         ctx.manifest_import_message = "faltam variáveis — nada foi aplicado"
         toast{ message = tostring("Faltam variáveis no TOML: " .. ctx.manifest_missing_vars), kind = "error" }
         return
     end
 
-    if type(res) == "table" and res.Err ~= nil then
-        ctx.manifest_import_message = "erro: " .. tostring(res.Err.code) .. ": " .. tostring(res.Err.message)
-        toast{ message = tostring(tostring(res.Err.message)), kind = "error" }
+    if type(manifest_import_response) == "table" and manifest_import_response.Err ~= nil then
+        ctx.manifest_import_message = "erro: " .. tostring(manifest_import_response.Err.code) .. ": " .. tostring(manifest_import_response.Err.message)
+        toast{ message = tostring(tostring(manifest_import_response.Err.message)), kind = "error" }
         return
     end
 
-    if type(res) ~= "table" or not res.ManifestReport then
+    if type(manifest_import_response) ~= "table" or not manifest_import_response.ManifestReport then
         ctx.manifest_import_message = "resposta inesperada do daemon"
         return
     end
 
     local lines = {}
-    for _, a in ipairs(res.ManifestReport.actions or {}) do
-        table.insert(lines, "[" .. tostring(a.action) .. "] " .. tostring(a.kind) .. " " .. tostring(a.name))
+    for _, action in ipairs(manifest_import_response.ManifestReport.actions or {}) do
+        table.insert(lines, "[" .. tostring(action.action) .. "] " .. tostring(action.kind) .. " " .. tostring(action.name))
     end
-    local pruned = res.ManifestReport.pruned or res.ManifestReport.removed or {}
+    local pruned = manifest_import_response.ManifestReport.pruned or manifest_import_response.ManifestReport.removed or {}
     if #pruned > 0 then
         table.insert(lines, "removidos (prune): " .. table.concat(pruned, ", "))
     elseif prune then
         table.insert(lines, "prune ligado — nenhum serviço ausente para remover")
     end
-    if #(res.ManifestReport.deployed or {}) > 0 then
-        table.insert(lines, "deploy disparado: " .. table.concat(res.ManifestReport.deployed, ", "))
+    if #(manifest_import_response.ManifestReport.deployed or {}) > 0 then
+        table.insert(lines, "deploy disparado: " .. table.concat(manifest_import_response.ManifestReport.deployed, ", "))
     elseif deploy then
         table.insert(lines, "deploy ligado — nada mudou para disparar")
     end
@@ -317,10 +317,10 @@ function manifest_import(): ()
         return
     end
 
-    local m = manifest_zip_read(zip_path)
-    if not m.ok then
-        ctx.manifest_import_message = "zip inválido: " .. tostring(m.error)
-        toast{ message = tostring(m.error), kind = "error" }
+    local zip_manifest = manifest_zip_read(zip_path)
+    if not zip_manifest.ok then
+        ctx.manifest_import_message = "zip inválido: " .. tostring(zip_manifest.error)
+        toast{ message = tostring(zip_manifest.error), kind = "error" }
         return
     end
 
@@ -328,11 +328,11 @@ function manifest_import(): ()
     -- serviços, então o usuário vê exatamente o que marcou antes de aplicar.
     local prune = ctx.manifest_prune == "true"
     local deploy = ctx.manifest_deploy == "true"
-    local ok_go = confirm{
+    local confirmed = confirm{
         title = "Aplicar este manifesto?",
         message = "Do zip: "
-            .. tostring(m.yaml and #m.yaml or 0) .. " B de YAML + "
-            .. tostring(m.toml and #m.toml or 0) .. " B de TOML.\n\n"
+            .. tostring(zip_manifest.yaml and #zip_manifest.yaml or 0) .. " B de YAML + "
+            .. tostring(zip_manifest.toml and #zip_manifest.toml or 0) .. " B de TOML.\n\n"
             .. "• Remover serviços ausentes (prune): "
             .. (prune and "SIM" or "não") .. "\n"
             .. "• Disparar deploy dos alterados: "
@@ -340,13 +340,13 @@ function manifest_import(): ()
         confirm_label = "Aplicar",
         destructive = prune,
     }
-    if not ok_go then
+    if not confirmed then
         ctx.manifest_import_message = "cancelado"
         return
     end
 
     ctx.manifest_busy = "true"
-    do_import(api, m.yaml or "", m.toml or "", prune, deploy)
+    do_import(api, zip_manifest.yaml or "", zip_manifest.toml or "", prune, deploy)
     ctx.manifest_busy = ""
 end
 
@@ -362,29 +362,29 @@ end
 -- minute, weekday) — mesmo formato de new_job_window.luau::unpack_recurrence,
 -- mas aqui a recorrência nunca é `nil` (a config sempre tem uma, mesmo com o
 -- interruptor geral desligado).
-local function docker_cleanup_unpack_recurrence(r: any): (string, string, string, string, string)
-    if r ~= nil and r.IntervalHours ~= nil then
-        return "interval", tostring(r.IntervalHours), "3", "0", "0"
+local function docker_cleanup_unpack_recurrence(recurrence: any): (string, string, string, string, string)
+    if recurrence ~= nil and recurrence.IntervalHours ~= nil then
+        return "interval", tostring(recurrence.IntervalHours), "3", "0", "0"
     end
-    if r ~= nil and r.Weekly ~= nil then
-        return "weekly", "6", tostring(r.Weekly.hour), tostring(r.Weekly.minute), tostring(r.Weekly.weekday)
+    if recurrence ~= nil and recurrence.Weekly ~= nil then
+        return "weekly", "6", tostring(recurrence.Weekly.hour), tostring(recurrence.Weekly.minute), tostring(recurrence.Weekly.weekday)
     end
-    if r ~= nil and r.Daily ~= nil then
-        return "daily", "6", tostring(r.Daily.hour), tostring(r.Daily.minute), "0"
+    if recurrence ~= nil and recurrence.Daily ~= nil then
+        return "daily", "6", tostring(recurrence.Daily.hour), tostring(recurrence.Daily.minute), "0"
     end
     return "daily", "6", "3", "0", "0"
 end
 
-local function docker_cleanup_apply_config(cfg: any): ()
-    ctx.docker_cleanup_enabled = tostring(cfg.enabled)
-    ctx.docker_cleanup_containers = tostring(cfg.containers)
-    ctx.docker_cleanup_images = tostring(cfg.images)
-    ctx.docker_cleanup_images_all = tostring(cfg.images_all)
-    ctx.docker_cleanup_volumes = tostring(cfg.volumes)
-    ctx.docker_cleanup_volumes_all = tostring(cfg.volumes_all)
-    ctx.docker_cleanup_networks = tostring(cfg.networks)
-    ctx.docker_cleanup_build_cache = tostring(cfg.build_cache)
-    local kind, hours, hour, minute, weekday = docker_cleanup_unpack_recurrence(cfg.recurrence)
+local function docker_cleanup_apply_config(config: any): ()
+    ctx.docker_cleanup_enabled = tostring(config.enabled)
+    ctx.docker_cleanup_containers = tostring(config.containers)
+    ctx.docker_cleanup_images = tostring(config.images)
+    ctx.docker_cleanup_images_all = tostring(config.images_all)
+    ctx.docker_cleanup_volumes = tostring(config.volumes)
+    ctx.docker_cleanup_volumes_all = tostring(config.volumes_all)
+    ctx.docker_cleanup_networks = tostring(config.networks)
+    ctx.docker_cleanup_build_cache = tostring(config.build_cache)
+    local kind, hours, hour, minute, weekday = docker_cleanup_unpack_recurrence(config.recurrence)
     ctx.docker_cleanup_kind = kind
     ctx.docker_cleanup_hours = hours
     -- Uma chave só, "HH:MM", porque quem edita agora é o <timeedit> em home.gvb.
@@ -392,8 +392,8 @@ local function docker_cleanup_apply_config(cfg: any): ()
     -- formato do daemon); a junção acontece aqui, na fronteira.
     ctx.docker_cleanup_time = fmt.hm_join(hour, minute)
     ctx.docker_cleanup_weekday = weekday
-    ctx.docker_cleanup_next_run_label = cfg.next_run_at and fmt.date_dm_hm(cfg.next_run_at) or "—"
-    State.docker_cleanup_last_run_at_raw = cfg.last_run_at
+    ctx.docker_cleanup_next_run_label = config.next_run_at and fmt.date_dm_hm(config.next_run_at) or "—"
+    State.docker_cleanup_last_run_at_raw = config.last_run_at
 end
 
 -- Carregado uma vez na conexão (handlers/connection.luau::load_settings) —
@@ -405,11 +405,11 @@ function M.docker_cleanup_load(): ()
     if not api then
         return
     end
-    local ok, res = api:rpc("DockerCleanupConfigGet")
-    if ok and res.DockerCleanupConfig then
-        docker_cleanup_apply_config(res.DockerCleanupConfig.config)
+    local docker_cleanup_config_get_ok, docker_cleanup_config_get_response = api:rpc("DockerCleanupConfigGet")
+    if docker_cleanup_config_get_ok and docker_cleanup_config_get_response.DockerCleanupConfig then
+        docker_cleanup_apply_config(docker_cleanup_config_get_response.DockerCleanupConfig.config)
         ctx.docker_cleanup_last_run_text = fmt.docker_cleanup_last_run_summary(
-            res.DockerCleanupConfig.last_run
+            docker_cleanup_config_get_response.DockerCleanupConfig.last_run
         )
     end
 end
@@ -435,20 +435,20 @@ local function docker_cleanup_build_recurrence(): any
     end
     -- O caminho de volta do <timeedit>: a chave única vira os dois campos que
     -- Recurrence::Daily/Weekly declaram no daemon.
-    local hora, minuto = fmt.hm_split(ctx.docker_cleanup_time)
+    local hour, minute = fmt.hm_split(ctx.docker_cleanup_time)
     if ctx.docker_cleanup_kind == "weekly" then
         return {
             Weekly = {
                 weekday = tonumber(ctx.docker_cleanup_weekday) or 0,
-                hour = hora,
-                minute = minuto,
+                hour = hour,
+                minute = minute,
             },
         }
     end
     return {
         Daily = {
-            hour = hora,
-            minute = minuto,
+            hour = hour,
+            minute = minute,
         },
     }
 end
@@ -459,7 +459,7 @@ function docker_cleanup_save(): ()
         return
     end
     ctx.docker_cleanup_message = "salvando…"
-    local ok, res = api:rpc_checked{
+    local docker_cleanup_config_set_ok, docker_cleanup_config_set_response = api:rpc_checked{
         DockerCleanupConfigSet = {
             config = {
                 enabled = ctx.docker_cleanup_enabled == "true",
@@ -475,16 +475,16 @@ function docker_cleanup_save(): ()
             },
         },
     }
-    if ok and res.DockerCleanupConfig then
-        docker_cleanup_apply_config(res.DockerCleanupConfig.config)
+    if docker_cleanup_config_set_ok and docker_cleanup_config_set_response.DockerCleanupConfig then
+        docker_cleanup_apply_config(docker_cleanup_config_set_response.DockerCleanupConfig.config)
         ctx.docker_cleanup_last_run_text = fmt.docker_cleanup_last_run_summary(
-            res.DockerCleanupConfig.last_run
+            docker_cleanup_config_set_response.DockerCleanupConfig.last_run
         )
         ctx.docker_cleanup_message = "configurações salvas"
         toast{ message = tostring("Limpeza automática salva"), kind = "success" }
     else
-        ctx.docker_cleanup_message = "erro: " .. tostring(res)
-        toast{ message = tostring(res), kind = "error" }
+        ctx.docker_cleanup_message = "erro: " .. tostring(docker_cleanup_config_set_response)
+        toast{ message = tostring(docker_cleanup_config_set_response), kind = "error" }
     end
 end
 
@@ -504,22 +504,22 @@ function docker_cleanup_run_now(): ()
         ctx.docker_cleanup_message = "marque pelo menos um recurso"
         return
     end
-    local ok_confirm = confirm{
+    local confirmed = confirm{
         title = "Executar limpeza agora?",
         message = "Roda a limpeza dos recursos marcados imediatamente, fora do horário agendado. Ação irreversível.",
         confirm_label = "Executar",
         destructive = true,
     }
-    if not ok_confirm then
+    if not confirmed then
         return
     end
     ctx.docker_cleanup_running = "true"
     ctx.docker_cleanup_message = "executando…"
-    local ok, res = api:rpc_checked("DockerCleanupRunNow")
-    if not ok then
+    local docker_cleanup_run_now_ok, docker_cleanup_run_now_response = api:rpc_checked("DockerCleanupRunNow")
+    if not docker_cleanup_run_now_ok then
         ctx.docker_cleanup_running = "false"
-        ctx.docker_cleanup_message = "erro: " .. tostring(res)
-        toast{ message = tostring(res), kind = "error" }
+        ctx.docker_cleanup_message = "erro: " .. tostring(docker_cleanup_run_now_response)
+        toast{ message = tostring(docker_cleanup_run_now_response), kind = "error" }
     end
 end
 

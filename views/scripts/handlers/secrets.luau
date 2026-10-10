@@ -18,14 +18,14 @@ local Stream = require("stream")
 -- Nomes atualmente conhecidos (do snapshot já renderizado), para saber se um
 -- SecretSet cria ou substitui — o daemon não distingue os dois casos.
 local function known_names(): { [string]: boolean }
-    local set = {}
-    local ok, rows = pcall(json.decode, ctx.project_secrets or "[]")
-    if ok and type(rows) == "table" then
-        for _, r in ipairs(rows) do
-            set[tostring(r.name)] = true
+    local names_set = {}
+    local json_decode_ok, rows = pcall(json.decode, ctx.project_secrets or "[]")
+    if json_decode_ok and type(rows) == "table" then
+        for _, row in ipairs(rows) do
+            names_set[tostring(row.name)] = true
         end
     end
-    return set
+    return names_set
 end
 
 -- on_validation_error do form(name = secret_add) — NOME e valor são
@@ -36,19 +36,19 @@ function secret_add_show_validation_errors(_erros_json: string?): ()
 end
 
 function secret_add(): ()
-    local pid = ctx.selected_project_id or ""
+    local project_id = ctx.selected_project_id or ""
     local api = State.api
-    if pid == "" or not api then
+    if project_id == "" or not api then
         return
     end
     -- rules="required" no form(...) garante nome e valor preenchidos aqui.
     local name = Helpers.trim(ctx.project_secret_new_name)
     local value = ctx.project_secret_new_value or ""
     local replacing = known_names()[name] == true
-    local ok, res = api:rpc_checked{
-        SecretSet = { project_id = pid, name = name, value = value }
+    local secret_set_ok, secret_set_response = api:rpc_checked{
+        SecretSet = { project_id = project_id, name = name, value = value }
     }
-    if ok then
+    if secret_set_ok then
         ctx.project_secret_new_name = ""
         ctx.project_secret_new_value = ""
         toast{
@@ -61,16 +61,16 @@ function secret_add(): ()
         }
         Stream.refresh_now()
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(secret_set_response), kind = "error" }
     end
 end
 
 function secret_delete(name: string): ()
-    local pid = ctx.selected_project_id or ""
-    if pid == "" or name == "" then
+    local project_id = ctx.selected_project_id or ""
+    if project_id == "" or name == "" then
         return
     end
-    local ok_confirm = confirm{
+    local confirmed = confirm{
         title = "Remover secret?",
         message = "O valor cifrado será apagado e não há como recuperá-lo. "
             .. "Variáveis que referenciam \"" .. name .. "\" passarão a receber "
@@ -78,19 +78,19 @@ function secret_delete(name: string): ()
         confirm_label = "Remover secret",
         destructive = true,
     }
-    if not ok_confirm then
+    if not confirmed then
         return
     end
     local api = State.api
     if not api then
         return
     end
-    local ok, res = api:rpc_checked{ SecretDelete = { project_id = pid, name = name } }
-    if ok then
+    local secret_delete_ok, secret_delete_response = api:rpc_checked{ SecretDelete = { project_id = project_id, name = name } }
+    if secret_delete_ok then
         toast{ message = tostring("Secret removido"), kind = "success" }
         Stream.refresh_now()
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(secret_delete_response), kind = "error" }
     end
 end
 

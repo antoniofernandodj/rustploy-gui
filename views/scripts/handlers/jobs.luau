@@ -16,29 +16,29 @@ local fmt = require("../fmt")
 -- alguns segundos depois do click. Só desbloqueia em erro (na hora, sem
 -- esperar `refresh_now()`) ou depois que `refresh_now()` confirma o
 -- `job_run` criado (dali em diante `j.running` já vem do snapshot real).
-function job_run_now(id: string): ()
+function job_run_now(job_id: string): ()
     local api = State.api
     if not api then
         return
     end
-    if State.jobs_inflight[id] then
+    if State.jobs_inflight[job_id] then
         return
     end
-    State.jobs_inflight[id] = true
+    State.jobs_inflight[job_id] = true
     Stream.update_open_project()
     Stream.refresh_jobs_summary_local()
 
-    local ok, res = api:rpc_checked{ JobRunNow = { id = id } }
-    if not ok then
-        toast{ message = tostring(res), kind = "error" }
-        State.jobs_inflight[id] = nil
+    local job_run_now_ok, job_run_now_response = api:rpc_checked{ JobRunNow = { id = job_id } }
+    if not job_run_now_ok then
+        toast{ message = tostring(job_run_now_response), kind = "error" }
+        State.jobs_inflight[job_id] = nil
         Stream.update_open_project()
         Stream.refresh_jobs_summary_local()
         return
     end
     toast{ message = tostring("Job disparado"), kind = "success" }
     Stream.refresh_now()
-    State.jobs_inflight[id] = nil
+    State.jobs_inflight[job_id] = nil
 end
 
 -- Cancela um job_run em execução (ver docs/plano-cancelamento-de-jobs.md):
@@ -52,11 +52,11 @@ function job_run_cancel(job_run_id: string): ()
     if not api or not job_run_id or job_run_id == "" then
         return
     end
-    local ok, res = api:rpc_checked{ JobRunCancel = { job_run_id = job_run_id } }
-    if ok then
+    local job_run_cancel_ok, job_run_cancel_response = api:rpc_checked{ JobRunCancel = { job_run_id = job_run_id } }
+    if job_run_cancel_ok then
         toast{ message = tostring("Cancelamento solicitado"), kind = "success" }
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(job_run_cancel_response), kind = "error" }
     end
     Stream.refresh_now()
 end
@@ -64,19 +64,19 @@ end
 -- Pausa/ativa um job: `JobUpdate` substitui o registro inteiro, então
 -- reenviamos os campos como estão (só invertendo `enabled`) — o Job cru vem
 -- de `State.jobs_by_id`, preenchido pelo `stream.luau` a cada snapshot.
-function job_toggle(id: string): ()
+function job_toggle(job_id: string): ()
     local api = State.api
     if not api then
         return
     end
-    local job = State.jobs_by_id[id]
+    local job = State.jobs_by_id[job_id]
     if not job then
         toast{ message = tostring("job não encontrado (tela desatualizada — tenta de novo)"), kind = "error" }
         return
     end
-    local ok, res = api:rpc_checked{
+    local job_update_ok, job_update_response = api:rpc_checked{
         JobUpdate = {
-            id = id,
+            id = job_id,
             name = job.name,
             compose = job.compose,
             git_source = job.git_source,
@@ -87,14 +87,14 @@ function job_toggle(id: string): ()
             recurrence = job.recurrence,
         },
     }
-    if ok then
+    if job_update_ok then
         toast{
             message = tostring(job.enabled and "Job pausado" or "Job ativado"),
             kind = "success"
         }
     else
         toast{
-            message = tostring(res),
+            message = tostring(job_update_response),
             kind = "error"
         }
     end
@@ -109,17 +109,17 @@ end
 function open_new_job_window(): ()
     local snap = State.snap
     local projects = {}
-    for _, p in ipairs((snap and snap.projects) or {}) do
-        table.insert(projects, { id = p.id, name = p.name })
+    for _, project in ipairs((snap and snap.projects) or {}) do
+        table.insert(projects, { id = project.id, name = project.name })
     end
     local services = {}
-    for _, e in ipairs((snap and snap.services) or {}) do
-        local svc = e.service
-        if svc then
+    for _, service in ipairs((snap and snap.services) or {}) do
+        local service_record = service.service
+        if service_record then
             table.insert(services, {
-                id = svc.id,
-                name = svc.spec.name,
-                project_id = svc.spec.project_id
+                id = service_record.id,
+                name = service_record.spec.name,
+                project_id = service_record.spec.project_id
             })
         end
     end
@@ -141,8 +141,8 @@ end
 -- janela filha não pode buscar no init — mesma restrição de
 -- open_new_job_window) pra o picker já vir com a seleção certa, sem forçar
 -- o usuário a escolher de novo só pra editar outra coisa (ex.: env vars).
-function open_edit_job_window(id: string): ()
-    local job = State.jobs_by_id[id]
+function open_edit_job_window(job_id: string): ()
+    local job = State.jobs_by_id[job_id]
     if not job then
         toast{
             message = tostring("job não encontrado (tela desatualizada — tenta de novo)"),
@@ -157,8 +157,8 @@ function open_edit_job_window(id: string): ()
     local new_job_git_repo = ""
     local new_job_git_branches = "[]"
     if job.git_source and api then
-        local pid = job.git_source.provider_id
-        if pid and pid ~= "" then
+        local provider_id = job.git_source.provider_id
+        if provider_id and provider_id ~= "" then
             -- Essa cascata de RPCs (conta → repos → branches) roda ANTES de
             -- `open_window` — a janela filha não pode buscar no próprio
             -- init (mesma restrição de `open_new_job_window`), então até ela
@@ -168,28 +168,28 @@ function open_edit_job_window(id: string): ()
                 message = tostring("Carregando dados do repositório…"),
                 kind = "info"
             }
-            local okp, resp = api:rpc("GitProviderList")
-            if okp and resp.GitProviders then
-                new_job_git_providers = fmt.git_providers(resp.GitProviders)
+            local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+            if git_provider_list_ok and git_provider_list_response.GitProviders then
+                new_job_git_providers = fmt.git_providers(git_provider_list_response.GitProviders)
             end
-            local okr, resr = api:rpc{ GitRepoList = { provider_id = pid } }
-            if okr and resr.GitRepos then
-                new_job_git_repos = fmt.git_repos(resr.GitRepos)
-                for _, r in ipairs(resr.GitRepos) do
-                    if r.clone_url == job.git_source.url then
-                        new_job_git_repo = r.full_name
+            local git_repo_list_ok, git_repo_list_response = api:rpc{ GitRepoList = { provider_id = provider_id } }
+            if git_repo_list_ok and git_repo_list_response.GitRepos then
+                new_job_git_repos = fmt.git_repos(git_repo_list_response.GitRepos)
+                for _, git_repo in ipairs(git_repo_list_response.GitRepos) do
+                    if git_repo.clone_url == job.git_source.url then
+                        new_job_git_repo = git_repo.full_name
                         break
                     end
                 end
                 if new_job_git_repo ~= "" then
-                    local okb, resb = api:rpc{
+                    local git_branch_list_ok, git_branch_list_response = api:rpc{
                         GitBranchList = {
-                            provider_id = pid,
+                            provider_id = provider_id,
                             repo_full_name = new_job_git_repo
                         },
                     }
-                    if okb and resb.GitBranches then
-                        new_job_git_branches = fmt.git_branches(resb.GitBranches)
+                    if git_branch_list_ok and git_branch_list_response.GitBranches then
+                        new_job_git_branches = fmt.git_branches(git_branch_list_response.GitBranches)
                     end
                 end
             end
@@ -224,13 +224,13 @@ function open_job_logs_window(job_run_id: string): ()
     local seed = "[]"
     local api = State.api
     if api then
-        local ok, res = api:rpc{
+        local get_job_logs_ok, get_job_logs_response = api:rpc{
             GetJobLogs = {
                 job_run_id = job_run_id
             }
         }
-        if ok and res.JobLogs then
-            seed = json.encode(res.JobLogs)
+        if get_job_logs_ok and get_job_logs_response.JobLogs then
+            seed = json.encode(get_job_logs_response.JobLogs)
         end
     end
     open_window{
@@ -247,16 +247,16 @@ function open_job_logs_window(job_run_id: string): ()
     }
 end
 
-function job_delete(id: string): ()
+function job_delete(job_id: string): ()
     local api = State.api
     if not api then
         return
     end
-    local ok, res = api:rpc_checked{ JobDelete = { id = id } }
-    if ok then
+    local job_delete_ok, job_delete_response = api:rpc_checked{ JobDelete = { id = job_id } }
+    if job_delete_ok then
         toast{ message = tostring("Job removido"), kind = "success" }
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(job_delete_response), kind = "error" }
     end
     Stream.refresh_now()
 end

@@ -15,11 +15,11 @@ function queue_cancel(deployment_id: string): ()
     if not api or not deployment_id or deployment_id == "" then
         return
     end
-    local ok, res = api:rpc_checked{ DeployAbort = { deployment_id = deployment_id } }
-    if ok then
+    local deploy_abort_ok, deploy_abort_response = api:rpc_checked{ DeployAbort = { deployment_id = deployment_id } }
+    if deploy_abort_ok then
         toast{ message = tostring("Deploy removido da fila"), kind = "success" }
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(deploy_abort_response), kind = "error" }
     end
     Stream.refresh_now()
 end
@@ -30,27 +30,27 @@ function queue_promote(deployment_id: string): ()
     if not api or not deployment_id or deployment_id == "" then
         return
     end
-    local ok, res = api:rpc_checked{ DeployQueuePromote = { deployment_id = deployment_id } }
-    if not ok then
-        toast{ message = tostring(res), kind = "error" }
+    local deploy_queue_promote_ok, deploy_queue_promote_response = api:rpc_checked{ DeployQueuePromote = { deployment_id = deployment_id } }
+    if not deploy_queue_promote_ok then
+        toast{ message = tostring(deploy_queue_promote_response), kind = "error" }
     end
     Stream.refresh_now()
 end
 
 -- Reordena a fila (arraste): `v` é um JSON array de deployment_ids na nova ordem
 -- (mesma forma que o env_reorder — o `reorder_key` do foreach é deployment_id).
-function queue_reorder(v: string?): ()
+function queue_reorder(order_json: string?): ()
     local api = State.api
-    if not api or not v then
+    if not api or not order_json then
         return
     end
-    local ok, order = pcall(json.decode, v)
-    if not ok or type(order) ~= "table" then
+    local json_decode_ok, order = pcall(json.decode, order_json)
+    if not json_decode_ok or type(order) ~= "table" then
         return
     end
-    local ok2, res = api:rpc_checked{ DeployQueueReorder = { order = order } }
-    if not ok2 then
-        toast{ message = tostring(res), kind = "error" }
+    local deploy_queue_reorder_ok, deploy_queue_reorder_response = api:rpc_checked{ DeployQueueReorder = { order = order } }
+    if not deploy_queue_reorder_ok then
+        toast{ message = tostring(deploy_queue_reorder_response), kind = "error" }
     end
     Stream.refresh_now()
 end
@@ -63,11 +63,11 @@ function queue_toggle_pause(): ()
         return
     end
     local paused = ctx.deploy_engine_paused ~= "true"
-    local ok, res = api:rpc_checked{ DeployQueuePause = { paused = paused } }
-    if ok then
+    local deploy_queue_pause_ok, deploy_queue_pause_response = api:rpc_checked{ DeployQueuePause = { paused = paused } }
+    if deploy_queue_pause_ok then
         toast{ message = tostring(paused and "Fila pausada" or "Fila retomada"), kind = "success" }
     else
-        toast{ message = tostring(res), kind = "error" }
+        toast{ message = tostring(deploy_queue_pause_response), kind = "error" }
     end
     Stream.refresh_now()
 end

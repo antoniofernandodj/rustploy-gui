@@ -6,8 +6,8 @@ local State = require("../state")
 local Stream = require("stream")
 local Registry = require("registry")
 
-local function goto_view(v: string): ()
-    ctx.view = v
+local function goto_view(view: string): ()
+    ctx.view = view
     ctx.selected_service = ""
 end
 
@@ -61,41 +61,41 @@ end
 
 
 -- Genérico p/ NavItem que usa action="nav" com value=target (se algum usar).
-function nav(v: string?): () 
-    if v then
-        goto_view(v)
+function nav(view: string?): () 
+    if view then
+        goto_view(view)
     end
 end
 
 
 -- Abas (TabButton dispara `project_tab:services`, `docker_tab:images`, …).
-function project_tab(t: string): ()
-    ctx.project_tab = t
+function project_tab(tab_name: string): ()
+    ctx.project_tab = tab_name
 end
 
-function docker_tab(t: string): ()
-    ctx.docker_tab = t
-    if t == "registry" then
+function docker_tab(tab_name: string): ()
+    ctx.docker_tab = tab_name
+    if tab_name == "registry" then
         Registry.refresh_tokens()
     end
 end
 
-function deploy_engine_tab(t: string): ()
-    ctx.deploy_engine_tab = t
+function deploy_engine_tab(tab_name: string): ()
+    ctx.deploy_engine_tab = tab_name
 end
 
-function deploy_tab(t: string): ()
-    ctx.deploy_tab = t
+function deploy_tab(tab_name: string): ()
+    ctx.deploy_tab = tab_name
 end
 
 
 -- Abas do service detail e do healthcheck kind.
-function tab(t: string): ()
-    ctx.tab = t
+function tab(tab_name: string): ()
+    ctx.tab = tab_name
 end
 
-function prov(t: string): ()
-    ctx.provider_tab = t
+function prov(tab_name: string): ()
+    ctx.provider_tab = tab_name
 end
 
 -- Órfão desde que a aba virou <tabbar>: a barra grava `service_form_healthcheck_kind` sozinha.
@@ -105,16 +105,16 @@ end
 
 
 -- Setter genérico de campo (on_change="field:<chave>").
-function field(key: string?, v: string?): ()
+function field(key: string?, value: string?): ()
     if key then
-        ctx[key] = v or ""
+        ctx[key] = value or ""
     end
 end
 
 
-function search_changed(v: string): ()
-    ctx.search = v or ""
-    State.search_term = string.lower(v or "")
+function search_changed(search_text: string): ()
+    ctx.search = search_text or ""
+    State.search_term = string.lower(search_text or "")
     Stream.rebuild_lists()
     Stream.update_open_project()
 end

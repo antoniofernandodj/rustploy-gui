@@ -52,29 +52,29 @@ function submit_project(): ()
     end
     ctx.new_project_error = ""
     local name = Helpers.trim(ctx.new_project_name)
-    local desc = Helpers.trim(ctx.new_project_description)
+    local description = Helpers.trim(ctx.new_project_description)
     ctx.new_project_message = "criando…"
     ctx.new_project_busy = "true"
 
-    local ok, res = api:rpc_checked{
+    local project_create_ok, project_create_response = api:rpc_checked{
         ProjectCreate = {
             name = name,
-            description = (desc ~= "" and desc or nil),
+            description = (description ~= "" and description or nil),
         },
     }
     ctx.new_project_busy = ""
-    if not ok then
+    if not project_create_ok then
         ctx.new_project_message = ""
-        ctx.new_project_error = "erro: " .. tostring(res)
+        ctx.new_project_error = "erro: " .. tostring(project_create_response)
         return
     end
 
     -- Sucesso: envia os dados do projeto criado à janela inicial e fecha esta.
-    local p = (type(res) == "table" and res.Project) or {}
+    local project = (type(project_create_response) == "table" and project_create_response.Project) or {}
     broadcast("project_created", {
-        id = p.id,
-        name = p.name or name,
-        description = p.description or desc,
+        id = project.id,
+        name = project.name or name,
+        description = project.description or description,
     })
     close_window()
 end

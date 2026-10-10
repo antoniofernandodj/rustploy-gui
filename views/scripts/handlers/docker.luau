@@ -7,32 +7,32 @@ local State = require("../state")
 local fmt = require("../fmt")
 local Stream = require("stream")
 
-local function prune(cmd: any, label: string): ()
+local function prune(command: any, label: string): ()
     local api = State.api
     if not api then
         return
     end
     ctx.docker_message = label
-    local ok, res = api:rpc_checked(cmd)
-    if ok and res.PruneResult then
+    local rpc_ok, rpc_response = api:rpc_checked(command)
+    if rpc_ok and rpc_response.PruneResult then
         ctx.docker_message = string.format("removidos: %d · %s liberados",
-            res.PruneResult.count or 0, fmt.fmt_bytes(res.PruneResult.reclaimed_bytes))
-    elseif ok then
+            rpc_response.PruneResult.count or 0, fmt.fmt_bytes(rpc_response.PruneResult.reclaimed_bytes))
+    elseif rpc_ok then
         ctx.docker_message = "limpeza concluída"
     else
-        ctx.docker_message = "erro: " .. res
+        ctx.docker_message = "erro: " .. rpc_response
     end
 end
 
 function docker_prune_containers(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Limpar containers parados?",
         message = "Todos os containers parados serão removidos (docker container prune). Ação irreversível.",
         confirm_label = "Limpar",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
@@ -41,14 +41,14 @@ end
 
 
 function docker_prune_images(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Limpar imagens sem uso?",
         message = "As imagens Docker sem uso serão removidas agora. Essa limpeza não pode ser desfeita.",
         confirm_label = "Limpar",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
@@ -60,14 +60,14 @@ end
 
 
 function docker_prune_volumes(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Limpar volumes sem uso?",
         message = "Os volumes Docker sem uso serão removidos agora. Essa limpeza não pode ser desfeita.",
         confirm_label = "Limpar",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
@@ -78,14 +78,14 @@ end
 
 
 function docker_prune_networks(): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Limpar redes sem uso?",
         message = "As redes Docker sem uso serão removidas agora. Essa limpeza não pode ser desfeita.",
         confirm_label = "Limpar",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
@@ -97,63 +97,63 @@ end
 -- (refresh_now) para a linha sumir sem esperar o snapshot de 2s. O Docker recusa
 -- remover recursos em uso (sem force) — o erro volta e é exibido em docker_message.
 
-local function remove_one(cmd: any, doing: string): ()
+local function remove_one(command: any, doing: string): ()
     local api = State.api
     if not api then
         return
     end
     ctx.docker_message = doing
-    local ok, res = api:rpc_checked(cmd)
-    if ok then
+    local rpc_ok, rpc_response = api:rpc_checked(command)
+    if rpc_ok then
         ctx.docker_message = "removido"
         Stream.refresh_now()
     else
-        ctx.docker_message = "erro: " .. tostring(res)
+        ctx.docker_message = "erro: " .. tostring(rpc_response)
     end
 end
 
 -- Cada par confirm→do_* espelha o padrão de delete_deployment: o `confirm`
 -- suspende e, se o usuário confirmar, chama o handler `do_*` na hora com o
 -- id/name capturado no escopo.
-function docker_remove_container(id: string): ()
-    local ok = confirm{
+function docker_remove_container(container_id: string): ()
+    local confirmed = confirm{
         title = "Remover container?",
         message = "O container parado será removido (docker rm). Ação irreversível.",
         confirm_label = "Remover",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
-    remove_one({ RemoveContainer = { id = id } }, "removendo container…")
+    remove_one({ RemoveContainer = { id = container_id } }, "removendo container…")
 end
 
-function docker_remove_image(id: string): ()
-    local ok = confirm{
+function docker_remove_image(image_id: string): ()
+    local confirmed = confirm{
         title = "Remover imagem?",
         message = "A imagem será removida (docker rmi). Falha se algum container a referencia.",
         confirm_label = "Remover",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
-    remove_one({ RemoveImage = { id = id } }, "removendo imagem…")
+    remove_one({ RemoveImage = { id = image_id } }, "removendo imagem…")
 end
 
 function docker_remove_volume(name: string): ()
-    local ok = confirm{
+    local confirmed = confirm{
         title = "Remover volume?",
         message = "O volume será removido (docker volume rm). Falha se estiver em uso. Ação irreversível.",
         confirm_label = "Remover",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
@@ -163,24 +163,24 @@ end
 -- "Somente em uso" (on_toggle="docker_only_used:<chave>"): grava a chave e
 -- remonta as listas — o filtro mora em fmt.docker_* (a tableview desenha toda
 -- linha que recebe).
-function docker_only_used(key: string?, v: string?): ()
+function docker_only_used(key: string?, value: string?): ()
     if key then
-        ctx[key] = v or ""
+        ctx[key] = value or ""
     end
     Stream.rebuild_lists()
 end
 
-function docker_remove_network(id: string): ()
-    local ok = confirm{
+function docker_remove_network(network_id: string): ()
+    local confirmed = confirm{
         title = "Remover rede?",
         message = "A rede será removida (docker network rm). Falha se houver container anexado.",
         confirm_label = "Remover",
         destructive = true,
     }
 
-    if not ok then
+    if not confirmed then
         return
     end
 
-    remove_one({ RemoveNetwork = { id = id } }, "removendo rede…")
+    remove_one({ RemoveNetwork = { id = network_id } }, "removendo rede…")
 end

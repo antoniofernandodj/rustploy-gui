@@ -21,23 +21,23 @@ end
 
 -- `lr`: `DockerCleanupLastRun?` (`{ at, results: { { resource, count,
 -- reclaimed_bytes, error } } }`). `nil` = nunca rodou.
-function M.last_run_summary(lr: any): string
-    if lr == nil then
+function M.last_run_summary(last_run: any): string
+    if last_run == nil then
         return "ainda não rodou"
     end
     local total_bytes = 0
     local parts = {}
     local any_error = false
-    for _, r in ipairs(lr.results or {}) do
-        total_bytes = total_bytes + (r.reclaimed_bytes or 0)
-        if r.error ~= nil then
+    for _, result in ipairs(last_run.results or {}) do
+        total_bytes = total_bytes + (result.reclaimed_bytes or 0)
+        if result.error ~= nil then
             any_error = true
-            table.insert(parts, M.resource_label(r.resource) .. ": erro")
+            table.insert(parts, M.resource_label(result.resource) .. ": erro")
         else
-            table.insert(parts, M.resource_label(r.resource) .. " " .. tostring(r.count or 0))
+            table.insert(parts, M.resource_label(result.resource) .. " " .. tostring(result.count or 0))
         end
     end
-    local head = Time.date_dm_hms(lr.at) .. " · " .. Time.fmt_bytes(total_bytes) .. " liberados"
+    local head = Time.date_dm_hms(last_run.at) .. " · " .. Time.fmt_bytes(total_bytes) .. " liberados"
     if #parts == 0 then
         return head
     end

@@ -34,14 +34,14 @@ local Api = require("net/api")
 -- buffer UMA vez (raro — o intervalo largo evita reconstruir a cada linha).
 local RING_HIGH = 6000
 local RING_LOW = 4000
-local buf: { any } = {}
+local log_rows: { any } = {}
 
 -- Set COMPLETO do textarea a partir do buf (usado no seed e no corte). Mantém o
 -- fim com "\n" para os appends seguintes começarem em linha nova.
 local function set_full(): ()
-    local text = fmt.join_log_lines(buf)
-    ctx.log_window_logs_text = (#buf > 0) and (text .. "\n") or ""
-    ctx.log_window_count = tostring(#buf)
+    local text = fmt.join_log_lines(log_rows)
+    ctx.log_window_logs_text = (#log_rows > 0) and (text .. "\n") or ""
+    ctx.log_window_count = tostring(#log_rows)
 end
 
 -- Aplica um lote de eventos novos: appenda no fim (barato) ou, se estourou o
@@ -50,28 +50,28 @@ local function push_batch(events: { any }): ()
     if #events == 0 then
         return
     end
-    for _, e in ipairs(events) do
-        table.insert(buf, e)
+    for _, event in ipairs(events) do
+        table.insert(log_rows, event)
     end
-    if #buf > RING_HIGH then
-        while #buf > RING_LOW do
-            table.remove(buf, 1)
+    if #log_rows > RING_HIGH then
+        while #log_rows > RING_LOW do
+            table.remove(log_rows, 1)
         end
         set_full()
     else
         append_textarea("log_window_logs_text", fmt.join_log_lines(events) .. "\n")
-        ctx.log_window_count = tostring(#buf)
+        ctx.log_window_count = tostring(#log_rows)
     end
 end
 
 -- Um evento do bus: os endpoints já filtram por id; pegamos o LogLine (runtime),
 -- BuildLog (build) ou JobLogLine (job one-shot), o que vier. BuildLog não traz
 -- `stream` (cor padrão).
-local function to_row(ev: any): any?
-    if type(ev) ~= "table" then
+local function to_row(event: any): any?
+    if type(event) ~= "table" then
         return nil
     end
-    return ev.LogLine or ev.BuildLog or ev.JobLogLine
+    return event.LogLine or event.BuildLog or event.JobLogLine
 end
 
 function init(): ()
@@ -79,8 +79,8 @@ function init(): ()
 
     -- Histórico inicial semeado pelo pai (SET completo — append_textarea de init
     -- seria descartado). Daí em diante, só appends vivos no on_message abaixo.
-    local oks, seed = pcall(json.decode, ctx.log_window_seed or "[]")
-    buf = (oks and type(seed) == "table") and seed or {}
+    local json_decode_ok, seed = pcall(json.decode, ctx.log_window_seed or "[]")
+    log_rows = (json_decode_ok and type(seed) == "table") and seed or {}
     set_full()
 
     -- SSE própria desta janela no endpoint dedicado (o motor liga streams
@@ -92,19 +92,19 @@ function init(): ()
     sse(sse_url, {
         headers = Api.auth_headers(ctx.api_token),
         on_message = function(data: string): ()
-            local ok, msg = pcall(json.decode, data)
-            if not ok or type(msg) ~= "table" then
+            local json_decode_ok, decoded = pcall(json.decode, data)
+            if not json_decode_ok or type(decoded) ~= "table" then
                 return
             end
-            if msg.kind == "bus" then
-                local row = to_row(msg.event)
+            if decoded.kind == "bus" then
+                local row = to_row(decoded.event)
                 if row then
                     push_batch{ row }
                 end
-            elseif msg.kind == "bus_batch" then
+            elseif decoded.kind == "bus_batch" then
                 local rows = {}
-                for _, e in ipairs(msg.events or {}) do
-                    local row = to_row(e)
+                for _, event in ipairs(decoded.events or {}) do
+                    local row = to_row(event)
                     if row then
                         table.insert(rows, row)
                     end

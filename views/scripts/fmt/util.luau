@@ -14,8 +14,8 @@ local M = {}
 -- vir em minúsculas.
 function M.matches(term: string?, fields: {any}): boolean
     if not term or term == "" then return true end
-    for _, f in ipairs(fields) do
-        if type(f) == "string" and string.find(string.lower(f), term, 1, true) then
+    for _, field in ipairs(fields) do
+        if type(field) == "string" and string.find(string.lower(field), term, 1, true) then
             return true
         end
     end
@@ -27,15 +27,15 @@ end
 -- em valores longos (ex.: URL de conexão) que senão empurram os controles ao
 -- lado (o botão "Copiar") para fora da área visível. O valor completo continua
 -- disponível noutra chave de contexto para o clipboard.
-function M.ellipsis(s: string?, max: number): string
-    local str = s or ""
-    if utf8.len(str) and (utf8.len(str) :: number) > max then
-        local cut = utf8.offset(str, max + 1)
-        if cut then
-            return string.sub(str, 1, cut - 1) .. "…"
+function M.ellipsis(text: string?, max: number): string
+    local normalized_text = text or ""
+    if utf8.len(normalized_text) and (utf8.len(normalized_text) :: number) > max then
+        local cut_offset = utf8.offset(normalized_text, max + 1)
+        if cut_offset then
+            return string.sub(normalized_text, 1, cut_offset - 1) .. "…"
         end
     end
-    return str
+    return normalized_text
 end
 
 -- Motivo de falha vindo do daemon (`DeployStateChanged.message`,
@@ -44,14 +44,14 @@ end
 -- com frequência (a saída de erro do `docker build`) — o log completo continua
 -- disponível na tela de log do serviço, que agora recebe a causa inteira.
 -- Devolve "" quando não há motivo, para o chamador cair no texto genérico.
-function M.short_reason(msg: any, max: number?): string
-    if type(msg) ~= "string" then
+function M.short_reason(message: any, max: number?): string
+    if type(message) ~= "string" then
         return ""
     end
-    for linha in string.gmatch(msg, "[^\r\n]+") do
-        local limpa = string.match(linha, "^%s*(.-)%s*$") or ""
-        if limpa ~= "" then
-            return M.ellipsis(limpa, max or 140)
+    for line in string.gmatch(message, "[^\r\n]+") do
+        local trimmed_line = string.match(line, "^%s*(.-)%s*$") or ""
+        if trimmed_line ~= "" then
+            return M.ellipsis(trimmed_line, max or 140)
         end
     end
     return ""
@@ -66,10 +66,10 @@ end
 -- limites. Recalculado a cada snapshot (~2s), como grid_cols em dashboard.luau.
 export type ColBudgets = { svc: number, proj: number, state: number, img: number }
 function M.col_budgets(): ColBudgets
-    local w = viewport().width
-    if w < 560 then
+    local viewport_width = viewport().width
+    if viewport_width < 560 then
         return { svc = 12, proj = 9, state = 12, img = 15 }
-    elseif w < 900 then
+    elseif viewport_width < 900 then
         return { svc = 17, proj = 13, state = 14, img = 26 }
     end
     return { svc = 28, proj = 21, state = 19, img = 41 }
@@ -81,23 +81,23 @@ end
 -- linha vira uma string longa com bytes de controle que o text-shaping do iced
 -- processa a um custo patológico — reconstruído a CADA re-render (por evento de
 -- log), o que congela a janela. Também tira CR e NUL soltos.
-function M.strip_ansi(s: string?): string
-    local str = s or ""
+function M.strip_ansi(text: string?): string
+    local cleaned_text = text or ""
     -- CSI: ESC [ params byte-final(letra) — cobre SGR (cor), erase (K/J), cursor.
-    str = string.gsub(str, "\27%[[%d;?]*%a", "")
+    cleaned_text = string.gsub(cleaned_text, "\27%[[%d;?]*%a", "")
     -- OSC: ESC ] … BEL. E qualquer ESC + 1 byte remanescente (ESC c, ESC =, …).
-    str = string.gsub(str, "\27%][^\7]*\7", "")
-    str = string.gsub(str, "\27.", "")
-    str = string.gsub(str, "[\r\0]", "")
-    return str
+    cleaned_text = string.gsub(cleaned_text, "\27%][^\7]*\7", "")
+    cleaned_text = string.gsub(cleaned_text, "\27.", "")
+    cleaned_text = string.gsub(cleaned_text, "[\r\0]", "")
+    return cleaned_text
 end
 
 -- ── Codificação de arrays ────────────────────────────────────────────────
 -- CUIDADO: uma tabela Luau vazia vira `{}` (objeto) no json.encode, não `[]`.
 -- Os templates iteram arrays, então forçamos "[]" quando vazio.
-function M.enc_array(t: {any}): string
-    if #t == 0 then return "[]" end
-    return json.encode(t)
+function M.enc_array(items: {any}): string
+    if #items == 0 then return "[]" end
+    return json.encode(items)
 end
 
 -- ── Mapas de estado (paleta = view.rs) ───────────────────────────────────
@@ -155,22 +155,22 @@ end
 -- Só "running"/"restarting"/"paused" contam como "ativo" (não removíveis sem
 -- force); o resto é parado e pode ser removido individualmente.
 function M.container_state(state: string?): (string, string)
-    local s = string.lower(state or "")
-    if s == "running" then return "running", "ok"
-    elseif s == "restarting" then return "restarting", "info"
-    elseif s == "paused" then return "paused", "warn"
-    elseif s == "created" then return "created", "info"
-    elseif s == "dead" then return "dead", "bad"
+    local lowered_state = string.lower(state or "")
+    if lowered_state == "running" then return "running", "ok"
+    elseif lowered_state == "restarting" then return "restarting", "info"
+    elseif lowered_state == "paused" then return "paused", "warn"
+    elseif lowered_state == "created" then return "created", "info"
+    elseif lowered_state == "dead" then return "dead", "bad"
     end
     -- exited, removing, ou desconhecido
-    return (s ~= "" and s or "exited"), "muted"
+    return (lowered_state ~= "" and lowered_state or "exited"), "muted"
 end
 
 -- `true` quando o container está PARADO (removível sem force). Espelha o daemon
 -- (Docker recusa `rm` de um container rodando/reiniciando sem `-f`).
 function M.container_stopped(state: string?): boolean
-    local s = string.lower(state or "")
-    return s ~= "running" and s ~= "restarting" and s ~= "paused"
+    local lowered_state = string.lower(state or "")
+    return lowered_state ~= "running" and lowered_state ~= "restarting" and lowered_state ~= "paused"
 end
 
 -- ServiceSource → texto de "imagem/origem" (source_summary().1).
@@ -178,8 +178,8 @@ function M.source_summary(source: any): string
     if type(source) ~= "table" then return "—" end
     if source.Registry then return source.Registry.image or "—"
     elseif source.Git then
-        local g = source.Git
-        return (g.url or "") .. " @ " .. (g.branch or "")
+        local git_source = source.Git
+        return (git_source.url or "") .. " @ " .. (git_source.branch or "")
     elseif source.Archive then return source.Archive.original_filename or source.Archive.archive_id or "zip enviado"
     elseif source.Compose then return "docker-compose"
     end
@@ -190,8 +190,8 @@ end
 function M.domain_routes(spec: ServiceSpec): {DomainRoute}
     local routes: {DomainRoute} = {}
     if spec.domains and #spec.domains > 0 then
-        for _, r in ipairs(spec.domains) do
-            table.insert(routes, { domain = r.domain, port = r.port, tls = r.tls == true })
+        for _, domain in ipairs(spec.domains) do
+            table.insert(routes, { domain = domain.domain, port = domain.port, tls = domain.tls == true })
         end
     elseif spec.domain and spec.domain ~= "" then
         table.insert(routes, { domain = spec.domain :: string, port = nil, tls = spec.tls_enabled == true })
@@ -215,8 +215,8 @@ end
 -- Normaliza para pares { svc = Service, proj = "nome" }.
 function M.pair_list(services: {any}?): {ServicePair}
     local out: {ServicePair} = {}
-    for _, e in ipairs(services or {}) do
-        table.insert(out, { svc = e.service, proj = e.project_name or "" })
+    for _, service in ipairs(services or {}) do
+        table.insert(out, { svc = service.service, proj = service.project_name or "" })
     end
     return out
 end

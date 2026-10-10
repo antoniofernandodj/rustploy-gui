@@ -16,30 +16,30 @@ end
 
 local M = {}
 
-function M.git_providers(list: {any}?): string
+function M.git_providers(providers: {any}?): string
     local rows = {}
-    for _, p in ipairs(list or {}) do
-        local login = p.account and p.account.login or nil
+    for _, provider in ipairs(providers or {}) do
+        local login = provider.account and provider.account.login or nil
         local connected = login ~= nil
         local display: string
         local account_lbl: string
         local account_login: string
         if connected then
-            display = tostring(p.name or "") .. " (@" .. tostring(login or "") .. ")"
+            display = tostring(provider.name or "") .. " (@" .. tostring(login or "") .. ")"
             account_lbl = "@" .. tostring(login or "")
             account_login = tostring(login or "")
         else
-            display = tostring(p.name or "") .. " — não conectado"
+            display = tostring(provider.name or "") .. " — não conectado"
             account_lbl = "(pendente — autorize no navegador)"
             account_login = "não conectado"
         end
-        local auth_mode = (p.auth_mode == "OAuth") and "OAuth2" or "PAT"
+        local auth_mode = (provider.auth_mode == "OAuth") and "OAuth2" or "PAT"
         table.insert(rows, {
-            id = p.id,
-            name = p.name,
-            kind = kind_label(p.kind),
+            id = provider.id,
+            name = provider.name,
+            kind = kind_label(provider.kind),
             display = display,
-            base_url = p.base_url,
+            base_url = provider.base_url,
             auth_mode = auth_mode,
             account = account_lbl,
             account_login = account_login,
@@ -49,23 +49,23 @@ function M.git_providers(list: {any}?): string
     return Util.enc_array(rows)
 end
 
-function M.git_repos(list: {any}?): string
+function M.git_repos(repositories: {any}?): string
     local rows = {}
-    for _, r in ipairs(list or {}) do
+    for _, repository in ipairs(repositories or {}) do
         table.insert(rows, {
-            full_name = r.full_name,
-            clone_url = r.clone_url,
-            default_branch = r.default_branch,
-            private = r.private and "private" or "public",
+            full_name = repository.full_name,
+            clone_url = repository.clone_url,
+            default_branch = repository.default_branch,
+            private = repository.private and "private" or "public",
         })
     end
     return Util.enc_array(rows)
 end
 
-function M.git_branches(list: {any}?): string
+function M.git_branches(branches: {any}?): string
     local rows = {}
-    for _, b in ipairs(list or {}) do
-        table.insert(rows, { name = b.name })
+    for _, branch in ipairs(branches or {}) do
+        table.insert(rows, { name = branch.name })
     end
     return Util.enc_array(rows)
 end
