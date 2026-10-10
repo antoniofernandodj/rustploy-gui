@@ -83,7 +83,6 @@ component {
     .align-y-center {
       alignY: end;
     }
-
     """
   }
 
