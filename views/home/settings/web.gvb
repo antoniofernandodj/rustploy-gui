@@ -44,6 +44,27 @@ component {
         """,
       )
 
+      text(class = u-label-cap, content = "CONECTAR UM AGENTE (CLAUDE CODE)")
+
+      row(class = kv-list__row) {
+        text(class = "kv-list__val kv-list__val--compact", content = "claude mcp add … rustploy …/mcp")
+
+        button(
+          class = "btn btn--ghost btn--xs",
+          on_click = clipboard:server_mcp_command,
+          text = Copiar,
+        )
+      }
+
+      text(
+        class = u-muted,
+        content = """
+          Copia o comando que registra o MCP deste servidor no Claude Code, já
+          com o token. Cole num terminal e abra uma sessão nova do Claude Code;
+          confira com /mcp. Contém o token: não cole em lugar público.
+        """,
+      )
+
       text(
         class = u-label-cap,
         content = "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",

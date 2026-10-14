@@ -146,7 +146,7 @@ component {
 
         text(
           class = "u-muted topbar__status",
-          content = "● daemon v@daemon_version",
+          content = "● @connected_server · daemon v@daemon_version",
         )
 
         button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")

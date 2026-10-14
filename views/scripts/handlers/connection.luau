@@ -190,6 +190,11 @@ local function load_settings(): ()
     -- aqui (já temos url + token da sessão) em vez de pedida ao daemon: assim
     -- ela é a que FUNCIONOU desta máquina, não a do `public_base_url`.
     ctx.server_access_key = if api.token then AccessKey.encode(api.base_url, api.token) else ""
+    -- O comando que liga o Claude Code ao MCP deste servidor, pronto para colar
+    -- num terminal: o token já resolvido, sem `curl /api/login` no meio.
+    ctx.server_mcp_command = "claude mcp add --transport http --scope user rustploy "
+        .. api.base_url .. "/mcp"
+        .. (if api.token then ' --header "Authorization: Bearer ' .. api.token .. '"' else "")
     ctx.server_access_key_short = if api.token
         then string.sub(ctx.server_access_key, 1, 12) .. "…" .. string.sub(ctx.server_access_key, -6)
         else "— (daemon sem token)"
@@ -234,6 +239,8 @@ function connect(): ()
 
     ctx.api_url = base
     ctx.api_token = token
+    -- Topbar: a qual servidor esta janela está ligada (host:porta, sem esquema).
+    ctx.connected_server = string.match(base, "^%a[%w+.-]*://(.+)$") or base
     local client = Api.new(base, token)
     State.api = client
     local daemon_status_ok, daemon_status_response = client:rpc("DaemonStatus")
