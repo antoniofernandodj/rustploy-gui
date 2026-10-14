@@ -40,7 +40,8 @@ component {
             not_equals = true,
             on_click = job_run_now:@j.id,
             disabled = @busy_job_run_now,
-            text = "Rodar agora",
+            text = "▶",
+            tooltip = "Rodar agora",
           )
 
           button(
@@ -49,7 +50,8 @@ component {
             equals = true,
             on_click = job_run_cancel:@j.last_run_id,
             disabled = @busy_job_run_cancel,
-            text = Cancelar,
+            text = "■",
+            tooltip = Cancelar,
           )
 
           button(
@@ -58,21 +60,36 @@ component {
             not_equals = "",
             on_click = open_job_logs_window:@j.last_run_id,
             disabled = @busy_open_job_logs_window,
-            text = "Ver logs",
+            text = "≡",
+            tooltip = "Ver logs",
           )
 
           button(
             class = "btn btn--ghost btn--xs",
+            if = @j.enabled,
+            equals = true,
             on_click = job_toggle:@j.id,
             disabled = @busy_job_toggle,
-            text = @j.enabled_label,
+            text = "‖",
+            tooltip = Pausar,
+          )
+
+          button(
+            class = "btn btn--ghost btn--xs",
+            if = @j.enabled,
+            not_equals = true,
+            on_click = job_toggle:@j.id,
+            disabled = @busy_job_toggle,
+            text = "▶",
+            tooltip = Ativar,
           )
 
           button(
             class = "btn btn--ghost btn--xs",
             on_click = open_edit_job_window:@j.id,
             disabled = @busy_open_edit_job_window,
-            text = Editar,
+            text = "✎",
+            tooltip = Editar,
           )
 
           button(
@@ -80,6 +97,7 @@ component {
             on_click = job_delete:@j.id,
             disabled = @busy_job_delete,
             text = "✕",
+            tooltip = Remover,
           )
         }
       }
