@@ -17,7 +17,7 @@ function queue_cancel(deployment_id: string): ()
     end
     local deploy_abort_ok, deploy_abort_response = api:rpc_checked{ DeployAbort = { deployment_id = deployment_id } }
     if deploy_abort_ok then
-        toast{ message = tostring("Deploy removido da fila"), kind = "success" }
+        toast{ message = tostring("Deploy cancelado"), kind = "success" }
     else
         toast{ message = tostring(deploy_abort_response), kind = "error" }
     end

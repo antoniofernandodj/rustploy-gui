@@ -46,6 +46,16 @@ component {
                   disabled = @busy_deploy_engine_open_detail,
                   text = Detalhes,
                 )
+
+                // Mata o deploy em andamento na hora (DeployAbort): derruba o
+                // build e marca o deployment como Failed.
+                button(
+                  class = env__del,
+                  on_click = queue_cancel:@a.deployment_id,
+                  disabled = @busy_queue_cancel,
+                  text = "■",
+                  tooltip = "Abortar deploy",
+                )
               }
 
               row(class = stepper) {

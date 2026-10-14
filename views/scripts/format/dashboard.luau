@@ -569,6 +569,7 @@ function M.deploy_engine_active(active: {any}?): string
             total = Time.format_seconds(info.elapsed_secs),
             phase = Time.format_seconds(info.current_state_secs),
             service_id = info.service_id,
+            deployment_id = info.deployment_id,
         })
     end
     return Util.encode_array(rows)
