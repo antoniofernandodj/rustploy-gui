@@ -6,7 +6,6 @@
     windows_subsystem = "windows"
 )]
 
-mod agent;
 mod app;
 mod desktop;
 mod manifest_zip;

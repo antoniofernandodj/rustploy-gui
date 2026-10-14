@@ -9,36 +9,29 @@ local Api = require("../net/api")
 local format = require("../format")
 local Stream = require("stream")
 local Settings = require("settings")
+local AccessKey = require("../access_key")
 
 -- ── login lembrado: lista de servidor/token (via o `storage` do glacier) ────
--- Antes era um único par com dois checkboxes "lembrar"; agora toda conexão
--- bem-sucedida salva/atualiza sozinha (ver `connect()`), sem checkbox nenhum,
--- e quem administra mais de um daemon tem a lista inteira num
--- `<ComboEdit>` (login.gvb): escolher um servidor já conhecido preenche o
--- token sozinho; digitar um novo deixa o campo livre pra um par ainda não
--- salvo. `storage` grava num arquivo local que sobrevive a restart (fora do
--- `ctx`, que é só memória), em
--- `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida por
--- `app(id = rustploy)` de `views/app.gvb`).
+-- O login é UM campo: a chave `rpk1_…` (endereço + token, ver
+-- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
+-- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
+-- no `<ComboEdit>` (login.gvb): cada item mostra `host:porta  rpk1_…` como
+-- dica de a qual servidor a chave se refere, e escolher um preenche a chave
+-- inteira. O armazenamento continua `{url, token}` (a chave é montada na hora
+-- de mostrar), então servidores salvos antes do login por chave não se
+-- perdem. `storage` grava em `~/.local/share/rustploy/.glacier-storage/app.json`
+-- (raiz definida por `app(id = rustploy)` de `views/app.gvb`).
 local saved_servers: { { url: string, token: string } } = {}
 
--- Publica só as URLs (o `<ComboEdit>` não precisa do token pra montar a
--- lista — o token vem de `token_for` quando um item é escolhido).
+-- Publica `{label, value}` para o `<ComboEdit>`: o rótulo é a dica com o
+-- endereço; o valor, a chave que vai para o campo.
 local function publish_saved_servers(): ()
-    local server_urls = json.array{}
+    local server_options = json.array{}
     for _, saved_server in ipairs(saved_servers) do
-        table.insert(server_urls, saved_server.url)
+        local key = AccessKey.encode(saved_server.url, saved_server.token)
+        table.insert(server_options, { label = AccessKey.hint(saved_server.url, key), value = key })
     end
-    ctx.saved_servers = json.encode(server_urls)
-end
-
-local function token_for(url: string): string?
-    for _, saved_server in ipairs(saved_servers) do
-        if saved_server.url == url then
-            return saved_server.token
-        end
-    end
-    return nil
+    ctx.saved_servers = json.encode(server_options)
 end
 
 -- Salva/atualiza um par e o move pro topo da lista — o mais usado por último
@@ -54,21 +47,19 @@ local function remember_server(url: string, token: string): ()
     publish_saved_servers()
 end
 
--- Handler do `<ComboEdit>` de servidor: dispara a cada tecla (`onChange`) e
--- ao escolher um item já salvo (`onSelect`). Se a URL atual bate com um
--- servidor conhecido, preenche o token junto; se não bate com nenhum,
--- LIMPA o token — sem isso, trocar de um servidor salvo pra um digitado na
--- mão mantinha o token do servidor anterior no campo, e um Connect apressado
--- mandava o token errado pro servidor novo.
-function choose_server(value: string): ()
-    ctx.token = token_for(value) or ""
+-- Handler do `<ComboEdit>` da chave: dispara a cada tecla (`onChange`) e ao
+-- escolher um item salvo (`onSelect`). O motor já grava o texto em
+-- `access_key`; aqui só some o erro da tentativa anterior.
+function choose_server(_value: string): ()
+    ctx.error_access_key = ""
 end
 
--- Botão "Esquecer" ao lado do combo: remove o servidor atual da lista salva
--- e limpa os campos — sem isso a tela continuava mostrando o par recém
+-- Botão "Esquecer" ao lado do combo: remove da lista o servidor da chave
+-- atual e limpa o campo — sem isso a tela continuava mostrando o par recém
 -- esquecido até a próxima troca de servidor ou reabertura do app.
 function forget_server(): ()
-    local url = ctx.url or ""
+    local decoded_key = AccessKey.decode(ctx.access_key)
+    local url = decoded_key and Helpers.normalize_url(decoded_key.url) or ""
     for index = #saved_servers, 1, -1 do
         if saved_servers[index].url == url then
             table.remove(saved_servers, index)
@@ -76,8 +67,8 @@ function forget_server(): ()
     end
     storage.set("saved_servers", saved_servers)
     publish_saved_servers()
-    ctx.url = ""
-    ctx.token = ""
+    ctx.access_key = ""
+    ctx.error_access_key = ""
 end
 
 -- ── init: semeia o contexto para a UI pintar antes de qualquer dado ─────────
@@ -167,16 +158,15 @@ function init(): ()
         end
     end
     -- Semeia o formulário de login com a lista de servidores salvos, e
-    -- pré-preenche url/token com o mais usado por último (topo da lista) —
-    -- para nascer pronto pra conectar de novo sem escolher nada.
+    -- pré-preenche a chave do mais usado por último (topo da lista) — para
+    -- nascer pronto pra conectar de novo sem escolher nada.
     local stored = storage.get("saved_servers")
     if type(stored) == "table" then
         saved_servers = stored
     end
     publish_saved_servers()
-    if #saved_servers > 0 and (not ctx.url or ctx.url == "") then
-        ctx.url = saved_servers[1].url
-        ctx.token = saved_servers[1].token
+    if #saved_servers > 0 and (not ctx.access_key or ctx.access_key == "") then
+        ctx.access_key = AccessKey.encode(saved_servers[1].url, saved_servers[1].token)
     end
 end
 
@@ -196,6 +186,13 @@ local function load_settings(): ()
         ctx.server_settings_registry_domain = get_daemon_settings_response.DaemonSettings.registry_domain or ""
         ctx.git_provider_redirect = Helpers.oauth_redirect_uri(base)
     end
+    -- A chave deste servidor, para Settings → Web Server → copiar. Montada
+    -- aqui (já temos url + token da sessão) em vez de pedida ao daemon: assim
+    -- ela é a que FUNCIONOU desta máquina, não a do `public_base_url`.
+    ctx.server_access_key = if api.token then AccessKey.encode(api.base_url, api.token) else ""
+    ctx.server_access_key_short = if api.token
+        then string.sub(ctx.server_access_key, 1, 12) .. "…" .. string.sub(ctx.server_access_key, -6)
+        else "— (daemon sem token)"
     local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
     if git_provider_list_ok and git_provider_list_response.GitProviders then
         ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
@@ -203,21 +200,40 @@ local function load_settings(): ()
     Settings.docker_cleanup_load()
 end
 
--- on_submit/on_click do formulário de login. `fetch` suspende a corrotina, então
--- validamos a conexão com um DaemonStatus antes de abrir o stream.
+-- on_submit/on_click do formulário de login: decodifica a chave para saber
+-- ONDE bater, troca-a pelo token em `POST /api/login` e valida a sessão com um
+-- DaemonStatus antes de abrir o stream. `fetch` suspende a corrotina.
 function connect(): ()
-    local base = Helpers.normalize_url(ctx.url)
-    if not base then
-        ctx.error_url = "URL inválida (ex.: https://rustploy.domain.tech)"
+    local decoded_key, key_error = AccessKey.decode(ctx.access_key)
+    if not decoded_key then
+        ctx.error_access_key = key_error or "chave inválida"
         return
     end
-    ctx.error_url = ""
-    local token = ctx.token or ""
-    ctx.api_url = base
-    ctx.api_token = token
+    local base = Helpers.normalize_url(decoded_key.url)
+    if not base then
+        ctx.error_access_key = "a chave aponta para um endereço inválido: " .. decoded_key.url
+        return
+    end
+    ctx.error_access_key = ""
     ctx.status_line = "conectando…"
     ctx.error = ""
 
+    local login_ok, token_or_error, login_status = Api.login(base, ctx.access_key)
+    local token = decoded_key.token
+    if login_ok then
+        token = token_or_error
+    elseif login_status ~= 404 then
+        -- 404 = daemon anterior ao login por chave: segue com o token de
+        -- dentro dela, como antes. Atualizar a GUI antes do daemon não pode
+        -- trancar ninguém para fora.
+        ctx.error = token_or_error
+        ctx.status_line = "falha na conexão"
+        ctx.connected = "false"
+        return
+    end
+
+    ctx.api_url = base
+    ctx.api_token = token
     local client = Api.new(base, token)
     State.api = client
     local daemon_status_ok, daemon_status_response = client:rpc("DaemonStatus")

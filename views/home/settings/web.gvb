@@ -23,6 +23,27 @@ component {
         """,
       )
 
+      text(class = u-label-cap, content = "CHAVE DE ACESSO")
+
+      row(class = kv-list__row) {
+        text(class = "kv-list__val kv-list__val--compact", content = "@server_access_key_short")
+
+        button(
+          class = "btn btn--ghost btn--xs",
+          on_click = clipboard:server_access_key,
+          text = Copiar,
+        )
+      }
+
+      text(
+        class = u-muted,
+        content = """
+          Endereço do servidor + token numa string só. É o que se cola no
+          login da GUI e da webui, e o que um agente de IA usa em POST
+          /api/login. Vale tanto quanto o token: não compartilhe à toa.
+        """,
+      )
+
       text(
         class = u-label-cap,
         content = "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",

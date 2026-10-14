@@ -1082,8 +1082,9 @@ fn action_in_progress_locks_the_button() {
         "init() deve semear o flag de cada ação instalada"
     );
 
-    // `connect` faz um rpc (fetch) → a corrotina suspende com o flag ligado.
-    m.define_data("url", "http://127.0.0.1:9");
+    // `connect` faz o login (fetch) → a corrotina suspende com o flag ligado.
+    // A chave é `{"u":"http://127.0.0.1:9","t":"x"}` em `rpk1_` + base64url.
+    m.define_data("access_key", "rpk1_eyJ1IjoiaHR0cDovLzEyNy4wLjAuMTo5IiwidCI6IngifQ");
     let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("connect".into()));
     assert_eq!(
         m.context().get("busy_connect").map(String::as_str),

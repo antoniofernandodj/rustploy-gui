@@ -1,0 +1,11 @@
+// Fixture do teste access_key.rs: tela mínima que roda o access_key.luau e
+// deixa os resultados no contexto.
+screen(title = fixture, size = "200 200") {
+  resources {
+    script(src = access_key_fixture.luau)
+  }
+
+  column {
+    text(content = @key_encoded)
+  }
+}

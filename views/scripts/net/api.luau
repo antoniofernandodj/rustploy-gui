@@ -41,6 +41,36 @@ function M:headers(): { [string]: string }
     return headers
 end
 
+--- `POST /api/login`: troca a chave `rpk1_…` pelo token de acesso. Função de
+--- MÓDULO: roda antes de existir um Client. Retorna `(true, token)`, ou
+--- `(false, mensagem, status)` — a mensagem é a explicação do daemon (formato
+--- errado, chave de outra instalação), e o `status` deixa quem chama tratar o
+--- 404 de um daemon anterior ao login por chave.
+function M.login(base_url: string, access_key: string): (boolean, string, number?)
+    local http_response = fetch(base_url .. "/api/login", {
+        method = "POST",
+        body = json.encode({ key = access_key }),
+        headers = { ["Content-Type"] = "application/json" },
+        timeout = M.RPC_TIMEOUT_MS,
+    })
+
+    local decode_ok, decoded = pcall(json.decode, http_response.body or "")
+    if http_response.ok and decode_ok and type(decoded) == "table" and type(decoded.access_token) == "string" then
+        return true, decoded.access_token, http_response.status
+    end
+
+    if decode_ok and type(decoded) == "table" and type(decoded.error) == "table" and decoded.error.message then
+        return false, tostring(decoded.error.message), http_response.status
+    end
+
+    local error_message =
+        (http_response.error ~= nil and http_response.error ~= "")
+            and http_response.error
+            or ("HTTP " .. tostring(http_response.status))
+
+    return false, error_message, http_response.status
+end
+
 --- Executa um Command. Retorna (true, response_table) em sucesso HTTP, ou
 --- (false, mensagem) em falha de transporte / corpo inválido.
 function M:rpc(command: any): (boolean, any)

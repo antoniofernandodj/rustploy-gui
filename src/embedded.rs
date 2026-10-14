@@ -19,29 +19,6 @@ static FONTS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/fonts");
 /// do daemon (`assets/blueprint-logos/<id>/<arquivo>`).
 static BLUEPRINTS: Dir<'static> = include_dir!("$OUT_DIR/blueprint_logos");
 
-/// Fontes Luau embutidas, como `(caminho relativo, conteúdo)`.
-pub(crate) fn luau_sources() -> Vec<(String, &'static str)> {
-    fn recolhe(dir: &'static Dir<'static>, out: &mut Vec<(String, &'static str)>) {
-        for f in dir.files() {
-            let caminho = f.path().to_string_lossy().to_string();
-            if caminho.ends_with(".luau") {
-                if let Some(texto) = f.contents_utf8() {
-                    out.push((caminho, texto));
-                }
-            }
-        }
-        for sub in dir.dirs() {
-            recolhe(sub, out);
-        }
-    }
-
-    let mut out = Vec::new();
-    if let Some(scripts) = VIEWS.get_dir("scripts") {
-        recolhe(scripts, &mut out);
-    }
-    out
-}
-
 /// Roteia um caminho lógico para a árvore embutida + o caminho relativo a ela
 /// (a chave que `include_dir` usa, relativa à raiz do `#[folder]`).
 fn route(path: &str) -> Option<&'static File<'static>> {

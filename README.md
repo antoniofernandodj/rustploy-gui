@@ -13,13 +13,12 @@ Os assuntos, na ordem em que fazem sentido para quem chega agora:
 1. [O que é este crate e o que ele não é](#1-o-que-é-este-crate-e-o-que-ele-não-é)
 2. [Onde estão os assets](#2-onde-estão-os-assets)
 3. [A ponte do zip do Infra as Code](#3-a-ponte-do-zip-do-infra-as-code)
-4. [A API de agente](#4-a-api-de-agente)
+4. [A API de agente (saiu do app)](#4-a-api-de-agente-saiu-do-app)
 5. [Os testes e o que cada um trava](#5-os-testes-e-o-que-cada-um-trava)
 6. [Os templates `.gvb` por dentro](#6-os-templates-gvb-por-dentro)
 
-Documentos relacionados: `docs/api-agente-no-gui.md` (desenho da API de agente),
-`docs/plano-erro-de-deploy-invisivel.md` (de onde veio a motivação da rota de
-deploy) e `docs/plano-reforma-gui-glacier-0.102.md` (a reforma da UI).
+Documentos relacionados: `docs/plano-chave-de-acesso-e-mcp.md` (login por chave
+e a API de agente no daemon) e `docs/plano-reforma-gui-glacier-0.102.md` (a reforma da UI).
 
 ---
 
@@ -50,8 +49,7 @@ e `font = …`), o `antialiasing`, o `toast_period` e o `application_id` do Linu
 Sobra para o Rust só o que o markup não expressa:
 
 1. a **extensão Luau do `.zip`** (ver [seção 3](#3-a-ponte-do-zip-do-infra-as-code));
-2. o **espelho da sessão** para a API de agente (ver [seção 4](#4-a-api-de-agente));
-3. a **fonte de assets embutida** em release (ver [seção 2](#2-onde-estão-os-assets)).
+2. a **fonte de assets embutida** em release (ver [seção 2](#2-onde-estão-os-assets)).
 
 O `.main_template("views/app.gvb")` carrega o manifesto. O caminho é relativo ao
 workspace, onde `assets::locate_and_chdir` deixa o diretório corrente. Um
@@ -64,33 +62,12 @@ Rust, e este app não tem nenhum.
 janela fechar. Fechar a janela apenas recolhe o app para a bandeja; `run` só
 volta quando o app encerra de verdade. A ordem das peças importa:
 
-1. **Sessão compartilhada.** Cria-se o `SharedSession` da API de agente, o
-   servidor HTTP local (hyper) que empresta a sessão desta janela a um agente
-   rodando na mesma máquina para operar o rustploy **remoto**.
-2. **Canal de mão contrária.** `glacier_ui::external::sender()` (glacier-ui
-   0.58.6+) deixa a thread do servidor injetar ações no motor desta janela — é o
-   que torna login, navegação e qualquer botão alcançáveis por HTTP. Ele é criado
-   **antes** de `run()`, porque é nesse momento que o daemon decide registrar a
-   subscription que o drena.
-3. **Extensão Luau.** `lua_extension(manifest_zip::install)` registra
+1. **Extensão Luau.** `lua_extension(manifest_zip::install)` registra
    `manifest_zip_read`/`manifest_zip_write`, usadas pelo Infra as Code (Settings).
    O motor tem `zip_dir`, mas não o inverso, e a camada Lua não abre um `.zip`.
-4. **Gancho `on_message`.** Roda depois de **cada** dispatch da janela
-   principal. Ele espelha a sessão da GUI (`api_url`/`api_token`/`connected`,
-   escritos no contexto por `handlers/connection.luau`) para a API de agente, e
-   assim cobre login, logout e troca de servidor sem conhecer nenhum dos três;
-   a escrita em disco só acontece quando algo de fato mudou. É também aqui que a
-   API de agente sobe: o `.main()` que a subia saiu. O gancho só roda na instância
-   **primária** — a instância única encerra a segunda antes de qualquer dispatch,
-   então um segundo lançamento não reescreve o handoff da instância viva — e
-   `agent::spawn` é idempotente (um `AtomicBool`), de modo que chamá-lo a cada
-   dispatch custa uma troca atômica.
-5. **Release.** Injeta-se a fonte de assets embutida: o motor passa a ler
+2. **Release.** Injeta-se a fonte de assets embutida: o motor passa a ler
    templates, estilos, scripts e binários de dentro do executável, e nada do
    disco. Em dev o daemon fica com o `DiskAssets` padrão (disco com hot-reload).
-6. **Encerramento.** Quando `run` volta, o handoff da API de agente deixa de
-   valer: o token morre com o processo, e um arquivo sobrevivente só confundiria
-   quem o lesse depois.
 
 ### `main.rs`
 
@@ -195,12 +172,6 @@ Detalhes que valem saber:
   vigiar?". Sem esse segundo ponto o daemon manteria o *ticker* de hot-reload
   rodando para sempre — redesenhando a tela inteira a cada tick — sem nunca ter
   trabalho de verdade a fazer.
-- `luau_sources` devolve os scripts Luau embutidos como `(caminho, conteúdo)`.
-  Serve ao índice de ações da API de agente (`agent::actions`): as ações
-  dispatcháveis da UI são as funções globais desses arquivos, e um binário de
-  release não tem a árvore `views/` no disco para varrer. Em debug o índice lê do
-  disco e nem passa por aqui. O caminho embutido vem relativo a `views/`
-  (`scripts/x.luau`); `actions.rs` o normaliza para o mesmo formato do modo debug.
 - **Os testes deste módulo só existem em release** (o módulo inteiro é
   `cfg(not(debug_assertions))`): rode com `cargo test --release -p rustploy-gui`.
   Um confere que cada caminho realmente referenciado em runtime resolve na árvore
@@ -287,458 +258,19 @@ binário. `install` registra:
 
 ---
 
-## 4. A API de agente
+## 4. A API de agente (saiu do app)
 
-O módulo `src/agent/` é um servidor HTTP local que empresta a sessão desta janela
-a quem opera por fora.
+Até 2026-10-13 este crate subia um servidor HTTP local (`src/agent/`, porta
+9800) que emprestava a sessão da janela a um agente de IA na mesma máquina. Ele
+foi **removido**: o acesso de agente agora é servido pelo próprio daemon —
+`POST /api/login` com a chave `rpk1_…`, o servidor MCP em `POST /mcp` e o
+manual em `GET /api/agent/manual` (ver `rustploy-daemon/crates/daemon/src/api/agent/`
+e `docs/plano-chave-de-acesso-e-mcp.md` no agregador). Um agente não depende
+mais de a GUI estar aberta, nem de estar na mesma máquina.
 
-### 4.1 O problema
-
-O daemon do rustploy já expõe tudo por HTTP (`POST /api/rpc`): dá para conduzir
-um deploy inteiro por fora da GUI. O que faltava era o **caminho até lá**. Quem
-quer operar um rustploy remoto por agente precisa da URL pública do daemon e do
-bearer token dele em mãos, na máquina do agente, fora do lugar onde essas
-credenciais já vivem — que é este app.
-
-### 4.2 O desenho: a direção se inverte
-
-O app já está logado no daemon remoto (o usuário digitou URL + token na tela de
-login). O módulo sobe um servidor HTTP em **loopback** que aceita comandos de um
-agente na mesma máquina e os encaminha ao daemon usando a sessão da GUI. O agente
-nunca vê o token do daemon, não precisa saber o endereço do servidor remoto, e o
-que ele alcança é exatamente o que a janela alcança: trocar de servidor na GUI
-troca o alvo do agente junto.
-
-```text
-  agente local ──HTTP──> 127.0.0.1:9800 (este módulo) ──HTTPS──> rustploy remoto
-                             ▲                                    (POST /api/rpc)
-                             └── sessão (url + token) lida do contexto da GUI
-```
-
-### 4.3 Descoberta: o arquivo de handoff (`handoff.rs`)
-
-Ao subir, o app grava um JSON (`agent-api.json`) com a URL local, o token de acesso
-e o PID. É o **único passo de descoberta**: o agente lê o arquivo e já sabe tudo
-para a primeira requisição; `GET /agent/schema` conta o resto.
-
-- **Onde.** No data dir do usuário — o mesmo que a GUI já usa para o `storage` do
-  Luau e a geometria da janela (`shared::fallback_data_dir()`) —, então não
-  inventa diretório novo nem depende do diretório corrente.
-- **É um segredo.** Quem lê o token opera o rustploy remoto inteiro. O arquivo
-  nasce `0600` no unix. No Windows, onde não há modo POSIX, o diretório de dados
-  do usuário é a fronteira — o mesmo nível de proteção do resto da persistência
-  local do app.
-- **Token efêmero.** `generate_token` produz 32 bytes de CSPRNG em hex, **novo a
-  cada boot** de propósito: não há motivo para ele sobreviver ao processo que o
-  serve, e assim um handoff velho esquecido no disco não vale nada.
-- **O campo `remote`.** É o daemon ao qual a janela está conectada agora, ou
-  `None` na tela de login. Expor isso poupa ao agente uma requisição só para
-  descobrir que ainda não há sessão.
-- **O campo `note`.** O arquivo pode ter sido escrito por um processo que morreu
-  sem limpar; por isso o leitor deve conferir o `pid` (ou simplesmente tentar
-  `/agent/health`) antes de concluir que a API está no ar.
-- **Escrita atômica.** Grava-se num arquivo temporário (`.json.tmp`) e faz-se
-  `rename`. Sem isso, um agente que lesse exatamente durante a regravação — que
-  acontece a cada login/logout — poderia pegar um JSON truncado.
-- **Remoção.** `remove` apaga o handoff ao encerrar o servidor. Um handoff órfão
-  não é perigoso (o token morre com o processo), mas confunde quem for ler depois.
-
-### 4.4 Limites deliberados
-
-- **Só loopback.** O bind é sempre `127.0.0.1`; não há opção de expor na rede.
-  Isto é uma ponte para processos da mesma máquina, não um segundo daemon.
-- **Token mesmo assim.** Loopback não é fronteira de segurança num desktop
-  multiusuário, e o que está do outro lado da ponte derruba produção. O arquivo de
-  handoff nasce `0600`.
-- **Sem escopo.** Quem tem o token do handoff tem o mesmo poder que a janela — o
-  poder do bearer do daemon, hoje sem escopo nenhum. Enquanto o daemon não tiver
-  tokens com escopo (ver a nota de segurança em
-  `docs/plano-erro-de-deploy-invisivel.md`), esta ponte não tem como inventar um.
-
-### 4.5 Subida, endereço e ciclo de vida (`agent/mod.rs`)
-
-- **Thread própria, runtime próprio.** `spawn` sobe o servidor numa thread
-  separada com um runtime tokio `current_thread` próprio. É deliberado: o loop do
-  `iced` é dono da thread principal e o executor dele não é lugar onde se possa
-  `tokio::spawn` antes de `run()`. Uma thread assim custa quase nada e mantém a API
-  viva independente do que a UI esteja fazendo — inclusive com a janela fechada,
-  quando o app fica recolhido na bandeja (o motor *headless* continua vivo e a
-  sessão junto).
-- **Não devolve erro.** Falhar ali não pode impedir o app de abrir; qualquer
-  problema vira aviso no stderr e a GUI segue como sempre foi.
-- **Idempotência (`STARTED`).** O `.on_message()` do `GlacierDaemon`, de onde
-  `spawn` é chamado, roda a **cada** dispatch da principal. Uma segunda thread
-  tentaria *bind* na mesma porta e reescreveria o handoff com um token novo —
-  invalidando o que o agente já tem. O `AtomicBool` também responde "esta execução
-  chegou a subir o servidor?".
-- **`cleanup` só de quem subiu.** Apaga o handoff ao encerrar (o token é desta
-  execução e não vale depois dela), mas só se `STARTED` está ligado. Sem esse
-  guard, um segundo lançamento do app — que o `single_instance` encerra em silêncio
-  sem abrir janela — apagaria o arquivo da instância que continua no ar, e o
-  agente perderia o caminho de volta sem nada ter acontecido de fato.
-- **Endereço.** `DEFAULT_ADDR` é `127.0.0.1:9800`: porta alta e fixa para o
-  handoff ser previsível. Se estiver ocupada, `bind` cai para uma porta efêmera no
-  mesmo IP (outro app, ou uma instância anterior ainda encerrando) e o handoff diz
-  qual foi — por isso o agente lê o arquivo em vez de assumir a porta.
-- **Variável de ambiente `RUSTPLOY_AGENT_API`.** `off` desliga a API;
-  `127.0.0.1:9910` troca o endereço. A regra de resolução (`resolve_addr`) é
-  separada da leitura da variável (`configured_addr`) para poder ser testada. Um
-  valor **não-loopback é recusado** e cai no padrão: o desenho todo supõe que só
-  processos da mesma máquina alcançam esta porta, e uma variável de ambiente num
-  `.desktop` não é lugar de furar isso sem querer. `::1` também é loopback e é
-  aceito.
-
-### 4.6 A sessão (`session.rs`)
-
-A thread da UI **escreve** a sessão; a thread do servidor **lê**, a cada
-requisição.
-
-Quem escreve é o gancho `on_message` do `GlacierDaemon`: toda mensagem
-despachada na janela principal passa por lá com o motor no estado resultante, e o
-contexto do motor é onde a camada Luau guarda `api_url`/`api_token`/`connected`
-ao conectar (`handlers/connection.luau`). Não há um "evento de login" no glacier
-para assinar, e nem faz falta: o `on_message` roda depois de cada dispatch, então
-observar o contexto ali é equivalente — e cobre de graça o logout (que apaga o
-contexto inteiro) e a troca de servidor, sem que o módulo conheça nenhum dos dois
-fluxos.
-
-- **`Session`** é a conexão viva com um daemon, do ponto de vista da API:
-  `base_url` sem barra final (`https://rustploy.exemplo.com`) e `token`, que é
-  `None` quando o daemon roda sem token.
-- **O espelho do contexto.** Além da sessão, guarda-se uma **cópia** do contexto
-  do motor, refeita a cada dispatch. Ela existe porque o contexto só é legível de
-  dentro do gancho, na thread do iced, e a thread da API precisa dele para
-  responder "em que tela a GUI está?", "qual serviço está selecionado?", "qual
-  foi o erro do último login?". Copiar em vez de referenciar permite que as duas
-  threads sigam sem trava compartilhada. O custo é um clone do mapa por dispatch
-  (~120 chaves, algumas com JSON de dezenas de KB), a cada 2s no ritmo do snapshot
-  do SSE; numa aplicação de desktop isso é ruído, e a alternativa (comparar campo
-  a campo para copiar só o que mudou) custaria a mesma ordem de trabalho.
-- **`sync_from_context`** relê o contexto, atualiza o espelho (sempre) e a sessão
-  (se algo mudou). Devolve `true` quando a **sessão** mudou — o chamador usa isso
-  para regravar o handoff sem escrever em disco a cada tick do snapshot do SSE
-  (que dispara um dispatch a cada 2s e, portanto, uma chamada aqui).
-- **O gate `connected`.** `from_context` só devolve sessão quando a camada Luau
-  marcou `connected`, o que acontece quando o `DaemonStatus` de validação passou
-  (`handlers/connection.luau::connect`). Sem isso a API aceitaria requisições
-  enquanto a tela de login ainda mostra credenciais que o usuário está digitando:
-  o usuário já digitou a URL, mas o *Connect* não validou nada, e isso a API de
-  agente não pode usar.
-- **`SharedSession`** é o handle compartilhado. Sessão `None` significa que a
-  janela não está conectada a daemon nenhum (tela de login, ou logout); aí a API
-  responde **503** dizendo exatamente isso, em vez de falhar de um jeito que
-  pareça bug de rede.
-
-### 4.7 O cliente do daemon remoto (`client.rs`)
-
-- **hyper cru**, via o `Client` legado do `hyper-util`, e não `reqwest`: é a mesma
-  regra do daemon — um cliente HTTP só no workspace, e ele é o hyper. O que se
-  precisa é pequeno e conhecido: um `POST` de JSON com bearer.
-- **Sem gzip, de propósito.** O daemon comprime a resposta do `/api/rpc` **quando
-  o cliente pede** (`Accept-Encoding: gzip`). Este cliente não pede: o ganho é de
-  link remoto lento e o custo seria carregar um descompressor aqui para nada.
-- **Provider de cripto explícito.** O glacier-ui já instala o provider `ring` como
-  padrão do processo, mas depender dessa ordem seria frágil; passa-se o provider
-  explicitamente (`rustls::crypto::ring::default_provider`), e assim tanto faz quem
-  instalou o quê antes. `new` só falharia se o provider não pudesse ser
-  configurado, o que na prática não acontece.
-- **`https_or_http`, não `https_only`.** Um rustploy de laboratório na rede local
-  roda em HTTP puro, e é a GUI que decide isso ao conectar — não cabe a esta ponte
-  recusar o que a janela aceitou.
-- **`TIMEOUT` de 60 s por requisição.** Um `Command` pesado (o `Snapshot` faz
-  várias idas ao Docker) leva segundos; o que o limite protege é o daemon
-  inalcançável, para o agente receber um erro em vez de ficar pendurado.
-- **`RemoteError`** já separa o que o agente precisa distinguir: problema de
-  **transporte** (`Transport`: não chegou lá — DNS, TLS, conexão recusada,
-  timeout) × resposta de **erro do próprio daemon** (`Status`: chegou e ele
-  recusou — 401 de token vencido, 404…) × **`Decode`** (a resposta chegou mas não
-  é o JSON esperado).
-- **`rpc`** executa um `Command` com `POST /api/rpc` e devolve a `Response` como
-  JSON cru. Quem chama decide o que fazer com `{"Err":{…}}`, que é resposta 200 do
-  ponto de vista HTTP.
-- **`upload_archive`** sobe um zip para `POST /api/services/<id>/archive`. Merece
-  método próprio porque **não é um `Command`**: é rota HTTP com corpo binário, e
-  um agente que só leu `protocol.rs` não descobre que ela existe — era o último
-  caminho do fluxo "criar serviço Archive → deployar" que a ponte não alcançava.
-  O nome original do arquivo vai em `X-Rustploy-Filename` (o daemon o lê dali; não
-  há multipart) e é o que aparece depois na aba do serviço. O timeout é de **600 s**,
-  sem o curto do `rpc`: um zip de projeto leva bem mais que uma chamada de
-  protocolo, e o custo é de rede, não de espera por um daemon travado.
-- **Ler uma `Response`.** O protocolo é *serde externally-tagged*, então "que
-  resposta é essa?" é sempre a única chave do objeto (`{"Projects":[…]}` →
-  `"Projects"`) — **menos** quando a variante não tem campos, que o serde
-  serializa como string pura (`"Ok"`). Esquecer o segundo caso é o erro clássico de
-  quem escreve cliente para esta API. `response_kind`, `response_payload` (o
-  conteúdo de uma variante com campos, ou `None` para a unitária) e
-  `response_error` (`Some((code, message))` quando é `Response::Err`) encapsulam
-  isso.
-
-### 4.8 O servidor e o roteamento (`routes.rs`)
-
-Servidor **e** cliente são hyper: o daemon já serve a própria API assim, e não faz
-sentido carregar um segundo framework HTTP num app de desktop só para servir sete
-rotas em loopback. Todas as rotas devolvem JSON, **inclusive os erros** — um agente
-não deveria precisar distinguir "corpo de erro em texto" de "corpo de resposta em
-JSON" no meio de um fluxo. O formato de erro é sempre
-`{"error": {"code": "...", "message": "..."}}` (`ApiFail`).
-
-**Constantes.** `MAX_BODY` = 32 MiB: generoso porque um `ManifestApply` ou um
-`ServiceUpdate` de fonte Compose carrega YAML de verdade (dezenas de KB) e
-mesquinho o bastante para um cliente maluco não comer a RAM do app.
-`POLL_INTERVAL` = 2 s é o intervalo com que o `wait` de um deploy reconsulta o
-daemon. `MAX_WAIT` = 3600 s é o teto do `timeout_s` aceito em
-`POST /agent/deploys`.
-
-**Estado (`Ctx`).** Compartilhado por todas as conexões: o canal `ui` para injetar
-ações no motor (glacier-ui 0.58.6+) — sem ele, login e navegação só por clique, é o
-que torna a GUI dirigível —, o `token` exigido no `Authorization` (o **desta** API,
-não o do daemon) e a sessão.
-
-**Códigos de erro.**
-- `ApiFail::desconectado` → **503**, com uma mensagem que diz o que fazer, porque é
-  o erro que um agente mais vai encontrar: o app abriu, mas ninguém logou ainda.
-- Falha de transporte para o daemon → **502**: quem falhou foi o salto daqui para o
-  daemon, não o pedido do agente, e a distinção importa para ele saber se adianta
-  repetir. Pelo mesmo motivo, um `connect` recusado pelo daemon (token errado,
-  host inalcançável) é 502.
-- `Response::Err` do daemon vira **400** com o código e a mensagem dele — não um
-  200 que o agente teria de inspecionar para descobrir que falhou.
-
-**Servir.** `serve` sobe o listener e atende até o processo morrer. Se não
-conseguir gravar o handoff, a API sobe do mesmo jeito mas ninguém a descobre — vale
-um aviso alto, não um encerramento. `accept_loop` é separado de `serve` para os
-testes exercitarem o roteamento sem gerar token nem escrever o handoff no data dir
-do usuário; um cliente que desiste no meio é rotina e nada se reporta. `bind` tenta
-o endereço pedido e cai para uma porta efêmera (ver 4.5).
-
-**Acompanhar a sessão (`watch_session`).** Mantém `remote_url`/`connected` do
-handoff em dia. A sessão muda na thread da UI (login, logout, troca de servidor) e
-o handoff é escrito aqui, na thread da API: um *poll* curto é o acoplamento mais
-barato entre as duas, e não há nada a perder em detectar a mudança 2 s depois.
-
-**Roteamento (`handle`).** Liveness sem token, depois o gate de token, as rotas de
-dados (repassadas ao daemon) e as de controle da janela.
-
-- `GET /agent/health` fica **fora** do gate: serve para o agente saber se o app
-  está no ar antes de ter lido o handoff, e não revela nada — nem o endereço do
-  daemon remoto, que é dado do usuário.
-- `check_token` compara o bearer da API de agente em **tempo constante**: o token é
-  curto e local, mas comparar segredo com `==` é o tipo de detalhe que não vale
-  economizar.
-
-**Rotas de dados.**
-
-- `GET /agent/status` — a janela, o daemon e a fila de deploys num lugar só.
-- `GET /agent/services` — índice achatado projeto→serviço. Existe porque o
-  caminho cru para "qual é o id do serviço chamado X?" é `ProjectList` seguido de
-  um `ServiceList` por projeto, e a alternativa de uma chamada só (`Snapshot`)
-  devolve o dashboard inteiro — Docker, jobs, registry, métricas. Aqui vai só o que
-  identifica um serviço. (`snapshot` desembrulha as duas camadas de
-  `Response::Snapshot(String)`, que é JSON **dentro** de uma string.)
-- `GET /agent/deploys` — últimos deploys com o desfecho já resolvido.
-- `POST /agent/deploys` — dispara um deploy e, com `wait`, só responde quando ele
-  terminou. **É a rota que motivou este módulo.** Sem ela, "o deploy funcionou?"
-  custa ao agente um `DeployStart`, um laço de `DeployHistory` filtrando por id, um
-  `GetBuildLogs` inteiro e o conhecimento de que a causa da falha mora no
-  `states_log` e não no estado — conhecimento que ninguém tem na primeira vez.
-  - `resolve_service` aceita o `service_id` direto **ou o nome** do serviço: o nome
-    é o que o usuário diz ("sobe o stand-imob"), o ULID não. O nome é único por
-    projeto, não globalmente: havendo ambiguidade, a rota não escolhe por conta
-    própria e responde erro.
-  - `wait_for_outcome` faz *poll* até um estado terminal (ou o prazo acabar). É
-    poll e não SSE porque manter uma conexão de eventos aberta significaria
-    consumir e reemitir o *firehose* do daemon só para observar um id; o deploy
-    mais rápido leva segundos, e 2 s de granularidade não custam nada. Se expirar,
-    devolve o **último estado conhecido** em vez de um erro seco — "ainda em
-    `BuildingImage` depois de 15 min" é informação útil, e o agente decide se espera
-    mais ou investiga.
-- `GET /agent/deploys/<id>/logs` — build log com cursor. O daemon só sabe devolver
-  o log inteiro (`GetBuildLogs` não tem cursor), e um build de verdade passa de mil
-  linhas. A fatia acontece aqui: o tráfego caro é o desta ponte para o agente, não o
-  da ponte para o daemon na mesma sessão. `after` é o índice da última linha já
-  vista — a tabela do daemon só recebe *append* e é ordenada por timestamp, então o
-  índice é um cursor estável. `build_log_lines` extrai o texto de cada linha, na
-  ordem de gravação.
-- `POST /agent/rpc` — qualquer `Command` do protocolo, sem tradução. É a válvula de
-  escape que mantém as rotas de conveniência honestas: elas existem para os
-  caminhos frequentes, não para virarem a única porta. Tudo o que a GUI faz, um
-  agente faz por aqui. O passthrough encaminha o comando cru e devolve a `Response`
-  *verbatim*.
-- `GET /agent/ingress` — a tabela de rotas viva do proxy reverso. Responde à
-  pergunta de um domínio que devolve 502: existe rota para ele, e para qual
-  `ip:porta` ela aponta? Um `backends` vazio, ou apontando para a porta errada, é a
-  resposta.
-- `POST /agent/ingress/reconcile` — recalcula as rotas a partir dos containers que
-  existem de fato, sem redeployar, e devolve a tabela já corrigida. O corpo é
-  opcional (`{"service_id":"svc_…"}`); corpo vazio é válido e reconcilia tudo.
-- `GET /agent/servers` — os servidores já usados nesta máquina (ver 4.10).
-- `POST /agent/services/<id>/archive` — sobe um zip local para o serviço. Recebe o
-  **caminho** do arquivo, não os bytes: quem chama está na mesma máquina (a ponte é
-  loopback), e mandar dezenas de MB em base64 por HTTP para a ponte remontar seria
-  custo puro. O corpo é `{"path": "/caminho/app.zip"}`.
-
-**Controle da janela (ver 4.9).**
-- `POST /agent/connect` — entra na sessão **pela própria tela de login**. Era o
-  último ponto cego de verdade: sem isso a ponte só servia depois que um humano
-  tivesse clicado *Connect*, e um agente numa máquina sem ninguém na frente ficava
-  preso no 503. O `token` é opcional: omitido, a ponte busca o salvo para aquela
-  URL (`servers.rs`), de modo que o segredo nunca precisa atravessar a rede.
-- `POST /agent/disconnect` — sai da sessão. Não espera: `disconnect()` na Luau é
-  síncrono e não tem como falhar, e a consequência (a sessão sumindo) fica visível
-  em `GET /agent/ui`.
-- `GET /agent/ui` — o que a janela está mostrando agora.
-- `POST /agent/ui/action` — dispara qualquer ação da UI pelo nome. É a
-  **chave-mestra**: todo botão, aba e formulário da GUI é uma função Luau global
-  (`views/scripts/handlers/*.luau`), e este endpoint chama qualquer uma pelo mesmo
-  caminho de um clique. Cobre as ~154 ações existentes e as futuras sem uma lista
-  aqui, que envelheceria na primeira tela nova. Com `value` o efeito é o de um
-  `onChange` de campo; sem `value`, o de um clique de botão — a mesma distinção que
-  os templates fazem, então a ação recebe exatamente o que receberia da UI. A
-  resposta é **202**, não 200: a ação foi **entregue** ao motor e o efeito dela é
-  assíncrono (várias fazem RPC); prometer "deu certo" ali seria mentira.
-- `POST /agent/ui/context` — escreve chaves no contexto da janela. É o par de
-  baixo nível do `ui/action`: preenche campo de formulário, marca seleção, muda de
-  aba; útil quando a ação que se quer disparar espera algo já escrito no contexto.
-  Número e booleano viram texto, porque o contexto do motor é sempre chave→string
-  e recusar por tipo seria pedantismo inútil.
-
-**Moldando as respostas do daemon.** O objetivo é devolver ao agente o que ele
-precisa, não o que o daemon tem.
-
-- `outcome_ok` resolve o desfecho de um deploy: `true` = no ar, `false` = falhou,
-  `null` = ainda não decidiu. Só `Live` e `Failed` decidem. `Stopped` e `Pruning`
-  são terminais **sem serem desfecho**: o primeiro é o serviço derrubado de
-  propósito, o segundo é um deployment antigo que outro mais novo substituiu.
-  Chamar qualquer um dos dois de "falha" seria mentira.
-- `failure_reason` tira a causa da falha do `states_log`, que é onde o daemon a
-  grava: a transição que **entrou** em `RollingBack` carrega a mensagem do step que
-  quebrou (o texto do `docker build`, o healthcheck que não passou…). Mensagens de
-  outras transições são ignoradas de propósito — `Pruning` traz "superseded by newer
-  deployment", que não é erro nenhum.
-- `compact_summary`/`compact_deployment` reduzem `DeploymentSummary`/`Deployment`
-  ao que interessa a quem só quer saber como acabou.
-- `service_index` achata o snapshot no índice que um agente precisa para agir: id,
-  nome, projeto, status e de onde a imagem vem. `status_label` transforma o
-  `ServiceStatus` (externally-tagged, só a variante `Error` tem campo) em
-  `"Running"` ou `"Error: <causa>"`; depois da correção do log de deploy essa causa
-  é o motivo real da falha, não mais a string fixa "deploy failed". `source_label`
-  achata o `ServiceSource` no que identifica a origem, sem arrastar o
-  `compose.content` inteiro (dezenas de KB) para dentro de uma listagem — e a
-  credencial de um repositório git nunca vaza para uma listagem.
-
-**Parâmetros da query.** `num_param` e `str_param` não fazem *percent-decoding*:
-nenhum parâmetro numérico precisa, e os campos de texto livre (nome de serviço)
-vão no corpo, justamente para não depender disso. Os únicos usos textuais são
-listas de nomes de chave (`keys=screen,view`) e flags (`all=1`).
-
-### 4.9 Controlando a própria janela (`ui.rs`)
-
-A ponte de `routes.rs` encaminha `Command`s ao daemon remoto, e isso cobre tudo o
-que é **dado**. Sobrava o que é **janela**: entrar na sessão, sair dela, navegar
-entre telas, abrir uma janela-filha, marcar um serviço como selecionado. Nada disso
-é um `Command` — mora na camada Luau, e só era disparado por um evento do loop do
-iced.
-
-O canal `external` do glacier-ui (0.58.6+) fecha a lacuna: a thread do servidor
-injeta no motor da janela principal o **mesmo** tipo de mensagem que um clique
-produz. Como o vocabulário é o dos templates, toda ação declarada na UI já é
-alcançável — as 154 de hoje e as que vierem, sem lista para manter em dia. O par de
-leitura é o espelho do contexto em `session.rs`: **escrever é pelo canal, ler é
-pelo espelho**.
-
-- **`connect`.** Preenche o formulário de login e aciona o botão *Connect*,
-  exatamente como um usuário faria, e espera o desfecho. Preencher e clicar (em vez
-  de só escrever a sessão na ponte) é deliberado: assim a GUI **acompanha**. O
-  `connect()` da Luau valida com um `DaemonStatus`, abre o SSE, carrega as
-  configurações do daemon, troca para a tela `shell` e salva o servidor na lista de
-  conhecidos; uma sessão escrita só do lado da ponte teria o agente operando um
-  servidor que a janela do usuário nem sabe que existe. Limpa-se o erro anterior
-  antes, para não confundir uma falha velha com esta. O motivo de uma recusa vem de
-  `error` (falha de transporte/401) ou de `error_url` (URL malformada) — o
-  `connect()` escreve ali e volta sem conectar. `TIMEOUT_CONNECT` (30 s) é o quanto
-  se espera: ele faz um `DaemonStatus` de validação contra o daemon remoto, então o
-  teto é de rede, não de UI. `POLL` (100 ms) é de quanto em quanto tempo se
-  reconsulta o espelho.
-- **`disconnect`.** O `disconnect()` da Luau fecha o SSE, apaga o contexto inteiro e
-  volta para a tela de login; a ponte perde a sessão junto, por construção.
-- **`state`.** O estado da janela que interessa a quem a dirige de fora. É
-  **curado**, não o contexto cru: o contexto tem ~120 chaves, várias com o JSON
-  inteiro de uma tela (todos os serviços, todas as imagens Docker), e devolver tudo
-  por padrão faria a resposta custar mais que a informação. Para as demais há o
-  parâmetro `keys`. `screen` é a janela toda (`login` | `shell`); `view` é a seção
-  da sidebar.
-- **`keys` e `all_keys`.** Chaves avulsas do contexto, para o que o resumo curado
-  não cobre; `all_keys` despeja todas, só sob pedido explícito (`?all=1`), com os
-  segredos redigidos. Uma chave pedida e inexistente volta com `null`: isso diz
-  "perguntei e não tem"; omiti-la deixaria o chamador sem saber se errou o nome.
-- **`REDIGIDAS`** são as chaves que **nunca** saem pela API: `api_token` (o bearer do
-  daemon remoto — o desenho inteiro da ponte é o agente operar sem nunca vê-lo) e
-  `token` (o campo do formulário de login, que carrega o mesmo segredo enquanto o
-  usuário digita). O resumo curado nunca carrega o bearer do daemon.
-
-### 4.10 Os servidores conhecidos (`servers.rs`)
-
-A camada Luau salva todo login bem-sucedido no `storage` do glacier-ui — um JSON no
-data dir do usuário (`handlers/connection.luau`, `remember_server`). É de lá que o
-formulário de login nasce preenchido. Para a API de agente isso resolve um problema
-concreto: **conectar sem precisar do token**. O agente pede a URL, a ponte encontra o
-token salvo e preenche o formulário — o segredo nunca atravessa a rede em nenhum
-sentido, nem na ida (o agente não o manda) nem na volta (a listagem só diz se
-existe).
-
-- `list` lê a lista salva. Fica vazia quando o arquivo não existe (nenhum login
-  ainda), está corrompido ou mudou de formato — nunca é erro fatal: a consequência é
-  só o agente ter de informar o token, que é o caminho normal mesmo.
-- `token_for` compara a URL de forma tolerante à barra final — a mesma normalização
-  que a sessão faz — para `https://x.dev/` e `https://x.dev` não virarem servidores
-  diferentes.
-- `as_json` é a listagem que sai pela API: URL e se há token guardado, **nunca o
-  token**.
-
-### 4.11 O índice de ações (`actions.rs`)
-
-`POST /agent/ui/action` dispara qualquer ação da GUI pelo nome. Mas uma chave-mestra
-sem chaveiro só serve a quem já sabe os nomes, e saber os nomes exigia ter o
-repositório aberto (`grep "^function " views/scripts/handlers/*.luau`) — o que
-deixaria a rota mais poderosa da ponte fora do alcance de um agente que só tem a
-máquina do usuário e o arquivo de handoff.
-
-Este módulo devolve a lista **em runtime**, lida da mesma árvore de scripts que o
-motor executa: do disco em debug, da árvore embutida no binário em release — nunca
-de uma lista escrita à mão, que envelheceria na primeira tela nova.
-
-- **O que conta como ação:** uma função global do Luau, escrita na **coluna 1**
-  (`function nome(...)`), que é exatamente o que os templates referenciam em
-  `on_click`/`onChange`/`on_submit`. `local function` (auxiliar do módulo), métodos
-  (`function M:algo`) e um `function` indentado (dentro de outro bloco) ficam de
-  fora, e o teste correspondente existe porque anunciar auxiliares daria ao agente
-  nomes que respondem 202 e não fazem nada.
-- **Debug × release.** Em debug os assets são lidos do disco pelo motor (com
-  hot-reload) e o diretório corrente já é a base dos assets
-  (`assets::locate_and_chdir`), então a varredura segue o mesmo caminho. Em release
-  não há árvore no disco: vem do binário (`embedded::luau_sources`).
-- A lista sai **ordenada por nome**: é para ser lida e procurada, não para preservar
-  a ordem de declaração de cada arquivo. `Acao.origem` é o arquivo relativo a
-  `views/scripts/`, ex.: `handlers/services.luau`.
-
-### 4.12 O catálogo de descoberta (`catalog.rs`)
-
-`GET /agent/schema` é o documento de descoberta. Sem ele, montar a primeira chamada
-exige ler `src/protocol.rs` do rustploy-shared e `models.rs` e deduzir a codificação
-serde na mão — viável para quem tem o repositório aberto, inviável para um agente
-diante de um daemon remoto. É o atrito mais caro relatado em
-`docs/plano-erro-de-deploy-invisivel.md` (2.1).
-
-**O catálogo é curado, não gerado.** As rotas desta API estão descritas por inteiro;
-a lista de `Command` cobre o que aparece em runbook, não as ~90 variantes do enum. A
-fonte da verdade continua sendo `protocol.rs`, e o passthrough (`POST /agent/rpc`)
-aceita qualquer comando, esteja ele listado ou não — inclusive os adicionados depois
-deste arquivo.
-
-Por ser escrito à mão, um `json!` malformado só apareceria em runtime; os testes
-garantem que o catálogo ao menos existe e cita cada rota que o roteador realmente
-serve, e que cada exemplo de comando é JSON de verdade — copiar um exemplo quebrado
-é pior do que não ter exemplo.
+O que sobrou aqui do assunto é a tela de login: um campo só, a chave de acesso,
+decodificada em Luau (`views/scripts/access_key.luau`) para saber onde fazer o
+`POST /api/login`.
 
 ---
 
@@ -746,52 +278,8 @@ serve, e que cada exemplo de comando é JSON de verdade — copiar um exemplo qu
 
 ### 5.1 Testes da API de agente
 
-São testes unitários pequenos, cada um ligado a uma decisão de desenho:
-
-- **`resolve_addr`** — `::1` também é loopback; e o que importa de verdade: pedir
-  *bind* público **não** abre a ponte para a rede, cai no padrão de loopback.
-- **`session`** — repetir o mesmo contexto não pode contar como mudança (o tick do
-  SSE dispara um dispatch a cada 2 s; senão o handoff seria reescrito em disco o
-  tempo todo); logout apaga o contexto inteiro e a sessão cai junto (impede o agente
-  de continuar operando um servidor do qual o usuário acabou de sair); trocar de
-  servidor na GUI troca o alvo do agente sem ele saber.
-- **`ui`** — o token do daemon é o segredo que a ponte existe para **não** expor:
-  nem por chave avulsa, nem no despejo completo.
-- **`client`** — `Response::Ok` vira a string nua `"Ok"`, não um objeto: o caso que
-  quebra cliente ingênuo.
-- **`routes` (unitários)** — o desfecho: só `Live` e `Failed` decidem, e um
-  deployment substituído por outro mais novo (`Pruning`) não é falha; e a
-  **regressão que o módulo inteiro serve**: a causa da falha sai do `states_log` e
-  não se deixa confundir pela mensagem de "superseded".
-- **`actions`** — auxiliares de módulo e métodos não são dispatcháveis.
-
-**O teste ponta a ponta da ponte** (`routes::tests`) é o que separa "compila" de
-"funciona". Ele monta um daemon rustploy **de mentira** de um lado, a API de agente
-no meio e um cliente HTTP cru do outro (hyper direto sobre TCP, sem TLS — tudo é
-loopback), e exercita o roteamento, o gate de token, o gate de sessão e — o
-principal — o `POST /agent/deploys` com `wait`.
-
-- O daemon de mentira responde o subconjunto do protocolo que as rotas usam. Uma
-  variante unitária chega como string nua e a com campos como objeto de uma chave,
-  igualzinho ao daemon de verdade. `HISTORY_HITS` conta quantas vezes ele já
-  respondeu um `DeployHistory`: o deploy só "termina" na **segunda** consulta, para
-  o teste passar mesmo pelo caminho de espera em vez de acertar terminal de primeira
-  (e a asserção `>= 2` prova que passou por ele — o primeiro `DeployHistory` ainda
-  estava em `BuildingImage`).
-- O canal `external` dos testes não tem motor do outro lado: as mensagens caem num
-  receptor que ninguém drena, o que é exatamente o certo aqui — os testes
-  exercitam o HTTP e a conversa com o daemon, não o efeito na janela.
-- Com o token certo, o que barra agora é a falta de sessão — o que prova que a
-  requisição passou do gate de token.
-- **O caso do plano, ponta a ponta:** dispara o deploy, espera, e a resposta já traz
-  `ok=false` com a causa que o Docker deu, sem o agente precisar saber que ela mora
-  no `states_log`. O serviço é pedido por **nome**, não por id (o daemon de mentira
-  resolve via `Snapshot`), e `log_tail` traz só o fim, com o cursor dizendo onde
-  continuar.
-- O passthrough encaminha o comando cru e devolve a `Response` *verbatim*;
-  `Response::Err` vira 400 com código e mensagem; daemon inalcançável (porta
-  fechada de propósito) é **502**, não 500 — a distinção diz ao agente se adianta
-  repetir. Credencial de repositório não vaza para uma listagem de serviços.
+Saíram junto com `src/agent/` (ver [seção 4](#4-a-api-de-agente-saiu-do-app)).
+Os equivalentes vivem no daemon, ao lado de `api/agent/`.
 
 ### 5.2 Os testes de `format` em Luau (`tests/format_*.rs`)
 
