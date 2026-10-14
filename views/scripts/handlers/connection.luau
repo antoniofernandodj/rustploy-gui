@@ -12,33 +12,38 @@ local Settings = require("settings")
 local AccessKey = require("../access_key")
 
 -- ── login lembrado: lista de servidor/token (via o `storage` do glacier) ────
--- O login é UM campo: a chave de acesso (endereço + token, ver
+-- O login é UM campo: o token de conexão (endereço + token, ver
 -- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
 -- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
--- no `<ComboEdit>` (login.gvb): cada item mostra `host:porta · cnVzdH…` como
--- dica de a qual servidor a chave se refere, e escolher um preenche a chave
--- inteira. O armazenamento continua `{url, token}` (a chave é montada na hora
--- de mostrar), então servidores salvos antes do login por chave não se
+-- no `<ComboEdit>` (login.gvb): cada item é o token de conexão inteiro, e
+-- escolher um preenche o campo com ele. O armazenamento continua `{url, token}` (o token é montado na hora
+-- de mostrar), então servidores salvos antes do login por token não se
 -- perdem. `storage` grava em `~/.local/share/rustploy/.glacier-storage/app.json`
 -- (raiz definida por `app(id = rustploy)` de `views/app.gvb`).
 local saved_servers: { { url: string, token: string } } = {}
 
--- Publica `{label, value}` para o `<ComboEdit>`: o rótulo é a dica com o
--- endereço; o valor, a chave que vai para o campo.
+-- Publica `{label, value}` para o `<ComboEdit>`. O rótulo é o próprio token
+-- de conexão: o `combo_box` do iced mostra no CAMPO o rótulo da opção
+-- escolhida, então um rótulo-dica (`host:porta · cnVzdH…`, ver
+-- `AccessKey.hint`) aparecia no lugar do token, com o endereço à mostra.
 local function publish_saved_servers(): ()
     local server_options = json.array{}
     for _, saved_server in ipairs(saved_servers) do
         local key = AccessKey.encode(saved_server.url, saved_server.token)
-        table.insert(server_options, { label = AccessKey.hint(saved_server.url, key), value = key })
+        table.insert(server_options, { label = key, value = key })
     end
     ctx.saved_servers = json.encode(server_options)
 end
 
 -- Salva/atualiza um par e o move pro topo da lista — o mais usado por último
 -- fica em primeiro, e é também o que `init()` pré-preenche no próximo boot.
+-- A igualdade é por `host:porta`, não pela URL: o token de conexão não tem
+-- esquema, então `http://h:1` e `https://h:1` são o mesmo servidor (e dariam o
+-- mesmo item na lista).
 local function remember_server(url: string, token: string): ()
+    local address = AccessKey.address_of(url)
     for index = #saved_servers, 1, -1 do
-        if saved_servers[index].url == url then
+        if AccessKey.address_of(saved_servers[index].url) == address then
             table.remove(saved_servers, index)
         end
     end
@@ -47,21 +52,21 @@ local function remember_server(url: string, token: string): ()
     publish_saved_servers()
 end
 
--- Handler do `<ComboEdit>` da chave: dispara a cada tecla (`onChange`) e ao
+-- Handler do `<ComboEdit>` do token de conexão: dispara a cada tecla (`onChange`) e ao
 -- escolher um item salvo (`onSelect`). O motor já grava o texto em
 -- `access_key`; aqui só some o erro da tentativa anterior.
 function choose_server(_value: string): ()
     ctx.error_access_key = ""
 end
 
--- Botão "Esquecer" ao lado do combo: remove da lista o servidor da chave
+-- Botão "Esquecer" ao lado do combo: remove da lista o servidor do token
 -- atual e limpa o campo — sem isso a tela continuava mostrando o par recém
 -- esquecido até a próxima troca de servidor ou reabertura do app.
 function forget_server(): ()
     local decoded_key = AccessKey.decode(ctx.access_key)
-    local url = decoded_key and Helpers.normalize_url(decoded_key.url) or ""
+    local address = if decoded_key then decoded_key.address else ""
     for index = #saved_servers, 1, -1 do
-        if saved_servers[index].url == url then
+        if AccessKey.address_of(saved_servers[index].url) == address then
             table.remove(saved_servers, index)
         end
     end
@@ -158,7 +163,7 @@ function init(): ()
         end
     end
     -- Semeia o formulário de login com a lista de servidores salvos, e
-    -- pré-preenche a chave do mais usado por último (topo da lista) — para
+    -- pré-preenche o token de conexão do mais usado por último (topo da lista) — para
     -- nascer pronto pra conectar de novo sem escolher nada.
     local stored = storage.get("saved_servers")
     if type(stored) == "table" then
@@ -186,9 +191,9 @@ local function load_settings(): ()
         ctx.server_settings_registry_domain = get_daemon_settings_response.DaemonSettings.registry_domain or ""
         ctx.git_provider_redirect = Helpers.oauth_redirect_uri(base)
     end
-    -- A chave deste servidor, para Settings → Web Server → copiar. Montada
+    -- O token de conexão deste servidor, para Settings → Web Server → copiar. Montado
     -- aqui (já temos url + token da sessão) em vez de pedida ao daemon: assim
-    -- ela é a que FUNCIONOU desta máquina, não a do `public_base_url`.
+    -- ele é o que FUNCIONOU desta máquina, não o do `public_base_url`.
     ctx.server_access_key = if api.token then AccessKey.encode(api.base_url, api.token) else ""
     -- O comando que liga o Claude Code ao MCP deste servidor, pronto para colar
     -- num terminal: o token já resolvido, sem `curl /api/login` no meio.
@@ -205,37 +210,60 @@ local function load_settings(): ()
     Settings.docker_cleanup_load()
 end
 
--- on_submit/on_click do formulário de login: decodifica a chave para saber
--- ONDE bater, troca-a pelo token em `POST /api/login` e valida a sessão com um
--- DaemonStatus antes de abrir o stream. `fetch` suspende a corrotina.
+-- O esquema de um `host:porta`: o token de conexão não o carrega. Sonda
+-- `GET /api/version` (pública, sem token) primeiro com o esquema de um servidor
+-- já salvo com esse endereço, depois https, depois http — qualquer resposta
+-- HTTP, até um 404, prova que o esquema é aquele; erro de transporte (TLS
+-- recusado, conexão fechada) passa para o próximo.
+local function resolve_base(address: string): (string?, string?)
+    local schemes: { string } = {}
+    for _, saved_server in ipairs(saved_servers) do
+        if AccessKey.address_of(saved_server.url) == address then
+            table.insert(schemes, string.lower(string.match(saved_server.url, "^(%a[%w+.-]*)://") or "https"))
+            break
+        end
+    end
+    for _, scheme in ipairs({ "https", "http" }) do
+        if not table.find(schemes, scheme) then
+            table.insert(schemes, scheme)
+        end
+    end
+    local last_error = ""
+    for _, scheme in ipairs(schemes) do
+        local base = scheme .. "://" .. address
+        local http_response = fetch(base .. "/api/version", { method = "GET", timeout = 8000 })
+        if http_response.status ~= nil and http_response.status > 0 then
+            return base, nil
+        end
+        last_error = if http_response.error ~= nil and http_response.error ~= "" then http_response.error else "sem resposta"
+    end
+    return nil, "não deu para falar com " .. address .. " nem por https nem por http (" .. last_error .. ")"
+end
+
+-- on_submit/on_click do formulário de login: decodifica o token de conexão
+-- (base64 de `host:porta::token`), descobre o esquema e usa o token da API
+-- direto como Bearer — sem `/api/login`, o daemon não precisa de nada novo.
+-- Valida a sessão com um DaemonStatus antes de abrir o stream. `fetch`
+-- suspende a corrotina.
 function connect(): ()
     local decoded_key, key_error = AccessKey.decode(ctx.access_key)
     if not decoded_key then
-        ctx.error_access_key = key_error or "chave inválida"
-        return
-    end
-    local base = Helpers.normalize_url(decoded_key.url)
-    if not base then
-        ctx.error_access_key = "a chave aponta para um endereço inválido: " .. decoded_key.url
+        ctx.error_access_key = key_error or "token de conexão inválido"
         return
     end
     ctx.error_access_key = ""
     ctx.status_line = "conectando…"
     ctx.error = ""
 
-    local login_ok, token_or_error, login_status = Api.login(base, ctx.access_key)
-    local token = decoded_key.token
-    if login_ok then
-        token = token_or_error
-    elseif login_status ~= 404 then
-        -- 404 = daemon anterior ao login por chave: segue com o token de
-        -- dentro dela, como antes. Atualizar a GUI antes do daemon não pode
-        -- trancar ninguém para fora.
-        ctx.error = token_or_error
+    local resolved_base, resolve_error = resolve_base(decoded_key.address)
+    local base = if resolved_base then Helpers.normalize_url(resolved_base) else nil
+    if not base then
+        ctx.error = resolve_error or ("endereço inválido no token de conexão: " .. decoded_key.address)
         ctx.status_line = "falha na conexão"
         ctx.connected = "false"
         return
     end
+    local token = decoded_key.token
 
     ctx.api_url = base
     ctx.api_token = token

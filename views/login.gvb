@@ -1,5 +1,5 @@
-// Tela de login: um campo, a chave de acesso (endereço + token), com a
-// lista de servidores lembrados (cada item com o endereço como dica).
+// Tela de login: um campo, o token de conexão (endereço + token), com a
+// lista de servidores lembrados (cada item é um token de conexão).
 component {
   resources {
     style """
@@ -38,14 +38,14 @@ component {
       form(name = login, on_submit = connect, spacing = 16, width = fill) {
         column(class = field) {
           row(class = field__row) {
-            text(class = "field__label u-fill", content = "ACCESS KEY")
+            text(class = "field__label u-fill", content = "CONNECTION TOKEN")
             text(class = field__label, content = "SECURE")
           }
 
           ComboEdit(
             :options = saved_servers,
             :value = access_key,
-            placeholder = "cole a chave de acesso",
+            placeholder = "cole o token de conexão",
             class = field__input,
             onChange = choose_server,
             onSelect = choose_server,

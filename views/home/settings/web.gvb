@@ -23,7 +23,7 @@ component {
         """,
       )
 
-      text(class = u-label-cap, content = "CHAVE DE ACESSO")
+      text(class = u-label-cap, content = "TOKEN DE CONEXÃO")
 
       row(class = kv-list__row) {
         text(class = "kv-list__val kv-list__val--compact", content = "@server_access_key_short")
@@ -38,9 +38,11 @@ component {
       text(
         class = u-muted,
         content = """
-          Endereço do servidor + token numa string só. É o que se cola no
-          login da GUI e da webui, e o que um agente de IA usa em POST
-          /api/login. Vale tanto quanto o token: não compartilhe à toa.
+          base64 de host:porta::token — endereço do servidor + token numa
+          string só. É o que se cola no login da GUI e da webui, e o que um
+          agente de IA usa em POST /api/login. O daemon também o deixa no
+          config.toml, em [api].connection_token. Vale tanto quanto o token:
+          não compartilhe à toa.
         """,
       )
 

@@ -41,7 +41,9 @@ function M:headers(): { [string]: string }
     return headers
 end
 
---- `POST /api/login`: troca a chave de acesso pelo token de acesso. Função de
+--- `POST /api/login`: troca o token de conexão pelo token da API. O login da
+--- GUI não usa mais (decodifica o token de conexão e usa o token da API
+--- direto); fica para depuração. Função de
 --- MÓDULO: roda antes de existir um Client. Retorna `(true, token)`, ou
 --- `(false, mensagem, status)` — a mensagem é a explicação do daemon (formato
 --- errado, chave de outra instalação), e o `status` deixa quem chama tratar o
