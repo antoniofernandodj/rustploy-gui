@@ -1,4 +1,4 @@
-// Tela de login: um campo, a chave de acesso `rpk1_…` (endereço + token), com a
+// Tela de login: um campo, a chave de acesso (endereço + token), com a
 // lista de servidores lembrados (cada item com o endereço como dica).
 component {
   resources {
@@ -45,7 +45,7 @@ component {
           ComboEdit(
             :options = saved_servers,
             :value = access_key,
-            placeholder = "rpk1_…",
+            placeholder = "cole a chave de acesso",
             class = field__input,
             onChange = choose_server,
             onSelect = choose_server,

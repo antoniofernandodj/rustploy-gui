@@ -41,7 +41,7 @@ function M:headers(): { [string]: string }
     return headers
 end
 
---- `POST /api/login`: troca a chave `rpk1_…` pelo token de acesso. Função de
+--- `POST /api/login`: troca a chave de acesso pelo token de acesso. Função de
 --- MÓDULO: roda antes de existir um Client. Retorna `(true, token)`, ou
 --- `(false, mensagem, status)` — a mensagem é a explicação do daemon (formato
 --- errado, chave de outra instalação), e o `status` deixa quem chama tratar o

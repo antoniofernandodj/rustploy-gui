@@ -1083,8 +1083,8 @@ fn action_in_progress_locks_the_button() {
     );
 
     // `connect` faz o login (fetch) → a corrotina suspende com o flag ligado.
-    // A chave é `{"u":"http://127.0.0.1:9","t":"x"}` em `rpk1_` + base64url.
-    m.define_data("access_key", "rpk1_eyJ1IjoiaHR0cDovLzEyNy4wLjAuMTo5IiwidCI6IngifQ");
+    // A chave é base64url de `127.0.0.1:9::x`.
+    m.define_data("access_key", "MTI3LjAuMC4xOjk6Ong");
     let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("connect".into()));
     assert_eq!(
         m.context().get("busy_connect").map(String::as_str),

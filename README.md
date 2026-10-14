@@ -263,7 +263,7 @@ binário. `install` registra:
 Até 2026-10-13 este crate subia um servidor HTTP local (`src/agent/`, porta
 9800) que emprestava a sessão da janela a um agente de IA na mesma máquina. Ele
 foi **removido**: o acesso de agente agora é servido pelo próprio daemon —
-`POST /api/login` com a chave `rpk1_…`, o servidor MCP em `POST /mcp` e o
+`POST /api/login` com a chave de acesso, o servidor MCP em `POST /mcp` e o
 manual em `GET /api/agent/manual` (ver `rustploy-daemon/crates/daemon/src/api/agent/`
 e `docs/plano-chave-de-acesso-e-mcp.md` no agregador). Um agente não depende
 mais de a GUI estar aberta, nem de estar na mesma máquina.

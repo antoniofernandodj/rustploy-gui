@@ -1,18 +1,20 @@
 --!strict
 
--- access_key.luau — a chave de acesso `rpk1_…`: endereço do daemon + token
--- numa string só, para o login ter um campo.
+-- access_key.luau — a chave de acesso: endereço do daemon + token numa string
+-- só, para o login ter um campo.
 --
 -- Formato (o mesmo de `api/agent/access_key.rs` no daemon e de
--- `decodeAccessKey` na webui): `rpk1_` + base64url sem padding de
--- `{"u":"<url>","t":"<token>"}`. Esconde o endereço, não o criptografa — quem
+-- `decodeAccessKey` na webui): base64url sem padding de `host:porta::token`.
+-- O esquema só vai na chave quando não dá para deduzi-lo — porta 443 (ou
+-- nenhuma) é https, qualquer outra é http; fora disso a chave leva
+-- `https://host:9797::token`. Esconde o endereço, não o criptografa — quem
 -- tem a chave tem o token. Ver docs/plano-chave-de-acesso-e-mcp.md.
 --
 -- Luau não traz base64, daí o codificador aqui embaixo (o alfabeto url-safe).
 
 local M = {}
 
-M.PREFIX = "rpk1_"
+M.SEPARATOR = "::"
 
 local ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
@@ -72,40 +74,68 @@ local function base64url_decode(input: string): string?
     return table.concat(output)
 end
 
+local function trim(text: string): string
+    return (string.gsub(string.gsub(text, "^%s+", ""), "%s+$", ""))
+end
+
+-- Esquema deduzido de um endereço sem esquema: só a porta 443 (ou nenhuma
+-- porta) é https. Num IPv6 (`[::1]:9797`) a porta é o que vem depois do `]`.
+local function implied_scheme(authority: string): string
+    local after_host = string.match(authority, "%]([^%]]*)$") or authority
+    local port = string.match(after_host, ":([^:]*)$")
+    return if port ~= nil and port ~= "443" then "http" else "https"
+end
+
 --- Monta a chave de um par salvo `{url, token}`.
 function M.encode(url: string, token: string): string
-    -- JSON montado à mão para fixar a ordem `u`, `t`: a tabela Luau não tem
-    -- ordem, e assim a chave sai byte a byte igual à do daemon e da webui —
-    -- a mesma credencial vira a mesma string em qualquer cliente.
-    return M.PREFIX .. base64url_encode('{"u":' .. json.encode(url) .. ',"t":' .. json.encode(token) .. "}")
+    local trimmed_url = (string.gsub(url, "/+$", ""))
+    local scheme, authority = string.match(trimmed_url, "^(%a[%w+.-]*)://(.*)$")
+    local address = if scheme ~= nil and authority ~= nil and implied_scheme(authority) == scheme
+        then authority
+        else trimmed_url
+    return base64url_encode(address .. M.SEPARATOR .. token)
 end
 
 --- `{ url, token }` da chave, ou `nil` + o motivo (para o erro do campo).
 function M.decode(raw_key: string?): ({ url: string, token: string }?, string?)
-    local key = string.gsub(string.gsub(raw_key or "", "^%s+", ""), "%s+$", "")
+    local key = trim(raw_key or "")
     if key == "" then
         return nil, "cole a chave de acesso"
     end
-    if string.sub(key, 1, #M.PREFIX) ~= M.PREFIX then
-        return nil, "a chave começa com " .. M.PREFIX .. " — cole a chave inteira, não só o token"
-    end
-    local decoded_text = base64url_decode(string.sub(key, #M.PREFIX + 1))
-    if decoded_text == nil then
+    local text = base64url_decode(key)
+    if text == nil then
         return nil, "chave corrompida (cortada ao copiar?)"
     end
-    local decode_ok, decoded = pcall(json.decode, decoded_text)
-    if not decode_ok or type(decoded) ~= "table" or type(decoded.u) ~= "string" or type(decoded.t) ~= "string" or decoded.u == "" or decoded.t == "" then
-        return nil, "chave corrompida (conteúdo inesperado)"
+    -- Bytes que não são texto, ou sem o `::`: quase sempre um token cru colado
+    -- no lugar da chave (todo token hex/base64url também "decodifica").
+    local separator_at: number? = nil
+    if utf8.len(text) ~= nil then
+        -- O primeiro `::` fora do endereço: um IPv6 (`[::1]:9797`) tem os seus.
+        local scheme_end = string.find(text, "://", 1, true)
+        local search_from = if scheme_end then scheme_end + 3 else 1
+        if string.sub(text, search_from, search_from) == "[" then
+            search_from = string.find(text, "]", search_from, true) or (#text + 1)
+        end
+        separator_at = string.find(text, M.SEPARATOR, search_from, true)
     end
-    return { url = decoded.u, token = decoded.t }, nil
+    if separator_at == nil then
+        return nil, "isso não é uma chave de acesso — cole a chave inteira, não só o token"
+    end
+    local address = (string.gsub(trim(string.sub(text, 1, separator_at - 1)), "/+$", ""))
+    local token = trim(string.sub(text, separator_at + #M.SEPARATOR))
+    if address == "" or token == "" then
+        return nil, "chave corrompida (endereço ou token vazio)"
+    end
+    local url = if string.find(address, "://", 1, true) then address else implied_scheme(address) .. "://" .. address
+    return { url = url, token = token }, nil
 end
 
---- Rótulo do item na lista de servidores lembrados: `host:porta  rpk1_eyJ1…Ijo9`.
+--- Rótulo do item na lista de servidores lembrados: `host:porta · cnVzdH…OnRvaw`.
 --- O endereço fica visível só aqui, como dica de a qual servidor a chave se
 --- refere; o campo em si carrega a chave.
 function M.hint(url: string, key: string): string
     local authority = string.match(url, "^%a[%w+.-]*://([^/?#]+)") or url
-    return authority .. "   " .. string.sub(key, 1, 10) .. "…" .. string.sub(key, -4)
+    return authority .. " · " .. string.sub(key, 1, 6) .. "…" .. string.sub(key, -6)
 end
 
 return M

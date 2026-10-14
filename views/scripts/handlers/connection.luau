@@ -12,10 +12,10 @@ local Settings = require("settings")
 local AccessKey = require("../access_key")
 
 -- ── login lembrado: lista de servidor/token (via o `storage` do glacier) ────
--- O login é UM campo: a chave `rpk1_…` (endereço + token, ver
+-- O login é UM campo: a chave de acesso (endereço + token, ver
 -- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
 -- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
--- no `<ComboEdit>` (login.gvb): cada item mostra `host:porta  rpk1_…` como
+-- no `<ComboEdit>` (login.gvb): cada item mostra `host:porta · cnVzdH…` como
 -- dica de a qual servidor a chave se refere, e escolher um preenche a chave
 -- inteira. O armazenamento continua `{url, token}` (a chave é montada na hora
 -- de mostrar), então servidores salvos antes do login por chave não se
