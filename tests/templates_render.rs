@@ -29,6 +29,19 @@ fn textos_avaliados(n: &glacier_ui::UiNode) -> Vec<String> {
     out
 }
 
+/// Todo texto de botão de uma árvore avaliada, em ordem (o rótulo de um `button`
+/// é atributo dele, não um nó de texto).
+fn botoes_avaliados(n: &glacier_ui::UiNode) -> Vec<String> {
+    let mut out = Vec::new();
+    if let glacier_ui::parser::NodeType::Button { text, .. } = &n.kind {
+        out.push(text.clone());
+    }
+    for f in n.children.iter() {
+        out.extend(botoes_avaliados(f));
+    }
+    out
+}
+
 /// Cd's to the workspace root (idempotent — safe alongside `boot`).
 fn cd_ws_root() {
     let crate_dir = env!("CARGO_MANIFEST_DIR");
@@ -358,11 +371,65 @@ fn all_screens_and_service_tabs_render() {
     m.define_data("jobs_count", "1");
     m.define_data(
         "jobs_summary",
-        r#"[{"id":"job_1","name":"backup-db","owner":"acme / postgres","recurrence":"a cada 6h","enabled":true,"enabled_label":"Pausar","last_run_label":"ok","last_run_kind":"ok","last_run_id":"jrun_1","next_run_at":"12/07 03:00"}]"#,
+        r#"[{"id":"job_1","name":"backup-db","name_full":"backup-db","owner":"acme / postgres","recurrence":"a cada 6h","enabled":true,"enabled_label":"Pausar","running":false,"last_run_label":"ok","last_run_kind":"ok","last_run_id":"jrun_1","next_run_at":"12/07 03:00","is_warm":false,"is_warming":false,"warm_label":"frio","warm_kind":"muted","warm_reason":"nunca aquecido","warmed_at_label":""}]"#,
     );
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval schedules: {e}"));
     assert!(m.render("app").is_ok(), "render schedules com dados");
+
+    // O painel "Ações do job" mora dentro da célula da linha: o eval o avalia
+    // mesmo fechado, e cada ação tem de estar nele — a lista de botões não cabia
+    // mais na linha, então uma ação que sumisse aqui sumiria da tela.
+    let textos = textos_avaliados(m.evaluated("app").expect("app avaliado"));
+    let botoes = botoes_avaliados(m.evaluated("app").expect("app avaliado"));
+    for esperado in ["frio", "nunca aquecido"] {
+        assert!(
+            textos.iter().any(|t| t == esperado),
+            "schedules: faltou o texto `{esperado}` no painel do job: {textos:?}"
+        );
+    }
+    for esperado in [
+        "▶  Rodar agora",
+        "◐  Aquecer",
+        "≡  Ver logs",
+        "‖  Pausar",
+        "✎  Editar",
+        "✕  Remover",
+    ] {
+        assert!(
+            botoes.iter().any(|t| t == esperado),
+            "schedules: faltou o botão `{esperado}` no painel de ações do job: {botoes:?}"
+        );
+    }
+    assert!(
+        !botoes.iter().any(|t| t == "■  Cancelar execução"),
+        "job parado não oferece cancelar"
+    );
+
+    m.define_data(
+        "jobs_summary",
+        r#"[{"id":"job_1","name":"backup-db","name_full":"backup-db","owner":"acme / postgres","recurrence":"a cada 6h","enabled":false,"enabled_label":"Ativar","running":true,"last_run_label":"rodando…","last_run_kind":"warn","last_run_id":"jrun_2","next_run_at":"—","is_warm":true,"is_warming":false,"warm_label":"quente","warm_kind":"ok","warm_reason":"","warmed_at_label":"12/07 03:00"}]"#,
+    );
+    m.reevaluate_all()
+        .unwrap_or_else(|e| panic!("eval schedules rodando: {e}"));
+    let textos = textos_avaliados(m.evaluated("app").expect("app avaliado"));
+    let botoes = botoes_avaliados(m.evaluated("app").expect("app avaliado"));
+    for esperado in ["quente", "aquecido em 12/07 03:00"] {
+        assert!(
+            textos.iter().any(|t| t == esperado),
+            "schedules rodando: faltou o texto `{esperado}`: {textos:?}"
+        );
+    }
+    for esperado in ["■  Cancelar execução", "‖  Ativar"] {
+        assert!(
+            botoes.iter().any(|t| t == esperado),
+            "schedules rodando: faltou o botão `{esperado}`: {botoes:?}"
+        );
+    }
+    assert!(
+        !botoes.iter().any(|t| t == "▶  Rodar agora"),
+        "job rodando não oferece rodar de novo"
+    );
 
     m.define_data(
         "project_env",
@@ -371,7 +438,7 @@ fn all_screens_and_service_tabs_render() {
     m.define_data("project_jobs_count", "1");
     m.define_data(
         "project_jobs",
-        r#"[{"id":"job_1","name":"backup-db","recurrence":"a cada 6h","enabled":true,"enabled_label":"Pausar","last_run_label":"ok","last_run_kind":"ok","last_run_id":"jrun_1","next_run_at":"12/07 03:00"}]"#,
+        r#"[{"id":"job_1","name":"backup-db","name_full":"backup-db","recurrence":"a cada 6h","enabled":true,"enabled_label":"Pausar","running":false,"last_run_label":"ok","last_run_kind":"ok","last_run_id":"jrun_1","next_run_at":"12/07 03:00","is_warm":false,"is_warming":false,"warm_label":"frio","warm_kind":"muted","warm_reason":"nunca aquecido","warmed_at_label":""}]"#,
     );
     m.define_data("project_secrets_count", "1");
     m.define_data(
@@ -388,6 +455,20 @@ fn all_screens_and_service_tabs_render() {
             m.render("app").is_ok(),
             "render project_services/{project_tab}"
         );
+        if project_tab == "jobs" {
+            let textos = textos_avaliados(m.evaluated("app").expect("app avaliado"));
+            let botoes = botoes_avaliados(m.evaluated("app").expect("app avaliado"));
+            assert!(
+                textos.iter().any(|t| t == "frio"),
+                "aba Jobs do projeto: faltou o estado `frio`: {textos:?}"
+            );
+            for esperado in ["◐  Aquecer", "✎  Editar", "✕  Remover"] {
+                assert!(
+                    botoes.iter().any(|t| t == esperado),
+                    "aba Jobs do projeto: faltou o botão `{esperado}`: {botoes:?}"
+                );
+            }
+        }
     }
 
     m.define_data("project_tab", "env");
@@ -455,6 +536,8 @@ fn all_screens_and_service_tabs_render() {
     m.define_data("docker_cleanup_volumes_all", "false");
     m.define_data("docker_cleanup_networks", "true");
     m.define_data("docker_cleanup_build_cache", "true");
+    m.define_data("docker_cleanup_build_cache_older_than_hours", "168");
+    m.define_data("docker_cleanup_images_older_than_hours", "168");
     m.define_data("docker_cleanup_next_run_label", "hoje às 03:00");
     m.define_data(
         "docker_cleanup_last_run_text",

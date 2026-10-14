@@ -337,7 +337,23 @@ local function apply_bus_event(bus_event: any): ()
     if type(bus_event) ~= "table" then
         return
     end
-    if bus_event.DockerCleanupCompleted then
+    if bus_event.JobWarmChanged then
+        local warm_event = bus_event.JobWarmChanged
+        if not warm_event.warming then
+            local warmed_job = State.jobs_by_id[warm_event.job_id]
+            local warmed_job_name = warmed_job and warmed_job.name or "job"
+            if warm_event.success then
+                toast{ message = tostring(warmed_job_name .. " aquecido"), kind = "success" }
+            else
+                local failure = warm_event.error and (" — " .. tostring(warm_event.error)) or ""
+                toast{
+                    message = tostring(warmed_job_name .. ": falha ao aquecer" .. failure),
+                    kind = "error"
+                }
+            end
+        end
+        refresh_now()
+    elseif bus_event.DockerCleanupCompleted then
         -- Settings.luau não é `require`ado aqui de propósito: ele já requer
         -- este arquivo (`Stream = require("stream")`), e um require cíclico
         -- devolveria um módulo incompleto. Atualiza os 3 campos direto.

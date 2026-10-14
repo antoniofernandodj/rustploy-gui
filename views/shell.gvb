@@ -13,6 +13,7 @@ component {
     link(rel = import, href = "components/service_card.gvb", as = ServiceCard)
     link(rel = import, href = "components/stat_card.gvb", as = StatCard)
     link(rel = import, href = "components/state_cell.gvb", as = StateCell)
+    link(rel = import, href = "components/job_actions.gvb", as = JobActions)
     link(rel = import, href = "components/badge.gvb", as = rp-badge)
     link(rel = import, href = "components/nav_item.gvb", as = NavItem)
     link(rel = import, href = "components/tab_button.gvb", as = TabButton)

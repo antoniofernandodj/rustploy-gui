@@ -384,6 +384,8 @@ local function docker_cleanup_apply_config(config: any): ()
     ctx.docker_cleanup_volumes_all = tostring(config.volumes_all)
     ctx.docker_cleanup_networks = tostring(config.networks)
     ctx.docker_cleanup_build_cache = tostring(config.build_cache)
+    ctx.docker_cleanup_build_cache_older_than_hours = tostring(config.build_cache_older_than_hours or 168)
+    ctx.docker_cleanup_images_older_than_hours = tostring(config.images_older_than_hours or 168)
     local kind, hours, hour, minute, weekday = docker_cleanup_unpack_recurrence(config.recurrence)
     ctx.docker_cleanup_kind = kind
     ctx.docker_cleanup_hours = hours
@@ -453,6 +455,15 @@ local function docker_cleanup_build_recurrence(): any
     }
 end
 
+-- Horas de retenção do formulário → inteiro >= 0; vazio ou inválido volta ao padrão (168 = uma semana).
+local function docker_cleanup_retention_hours(value: string): number
+    local hours = tonumber(value)
+    if hours == nil then
+        return 168
+    end
+    return math.max(0, math.floor(hours))
+end
+
 function docker_cleanup_save(): ()
     local api = State.api
     if not api then
@@ -471,6 +482,8 @@ function docker_cleanup_save(): ()
                 volumes_all = ctx.docker_cleanup_volumes_all == "true",
                 networks = ctx.docker_cleanup_networks == "true",
                 build_cache = ctx.docker_cleanup_build_cache == "true",
+                build_cache_older_than_hours = docker_cleanup_retention_hours(ctx.docker_cleanup_build_cache_older_than_hours),
+                images_older_than_hours = docker_cleanup_retention_hours(ctx.docker_cleanup_images_older_than_hours),
                 last_run_at = State.docker_cleanup_last_run_at_raw,
             },
         },

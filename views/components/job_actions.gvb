@@ -1,0 +1,121 @@
+// Botão "⋯" de uma linha de job, que abre o painel sobreposto com todas as ações do job.
+component {
+  props {
+    prop(name = job_id)
+    prop(name = job_name)
+    prop(name = running)
+    prop(name = enabled)
+    prop(name = enabled_label)
+    prop(name = last_run_id)
+    prop(name = is_warm)
+    prop(name = is_warming)
+    prop(name = warm_kind)
+    prop(name = warm_label)
+    prop(name = warm_reason)
+    prop(name = warmed_at_label)
+  }
+
+  resources {
+    style """
+    .job-actions__panel {
+      background: var(--raised);
+      border-width: 1;
+      border-color: var(--border);
+      border-radius: 8;
+      padding: 18 20;
+      spacing: 8;
+      width: 340;
+    }
+
+    .job-actions__title  { size: 14; bold: true; color: var(--text); }
+    .job-actions__status { spacing: 4; padding: 0 0 8 0; }
+    .job-actions__item   { width: fill; }
+    """
+  }
+
+  popup(value = "job_actions_open_@job_id") {
+    button(
+      slot = anchor,
+      class = "btn btn--ghost btn--xs",
+      text = "⋯",
+      tooltip = "Ações do job",
+    )
+
+    column(class = job-actions__panel) {
+      text(class = job-actions__title, content = "@job_name")
+
+      column(class = job-actions__status) {
+        StateCell(kind = @warm_kind, label = @warm_label)
+
+        text(
+          class = u-muted,
+          if = @warm_reason,
+          not_equals = "",
+          content = "@warm_reason",
+        )
+
+        text(
+          class = u-muted,
+          if = @is_warm,
+          equals = true,
+          content = "aquecido em @warmed_at_label",
+        )
+      }
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
+        if = @running,
+        not_equals = true,
+        on_click = job_run_now:@job_id,
+        disabled = @busy_job_run_now,
+        text = "▶  Rodar agora",
+      )
+
+      button(
+        class = "btn btn--danger btn--sm job-actions__item",
+        if = @running,
+        equals = true,
+        on_click = job_run_cancel:@last_run_id,
+        disabled = @busy_job_run_cancel,
+        text = "■  Cancelar execução",
+      )
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
+        on_click = job_warm:@job_id,
+        disabled = @busy_job_warm,
+        text = "◐  Aquecer",
+      )
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
+        if = @last_run_id,
+        not_equals = "",
+        on_click = open_job_logs_window:@last_run_id,
+        disabled = @busy_open_job_logs_window,
+        text = "≡  Ver logs",
+      )
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
+        on_click = job_toggle:@job_id,
+        disabled = @busy_job_toggle,
+        text = "‖  @enabled_label",
+      )
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
+        on_click = open_edit_job_window:@job_id,
+        disabled = @busy_open_edit_job_window,
+        text = "✎  Editar",
+      )
+
+      button(
+        class = "btn btn--danger btn--sm job-actions__item",
+        on_click = job_delete:@job_id,
+        disabled = @busy_job_delete,
+        text = "✕  Remover",
+      )
+    }
+  }
+}

@@ -61,6 +61,7 @@ return {
     "job_run_cancel",
     "job_run_now",
     "job_toggle",
+    "job_warm",
     "manifest_export",
     "manifest_import",
     "migration_discard",

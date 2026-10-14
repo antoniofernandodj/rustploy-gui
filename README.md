@@ -542,7 +542,7 @@ são filhas dele (glacier-ui 0.117+).
 - **Janela borderless.** Com `decorations = false`, uma moldura de 6 px de *handles* de
   resize envolve o conteúdo. Cada handle define o cursor de hover e inicia um resize
   interativo ao pressionar (`window:resize:<dir>`), tratado no runtime contra o id da
-  janela em cache. O glacier não tem overlay/z-stack, então a moldura é montada como
+  janela em cache. O glacier não tinha overlay/z-stack quando a moldura foi escrita (hoje tem `<popup>`, `<popover>` e `<dialog>`, ver `job_actions` em 6.7), então a moldura é montada como
   linha de cima / faixa do meio (bordas esquerda e direita + corpo) / linha de baixo.
 - **Titlebar custom.** `titlebar_drag` (`width: fill`) é a alça de arraste e empurra os
   controles para a borda direita; as ações `on_press`/`on_click` `window:*` são tratadas
@@ -842,6 +842,21 @@ props.
   que é prop é o que mantém a leitura do contexto funcionando. Não há `@media` de colapso: a
   sidebar virou `<drawer>` (ver 6.3); em janela estreita a gaveta fecha pelo ☰ e, aberta, tem
   sempre 264 px e o rótulo cabe.
+- **`job_actions`** — o botão "⋯" de uma linha de job e o painel sobreposto com todas as ações dele
+  (rodar ou cancelar, aquecer, ver logs, pausar ou ativar, editar, remover). A linha de job tinha
+  seis botões e não cabia; agora ela mostra o estado de aquecimento e este botão. É um `<popup>`
+  do glacier (um painel centrado sobre a janela, com Esc e clique fora fechando) dentro do
+  componente, instanciado uma vez por linha em `shell/project_jobs.gvb` e em `home/schedules.gvb`.
+  O estado de aberto/fechado fica numa chave por linha, `job_actions_open_<job_id>`: o `value` do
+  popup é interpolado com o laço (`process_tpl` no eval), e fechar é zerar a chave
+  (`close_job_actions` em `handlers/jobs.luau`, que zera todas porque `job_run_cancel` e
+  `open_job_logs_window` só recebem o id da execução). Descartados: **uma janela do SO**
+  (`open_window`, como os outros diálogos: o pedido era um painel sobreposto) e o **`<dialog>`**
+  (modal de verdade, mas só abre pela ação `dialog:nome`, e o Luau só abre os diálogos de corpo
+  fixo, como `confirm{}`, então não há como levar o job da linha para dentro dele). O `<popup>` não
+  é modal: a tela de trás continua clicável. Não existe componente chamado `Painel`: é o apelido
+  de `<popover>` no motor. O texto "quente/frio" vem pronto do daemon (`JobWarmStatus`,
+  `docs/plano-aquecer-job.md`), via `format.warm_status`.
 - **`picker_row`** — linha de escolha do wizard "Novo serviço": título + subtítulo à esquerda e
   um botão de ação à direita, usada nos passos de tipo, de banco e de template.
 - **`project_card` e `service_card`** — são templates **fragment** com dois nós de topo (o *slot*

@@ -85,6 +85,30 @@ component {
         label = "   incluir todas as não usadas (não só as sem tag)",
       )
 
+      row(class = healthcheck__grid, if = @docker_cleanup_images, equals = true) {
+        column(class = healthcheck__field) {
+          text(class = u-label-cap, content = "SÓ IMAGENS CRIADAS HÁ MAIS DE (HORAS)")
+
+          spinbox(
+            field_class = field__spin,
+            form_control = docker_cleanup_images_older_than_hours,
+            :value = docker_cleanup_images_older_than_hours,
+            min = 0,
+            max = 8760,
+            width = 110,
+            placeholder = 168,
+          )
+
+          text(
+            class = u-muted,
+            content = """
+              0 não filtra por idade. O Docker olha a data de criação da imagem,
+              não a do último uso: as imagens base antigas continuam elegíveis.
+            """,
+          )
+        }
+      }
+
       checkbox(
         :checked = docker_cleanup_networks,
         on_toggle = field:docker_cleanup_networks,
@@ -96,6 +120,30 @@ component {
         on_toggle = field:docker_cleanup_build_cache,
         label = "Cache de build",
       )
+
+      row(class = healthcheck__grid, if = @docker_cleanup_build_cache, equals = true) {
+        column(class = healthcheck__field) {
+          text(class = u-label-cap, content = "MANTER O CACHE USADO NAS ÚLTIMAS (HORAS)")
+
+          spinbox(
+            field_class = field__spin,
+            form_control = docker_cleanup_build_cache_older_than_hours,
+            :value = docker_cleanup_build_cache_older_than_hours,
+            min = 0,
+            max = 8760,
+            width = 110,
+            placeholder = 168,
+          )
+
+          text(
+            class = u-muted,
+            content = """
+              0 remove todo o cache sem uso. Com um prazo, o cache de um job
+              ou deploy recente sobrevive e o próximo build não recomeça do zero.
+            """,
+          )
+        }
+      }
 
       hr
       text(class = "u-label-cap u-error", content = "VOLUMES — CUIDADO")

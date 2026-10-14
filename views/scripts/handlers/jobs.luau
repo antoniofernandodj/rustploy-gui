@@ -1,12 +1,22 @@
 --!strict
 --!nolint FunctionUnused
 -- handlers/jobs.luau — ações da tela global "Schedules" (sidebar) e da aba
--- "Jobs" do projeto: rodar agora, pausar/ativar, remover, abrir a janela
--- "Novo job".
+-- "Jobs" do projeto: rodar agora, aquecer, pausar/ativar, remover, abrir a
+-- janela "Novo job".
 
 local State = require("../state")
 local Stream = require("stream")
 local format = require("../format")
+
+-- Fecha o painel "Ações do job" (`JobActions`) de todas as linhas: cada painel
+-- guarda o aberto/fechado numa chave `job_actions_open_<job_id>` e fechar é
+-- zerá-la. Zera todos, em vez de um, porque `job_run_cancel` e
+-- `open_job_logs_window` só recebem o id da execução, não o do job.
+local function close_job_actions(): ()
+    for job_id in State.jobs_by_id do
+        ctx["job_actions_open_" .. job_id] = ""
+    end
+end
 
 -- Bloqueia o botão IMEDIATAMENTE ao clicar (antes de qualquer resposta do
 -- backend chegar) e trava double-click: `State.jobs_inflight[id] = true` +
@@ -17,6 +27,7 @@ local format = require("../format")
 -- esperar `refresh_now()`) ou depois que `refresh_now()` confirma o
 -- `job_run` criado (dali em diante `j.running` já vem do snapshot real).
 function job_run_now(job_id: string): ()
+    close_job_actions()
     local api = State.api
     if not api then
         return
@@ -50,6 +61,7 @@ end
 -- job_run novo), pode ainda apontar pro run ANTERIOR; o daemon devolve
 -- NotFound nesse caso (inofensivo, só o toast de erro).
 function job_run_cancel(job_run_id: string): ()
+    close_job_actions()
     local api = State.api
     if not api or not job_run_id or job_run_id == "" then
         return
@@ -69,6 +81,7 @@ end
 -- reenviamos os campos como estão (só invertendo `enabled`) — o Job cru vem
 -- de `State.jobs_by_id`, preenchido pelo `stream.luau` a cada snapshot.
 function job_toggle(job_id: string): ()
+    close_job_actions()
     local api = State.api
     if not api then
         return
@@ -149,6 +162,7 @@ end
 -- open_new_job_window) pra o picker já vir com a seleção certa, sem forçar
 -- o usuário a escolher de novo só pra editar outra coisa (ex.: env vars).
 function open_edit_job_window(job_id: string): ()
+    close_job_actions()
     local job = State.jobs_by_id[job_id]
     if not job then
         toast{
@@ -233,6 +247,7 @@ end
 -- (log_window.gvb/.luau) usada por runtime/build, agora apontando pro SSE
 -- dedicado `/api/jobs/runs/<id>/logs` (ver Event::JobLogLine).
 function open_job_logs_window(job_run_id: string): ()
+    close_job_actions()
     if not job_run_id or job_run_id == "" then
         return
     end
@@ -263,6 +278,7 @@ function open_job_logs_window(job_run_id: string): ()
 end
 
 function job_delete(job_id: string): ()
+    close_job_actions()
     local api = State.api
     if not api then
         return
@@ -276,6 +292,30 @@ function job_delete(job_id: string): ()
         toast{ message = tostring("Job removido"), kind = "success" }
     else
         toast{ message = tostring(job_delete_response), kind = "error" }
+    end
+    Stream.refresh_now()
+end
+
+-- Aquece o job (baixa as imagens que faltam e popula o cache de build) sem
+-- executá-lo. Já quente: o daemon não dispara nada e só avisa. O painel fica
+-- aberto, para o estado mudar ao vivo; o fim do aquecimento chega depois, em
+-- `Event::JobWarmChanged` (handlers/stream.luau).
+function job_warm(job_id: string): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local job_warm_ok, job_warm_response = api:rpc_checked{
+        JobWarm = { job_id = job_id }
+    }
+    if not job_warm_ok then
+        toast{ message = tostring(job_warm_response), kind = "error" }
+        return
+    end
+    if job_warm_response.JobWarmRequested.already_warm then
+        toast{ message = tostring("Job já está aquecido"), kind = "success" }
+    else
+        toast{ message = tostring("Aquecimento iniciado"), kind = "success" }
     end
     Stream.refresh_now()
 end

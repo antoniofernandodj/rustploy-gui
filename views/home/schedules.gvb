@@ -66,72 +66,25 @@ component {
         text(class = u-muted, content = "@j.next_run_at")
       }
 
-      tablecolumn(label = "AÇÕES", class = table__col-act-5, align = right) {
-        row(class = table__col-act-5) {
-          button(
-            class = "btn btn--ghost btn--xs",
-            if = @j.running,
-            not_equals = true,
-            on_click = job_run_now:@j.id,
-            disabled = @busy_job_run_now,
-            text = "▶",
-            tooltip = "Rodar agora",
-          )
+      tablecolumn(label = AQUECIMENTO, class = table__col-state) {
+        StateCell(kind = @j.warm_kind, label = @j.warm_label)
+      }
 
-          button(
-            class = env__del,
-            if = @j.running,
-            equals = true,
-            on_click = job_run_cancel:@j.last_run_id,
-            disabled = @busy_job_run_cancel,
-            text = "■",
-            tooltip = Cancelar,
-          )
-
-          button(
-            class = "btn btn--ghost btn--xs",
-            if = @j.last_run_id,
-            not_equals = "",
-            on_click = open_job_logs_window:@j.last_run_id,
-            disabled = @busy_open_job_logs_window,
-            text = "≡",
-            tooltip = "Ver logs",
-          )
-
-          button(
-            class = "btn btn--ghost btn--xs",
-            if = @j.enabled,
-            equals = true,
-            on_click = job_toggle:@j.id,
-            disabled = @busy_job_toggle,
-            text = "‖",
-            tooltip = Pausar,
-          )
-
-          button(
-            class = "btn btn--ghost btn--xs",
-            if = @j.enabled,
-            not_equals = true,
-            on_click = job_toggle:@j.id,
-            disabled = @busy_job_toggle,
-            text = "▶",
-            tooltip = Ativar,
-          )
-
-          button(
-            class = "btn btn--ghost btn--xs",
-            on_click = open_edit_job_window:@j.id,
-            disabled = @busy_open_edit_job_window,
-            text = "✎",
-            tooltip = Editar,
-          )
-
-          button(
-            class = env__del,
-            on_click = job_delete:@j.id,
-            disabled = @busy_job_delete,
-            text = "✕",
-            tooltip = Remover,
+      tablecolumn(label = "AÇÕES", class = table__col-act-2, align = right) {
+        row(class = table__col-act-2) {
+          JobActions(
+            job_id = @j.id,
+            job_name = @j.name_full,
+            running = @j.running,
+            enabled = @j.enabled,
+            enabled_label = @j.enabled_label,
+            last_run_id = @j.last_run_id,
+            is_warm = @j.is_warm,
+            is_warming = @j.is_warming,
+            warm_kind = @j.warm_kind,
+            warm_label = @j.warm_label,
+            warm_reason = @j.warm_reason,
+            warmed_at_label = @j.warmed_at_label,
           )
         }
       }

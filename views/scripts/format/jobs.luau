@@ -46,6 +46,19 @@ function M.run_status(run: any): (string, string)
     return "falhou", "bad"
 end
 
+-- Rótulo/cor (mesmo esquema de StateCell) do aquecimento de um job. `warm` é o
+-- `JobWarmStatus` do daemon (fonte única da verdade): aqui só se formata, nunca
+-- se deduz. `nil` (daemon antigo, sem o campo) conta como frio.
+function M.warm_status(warm: any): (string, string)
+    if warm ~= nil and warm.warming then
+        return "aquecendo…", "warn"
+    end
+    if warm ~= nil and warm.warm then
+        return "quente", "ok"
+    end
+    return "frio", "muted"
+end
+
 -- Tela global "Schedules": uma linha por job, de todos os projetos.
 -- `inflight` (opcional): `State.jobs_inflight` — job_id → true entre o click
 -- em "Rodar agora" e a confirmação do servidor (ver handlers/jobs.luau::
@@ -57,9 +70,12 @@ function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?):
     for _, job_summary in ipairs(job_summaries or {}) do
         local job = job_summary.job
         local status_label, status_kind = M.run_status(job_summary.last_run)
+        local warm = job_summary.warm
+        local warm_label, warm_kind = M.warm_status(warm)
         table.insert(rows, {
             id = job.id,
             name = Util.ellipsis(job.name, column_budgets.svc),
+            name_full = job.name,
             project = job_summary.project_name,
             trigger_service = job_summary.trigger_service_name,
             -- trigger_service_name é nil quando o job é autônomo (sem
@@ -79,6 +95,12 @@ function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?):
             running = status_kind == "warn" or (inflight ~= nil and inflight[job.id] == true),
             last_run_id = job_summary.last_run and job_summary.last_run.id or "",
             next_run_at = job.next_run_at and Time.date_day_month_hour_minute(job.next_run_at) or "—",
+            is_warm = warm ~= nil and warm.warm == true,
+            is_warming = warm ~= nil and warm.warming == true,
+            warm_label = warm_label,
+            warm_kind = warm_kind,
+            warm_reason = warm ~= nil and warm.reason or "",
+            warmed_at_label = warm ~= nil and warm.warmed_at and Time.date_day_month_hour_minute(warm.warmed_at) or "",
         })
     end
     return Util.encode_array(rows), #rows
