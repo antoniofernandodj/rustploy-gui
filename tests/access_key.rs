@@ -41,6 +41,7 @@ fn decode_round_trips_and_explains_bad_keys() {
     );
     assert_eq!(g("key_from_python"), "a.b:9797|~?");
     assert_eq!(g("key_url_safe"), "a.b:9797|~?");
+    assert_eq!(g("key_without_token"), "localhost:9797|");
     assert!(g("key_missing_prefix").contains("só o token"), "{}", g("key_missing_prefix"));
     assert!(g("key_corrupted").contains("corrompido"), "{}", g("key_corrupted"));
     assert!(g("key_hint").starts_with("a.b:9797 · "), "{}", g("key_hint"));

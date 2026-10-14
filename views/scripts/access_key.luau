@@ -130,8 +130,9 @@ function M.decode(raw_key: string?): ({ address: string, token: string }?, strin
     end
     local address = (string.gsub(trim(string.sub(text, authority_start, separator_at - 1)), "/+$", ""))
     local token = trim(string.sub(text, separator_at + #M.SEPARATOR))
-    if address == "" or token == "" then
-        return nil, "token de conexão corrompido (endereço ou token vazio)"
+    -- Token vazio vale: é o de um daemon sem `[api].token` (API aberta).
+    if address == "" then
+        return nil, "token de conexão corrompido (endereço vazio)"
     end
     return { address = address, token = token }, nil
 end

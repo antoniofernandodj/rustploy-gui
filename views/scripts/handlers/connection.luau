@@ -15,24 +15,40 @@ local AccessKey = require("../access_key")
 -- O login é UM campo: o token de conexão (endereço + token, ver
 -- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
 -- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
--- no `<ComboEdit>` (login.gvb): cada item é o token de conexão inteiro, e
--- escolher um preenche o campo com ele. O armazenamento continua `{url, token}` (o token é montado na hora
+-- no `<select>` (login.gvb): cada item mostra o `host:porta`, e escolher um
+-- preenche o campo com o token de conexão dele. O armazenamento continua `{url, token}` (o token é montado na hora
 -- de mostrar), então servidores salvos antes do login por token não se
 -- perdem. `storage` grava em `~/.local/share/rustploy/.glacier-storage/app.json`
 -- (raiz definida por `app(id = rustploy)` de `views/app.gvb`).
 local saved_servers: { { url: string, token: string } } = {}
 
--- Publica `{label, value}` para o `<ComboEdit>`. O rótulo é o próprio token
--- de conexão: o `combo_box` do iced mostra no CAMPO o rótulo da opção
--- escolhida, então um rótulo-dica (`host:porta · cnVzdH…`, ver
--- `AccessKey.hint`) aparecia no lugar do token, com o endereço à mostra.
+-- Publica `{label, value}` para o `<select>` de servidores salvos: o rótulo é
+-- o `host:porta` (para ver aonde vai conectar), o valor é o token de conexão,
+-- que vai para o campo ao escolher. Select e campo são widgets separados de
+-- propósito: num `<ComboEdit>` o campo mostra o RÓTULO da opção escolhida, e
+-- não dá para ter o endereço na lista e o token no campo ao mesmo tempo.
 local function publish_saved_servers(): ()
     local server_options = json.array{}
     for _, saved_server in ipairs(saved_servers) do
         local key = AccessKey.encode(saved_server.url, saved_server.token)
-        table.insert(server_options, { label = key, value = key })
+        table.insert(server_options, { label = AccessKey.address_of(saved_server.url), value = key })
     end
     ctx.saved_servers = json.encode(server_options)
+end
+
+-- A linha "conecta em host:porta" sob o campo, e o item do select que
+-- corresponde ao token digitado/colado (vazio quando não é nenhum salvo).
+local function publish_access_key_target(): ()
+    local decoded_key = AccessKey.decode(ctx.access_key)
+    ctx.access_key_target = if decoded_key then "conecta em " .. decoded_key.address else ""
+    ctx.saved_server_choice = ""
+    for _, saved_server in ipairs(saved_servers) do
+        local key = AccessKey.encode(saved_server.url, saved_server.token)
+        if key == ctx.access_key then
+            ctx.saved_server_choice = key
+            break
+        end
+    end
 end
 
 -- Salva/atualiza um par e o move pro topo da lista — o mais usado por último
@@ -52,21 +68,32 @@ local function remember_server(url: string, token: string): ()
     publish_saved_servers()
 end
 
--- Handler do `<ComboEdit>` do token de conexão: dispara a cada tecla (`onChange`) e ao
--- escolher um item salvo (`onSelect`). O motor já grava o texto em
--- `access_key`; aqui só some o erro da tentativa anterior.
-function choose_server(_value: string): ()
+-- Campo do token de conexão: dispara a cada tecla/colagem.
+function access_key_input(value: string): ()
+    ctx.access_key = value
     ctx.error_access_key = ""
+    publish_access_key_target()
 end
 
--- Botão "Esquecer" ao lado do combo: remove da lista o servidor do token
--- atual e limpa o campo — sem isso a tela continuava mostrando o par recém
--- esquecido até a próxima troca de servidor ou reabertura do app.
+-- `<select>` de servidores salvos: o valor escolhido é o token de conexão.
+function choose_saved_server(value: string): ()
+    ctx.access_key = value
+    ctx.error_access_key = ""
+    publish_access_key_target()
+end
+
+-- Botão "Esquecer": remove da lista o servidor do token atual e limpa o
+-- campo. Casa pelo token de conexão inteiro e, se ele decodificar, também
+-- pelo `host:porta` — um par salvo sem token (daemon sem `[api].token`) gera
+-- `host:porta::`, que antes não decodificava e por isso nunca era esquecido.
 function forget_server(): ()
     local decoded_key = AccessKey.decode(ctx.access_key)
-    local address = if decoded_key then decoded_key.address else ""
+    local address = if decoded_key then decoded_key.address else nil
     for index = #saved_servers, 1, -1 do
-        if AccessKey.address_of(saved_servers[index].url) == address then
+        local saved_server = saved_servers[index]
+        if AccessKey.encode(saved_server.url, saved_server.token) == ctx.access_key
+            or AccessKey.address_of(saved_server.url) == address
+        then
             table.remove(saved_servers, index)
         end
     end
@@ -74,6 +101,7 @@ function forget_server(): ()
     publish_saved_servers()
     ctx.access_key = ""
     ctx.error_access_key = ""
+    publish_access_key_target()
 end
 
 -- ── init: semeia o contexto para a UI pintar antes de qualquer dado ─────────
@@ -173,6 +201,7 @@ function init(): ()
     if #saved_servers > 0 and (not ctx.access_key or ctx.access_key == "") then
         ctx.access_key = AccessKey.encode(saved_servers[1].url, saved_servers[1].token)
     end
+    publish_access_key_target()
 end
 
 -- Configurações do daemon + provedores Git, buscados uma vez na conexão (não
@@ -283,6 +312,7 @@ function connect(): ()
     -- Só salva na lista quando a conexão realmente deu certo — uma tentativa
     -- com URL/token errados não deve virar entrada salva.
     remember_server(base, token)
+    publish_access_key_target()
 
     ctx.connected = "true"
     ctx.status_line = "conectado"

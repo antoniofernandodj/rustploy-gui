@@ -1,5 +1,6 @@
-// Tela de login: um campo, o token de conexão (endereço + token), com a
-// lista de servidores lembrados (cada item é um token de conexão).
+// Tela de login: um campo, o token de conexão (base64 de host:porta::token),
+// com um select dos servidores lembrados (rótulo host:porta; escolher preenche
+// o campo) e, sob o campo, para onde o token aponta.
 component {
   resources {
     style """
@@ -42,14 +43,31 @@ component {
             text(class = field__label, content = "SECURE")
           }
 
-          ComboEdit(
+          select(
+            if = @saved_servers,
+            not_equals = "[]",
+            class = form-select,
             :options = saved_servers,
-            :value = access_key,
-            placeholder = "cole o token de conexão",
-            class = field__input,
-            onChange = choose_server,
-            onSelect = choose_server,
+            :value = saved_server_choice,
+            on_change = choose_saved_server,
+            placeholder = "servidores salvos",
             width = fill,
+          )
+
+          input(
+            class = field__input,
+            :value = access_key,
+            on_change = access_key_input,
+            on_submit = connect,
+            placeholder = "cole o token de conexão",
+            width = fill,
+          )
+
+          text(
+            if = @access_key_target,
+            not_equals = "",
+            class = u-muted,
+            content = "→ @access_key_target",
           )
 
           text(

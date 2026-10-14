@@ -24,6 +24,10 @@ function init(): ()
     local url_safe = AccessKey.decode("YS5iOjk3OTc6On4_")
     ctx.key_url_safe = if url_safe then url_safe.address .. "|" .. url_safe.token else "nil"
 
+    -- Daemon sem `[api].token`: o token de conexão termina em `::`.
+    local without_token = AccessKey.decode(AccessKey.encode("http://localhost:9797", ""))
+    ctx.key_without_token = if without_token then without_token.address .. "|" .. without_token.token else "nil"
+
     local _, missing_prefix = AccessKey.decode("tok-123")
     ctx.key_missing_prefix = missing_prefix or ""
 
