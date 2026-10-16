@@ -283,7 +283,14 @@ local function do_import(api: any, yaml: string, toml: string, prune: boolean, d
     for _, action in ipairs(manifest_import_response.ManifestReport.actions or {}) do
         table.insert(lines, "[" .. tostring(action.action) .. "] " .. tostring(action.kind) .. " " .. tostring(action.name))
     end
-    local pruned = manifest_import_response.ManifestReport.pruned or manifest_import_response.ManifestReport.removed or {}
+    -- O `ApplyReport` não tem lista própria de removidos: o prune aparece em
+    -- `actions` com o verbo `Deleted` (as chaves `pruned`/`removed` não existem).
+    local pruned = {}
+    for _, action in ipairs(manifest_import_response.ManifestReport.actions or {}) do
+        if action.action == "Deleted" then
+            table.insert(pruned, tostring(action.name))
+        end
+    end
     if #pruned > 0 then
         table.insert(lines, "removidos (prune): " .. table.concat(pruned, ", "))
     elseif prune then
