@@ -278,11 +278,24 @@ function open_job_logs_window(job_run_id: string): ()
 end
 
 function job_delete(job_id: string): ()
-    close_job_actions()
     local api = State.api
     if not api then
         return
     end
+    -- Confirma antes de apagar, como a webui ("Remover este job? Ação irreversível.") e
+    -- como os demais botões destrutivos do app. Cancelar deixa o painel aberto.
+    local job = State.jobs_by_id[job_id]
+    local job_name = job and job.name or job_id
+    local confirmed = confirm{
+        title = "Remover job?",
+        message = "O job \"" .. tostring(job_name) .. "\" será removido e não poderá ser recuperado.",
+        confirm_label = "Remover",
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    close_job_actions()
     local job_delete_ok, job_delete_response = api:rpc_checked{
         JobDelete = {
             id = job_id
