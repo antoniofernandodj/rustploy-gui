@@ -33,9 +33,14 @@ component {
       .topbar        { width: fill; padding: 18 28; spacing: 18; align-y: center; }
       .topbar__menu  { color: var(--border); text-color: var(--text); padding: 9 13; border-radius: 5; }
       .topbar__search { width: fill; padding: 11 14; }
+      .topbar__actions { spacing: 8; align-y: center; }
       /* Ações do cabeçalho do projeto (variantes compactas, à direita) */
       .proj-bar          { width: fill; align-y: center; }
       .proj-bar__actions { spacing: 8; align-y: center; }
+      @media (max-width: 1100) {
+        .topbar__status { hidden: true; }
+      }
+
       @media (max-width: 900) {
         .topbar { padding: 12 16; spacing: 10; }
       }
@@ -150,8 +155,10 @@ component {
           content = "● @connected_server · daemon v@daemon_version",
         )
 
-        button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")
-        button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = Disconnect)
+        flow(class = topbar__actions) {
+          button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")
+          button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = Disconnect)
+        }
       }
 
       hr
