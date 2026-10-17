@@ -109,34 +109,36 @@ component {
     }
 
     // Sub-abas do projeto
-    row(class = tabs) {
-      TabButton(
-        label = Serviços,
-        current = @project_tab,
-        target = services,
-        action = project_tab:services,
-      )
+    scroll(class = tabs__scroll, direction = horizontal) {
+      row(class = tabs__main) {
+        TabButton(
+          label = Serviços,
+          current = @project_tab,
+          target = services,
+          action = project_tab:services,
+        )
 
-      TabButton(
-        label = "Variáveis (@project_env_count)",
-        current = @project_tab,
-        target = env,
-        action = project_tab:env,
-      )
+        TabButton(
+          label = "Variáveis (@project_env_count)",
+          current = @project_tab,
+          target = env,
+          action = project_tab:env,
+        )
 
-      TabButton(
-        label = "Secrets (@project_secrets_count)",
-        current = @project_tab,
-        target = secrets,
-        action = project_tab:secrets,
-      )
+        TabButton(
+          label = "Secrets (@project_secrets_count)",
+          current = @project_tab,
+          target = secrets,
+          action = project_tab:secrets,
+        )
 
-      TabButton(
-        label = "Jobs (@project_jobs_count)",
-        current = @project_tab,
-        target = jobs,
-        action = project_tab:jobs,
-      )
+        TabButton(
+          label = "Jobs (@project_jobs_count)",
+          current = @project_tab,
+          target = jobs,
+          action = project_tab:jobs,
+        )
+      }
     }
 
     hr

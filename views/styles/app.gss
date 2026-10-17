@@ -270,6 +270,10 @@
 .form-select   { width: fill; padding: 12 14; background: var(--raised); border-radius: 4; border-width: 1; border-color: #30363D; color: var(--text-2); }
 
 .env              { width: fill; height: fill; spacing: 10; }
+/* Aba inteira dentro de um scrollable (altura pelo conteúdo, não fill). */
+.env--flow        { width: fill; spacing: 10; }
+.tabs__scroll     { width: fill; }
+.tabs__main       { width: shrink; spacing: 4; }
 .env__head        { width: fill; align-y: center; }
 .env__add         { width: fill; spacing: 8; align-y: center; }
 .env__input       { width: fill; padding: 9 12; }
@@ -367,6 +371,10 @@
 
 @media (max-width: 760) {
   .page-head__stats--hide-md { hidden: true; }
+  /* Título + botão de ação dividem a linha e o motor não empilha Row: sem o
+     subtítulo (que quebrava palavra por palavra) e com o título menor, cabem. */
+  .page-head__subtitle { hidden: true; }
+  .page-head__title    { size: 20; }
 }
 
 @media (max-width: 900) {

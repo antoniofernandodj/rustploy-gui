@@ -26,41 +26,43 @@ component {
     }
   }
 
-  row(class = tabs) {
-    TabButton(
-      label = Containers,
-      current = @docker_tab,
-      target = containers,
-      action = docker_tab:containers,
-    )
+  scroll(class = tabs__scroll, direction = horizontal) {
+    row(class = tabs__main) {
+      TabButton(
+        label = Containers,
+        current = @docker_tab,
+        target = containers,
+        action = docker_tab:containers,
+      )
 
-    TabButton(
-      label = Images,
-      current = @docker_tab,
-      target = images,
-      action = docker_tab:images,
-    )
+      TabButton(
+        label = Images,
+        current = @docker_tab,
+        target = images,
+        action = docker_tab:images,
+      )
 
-    TabButton(
-      label = Volumes,
-      current = @docker_tab,
-      target = volumes,
-      action = docker_tab:volumes,
-    )
+      TabButton(
+        label = Volumes,
+        current = @docker_tab,
+        target = volumes,
+        action = docker_tab:volumes,
+      )
 
-    TabButton(
-      label = Networks,
-      current = @docker_tab,
-      target = networks,
-      action = docker_tab:networks,
-    )
+      TabButton(
+        label = Networks,
+        current = @docker_tab,
+        target = networks,
+        action = docker_tab:networks,
+      )
 
-    TabButton(
-      label = Registry,
-      current = @docker_tab,
-      target = registry,
-      action = docker_tab:registry,
-    )
+      TabButton(
+        label = Registry,
+        current = @docker_tab,
+        target = registry,
+        action = docker_tab:registry,
+      )
+    }
   }
 
   hr

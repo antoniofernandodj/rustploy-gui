@@ -16,10 +16,12 @@ component {
   ) {
     text(class = u-label-cap, content = "KIND")
 
-    tabbar(
-      :value = service_form_healthcheck_kind, active = @service_form_healthcheck_kind, :items = healthcheck_kinds,
-      tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
-    )
+    scroll(class = tabs__scroll, direction = horizontal) {
+      tabbar(
+        :value = service_form_healthcheck_kind, active = @service_form_healthcheck_kind, :items = healthcheck_kinds,
+        tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+      )
+    }
 
     if @service_form_healthcheck_kind == "http" {
       text(class = u-label-cap, content = "HTTP PATH")

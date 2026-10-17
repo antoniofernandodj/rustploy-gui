@@ -44,20 +44,22 @@ component {
 
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
-      row(class = tabs) {
-        TabButton(
-          label = Gitea,
-          current = @git_provider_kind,
-          target = gitea,
-          action = git_provider_kind:gitea,
-        )
+      scroll(class = tabs__scroll, direction = horizontal) {
+        row(class = tabs__main) {
+          TabButton(
+            label = Gitea,
+            current = @git_provider_kind,
+            target = gitea,
+            action = git_provider_kind:gitea,
+          )
 
-        TabButton(
-          label = GitHub,
-          current = @git_provider_kind,
-          target = github,
-          action = git_provider_kind:github,
-        )
+          TabButton(
+            label = GitHub,
+            current = @git_provider_kind,
+            target = github,
+            action = git_provider_kind:github,
+          )
+        }
       }
 
       text(
@@ -126,10 +128,12 @@ component {
 
         text(class = u-label-cap, content = "MÉTODO")
 
-        tabbar(
-          :value = git_provider_mode, active = @git_provider_mode, :items = git_provider_modes,
-          tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
-        )
+        scroll(class = tabs__scroll, direction = horizontal) {
+          tabbar(
+            :value = git_provider_mode, active = @git_provider_mode, :items = git_provider_modes,
+            tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+          )
+        }
 
         // OAuth2
         if @git_provider_mode != "pat" {

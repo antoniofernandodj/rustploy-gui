@@ -27,27 +27,29 @@ component {
     }
   }
 
-  row(class = tabs) {
-    TabButton(
-      label = "Fila (@deploy_engine_queued_count)",
-      current = @deploy_engine_tab,
-      target = fila,
-      action = deploy_engine_tab:fila,
-    )
+  scroll(class = tabs__scroll, direction = horizontal) {
+    row(class = tabs__main) {
+      TabButton(
+        label = "Fila (@deploy_engine_queued_count)",
+        current = @deploy_engine_tab,
+        target = fila,
+        action = deploy_engine_tab:fila,
+      )
 
-    TabButton(
-      label = "Executando (@deploy_engine_active_count)",
-      current = @deploy_engine_tab,
-      target = executando,
-      action = deploy_engine_tab:executando,
-    )
+      TabButton(
+        label = "Executando (@deploy_engine_active_count)",
+        current = @deploy_engine_tab,
+        target = executando,
+        action = deploy_engine_tab:executando,
+      )
 
-    TabButton(
-      label = "Histórico 24h (@deploy_engine_recent_count)",
-      current = @deploy_engine_tab,
-      target = historico,
-      action = deploy_engine_tab:historico,
-    )
+      TabButton(
+        label = "Histórico 24h (@deploy_engine_recent_count)",
+        current = @deploy_engine_tab,
+        target = historico,
+        action = deploy_engine_tab:historico,
+      )
+    }
   }
 
   hr

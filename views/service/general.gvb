@@ -69,29 +69,31 @@ component {
         if @service_source_kind != "Compose" {
           text(class = u-label-cap, content = "PROVIDER")
 
-          row(class = tabs) {
-            TabButton(
-              label = Git,
-              current = @provider_tab,
-              target = git,
-              action = select_provider_tab:git,
-            )
-
-            template(if = @gitea_providers, not_empty) {
+          scroll(class = tabs__scroll, direction = horizontal) {
+            row(class = tabs__main) {
               TabButton(
-                label = "Gitea/GitHub",
+                label = Git,
                 current = @provider_tab,
-                target = gitea,
-                action = select_provider_tab:gitea,
+                target = git,
+                action = select_provider_tab:git,
+              )
+
+              template(if = @gitea_providers, not_empty) {
+                TabButton(
+                  label = "Gitea/GitHub",
+                  current = @provider_tab,
+                  target = gitea,
+                  action = select_provider_tab:gitea,
+                )
+              }
+
+              TabButton(
+                label = Zip,
+                current = @provider_tab,
+                target = zip,
+                action = select_provider_tab:zip,
               )
             }
-
-            TabButton(
-              label = Zip,
-              current = @provider_tab,
-              target = zip,
-              action = select_provider_tab:zip,
-            )
           }
 
           hr

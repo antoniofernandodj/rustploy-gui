@@ -65,10 +65,12 @@ screen(title = "Novo token — Rustploy") {
 
             text(class = u-label-cap, content = "ESCOPO")
 
-            tabbar(
-              :value = new_registry_token_scope, active = @new_registry_token_scope, :items = new_registry_token_scopes,
-              tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
-            )
+            scroll(class = tabs__scroll, direction = horizontal) {
+              tabbar(
+                :value = new_registry_token_scope, active = @new_registry_token_scope, :items = new_registry_token_scopes,
+                tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+              )
+            }
 
             text(
               if = @new_registry_token_error,

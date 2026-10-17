@@ -978,7 +978,7 @@ fn windows_declare_title_and_size() {
     let janela = m.main_window_meta().expect("o app declara a janela principal");
     assert_eq!(janela.title.as_deref(), Some("Rustploy"), "título da principal");
     assert_eq!(janela.size, Some((1280.0, 820.0)), "tamanho da principal");
-    assert_eq!(janela.min_size, Some((480.0, 680.0)), "o min_size da principal");
+    assert_eq!(janela.min_size, Some((640.0, 680.0)), "o min_size da principal");
     assert_eq!(janela.decorations, Some(false), "a principal é borderless");
     assert!(janela.icon.is_some(), "o app declara o ícone");
 

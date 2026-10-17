@@ -45,6 +45,12 @@ component {
         .topbar { padding: 12 16; spacing: 10; }
       }
 
+      /* Com a sidebar aberta sobram ~350px de conteúdo aqui: a busca some antes
+         de espremer os botões de ação (ficava "Search d"). */
+      @media (max-width: 760) {
+        .topbar__search { hidden: true; }
+      }
+
       @media (max-width: 560) {
         .topbar__search { hidden: true; }
         .topbar__status { hidden: true; }

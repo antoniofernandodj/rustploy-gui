@@ -23,10 +23,12 @@ component {
 
       text(class = u-label-cap, content = "FREQUÊNCIA")
 
-      tabbar(
-        :value = docker_cleanup_kind, active = @docker_cleanup_kind, :items = docker_cleanup_kinds,
-        tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
-      )
+      scroll(class = tabs__scroll, direction = horizontal) {
+        tabbar(
+          :value = docker_cleanup_kind, active = @docker_cleanup_kind, :items = docker_cleanup_kinds,
+          tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+        )
+      }
 
       row(class = healthcheck__grid, if = @docker_cleanup_kind, equals = interval) {
         column(class = healthcheck__field) {
@@ -46,8 +48,10 @@ component {
         }
       }
 
-      row(class = tabs, if = @docker_cleanup_kind, equals = weekly) {
-        radiogroup(:value = docker_cleanup_weekday, :items = weekdays, layout = row)
+      scroll(class = tabs__scroll, direction = horizontal, if = @docker_cleanup_kind, equals = weekly) {
+        row(class = tabs__main) {
+          radiogroup(:value = docker_cleanup_weekday, :items = weekdays, layout = row)
+        }
       }
 
       row(class = healthcheck__grid, if = @docker_cleanup_kind, not_equals = interval) {

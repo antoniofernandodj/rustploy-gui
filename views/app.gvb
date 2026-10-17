@@ -5,7 +5,7 @@ app(
   single_instance = true,
   remember_geometry = true,
   size = "1280 820",
-  min_size = "480 680",
+  min_size = "640 680",
   icon = "views/assets/rustploy.png",
   decorations = false,
   font = "JetBrains Mono",
