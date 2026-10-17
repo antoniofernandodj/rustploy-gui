@@ -424,17 +424,17 @@ impl Engine {
             } => {
                 let physical_bounds = *local_clip_bounds * transformation;
 
-                if !clip_bounds.intersects(&physical_bounds) {
+                // RUSTPLOY: o recorte do próprio texto (`local_clip_bounds`) nunca
+                // chegava à máscara: ela usava só o recorte da camada, e o texto
+                // (um placeholder mais largo que o campo) vazava para o vizinho.
+                // Aplica a interseção dos dois, sempre. Ver vendor/README.md.
+                let Some(clip_bounds) = clip_bounds.intersection(&physical_bounds)
+                else {
                     return;
-                }
-
-                let clip_mask = match physical_bounds.is_within(&clip_bounds) {
-                    true => None,
-                    false => {
-                        adjust_clip_mask(clip_mask, clip_bounds);
-                        Some(clip_mask as &_)
-                    }
                 };
+
+                adjust_clip_mask(clip_mask, clip_bounds);
+                let clip_mask = Some(clip_mask as &_);
 
                 self.text_pipeline.draw_cached(
                     content,

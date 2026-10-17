@@ -1,9 +1,12 @@
 # vendor/
 
-## iced_tiny_skia (0.14.0, patch de 1 trecho)
+## iced_tiny_skia (0.14.0, patch de 2 trechos)
 
-Cópia do `iced_tiny_skia` 0.14.0 com UM ajuste em `src/engine.rs` (arm
-`Text::Editor`, marcado `RUSTPLOY`): o recorte do `text_editor` passa a ser
+Cópia do `iced_tiny_skia` 0.14.0 com dois ajustes em `src/engine.rs`, ambos marcados
+`RUSTPLOY`. (2) No arm `Text::Cached` (`fill_text`: o placeholder de um campo de texto, por
+exemplo), o recorte do próprio texto nunca chegava à máscara, só o da camada, e um texto mais
+largo que o campo vazava para o vizinho; não está corrigido no upstream que olhei (0.14.0).
+(1) No arm `Text::Editor`: o recorte do `text_editor` passa a ser
 sempre aplicado. No upstream ele é pulado quando `editor.bounds` cabe no
 recorte, mas o editor desenha linhas parciais além dessa caixa — no renderer de
 software, a linha cortada na borda de cima/baixo de um `<textarea>` saía inteira
