@@ -22,11 +22,21 @@ component {
         StatCard(label = UPTIME, value = @daemon_uptime)
       }
 
+      // Rótulo por extenso quando cabe; ícone + tooltip abaixo de 860px
+      // (alternância no app.gss, como as ações da tela de serviço).
       button(
-        class = "btn btn--danger btn--sm",
+        class = "btn btn--danger page-head__clear--full",
         on_click = deployments_clear_finished,
         disabled = @busy_deployments_clear_finished,
         text = "Limpar parados/falhos",
+      )
+
+      button(
+        class = "btn btn--danger page-head__clear--compact",
+        on_click = deployments_clear_finished,
+        disabled = @busy_deployments_clear_finished,
+        text = "✕",
+        tooltip = "Limpar parados/falhos",
       )
     }
 

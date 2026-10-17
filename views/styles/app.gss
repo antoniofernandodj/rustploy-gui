@@ -365,6 +365,13 @@
   .service__actions--compact { hidden: false; }
 }
 
+.page-head__clear--full    { hidden: false; }
+.page-head__clear--compact { hidden: true; }
+@media (max-width: 860) {
+  .page-head__clear--full    { hidden: true; }
+  .page-head__clear--compact { hidden: false; }
+}
+
 @media (max-width: 1000) {
   .page-head__stats--hide-lg { hidden: true; }
 }
