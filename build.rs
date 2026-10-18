@@ -43,7 +43,7 @@ fn main() {
         format!("RUSTPLOY_VER_STR=\"{version}\""),
     ];
 
-    let _ = embed_resource::compile("assets/rustploy.rc", &macros);
+    embed_resource::compile("assets/rustploy.rc", &macros);
 }
 
 /// Leva os logos de `assets/blueprint-logos/**` para

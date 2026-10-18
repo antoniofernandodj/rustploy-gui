@@ -12,10 +12,10 @@ const SYSTEM_PREFIX: &str = "/usr/share/rustploy";
 /// Finds the asset base directory and `chdir`s into it so all the
 /// CWD-relative asset paths resolve.
 pub fn locate_and_chdir() {
-    if let Some(base) = find_base() {
-        if let Err(e) = std::env::set_current_dir(&base) {
-            eprintln!("assets: falha ao entrar em {}: {e}", base.display());
-        }
+    if let Some(base) = find_base()
+        && let Err(e) = std::env::set_current_dir(&base)
+    {
+        eprintln!("assets: falha ao entrar em {}: {e}", base.display());
     }
 }
 
@@ -27,18 +27,17 @@ fn find_base() -> Option<PathBuf> {
         }
     }
 
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            if has_marker(dir) {
-                return Some(dir.to_path_buf());
-            }
-        }
+    if let Ok(exe) = std::env::current_exe()
+        && let Some(dir) = exe.parent()
+        && has_marker(dir)
+    {
+        return Some(dir.to_path_buf());
     }
 
-    if let Ok(cwd) = std::env::current_dir() {
-        if has_marker(&cwd) {
-            return None;
-        }
+    if let Ok(cwd) = std::env::current_dir()
+        && has_marker(&cwd)
+    {
+        return None;
     }
 
     let system = PathBuf::from(SYSTEM_PREFIX);

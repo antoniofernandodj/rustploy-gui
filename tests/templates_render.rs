@@ -170,7 +170,7 @@ fn log_window_renders() {
 }
 
 /// O wizard "Novo serviço" (`new_service_window.gvb`, que importa `new_service.gvb`
-/// + `new_service_window.luau`) também é uma janela à parte, aberta por
+/// e `new_service_window.luau`) também é uma janela à parte, aberta por
 /// `open_new_service_window`.
 #[test]
 fn new_service_wizard_window_renders() {
@@ -761,14 +761,14 @@ fn service_actions_collapse_to_icons_when_narrow() {
         ancestor_hidden: bool,
     ) {
         let hidden = ancestor_hidden || node.hidden == Some(true);
-        if let glacier_ui::parser::NodeType::Button { text, .. } = &node.kind {
-            if !hidden {
-                if matches!(text.as_str(), "Deploy" | "Reload" | "Rebuild" | "Stop") {
-                    *full += 1;
-                }
-                if matches!(text.as_str(), "▶" | "⟳" | "⚙" | "■") {
-                    *compact += 1;
-                }
+        if let glacier_ui::parser::NodeType::Button { text, .. } = &node.kind
+            && !hidden
+        {
+            if matches!(text.as_str(), "Deploy" | "Reload" | "Rebuild" | "Stop") {
+                *full += 1;
+            }
+            if matches!(text.as_str(), "▶" | "⟳" | "⚙" | "■") {
+                *compact += 1;
             }
         }
         for child in &node.children {
@@ -901,7 +901,7 @@ fn disconnect_clears_the_session_context() {
 fn nav_item_projects_stays_lit_on_sub_screens() {
     use glacier_ui::parser::NodeType;
 
-    fn projects_nav_button_lit<'a>(node: &'a glacier_ui::parser::UiNode) -> Option<bool> {
+    fn projects_nav_button_lit(node: &glacier_ui::parser::UiNode) -> Option<bool> {
         if let NodeType::Button {
             on_click, color, ..
         } = &node.kind
@@ -1141,7 +1141,7 @@ fn every_template_starts_with_a_header() {
                 caminho.display()
             );
             assert!(
-                !(so_component && !e_component),
+                !so_component || e_component,
                 "{}: um arquivo em views/components/ não é tela — component",
                 caminho.display()
             );
