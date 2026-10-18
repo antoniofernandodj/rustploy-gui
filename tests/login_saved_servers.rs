@@ -15,10 +15,8 @@ const SAVED: &str = r#"{"saved_servers":[
 
 #[test]
 fn saved_servers_show_the_address_and_forget_clears_even_without_token() {
-    let storage_root = std::env::temp_dir().join(format!(
-        "rustploy-gui-login-test-{}",
-        std::process::id()
-    ));
+    let storage_root =
+        std::env::temp_dir().join(format!("rustploy-gui-login-test-{}", std::process::id()));
     std::fs::create_dir_all(storage_root.join(".glacier-storage")).unwrap();
     std::fs::write(storage_root.join(".glacier-storage/app.json"), SAVED).unwrap();
     glacier_ui::luau::set_storage_root(storage_root.clone());

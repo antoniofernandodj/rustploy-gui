@@ -13,11 +13,8 @@ fn boot() -> GlacierUI {
     }
 
     let mut m = GlacierUI::new();
-    m.register_component(
-        "compose_host",
-        "tests/fixtures/compose_host.gvb",
-    )
-    .expect("registrar a fixture");
+    m.register_component("compose_host", "tests/fixtures/compose_host.gvb")
+        .expect("registrar a fixture");
     m.set_initial_screen("compose_host");
     m
 }
@@ -27,8 +24,16 @@ fn compose_host_finds_the_service_key_in_yaml() {
     let m = boot();
     let g = |k: &str| m.context().get(k).cloned().unwrap_or_default();
 
-    assert_eq!(g("host_primeira"), "rp_banco", "1ª chave, pulando comentário e linha em branco");
-    assert_eq!(g("host_ingress"), "kong", "ingress_service ganha da 1ª chave");
+    assert_eq!(
+        g("host_primeira"),
+        "rp_banco",
+        "1ª chave, pulando comentário e linha em branco"
+    );
+    assert_eq!(
+        g("host_ingress"),
+        "kong",
+        "ingress_service ganha da 1ª chave"
+    );
     assert_eq!(g("host_without_services"), "nil");
     assert_eq!(g("host_empty_block"), "nil");
     assert_eq!(g("host_nil"), "nil");

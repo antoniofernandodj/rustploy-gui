@@ -57,13 +57,10 @@ fn new_project_form_window_renders() {
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
     m.register_app_screen("views/app.gvb", "new_project")
-    .expect("new_project_form.gvb must register");
+        .expect("new_project_form.gvb must register");
     m.set_initial_screen("new_project");
     m.reevaluate_all().expect("eval new_project_form");
-    assert!(
-        m.render("new_project").is_ok(),
-        "render new_project_form"
-    );
+    assert!(m.render("new_project").is_ok(), "render new_project_form");
 
     fn find_control<'a>(
         node: &'a glacier_ui::parser::UiNode,
@@ -78,7 +75,9 @@ fn new_project_form_window_renders() {
     let new_project_name = find_control(ast, "new_project_name")
         .expect("o form_control \"new_project_name\" deve existir na árvore avaliada");
     assert!(
-        new_project_name.rules().is_some_and(|r| r.contains("required")),
+        new_project_name
+            .rules()
+            .is_some_and(|r| r.contains("required")),
         "new_project_name deve carregar rules=\"required\", achei {:?}",
         new_project_name.rules()
     );
@@ -106,7 +105,7 @@ fn new_job_window_renders() {
         r#"[{"id":"svc_1","name":"web","project_id":"prj_1"}]"#,
     );
     m.register_app_screen("views/app.gvb", "new_job")
-    .expect("new_job_window.gvb must register");
+        .expect("new_job_window.gvb must register");
     m.set_initial_screen("new_job");
 
     m.define_data("new_job_step", "pick_project");
@@ -182,7 +181,7 @@ fn new_service_wizard_window_renders() {
     m.define_data("selected_project_id", "p1");
     m.define_data("project_name", "demo");
     m.register_app_screen("views/app.gvb", "new_service")
-    .expect("new_service_window.gvb must register");
+        .expect("new_service_window.gvb must register");
     m.set_initial_screen("new_service");
 
     m.define_data("new_service_database_has_dbname", "true");
@@ -215,10 +214,7 @@ fn new_service_wizard_window_renders() {
         m.define_data("new_service_step", step);
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval new_service/{step}: {e}"));
-        assert!(
-            m.render("new_service").is_ok(),
-            "render new_service/{step}"
-        );
+        assert!(m.render("new_service").is_ok(), "render new_service/{step}");
     }
 }
 
@@ -230,7 +226,10 @@ fn all_screens_and_service_tabs_render() {
     // produção; aqui a barra renderizaria vazia sem ninguém notar.
     m.define_data("settings_tabs", r#"[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]"#);
     m.define_data("docker_cleanup_kinds", r#"[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]"#);
-    m.define_data("git_provider_modes", r#"[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]"#);
+    m.define_data(
+        "git_provider_modes",
+        r#"[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]"#,
+    );
     m.define_data("healthcheck_kinds", r#"[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]"#);
 
     m.reevaluate_all().expect("eval login");
@@ -284,7 +283,10 @@ fn all_screens_and_service_tabs_render() {
     );
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval deploy_engine ativo+detalhe: {e}"));
-    assert!(m.render("app").is_ok(), "render deploy_engine com stepper e popup");
+    assert!(
+        m.render("app").is_ok(),
+        "render deploy_engine com stepper e popup"
+    );
 
     m.define_data("deploy_engine_tab", "historico");
     m.reevaluate_all()
@@ -500,7 +502,10 @@ fn all_screens_and_service_tabs_render() {
     }
 
     m.define_data("settings_tab", "web");
-    m.define_data("server_settings_public_base", "https://rustploy.meusite.com");
+    m.define_data(
+        "server_settings_public_base",
+        "https://rustploy.meusite.com",
+    );
     m.reevaluate_all()
         .unwrap_or_else(|e| panic!("eval settings/web: {e}"));
     assert!(m.render("app").is_ok(), "render settings/web");
@@ -508,7 +513,10 @@ fn all_screens_and_service_tabs_render() {
     m.define_data("settings_tab", "iac");
     m.define_data("manifest_has_export", "true");
     m.define_data("manifest_yaml", "apiVersion: rustploy/v1\nprojects: []\n");
-    m.define_data("manifest_dotenv", "[project.acme.env]\nLOG_LEVEL = \"info\"\n");
+    m.define_data(
+        "manifest_dotenv",
+        "[project.acme.env]\nLOG_LEVEL = \"info\"\n",
+    );
     m.define_data("manifest_has_missing", "true");
     m.define_data("manifest_missing_vars", "DB_PASS, API_TOKEN");
     m.define_data("manifest_has_report", "true");
@@ -597,11 +605,17 @@ fn all_screens_and_service_tabs_render() {
         m.define_data("provider_tab", prov);
         m.reevaluate_all()
             .unwrap_or_else(|e| panic!("eval general/provider_tab={prov}: {e}"));
-        assert!(m.render("app").is_ok(), "render general/provider_tab={prov}");
+        assert!(
+            m.render("app").is_ok(),
+            "render general/provider_tab={prov}"
+        );
     }
     m.define_data("service_source_kind", "Compose");
     m.define_data("service_compose", "services:\n  web:\n    image: nginx\n");
-    m.define_data("service_compose_original", "services:\n  web:\n    image: nginx\n");
+    m.define_data(
+        "service_compose_original",
+        "services:\n  web:\n    image: nginx\n",
+    );
     m.reevaluate_all().expect("eval general/compose");
     assert!(m.render("app").is_ok(), "render general/compose");
 
@@ -974,20 +988,56 @@ fn windows_declare_title_and_size() {
     cd_ws_root();
 
     let mut m = GlacierUI::new();
-    m.register_app("views/app.gvb").expect("app.gvb deve registrar");
-    let janela = m.main_window_meta().expect("o app declara a janela principal");
-    assert_eq!(janela.title.as_deref(), Some("Rustploy"), "título da principal");
+    m.register_app("views/app.gvb")
+        .expect("app.gvb deve registrar");
+    let janela = m
+        .main_window_meta()
+        .expect("o app declara a janela principal");
+    assert_eq!(
+        janela.title.as_deref(),
+        Some("Rustploy"),
+        "título da principal"
+    );
     assert_eq!(janela.size, Some((1280.0, 820.0)), "tamanho da principal");
-    assert_eq!(janela.min_size, Some((640.0, 680.0)), "o min_size da principal");
+    assert_eq!(
+        janela.min_size,
+        Some((640.0, 680.0)),
+        "o min_size da principal"
+    );
     assert_eq!(janela.decorations, Some(false), "a principal é borderless");
     assert!(janela.icon.is_some(), "o app declara o ícone");
 
     let filhas = [
-        ("new_project", Some("Novo projeto — Rustploy"), "460 340", "handlers/projects.luau"),
-        ("new_job", Some("Novo job — Rustploy"), "560 700", "handlers/jobs.luau"),
-        ("new_service", Some("Novo serviço — Rustploy"), "560 700", "handlers/wizard.luau"),
-        ("new_registry_token", Some("Novo token — Rustploy"), "480 420", "handlers/registry.luau"),
-        ("service_export", Some("Exportar serviço — Rustploy"), "620 720", "handlers/bundle.luau"),
+        (
+            "new_project",
+            Some("Novo projeto — Rustploy"),
+            "460 340",
+            "handlers/projects.luau",
+        ),
+        (
+            "new_job",
+            Some("Novo job — Rustploy"),
+            "560 700",
+            "handlers/jobs.luau",
+        ),
+        (
+            "new_service",
+            Some("Novo serviço — Rustploy"),
+            "560 700",
+            "handlers/wizard.luau",
+        ),
+        (
+            "new_registry_token",
+            Some("Novo token — Rustploy"),
+            "480 420",
+            "handlers/registry.luau",
+        ),
+        (
+            "service_export",
+            Some("Exportar serviço — Rustploy"),
+            "620 720",
+            "handlers/bundle.luau",
+        ),
         ("log", None, "900 560", "handlers/services.luau"),
     ];
     for (tela, titulo, tamanho, handler) in filhas {
@@ -1001,7 +1051,10 @@ fn windows_declare_title_and_size() {
         let src = std::fs::read_to_string(format!("views/scripts/{handler}"))
             .unwrap_or_else(|e| panic!("ler {handler}: {e}"));
         let chamada = format!("component = \"{tela}\", size = \"{tamanho}\", decorations = false");
-        assert!(src.contains(&chamada), "{handler} deve abrir `{tela}` com `{chamada}`");
+        assert!(
+            src.contains(&chamada),
+            "{handler} deve abrir `{tela}` com `{chamada}`"
+        );
     }
 }
 
@@ -1022,7 +1075,11 @@ fn app_declares_fonts_and_daemon_settings() {
     assert_eq!(m.app.application_id.as_deref(), Some("rustploy-gui"));
     assert_eq!(m.app.fonts.len(), 2, "regular + bold");
     for f in &m.app.fonts {
-        assert!(std::path::Path::new(&f.src).is_file(), "a fonte {} deve existir", f.src);
+        assert!(
+            std::path::Path::new(&f.src).is_file(),
+            "a fonte {} deve existir",
+            f.src
+        );
     }
 }
 
@@ -1206,7 +1263,12 @@ fn service_export_window_renders_and_toggles() {
         v.as_array()
             .unwrap()
             .iter()
-            .map(|r| (r["key"].as_str().unwrap().into(), r["mark"].as_str().unwrap().into()))
+            .map(|r| {
+                (
+                    r["key"].as_str().unwrap().into(),
+                    r["mark"].as_str().unwrap().into(),
+                )
+            })
             .collect()
     };
     assert_eq!(
@@ -1218,9 +1280,14 @@ fn service_export_window_renders_and_toggles() {
         ],
         "só a citada pelo serviço vem marcada"
     );
-    assert_eq!(m.context().get("export_picked_count").map(String::as_str), Some("1"));
+    assert_eq!(
+        m.context().get("export_picked_count").map(String::as_str),
+        Some("1")
+    );
 
-    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("export_toggle:NAO_LEVAR".into()));
+    let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick(
+        "export_toggle:NAO_LEVAR".into(),
+    ));
     assert_eq!(rows(&m)[1].1, "☑", "toggle marca");
     let _ = m.dispatch(&glacier_ui::EngineMessage::UiClick("export_none".into()));
     assert!(rows(&m).iter().all(|(_, mark)| mark == "☐"));
@@ -1245,7 +1312,10 @@ fn new_service_import_report_renders() {
         ("import_name", "api"),
         ("import_conflict", "true"),
         ("import_has_warnings", "true"),
-        ("import_warnings", r#"[{"text":"• Domínios trazidos: a.tech."}]"#),
+        (
+            "import_warnings",
+            r#"[{"text":"• Domínios trazidos: a.tech."}]"#,
+        ),
         ("import_has_service_missing", "true"),
         ("import_service_text", "CACHE=\nOWN="),
         ("import_has_project_missing", "true"),
@@ -1253,7 +1323,10 @@ fn new_service_import_report_renders() {
         ("import_has_secret_missing", "true"),
         ("import_secret_text", "SENTRY_DSN="),
         ("import_missing_provider", "github-acme"),
-        ("import_providers", r#"[{"id":"gp_1","label":"github","mark":"○"}]"#),
+        (
+            "import_providers",
+            r#"[{"id":"gp_1","label":"github","mark":"○"}]"#,
+        ),
         ("import_has_project_env", "true"),
         (
             "import_project_env",
@@ -1268,5 +1341,8 @@ fn new_service_import_report_renders() {
         .expect("new_service_window.gvb must register");
     m.set_initial_screen("new_service");
     m.reevaluate_all().expect("eval import_form com relatório");
-    assert!(m.render("new_service").is_ok(), "render import_form com relatório");
+    assert!(
+        m.render("new_service").is_ok(),
+        "render import_form com relatório"
+    );
 }

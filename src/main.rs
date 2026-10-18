@@ -7,12 +7,12 @@
 )]
 
 mod app;
-mod desktop;
-mod manifest_zip;
 #[cfg(debug_assertions)]
 mod assets;
+mod desktop;
 #[cfg(not(debug_assertions))]
 mod embedded;
+mod manifest_zip;
 
 fn main() -> iced::Result {
     if let Some(code) = desktop::handle_args() {

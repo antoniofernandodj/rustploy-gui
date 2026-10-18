@@ -12,12 +12,30 @@ const DESKTOP: &str = include_str!("../packaging/rustploy-gui.desktop");
 
 /// `(subdiretório hicolor, bytes)` — espelha `packaging/icons/hicolor/`.
 const ICONS: &[(&str, &[u8])] = &[
-    ("16x16", include_bytes!("../packaging/icons/hicolor/16x16/apps/rustploy-gui.png")),
-    ("32x32", include_bytes!("../packaging/icons/hicolor/32x32/apps/rustploy-gui.png")),
-    ("48x48", include_bytes!("../packaging/icons/hicolor/48x48/apps/rustploy-gui.png")),
-    ("64x64", include_bytes!("../packaging/icons/hicolor/64x64/apps/rustploy-gui.png")),
-    ("128x128", include_bytes!("../packaging/icons/hicolor/128x128/apps/rustploy-gui.png")),
-    ("256x256", include_bytes!("../packaging/icons/hicolor/256x256/apps/rustploy-gui.png")),
+    (
+        "16x16",
+        include_bytes!("../packaging/icons/hicolor/16x16/apps/rustploy-gui.png"),
+    ),
+    (
+        "32x32",
+        include_bytes!("../packaging/icons/hicolor/32x32/apps/rustploy-gui.png"),
+    ),
+    (
+        "48x48",
+        include_bytes!("../packaging/icons/hicolor/48x48/apps/rustploy-gui.png"),
+    ),
+    (
+        "64x64",
+        include_bytes!("../packaging/icons/hicolor/64x64/apps/rustploy-gui.png"),
+    ),
+    (
+        "128x128",
+        include_bytes!("../packaging/icons/hicolor/128x128/apps/rustploy-gui.png"),
+    ),
+    (
+        "256x256",
+        include_bytes!("../packaging/icons/hicolor/256x256/apps/rustploy-gui.png"),
+    ),
 ];
 const ICON_SVG: &[u8] = include_bytes!("../packaging/icons/hicolor/scalable/apps/rustploy-gui.svg");
 
@@ -48,7 +66,10 @@ fn install() -> Result<(), String> {
     let data = data_home()?;
 
     let apps = data.join("applications");
-    write(&apps.join("rustploy-gui.desktop"), exec_com(DESKTOP, exe).as_bytes())?;
+    write(
+        &apps.join("rustploy-gui.desktop"),
+        exec_com(DESKTOP, exe).as_bytes(),
+    )?;
 
     let hicolor = data.join("icons/hicolor");
     for (size, bytes) in ICONS {
@@ -57,8 +78,14 @@ fn install() -> Result<(), String> {
     write(&hicolor.join("scalable/apps/rustploy-gui.svg"), ICON_SVG)?;
 
     // Best-effort: sem essas ferramentas o menu só atualiza no próximo login.
-    let _ = Command::new("update-desktop-database").arg("-q").arg(&apps).status();
-    let _ = Command::new("gtk-update-icon-cache").arg("-qtf").arg(&hicolor).status();
+    let _ = Command::new("update-desktop-database")
+        .arg("-q")
+        .arg(&apps)
+        .status();
+    let _ = Command::new("gtk-update-icon-cache")
+        .arg("-qtf")
+        .arg(&hicolor)
+        .status();
 
     println!("Instalado em {} (Exec={exe})", data.display());
     Ok(())
@@ -86,7 +113,13 @@ fn exec_com(desktop: &str, exe: &str) -> String {
     quoted.push('"');
     desktop
         .lines()
-        .map(|l| if l.starts_with("Exec=") { format!("Exec={quoted}") } else { l.to_string() })
+        .map(|l| {
+            if l.starts_with("Exec=") {
+                format!("Exec={quoted}")
+            } else {
+                l.to_string()
+            }
+        })
         .collect::<Vec<_>>()
         .join("\n")
         + "\n"

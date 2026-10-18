@@ -166,7 +166,9 @@ fn install_desktop_entry() {
         _ => return,
     }
     if let Err(e) = write_desktop_entry() {
-        println!("cargo:warning=rustploy-gui: não instalei o .desktop ({e}); use `rustploy-gui --install-desktop`");
+        println!(
+            "cargo:warning=rustploy-gui: não instalei o .desktop ({e}); use `rustploy-gui --install-desktop`"
+        );
     }
 }
 
@@ -181,7 +183,9 @@ fn is_cargo_install() -> bool {
 fn write_desktop_entry() -> Result<(), String> {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").map_err(|e| e.to_string())?;
     let pkg = Path::new(&manifest).join("packaging");
-    let home = std::env::var_os("HOME").filter(|h| !h.is_empty()).ok_or("HOME não definido")?;
+    let home = std::env::var_os("HOME")
+        .filter(|h| !h.is_empty())
+        .ok_or("HOME não definido")?;
     let home = std::path::PathBuf::from(home);
 
     let data = match std::env::var_os("XDG_DATA_HOME").filter(|v| !v.is_empty()) {
@@ -191,7 +195,8 @@ fn write_desktop_entry() -> Result<(), String> {
 
     // Onde o `cargo install` vai pôr o binário: --root não chega aqui, então
     // vale CARGO_INSTALL_ROOT, CARGO_HOME ou ~/.cargo (o padrão do cargo).
-    let bin_dir = if let Some(r) = std::env::var_os("CARGO_INSTALL_ROOT").filter(|v| !v.is_empty()) {
+    let bin_dir = if let Some(r) = std::env::var_os("CARGO_INSTALL_ROOT").filter(|v| !v.is_empty())
+    {
         std::path::PathBuf::from(r).join("bin")
     } else if let Some(c) = std::env::var_os("CARGO_HOME").filter(|v| !v.is_empty()) {
         std::path::PathBuf::from(c).join("bin")
@@ -201,17 +206,27 @@ fn write_desktop_entry() -> Result<(), String> {
     let exe = bin_dir.join("rustploy-gui");
     let exe = exe.to_str().ok_or("caminho do executável não é UTF-8")?;
 
-    let desktop = std::fs::read_to_string(pkg.join("rustploy-gui.desktop")).map_err(|e| e.to_string())?;
+    let desktop =
+        std::fs::read_to_string(pkg.join("rustploy-gui.desktop")).map_err(|e| e.to_string())?;
     let apps = data.join("applications");
-    write_file(&apps.join("rustploy-gui.desktop"), exec_com(&desktop, exe).as_bytes())?;
+    write_file(
+        &apps.join("rustploy-gui.desktop"),
+        exec_com(&desktop, exe).as_bytes(),
+    )?;
 
     // Espelha packaging/icons/hicolor/** em $data/icons/hicolor/**.
     let src = pkg.join("icons/hicolor");
     let dst = data.join("icons/hicolor");
     copy_tree(&src, &dst)?;
 
-    let _ = std::process::Command::new("update-desktop-database").arg("-q").arg(&apps).status();
-    let _ = std::process::Command::new("gtk-update-icon-cache").arg("-qtf").arg(&dst).status();
+    let _ = std::process::Command::new("update-desktop-database")
+        .arg("-q")
+        .arg(&apps)
+        .status();
+    let _ = std::process::Command::new("gtk-update-icon-cache")
+        .arg("-qtf")
+        .arg(&dst)
+        .status();
     Ok(())
 }
 
@@ -228,7 +243,13 @@ fn exec_com(desktop: &str, exe: &str) -> String {
     quoted.push('"');
     desktop
         .lines()
-        .map(|l| if l.starts_with("Exec=") { format!("Exec={quoted}") } else { l.to_string() })
+        .map(|l| {
+            if l.starts_with("Exec=") {
+                format!("Exec={quoted}")
+            } else {
+                l.to_string()
+            }
+        })
         .collect::<Vec<_>>()
         .join("\n")
         + "\n"
@@ -242,7 +263,10 @@ fn write_file(path: &Path, bytes: &[u8]) -> Result<(), String> {
 }
 
 fn copy_tree(src: &Path, dst: &Path) -> Result<(), String> {
-    for entry in std::fs::read_dir(src).map_err(|e| format!("ler {}: {e}", src.display()))?.flatten() {
+    for entry in std::fs::read_dir(src)
+        .map_err(|e| format!("ler {}: {e}", src.display()))?
+        .flatten()
+    {
         let (from, to) = (entry.path(), dst.join(entry.file_name()));
         if from.is_dir() {
             copy_tree(&from, &to)?;

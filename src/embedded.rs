@@ -109,10 +109,7 @@ mod tests {
             assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}");
         }
         assert!(!a.exists("views/nao_existe.gvb"));
-        assert!(
-            a.read_to_string("views/nao_existe.gvb")
-                .is_err()
-        );
+        assert!(a.read_to_string("views/nao_existe.gvb").is_err());
     }
 
     /// Prova de ponta a ponta, headless (sem janela e **sem `chdir`**): o motor
