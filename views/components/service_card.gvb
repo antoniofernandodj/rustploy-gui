@@ -21,7 +21,8 @@ component {
     .card__stats     { width: fill; spacing: 12; }
     .card__stat      { width: fill; spacing: 4; }
     .card__stat-num  { size: 18; bold: true; color: var(--text-2); }
-    .card__container { width: fill; spacing: 6; }
+    .card__container { width: fill; spacing: 6; align-y: center; }
+    .card__copy      { color: var(--border); padding: 0 5; size: 11; border-radius: 3; }
     .card__actions   { width: fill; spacing: 8; }
     .card__title     { size: 16; bold: true; color: var(--text); }
     .card__port      { size: 12; color: var(--muted); }
@@ -41,29 +42,29 @@ component {
     }
 
     row(class = card__container) {
-      text(class = u-muted, content = "name: @container_name")
-
       button(
-        class = "btn btn--ghost btn--xs",
+        class = card__copy,
         if = @container_name_full,
         not_equals = "",
         on_click = copy_container_name:@container_name_full,
         text = "⧉",
         tooltip = "Copiar nome",
       )
+
+      text(class = u-muted, content = "name: @container_name")
     }
 
     row(class = card__container) {
-      text(class = u-muted, content = "id: @container_id")
-
       button(
-        class = "btn btn--ghost btn--xs",
+        class = card__copy,
         if = @container_id_full,
         not_equals = "",
         on_click = copy_container_id:@container_id_full,
         text = "⧉",
         tooltip = "Copiar id",
       )
+
+      text(class = u-muted, content = "id: @container_id")
 
       text(
         class = u-muted,
