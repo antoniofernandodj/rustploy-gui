@@ -4349,7 +4349,7 @@ dependencies = [
 
 [[package]]
 name = "rustploy-gui"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "chrono",
