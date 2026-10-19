@@ -1,95 +1,33 @@
 //! Assets embutidos no binário — modo standalone (só em builds de release).
 
-use std::borrow::Cow;
-use std::io;
-use std::time::SystemTime;
+use glacier_ui::{EmbeddedDirs, embed_dirs};
 
-use glacier_ui::AssetSource;
-use include_dir::{Dir, File, include_dir};
-
-/// `views/`: templates `.gvb`, estilos `styles/*.gss`, `styles/theme.json` e os
-/// scripts Luau em `scripts/**/*.luau` (resolvidos por `require`/`<script src>`).
-static VIEWS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/views");
-/// `assets/icons/`: ícones SVG referenciados por `<svg src="assets/icons/…">`.
-static ICONS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/icons");
-
-/// `assets/fonts/`: as fontes que o `app(...)` declara com `font(src = …)`.
-static FONTS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/fonts");
-/// Logos dos blueprints, referenciados via o `{logo}` data-driven do catálogo
-/// do daemon (`assets/blueprint-logos/<id>/<arquivo>`).
-static BLUEPRINTS: Dir<'static> = include_dir!("$OUT_DIR/blueprint_logos");
-
-/// Roteia um caminho lógico para a árvore embutida + o caminho relativo a ela
-/// (a chave que `include_dir` usa, relativa à raiz do `#[folder]`).
-fn route(path: &str) -> Option<&'static File<'static>> {
-    let norm = path.replace('\\', "/");
-    let norm = norm.strip_prefix("./").unwrap_or(&norm);
-
-    const ROUTES: &[(&str, &Dir<'static>)] = &[
-        ("views/", &VIEWS),
-        ("assets/icons/", &ICONS),
-        ("assets/fonts/", &FONTS),
-        ("assets/blueprint-logos/", &BLUEPRINTS),
-    ];
-    for (prefix, dir) in ROUTES {
-        if let Some(rest) = norm.strip_prefix(prefix) {
-            return dir.get_file(rest);
-        }
-    }
-    None
-}
-
-fn not_found(path: &str) -> io::Error {
-    io::Error::new(
-        io::ErrorKind::NotFound,
-        format!("asset embutido não encontrado: {path}"),
-    )
-}
-
-/// [`AssetSource`] servindo a árvore de assets embutida no binário.
-#[derive(Debug, Default, Clone, Copy)]
-pub struct EmbeddedAssets;
-
-impl AssetSource for EmbeddedAssets {
-    fn read_bytes(&self, path: &str) -> io::Result<Cow<'static, [u8]>> {
-        route(path)
-            .map(|f| Cow::Borrowed(f.contents()))
-            .ok_or_else(|| not_found(path))
-    }
-
-    fn read_to_string(&self, path: &str) -> io::Result<Cow<'static, str>> {
-        let file = route(path).ok_or_else(|| not_found(path))?;
-        file.contents_utf8().map(Cow::Borrowed).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("asset embutido não é UTF-8 válido: {path}"),
-            )
-        })
-    }
-
-    fn exists(&self, path: &str) -> bool {
-        route(path).is_some()
-    }
-
-    fn modified(&self, _path: &str) -> Option<SystemTime> {
-        None
-    }
-
-    fn supports_reload(&self) -> bool {
-        false
+/// Cada pasta sob o prefixo lógico que o markup usa: `views/` (templates `.gvb`,
+/// estilos e scripts Luau), `assets/icons/` (`<svg src=…>`), `assets/fonts/`
+/// (`font(src = …)`), os logos dos blueprints (preparados pelo `build.rs` em
+/// `$OUT_DIR`, via o `{logo}` do catálogo do daemon) e `packaging/` (`.desktop` e
+/// ícones do `--install-desktop`).
+pub fn assets() -> EmbeddedDirs {
+    embed_dirs! {
+        "views/" => "$CARGO_MANIFEST_DIR/views",
+        "assets/icons/" => "$CARGO_MANIFEST_DIR/assets/icons",
+        "assets/fonts/" => "$CARGO_MANIFEST_DIR/assets/fonts",
+        "assets/blueprint-logos/" => "$OUT_DIR/blueprint_logos",
+        "packaging/" => "$CARGO_MANIFEST_DIR/packaging",
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use glacier_ui::AssetSource;
 
     /// Cada caminho realmente referenciado em runtime resolve na árvore
     /// embutida — as três convenções de prefixo (views/icons/blueprints), texto
     /// e binário.
     #[test]
     fn resolve_os_assets_referenciados() {
-        let a = EmbeddedAssets;
+        let a = assets();
         for p in [
             "views/app.gvb",
             "views/styles/app.gss",
@@ -119,7 +57,7 @@ mod tests {
     #[test]
     fn motor_sobe_o_app_so_do_binario() {
         use std::sync::Arc;
-        let mut motor = glacier_ui::GlacierUI::new().with_asset_source(Arc::new(EmbeddedAssets));
+        let mut motor = glacier_ui::GlacierUI::new().with_asset_source(Arc::new(assets()));
         motor
             .register_app("views/app.gvb")
             .expect("registrar o app a partir dos assets embutidos");

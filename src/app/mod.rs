@@ -6,10 +6,11 @@ use glacier_ui::GlacierDaemon;
 /// Sobe o daemon multi-janela e roda o loop do iced até a última janela fechar.
 pub(crate) fn run() -> iced::Result {
     let daemon = GlacierDaemon::new()
-        .main_template("views/app.gvb");
+        .main_template("views/app.gvb")
+        .install_desktop("packaging/", "rustploy-gui");
 
     #[cfg(not(debug_assertions))]
-    let daemon = daemon.assets(std::sync::Arc::new(crate::embedded::EmbeddedAssets));
+    let daemon = daemon.assets(std::sync::Arc::new(crate::embedded::assets()));
 
     daemon.run()
 }

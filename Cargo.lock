@@ -1655,9 +1655,9 @@ dependencies = [
 
 [[package]]
 name = "glacier-ui"
-version = "0.124.0"
+version = "0.125.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "050af73de390c5c141b846a285984ea55aa82ea68f6ea8ac078bd96f64787c1c"
+checksum = "f9bec445a292bc0f47f60e222248bd331aa5cae87c54cbcd483a562669027c8b"
 dependencies = [
  "base64",
  "console_error_panic_hook",
@@ -1671,6 +1671,7 @@ dependencies = [
  "hyper-util",
  "iced",
  "image",
+ "include_dir",
  "libc",
  "log",
  "mlua",
@@ -4346,7 +4347,6 @@ dependencies = [
  "glacier-ui",
  "iced",
  "image",
- "include_dir",
  "rustls",
  "serde",
  "serde_json",

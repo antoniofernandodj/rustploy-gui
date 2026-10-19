@@ -7,19 +7,16 @@
 )]
 
 mod app;
-#[cfg(debug_assertions)]
-mod assets;
-mod desktop;
 #[cfg(not(debug_assertions))]
 mod embedded;
 
 fn main() -> iced::Result {
-    if let Some(code) = desktop::handle_args() {
-        std::process::exit(code);
-    }
-
     #[cfg(debug_assertions)]
-    assets::locate_and_chdir();
+    glacier_ui::locate_assets_and_chdir(
+        "views/app.gvb",
+        "RUSTPLOY_UI_ASSETS",
+        Some("/usr/share/rustploy"),
+    );
 
     app::run()
 }
