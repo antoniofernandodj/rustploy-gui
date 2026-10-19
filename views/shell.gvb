@@ -110,7 +110,7 @@ component {
         action = nav_ingress,
       )
 
-      NavItem(label = Docker, icon = "◉", target = docker, action = nav_docker)
+      NavItem(label = Runtime, icon = "◉", target = docker, action = nav_docker)
       text(class = sidebar__section, content = "MANAGEMENT")
 
       NavItem(

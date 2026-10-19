@@ -1,6 +1,6 @@
-// Manutenção: limpeza automática de recursos Docker sem uso (ver
+// Manutenção: limpeza automática de recursos do runtime sem uso (ver
 // docs/plano-limpeza-automatica-docker.md) — mesmas funções dos botões
-// manuais da aba Docker, disparadas por agendamento em vez de clique.
+// manuais da aba Runtime, disparadas por agendamento em vez de clique.
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
@@ -106,7 +106,7 @@ component {
           text(
             class = u-muted,
             content = """
-              0 não filtra por idade. O Docker olha a data de criação da imagem,
+              0 não filtra por idade. O runtime olha a data de criação da imagem,
               não a do último uso: as imagens base antigas continuam elegíveis.
             """,
           )

@@ -10,7 +10,7 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Docker")
+      text(class = page-head__title, content = "Runtime")
 
       text(
         class = page-head__subtitle,

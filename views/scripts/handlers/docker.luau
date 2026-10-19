@@ -43,7 +43,7 @@ end
 function docker_prune_images(): ()
     local confirmed = confirm{
         title = "Limpar imagens sem uso?",
-        message = "As imagens Docker sem uso serão removidas agora. Essa limpeza não pode ser desfeita.",
+        message = "As imagens sem uso serão removidas agora. Essa limpeza não pode ser desfeita.",
         confirm_label = "Limpar",
         destructive = true,
     }
@@ -62,7 +62,7 @@ end
 function docker_prune_volumes(): ()
     local confirmed = confirm{
         title = "Limpar volumes sem uso?",
-        message = "Os volumes Docker sem uso serão removidos agora. Essa limpeza não pode ser desfeita.",
+        message = "Os volumes sem uso serão removidos agora. Essa limpeza não pode ser desfeita.",
         confirm_label = "Limpar",
         destructive = true,
     }
@@ -80,7 +80,7 @@ end
 function docker_prune_networks(): ()
     local confirmed = confirm{
         title = "Limpar redes sem uso?",
-        message = "As redes Docker sem uso serão removidas agora. Essa limpeza não pode ser desfeita.",
+        message = "As redes sem uso serão removidas agora. Essa limpeza não pode ser desfeita.",
         confirm_label = "Limpar",
         destructive = true,
     }
