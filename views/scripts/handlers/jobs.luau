@@ -309,6 +309,35 @@ function job_delete(job_id: string): ()
     Stream.refresh_now()
 end
 
+-- Reconstrói o job do zero (`JobWarm` com `force`): rebaixa as imagens e refaz o
+-- build sem cache, mesmo com o job quente. Leva minutos e segura a vaga única da
+-- fila de jobs, então pede confirmação antes. O fim chega em `Event::JobWarmChanged`.
+function job_rebuild(job_id: string): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local job = State.jobs_by_id[job_id]
+    local job_name = job and job.name or job_id
+    local confirmed = confirm{
+        title = "Reconstruir sem cache?",
+        message = "O job \"" .. tostring(job_name) .. "\" será reconstruído do zero (sem cache e com as imagens base rebaixadas). Isso pode levar vários minutos e ocupa a fila de jobs enquanto roda.",
+        confirm_label = "Reconstruir",
+    }
+    if not confirmed then
+        return
+    end
+    local job_rebuild_ok, job_rebuild_response = api:rpc_checked{
+        JobWarm = { job_id = job_id, force = true }
+    }
+    if not job_rebuild_ok then
+        toast{ message = tostring(job_rebuild_response), kind = "error" }
+        return
+    end
+    toast{ message = tostring("Reconstrução iniciada"), kind = "success" }
+    Stream.refresh_now()
+end
+
 -- Aquece o job (baixa as imagens que faltam e popula o cache de build) sem
 -- executá-lo. Já quente: o daemon não dispara nada e só avisa. O painel fica
 -- aberto, para o estado mudar ao vivo; o fim do aquecimento chega depois, em

@@ -89,6 +89,16 @@ component {
 
       button(
         class = "btn btn--ghost btn--sm job-actions__item",
+        if = @is_warm,
+        equals = true,
+        on_click = job_rebuild:@job_id,
+        disabled = @busy_job_rebuild,
+        text = "↻  Reconstruir (sem cache)",
+        tooltip = "Refaz o build do zero e rebaixa as imagens base",
+      )
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
         if = @last_run_id,
         not_equals = "",
         on_click = open_job_logs_window:@last_run_id,
