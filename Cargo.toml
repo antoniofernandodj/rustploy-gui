@@ -51,18 +51,13 @@ anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
 
 [build-dependencies]
-# Embeds the Windows .exe icon (via the RC tool; llvm-rc on cross builds).
-embed-resource = "2.4"
-
-# Reduz (Lanczos3) os logos raster dos blueprints no staging do build — os
-# originais são ~512×512 e aparecem a ~30px, então a GPU fazia um downscale de
-# ~17x por quadro (serrilhado) e o binário carregava ~12 MB de logo. Ver build.rs.
-image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif", "bmp"] }
+# Helpers de build.rs (logos reduzidos, .desktop no cargo install, recursos do .exe).
+glacier-build = "0.1"
 
 # ── Debian package (cargo deb -p rustploy-gui) ───────────────────────────────────
 # Installs the binary to /usr/bin, all runtime assets under /usr/share/rustploy
 # preserving the `views/`/`assets/` prefixes the templates reference (the app chdir's here
-# at startup — see src/assets.rs), plus the .desktop entry and hicolor icons so
+# at startup — see glacier_ui::locate_assets_and_chdir), plus the .desktop entry and hicolor icons so
 # the app shows up in the applications menu and the dock/taskbar.
 [package.metadata.deb]
 name                 = "rustploy-gui"

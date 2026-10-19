@@ -1654,6 +1654,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "glacier-build"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "810de0e797ef0cc481c33cc8a1e1a3efb5490c5e889b8a8beb6efa48a72224b3"
+dependencies = [
+ "embed-resource",
+ "image",
+]
+
+[[package]]
 name = "glacier-ui"
 version = "0.125.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4343,10 +4353,9 @@ version = "0.1.8"
 dependencies = [
  "anyhow",
  "chrono",
- "embed-resource",
+ "glacier-build",
  "glacier-ui",
  "iced",
- "image",
  "rustls",
  "serde",
  "serde_json",
