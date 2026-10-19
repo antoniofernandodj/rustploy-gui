@@ -15,12 +15,19 @@
         "open_window",
         "broadcast",
         "close_window",
-        "manifest_zip_read",
+        "zip_read",
         "open_file",
         "save_file",
-        "manifest_zip_write",
+        "zip_write",
         "notify",
         "append_textarea",
-        "viewport"
+        "viewport",
+        "describe",
+        "test",
+        "it",
+        "before_each",
+        "fail",
+        "expect",
+        "component"
     ]
 }

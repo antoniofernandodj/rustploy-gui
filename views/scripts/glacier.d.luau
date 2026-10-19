@@ -41,6 +41,12 @@ declare function append_file(path: string, contents: string): (boolean, string?)
 -- Compacta a árvore de `source` (diretório) num `.zip` em `dest` (glacier-ui
 -- 0.83+). Síncrono (I/O local). `(true)` no sucesso, `(false, mensagem)` na falha.
 declare function zip_dir(source: string, dest: string): (boolean, string?)
+-- `.zip` de entradas de TEXTO, sem diretório de staging (glacier-ui 0.123+).
+-- `zip_read` entrega todas as entradas; `text` falta em diretório e em conteúdo
+-- que não é UTF-8. Quem decide quais nomes aceitar é o chamador.
+export type ZipEntry = { name: string, dir: boolean?, text: string? }
+declare function zip_write(dest: string, entries: { ZipEntry }): (boolean, string?)
+declare function zip_read(source: string): { ok: boolean, entries: { ZipEntry }?, error: string? }
 -- Diálogos nativos do SO (glacier-ui 0.49+). SUSPENDEM a corrotina até o usuário
 -- escolher/cancelar; devolvem o caminho escolhido, ou `nil` se cancelou.
 -- `opts`: { title?, starting_dir?, default_name?, filters? }.
@@ -48,19 +54,6 @@ declare function open_file(opts: any?): string?
 declare function save_file(opts: any?): string?
 declare function pick_folder(opts: any?): string?
 
--- ── Extensão da camada Luau ESPECÍFICA do rustploy-gui ──────────────────────
--- Registradas em `src/app/mod.rs` via `GlacierDaemon::lua_extension`
--- (src/manifest_zip.rs), NÃO são globais do motor. O `.zip` do Infra as Code:
---   • write: grava um zip com exatamente rustploy.yml + rustploy.vars.toml
---   • read:  lê e VALIDA (exatamente um .yml e um .toml na raiz, nada mais);
---            `{ ok = true, yaml, toml }` ou `{ ok = false, error }`.
-declare function manifest_zip_write(zip_path: string, yaml: string, toml: string): (boolean, string?)
-declare function manifest_zip_read(zip_path: string): {
-    ok: boolean,
-    yaml: string?,
-    toml: string?,
-    error: string?,
-}
 -- Streams de vida longa. NÃO suspendem: registram o stream e devolvem o handle
 -- na hora. Cada callback é uma FUNÇÃO (closure e upvalue funcionam) — o motor
 -- também aceita o nome de uma função global, como atalho, mas o tipo abaixo

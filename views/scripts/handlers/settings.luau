@@ -6,6 +6,7 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 local format = require("../format")
+local ManifestZip = require("../manifest_zip")
 local Stream = require("stream")
 
 local M = {}
@@ -185,9 +186,9 @@ end
 -- O manifesto é um `.zip` (um ARQUIVO) com exatamente dois membros na raiz:
 --   • rustploy.yml       — projetos/serviços (env vars sempre como ${VAR})
 --   • rustploy.vars.toml  — os valores reais das vars (aninhado por escopo)
--- Ler/gravar o zip é `manifest_zip_read`/`manifest_zip_write` — extensão Rust
--- da camada Luau (src/manifest_zip.rs), porque o motor tem `zip_dir` mas não
--- o inverso. Exportar e importar usam os diálogos nativos do SO; o import
+-- Ler/gravar o zip é `zip_read`/`zip_write` do motor (glacier-ui 0.123+);
+-- `ManifestZip` (manifest_zip.luau) só impõe o formato do
+-- Rustploy. Exportar e importar usam os diálogos nativos do SO; o import
 -- REJEITA um zip que não tenha exatamente um .yml e um .toml, sem mais nada.
 
 -- O corpo do export DEPOIS do diálogo — separado só para o `manifest_busy` ser
@@ -201,7 +202,7 @@ local function do_export(api: any, zip_path: string): ()
         return
     end
 
-    local zip_write_ok, zip_write_error = manifest_zip_write(
+    local zip_write_ok, zip_write_error = ManifestZip.write(
         zip_path,
         manifest_export_all_response.ManifestBundle.yaml or "",
         manifest_export_all_response.ManifestBundle.dotenv or ""
@@ -314,7 +315,7 @@ function manifest_import(): ()
         return
     end
 
-    -- `open_file` (SUSPENDE): o `.zip` do manifesto. `manifest_zip_read` extrai
+    -- `open_file` (SUSPENDE): o `.zip` do manifesto. `ManifestZip.read` extrai
     -- e VALIDA — exatamente um .yml e um .toml na raiz, nada mais.
     local zip_path = open_file{
         title = "Importar Infra as Code (.zip)",
@@ -324,7 +325,7 @@ function manifest_import(): ()
         return
     end
 
-    local zip_manifest = manifest_zip_read(zip_path)
+    local zip_manifest = ManifestZip.read(zip_path)
     if not zip_manifest.ok then
         ctx.manifest_import_message = "zip inválido: " .. tostring(zip_manifest.error)
         toast{ message = tostring(zip_manifest.error), kind = "error" }
