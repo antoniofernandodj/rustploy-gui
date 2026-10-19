@@ -992,7 +992,6 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer",
  "crypto-common",
- "subtle",
 ]
 
 [[package]]
@@ -1967,15 +1966,6 @@ name = "hexf-parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
-
-[[package]]
-name = "hmac"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
-dependencies = [
- "digest",
-]
 
 [[package]]
 name = "http"
@@ -4348,7 +4338,7 @@ dependencies = [
 
 [[package]]
 name = "rustploy-gui"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4358,28 +4348,11 @@ dependencies = [
  "image",
  "include_dir",
  "rustls",
- "rustploy-shared",
  "serde",
  "serde_json",
  "tokio",
  "tokio-rustls",
  "zip",
-]
-
-[[package]]
-name = "rustploy-shared"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f53552ef265abcb9c46540f716c40de6225afa8ceef56ead07edc4a65aaffd8"
-dependencies = [
- "chrono",
- "hmac",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.21",
- "toml",
- "ulid",
 ]
 
 [[package]]
@@ -4530,17 +4503,6 @@ name = "sha1"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a978451301f4db1d02937a4ab3ccce137717b81826e79b7d49ffe3244a13c3b8"
-dependencies = [
- "cfg-if",
- "cpufeatures",
- "digest",
-]
-
-[[package]]
-name = "sha2"
-version = "0.10.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -5283,17 +5245,6 @@ dependencies = [
  "memoffset",
  "tempfile",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "ulid"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "470dbf6591da1b39d43c14523b2b469c86879a53e8b758c8e090a470fe7b1fbe"
-dependencies = [
- "rand",
- "serde",
- "web-time",
 ]
 
 [[package]]

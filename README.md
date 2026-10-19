@@ -189,9 +189,9 @@ O build script faz duas coisas.
 **1. Prepara os logos dos blueprints** (só imagens) em `$OUT_DIR`; é de lá que o
 `embedded.rs` os embute no binário de release.
 
-- *Origem.* Os logos moram em `assets/blueprint-logos/` (saíram do crate
-  `rustploy-shared`, que não os carrega mais); o nome de cada um vem do catálogo
-  do shared (`templates/logos.txt`). Só as extensões de imagem entram (`LOGO_EXTS`);
+- *Origem.* Os logos moram em `assets/blueprint-logos/` (saíram do pacote dos templates,
+  que não os carrega mais); o nome de cada um vem do catálogo
+  do daemon (`templates/logos.txt`). Só as extensões de imagem entram (`LOGO_EXTS`);
   o resto da pasta — `docker-compose.yml`, `template.toml`, `.md` — é do daemon e a
   GUI nunca o lê.
 - *Por que reduzir.* Os logos raster originais têm ~512×512 e aparecem a ~30px
