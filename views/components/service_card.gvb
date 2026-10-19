@@ -11,6 +11,8 @@ component {
     prop(name = filler)
     prop(name = container_name)
     prop(name = container_id)
+    prop(name = container_name_full)
+    prop(name = container_id_full)
     prop(name = container_extra)
   }
 
@@ -40,10 +42,28 @@ component {
 
     row(class = card__container) {
       text(class = u-muted, content = "name: @container_name")
+
+      button(
+        class = "btn btn--ghost btn--xs",
+        if = @container_name_full,
+        not_equals = "",
+        on_click = copy_container_name:@container_name_full,
+        text = "⧉",
+        tooltip = "Copiar nome",
+      )
     }
 
-    row {
+    row(class = card__container) {
       text(class = u-muted, content = "id: @container_id")
+
+      button(
+        class = "btn btn--ghost btn--xs",
+        if = @container_id_full,
+        not_equals = "",
+        on_click = copy_container_id:@container_id_full,
+        text = "⧉",
+        tooltip = "Copiar id",
+      )
 
       text(
         class = u-muted,

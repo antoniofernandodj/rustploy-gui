@@ -24,6 +24,18 @@ local function pre_deploy_checks_ids(spec: any): { string }
     return {}
 end
 
+-- Copiar nome/id do container do card (valor de item do ForEach: o `clipboard:`
+-- da markup não o alcança, por isso `copy` + toast).
+function copy_container_name(name: string): ()
+    copy(name)
+    toast{ message = "Nome copiado", kind = "success" }
+end
+
+function copy_container_id(container_id: string): ()
+    copy(container_id)
+    toast{ message = "ID copiado", kind = "success" }
+end
+
 -- ── Fetch completo do painel de detalhe ─────────────────────────────────────
 
 -- Abrir o detalhe de um serviço: navega e dispara o fetch (spec + logs +

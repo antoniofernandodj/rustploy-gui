@@ -75,6 +75,8 @@ declare function toast(opts: any): ()
 -- Notificação nativa do SO (glacier-ui 0.42+): `notify({ title?, body? })` ou
 -- `notify("mensagem")`. Diferente de `toast` (efêmero, dentro da janela).
 declare function notify(opts: any): ()
+-- Copia `text` p/ a área de transferência (glacier-ui 0.126+); não informa sucesso — chame `toast` em seguida.
+declare function copy(text: any): ()
 declare function confirm(opts: any): boolean
 
 -- Multi-janela (glacier-ui 0.36+/0.37+): abrir janela, mensagear entre janelas e

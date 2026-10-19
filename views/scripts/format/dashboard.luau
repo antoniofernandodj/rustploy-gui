@@ -57,6 +57,8 @@ local FILLER: GridCard = {
     mem = "",
     container_name = "",
     container_id = "",
+    container_name_full = "",
+    container_id_full = "",
     container_extra = "",
     -- project_card.gvb
     description = "",
@@ -91,17 +93,17 @@ end
 
 -- Escolhe o container "primário" de um serviço p/ exibir no card: o live, senão
 -- o primeiro em execução, senão o primeiro da lista. Devolve (nome, id_curto,
--- extra) onde extra é "+N" quando há mais de um container.
-local function primary_container(service: Types.Service): (string, string, string)
+-- extra, nome_completo, id_completo) onde extra é "+N" quando há mais de um container.
+local function primary_container(service: Types.Service): (string, string, string, string, string)
     local containers = service.containers or {}
-    if #containers == 0 then return "—", "", "" end
+    if #containers == 0 then return "—", "", "", "", "" end
     local chosen = containers[1]
     for _, container in ipairs(containers) do
         if service.live_container_id and container.id == service.live_container_id then chosen = container; break end
         if container.state == "running" and chosen.state ~= "running" then chosen = container end
     end
     local extra = #containers > 1 and string.format("+%d", #containers - 1) or ""
-    return chosen.name or "—", string.sub(chosen.id or "", 1, 12), extra
+    return chosen.name or "—", string.sub(chosen.id or "", 1, 12), extra, chosen.name or "", chosen.id or ""
 end
 
 -- Card de serviço (com CPU/mem mesclados de `metrics_by_id[svc.id]`).
@@ -113,7 +115,7 @@ local function service_card(service: Types.Service, project_name: string, metric
         cpu = string.format("%.1f%%", metrics_point.cpu_percent or 0)
         mem = Time.format_bytes(metrics_point.mem_used_bytes)
     end
-    local container_name, container_id, container_extra = primary_container(service)
+    local container_name, container_id, container_extra, container_name_full, container_id_full = primary_container(service)
     return {
         filler = "0",
         id = service.id,
@@ -126,6 +128,8 @@ local function service_card(service: Types.Service, project_name: string, metric
         mem = mem,
         container_name = container_name,
         container_id = container_id,
+        container_name_full = container_name_full,
+        container_id_full = container_id_full,
         container_extra = container_extra,
     }
 end
