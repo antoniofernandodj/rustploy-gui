@@ -247,13 +247,17 @@
 
 /* ── Projects / service grid ──────────────────────────────────────────── */
 .grid          { width: fill; spacing: 16; }
+.running__head { width: fill; align-y: center; spacing: 12; }
+.running__projects { width: fill; spacing: 40; }
 .grid__row     { width: fill; spacing: 16; }
 .card__head    { width: fill; align-y: center; }
+.card__badges  { spacing: 8; align-y: center; }
 .card__name    { width: fill; size: 16; bold: true; color: var(--text); }
 .badge         { spacing: 7; align-y: center; }
 .badge__label  { size: 12; bold: true; }
 /* Ações do card (projeto e serviço): um botão cheio, no tamanho da coluna. */
 .card__action         { width: fill; color: var(--border); padding: 9 10; text-align: center; border-radius: 5 }
+.card__action--auto   { width: shrink; padding: 9 14; }
 .card__action--open   { padding: 9 14; }
 .card__action--icon   { padding: 9 0; }
 .card__action--danger { color: var(--danger); }

@@ -1358,7 +1358,7 @@ fn running_screen_renders_nested_service_cards() {
     m.define_data("running_count", "1");
     m.define_data(
         "running",
-        r##"[{"project_id":"prj_1","project_name":"loja","count_label":"1 serviço","services":[{"id":"svc_1","name":"api","port":"8080","status_label":"rodando","status_color":"#3FB950","kind_label":"App · Git","branch":"main","detail":"https://example.com/r.git","domains":"domínio: app.example.com","cpu":"1.0%","mem":"10 MB","checks":"1. migrate","has_webhook":"true","webhook":"https://h/webhook/svc_1/tok","webhook_shown":"https://h/webhook/svc_1/••••••••","reveal_label":"Mostrar","has_warm":"true","warm_label":"frio","warm_color":"muted"}]}]"##,
+        r##"[{"project_id":"prj_1","project_name":"loja","count_label":"1 serviço","rows":[{"cards":[{"filler":"0","id":"svc_1","name":"api","port":"8080","status_label":"rodando","status_color":"#3FB950","kind_label":"App · Git","branch":"main","detail":"https://example.com/r.git","domains":"domínio: app.example.com","cpu":"1.0%","mem":"10 MB","checks":"1. migrate","has_webhook":"true","webhook":"https://h/webhook/svc_1/tok","webhook_shown":"https://h/webhook/svc_1/••••••••","reveal_label":"Mostrar","has_warm":"true","warm_label":"frio","warm_color":"muted"}]}]}]"##,
     );
     m.reevaluate_all().expect("eval running");
     assert!(m.render("app").is_ok(), "render running");

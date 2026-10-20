@@ -9,6 +9,31 @@ local Jobs = require("jobs")
 
 local M = {}
 
+-- Cards por linha: dois, para o painel caber meio a meio na tela.
+local COLUMNS = 2
+
+-- Agrupa os cards em linhas de COLUMNS; a última é completada com espaçadores
+-- (`filler = "1"`) para os cards não esticarem (glacier não tem grid).
+local function in_rows(services: {any}): {any}
+    local rows = {}
+    for row_start = 1, #services, COLUMNS do
+        local cards = {}
+        for card_index = row_start, math.min(row_start + COLUMNS - 1, #services) do
+            table.insert(cards, services[card_index])
+        end
+        while #cards < COLUMNS do
+            local filler = {}
+            for key in pairs(services[1]) do
+                filler[key] = ""
+            end
+            filler.filler = "1"
+            table.insert(cards, filler)
+        end
+        table.insert(rows, { cards = cards })
+    end
+    return rows
+end
+
 -- `https://host/webhook/<id>/<token>` → `https://host/webhook/<id>/••••••••`.
 function M.mask_webhook(url: string): string
     local masked = string.gsub(url, "/[^/]*$", "/••••••••")
@@ -63,6 +88,7 @@ function M.running(dashboard: any, metrics: {[string]: any}?, term: string?, rev
                 local degraded = service.status == "Degraded"
                 local domains = table.concat(service.domains, ", ")
                 table.insert(services, {
+                    filler = "0",
                     id = service.service_id,
                     name = service.name,
                     port = tostring(service.port),
@@ -91,7 +117,7 @@ function M.running(dashboard: any, metrics: {[string]: any}?, term: string?, rev
                 project_id = project.project_id,
                 project_name = project.project_name,
                 count_label = string.format("%d %s", #services, #services == 1 and "serviço" or "serviços"),
-                services = services,
+                rows = in_rows(services),
             })
         end
     end

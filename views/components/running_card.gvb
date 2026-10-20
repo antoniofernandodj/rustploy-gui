@@ -3,6 +3,7 @@
 // pré-deploy checks, o webhook (mascarado até pedir) e os atalhos.
 component {
   props {
+    prop(name = filler)
     prop(name = id)
     prop(name = name)
     prop(name = port)
@@ -24,14 +25,16 @@ component {
     prop(name = warm_color)
   }
 
-  column(class = card) {
+  column(if = @filler, equals = 1, class = u-fill)
+
+  column(else, class = card) {
     row(class = card__head) {
       row(class = "u-fill u-align-y-end") {
         text(class = card__title, content = "@name")
         text(class = card__port, content = ":@port")
       }
 
-      row(class = "u-align-y-end") {
+      row(class = "card__badges") {
         rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
         rp-badge(color = @status_color, label = @status_label)
       }

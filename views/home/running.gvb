@@ -23,26 +23,24 @@ component {
   }
 
   scrollable(direction = vertical, class = u-fill-all) {
-    column(class = grid) {
+    column(class = running__projects) {
       each @running as p (fallback = NadaRodando) {
-        column(class = panel) {
-          row(class = card__head) {
-            row(class = "u-fill u-align-y-end") {
-              text(class = card__title, content = "@p.project_name")
-              text(class = u-muted, content = "@p.count_label")
-            }
+        column(class = grid) {
+          row(class = running__head) {
+            text(class = card__title, content = "@p.project_name")
+            text(class = "u-muted u-fill", content = "@p.count_label")
 
             button(
-              class = "card__action card__action--open",
+              class = "card__action card__action--auto",
               on_click = open_project:@p.project_id,
               disabled = @busy_open_project,
               text = "Abrir projeto  ›",
             )
           }
 
-          column(class = grid) {
-            each @p.services as s {
-              RunningCard(spread = @s)
+          each @p.rows as r {
+            row(class = grid__row) {
+              RunningCard(:for-each = r.cards, var = c, spread = @c)
             }
           }
         }
