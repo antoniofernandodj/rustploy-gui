@@ -11,6 +11,7 @@ component {
     link(rel = import, href = "shell/project_services.gvb", as = ProjectServicesView)
     link(rel = import, href = "components/project_card.gvb", as = ProjectCard)
     link(rel = import, href = "components/service_card.gvb", as = ServiceCard)
+    link(rel = import, href = "components/running_card.gvb", as = RunningCard)
     link(rel = import, href = "components/stat_card.gvb", as = StatCard)
     link(rel = import, href = "components/state_cell.gvb", as = StateCell)
     link(rel = import, href = "components/job_actions.gvb", as = JobActions)

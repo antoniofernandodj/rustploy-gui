@@ -1346,3 +1346,40 @@ fn new_service_import_report_renders() {
         "render import_form com relatório"
     );
 }
+
+/// A tela "Em execução" (`home/running.gvb` + `components/running_card.gvb`): o
+/// `each` aninhado (projeto -> serviços) precisa chegar até os cards, com o webhook
+/// mascarado e os atalhos. Os dados têm a forma que `format/running.luau` produz.
+#[test]
+fn running_screen_renders_nested_service_cards() {
+    let mut m = boot();
+    m.define_data("screen", "shell");
+    m.define_data("view", "running");
+    m.define_data("running_count", "1");
+    m.define_data(
+        "running",
+        r##"[{"project_id":"prj_1","project_name":"loja","count_label":"1 serviço","services":[{"id":"svc_1","name":"api","port":"8080","status_label":"rodando","status_color":"#3FB950","kind_label":"App · Git","branch":"main","detail":"https://example.com/r.git","domains":"domínio: app.example.com","cpu":"1.0%","mem":"10 MB","checks":"1. migrate","has_webhook":"true","webhook":"https://h/webhook/svc_1/tok","webhook_shown":"https://h/webhook/svc_1/••••••••","reveal_label":"Mostrar","has_warm":"true","warm_label":"frio","warm_color":"muted"}]}]"##,
+    );
+    m.reevaluate_all().expect("eval running");
+    assert!(m.render("app").is_ok(), "render running");
+
+    let ast = m.evaluated("app").expect("evaluated");
+    let textos = textos_avaliados(ast);
+    let botoes = botoes_avaliados(ast);
+    assert!(
+        textos.iter().any(|t| t == "loja"),
+        "nome do projeto: {textos:?}"
+    );
+    assert!(
+        textos.iter().any(|t| t == "api"),
+        "nome do serviço (each aninhado): {textos:?}"
+    );
+    assert!(
+        textos.iter().any(|t| t.contains("••••••••")),
+        "webhook mascarado: {textos:?}"
+    );
+    assert!(
+        botoes.iter().any(|b| b.contains("Deploy")),
+        "atalho de deploy: {botoes:?}"
+    );
+}
