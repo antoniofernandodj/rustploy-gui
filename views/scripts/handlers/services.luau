@@ -1190,6 +1190,11 @@ local function start_deploy(requested_service_id: string?): ()
     end
 end
 
+-- Atalho "Deploy" do painel "Em execução": dispara o deploy sem abrir o serviço.
+function running_deploy(service_id: string): ()
+    start_deploy(service_id)
+end
+
 function service_deploy(): ()
     start_deploy(ctx.selected_service)
 end

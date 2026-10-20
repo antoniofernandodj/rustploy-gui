@@ -76,6 +76,13 @@ component {
       text(class = sidebar__section, content = "DEPLOYMENT OPS")
 
       NavItem(
+        label = "Em execução",
+        icon = "●",
+        target = running,
+        action = nav_running,
+      )
+
+      NavItem(
         label = Deployments,
         icon = "▶",
         target = deployments,

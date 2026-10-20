@@ -1,0 +1,105 @@
+// Card de serviço do painel "Em execução": o resumo especializado por tipo
+// (branch para Git, motor para banco/broker, imagem para registry), os
+// pré-deploy checks, o webhook (mascarado até pedir) e os atalhos.
+component {
+  props {
+    prop(name = id)
+    prop(name = name)
+    prop(name = port)
+    prop(name = status_label)
+    prop(name = status_color)
+    prop(name = kind_label)
+    prop(name = branch)
+    prop(name = detail)
+    prop(name = domains)
+    prop(name = cpu)
+    prop(name = mem)
+    prop(name = checks)
+    prop(name = has_webhook)
+    prop(name = webhook)
+    prop(name = webhook_shown)
+    prop(name = reveal_label)
+    prop(name = has_warm)
+    prop(name = warm_label)
+    prop(name = warm_color)
+  }
+
+  column(class = card) {
+    row(class = card__head) {
+      row(class = "u-fill u-align-y-end") {
+        text(class = card__title, content = "@name")
+        text(class = card__port, content = ":@port")
+      }
+
+      row(class = "u-align-y-end") {
+        rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
+        rp-badge(color = @status_color, label = @status_label)
+      }
+    }
+
+    text(class = u-label-cap, content = "@kind_label")
+
+    row(class = card__container, if = @branch, not_equals = "") {
+      text(class = u-label-cap, content = "BRANCH")
+      text(class = card__title, content = "@branch")
+    }
+
+    text(class = u-muted, if = @detail, not_equals = "", content = "@detail")
+    text(class = u-muted, if = @domains, not_equals = "", content = "@domains")
+
+    row(class = card__stats) {
+      column(class = card__stat) {
+        text(class = u-label-cap, content = "CPU")
+        text(class = card__stat-num, content = "@cpu")
+      }
+
+      column(class = card__stat) {
+        text(class = u-label-cap, content = "MEM")
+        text(class = card__stat-num, content = "@mem")
+      }
+    }
+
+    hr
+
+    text(class = u-label-cap, content = "PRÉ-DEPLOY CHECKS")
+    text(class = u-muted, content = "@checks")
+
+    text(class = u-label-cap, content = "WEBHOOK DE DEPLOY")
+    text(class = u-muted, content = "@webhook_shown")
+
+    row(class = card__actions, if = @has_webhook, equals = true) {
+      button(
+        class = "card__action",
+        on_click = copy_webhook:@webhook,
+        disabled = @busy_copy_webhook,
+        text = "⧉ Copiar",
+      )
+
+      button(
+        class = "card__action",
+        on_click = running_toggle_reveal:@id,
+        disabled = @busy_running_toggle_reveal,
+        text = "@reveal_label",
+      )
+    }
+
+    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "Abrir serviço  ›")
+
+    row(class = card__actions) {
+      button(
+        class = "card__action",
+        on_click = running_deploy:@id,
+        disabled = @busy_running_deploy,
+        text = "▶ Deploy",
+      )
+
+      button(
+        class = "card__action card__action--icon",
+        on_click = service_stop_id:@id,
+        disabled = @busy_service_stop_id,
+        text = "■",
+        tooltip = Parar,
+      )
+    }
+  }
+}

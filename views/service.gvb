@@ -75,6 +75,8 @@ component {
         row(class = service__substatus) {
           rp-badge(color = @service_status_color, label = @service_status_label)
 
+          rp-badge(if = @service_warm_visible, equals = true, color = @service_warm_color, label = "◐ @service_warm_label")
+
           row(class = badge, if = @service_deploy_running, equals = true) {
             text(class = status-dot, color = #58A6FF, content = "⏱")
 

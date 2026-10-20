@@ -6,6 +6,10 @@ component {
     prop(name = port)
     prop(name = status_color)
     prop(name = status_label)
+    prop(name = has_warm)
+    prop(name = warm_label)
+    prop(name = warm_color)
+    prop(name = warm_reason)
     prop(name = cpu)
     prop(name = mem)
     prop(name = filler)
@@ -38,7 +42,10 @@ component {
         text(class = card__port, content = ":@port")
       }
 
-      rp-badge(color = @status_color, label = @status_label)
+      row(class = "u-align-y-end") {
+        rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
+        rp-badge(color = @status_color, label = @status_label)
+      }
     }
 
     row(class = card__container) {

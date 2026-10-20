@@ -25,6 +25,9 @@ local function rebuild_lists(): ()
     ctx.project_rows = format.project_rows(snap.projects, State.last_pairs, term)
     ctx.services = format.services(State.last_pairs, State.metrics_by_id, term)
     ctx.service_rows = format.service_rows(State.last_pairs, State.metrics_by_id, term)
+    local running, running_count = format.running(snap.dashboard, State.metrics_by_id, term, State.running_revealed)
+    ctx.running = running
+    ctx.running_count = tostring(running_count)
     -- ctx.docker_rows: a antiga sub-aba Containers (só serviços rustploy) foi
     -- substituída pela lista host-wide (docker_containers). format.docker_rows fica
     -- disponível para reuso; não recalculamos aqui à toa.
@@ -149,6 +152,21 @@ M.refresh_deploy_engine_detail = refresh_deploy_engine_detail
 local function apply_snapshot(snapshot: any): ()
     State.snap = snapshot
     State.last_pairs = format.service_pair_list(snapshot.services)
+    -- Selo "aquecido/frio": o daemon decide (ServiceWarmStatus), aqui só se anexa.
+    local warm_by_id = {}
+    for _, warm in ipairs(snapshot.service_warm or {}) do
+        warm_by_id[warm.service_id] = warm
+    end
+    State.service_warm_by_id = warm_by_id
+    for _, last_pair in ipairs(State.last_pairs) do
+        last_pair.warm = warm_by_id[last_pair.svc.id]
+    end
+    -- Detalhe do serviço aberto: o selo acompanha o snapshot.
+    local open_warm = warm_by_id[ctx.service_id]
+    local open_warm_label, open_warm_color = format.service_warm_status(open_warm)
+    ctx.service_warm_visible = open_warm ~= nil and "true" or "false"
+    ctx.service_warm_label = open_warm_label
+    ctx.service_warm_color = open_warm_color
 
     -- Status do daemon.
     local daemon_status = snapshot.status
@@ -337,7 +355,14 @@ local function apply_bus_event(bus_event: any): ()
     if type(bus_event) ~= "table" then
         return
     end
-    if bus_event.JobWarmChanged then
+    if bus_event.ServiceWarmChanged then
+        local service_warm_event = bus_event.ServiceWarmChanged
+        if not service_warm_event.warming and service_warm_event.success == false then
+            local failure = service_warm_event.error and (" — " .. tostring(service_warm_event.error)) or ""
+            toast{ message = tostring("falha ao aquecer o serviço" .. failure), kind = "error" }
+        end
+        refresh_now()
+    elseif bus_event.JobWarmChanged then
         local warm_event = bus_event.JobWarmChanged
         if not warm_event.warming then
             local warmed_job = State.jobs_by_id[warm_event.job_id]

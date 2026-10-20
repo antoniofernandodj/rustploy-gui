@@ -10,6 +10,7 @@ local Dashboard = require("format/dashboard")
 local ServiceDetail = require("format/service_detail")
 local Git = require("format/git")
 local Jobs = require("format/jobs")
+local Running = require("format/running")
 local Registry = require("format/registry")
 local DockerCleanup = require("format/docker_cleanup")
 
@@ -86,6 +87,8 @@ M.pre_deploy_queue = Jobs.pre_deploy_queue
 M.pre_deploy_available = Jobs.pre_deploy_available
 
 -- Limpeza automática de Docker (format/docker_cleanup.luau)
+M.service_warm_status = Jobs.service_warm_status
+M.running = Running.running
 M.docker_cleanup_resource_label = DockerCleanup.resource_label
 M.docker_cleanup_last_run_summary = DockerCleanup.last_run_summary
 

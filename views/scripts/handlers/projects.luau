@@ -453,6 +453,20 @@ end
 -- ── Ações de serviço a partir de um card do grid do projeto ─────────────
 -- O grid se atualiza no próximo snapshot; refresh_now traz isso pra hora.
 
+-- Painel "Em execução": copia a URL COMPLETA do webhook (o card mostra o token
+-- mascarado até o usuário pedir).
+function copy_webhook(url: string): ()
+    copy(url)
+    toast{ message = "Webhook copiado", kind = "success" }
+end
+
+-- Alterna entre token mascarado e visível no card; reconstrói a lista na hora
+-- (sem rede) a partir do último snapshot.
+function running_toggle_reveal(service_id: string): ()
+    State.running_revealed[service_id] = not State.running_revealed[service_id]
+    Stream.rebuild_lists()
+end
+
 function service_stop_id(service_id: string): ()
     local confirmed = confirm{
         title = "Parar serviço?",

@@ -9,6 +9,7 @@ type MetricsMap = Types.MetricsMap
 type GridCard = Types.GridCard
 
 local Time = require("time")
+local Jobs = require("jobs")
 local Util = require("util")
 
 local M = {}
@@ -53,6 +54,10 @@ local FILLER: GridCard = {
     port = "",
     status_label = "",
     status_color = "",
+    has_warm = "false",
+    warm_label = "",
+    warm_color = "",
+    warm_reason = "",
     cpu = "",
     mem = "",
     container_name = "",
@@ -107,7 +112,7 @@ local function primary_container(service: Types.Service): (string, string, strin
 end
 
 -- Card de serviço (com CPU/mem mesclados de `metrics_by_id[svc.id]`).
-local function service_card(service: Types.Service, project_name: string, metrics: MetricsMap?)
+local function service_card(service: Types.Service, project_name: string, metrics: MetricsMap?, warm: any?)
     local status_label, status_color = Util.status_label_color(service.status)
     local cpu, mem = "—", "—"
     local metrics_point = metrics and metrics[service.id]
@@ -116,8 +121,16 @@ local function service_card(service: Types.Service, project_name: string, metric
         mem = Time.format_bytes(metrics_point.mem_used_bytes)
     end
     local container_name, container_id, container_extra, container_name_full, container_id_full = primary_container(service)
+    local warm_label, warm_color = "", "muted"
+    if warm ~= nil then
+        warm_label, warm_color = Jobs.warm_status(warm)
+    end
     return {
         filler = "0",
+        has_warm = warm ~= nil and "true" or "false",
+        warm_label = warm_label,
+        warm_color = warm_color,
+        warm_reason = warm ~= nil and warm.reason or "",
         id = service.id,
         name = service.spec.name,
         project = project_name,
@@ -139,7 +152,7 @@ function M.services(service_pairs: {ServicePair}, metrics: MetricsMap?, term: st
     local rows = {}
     for _, pair in ipairs(service_pairs) do
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
-            table.insert(rows, service_card(pair.svc, pair.proj, metrics))
+            table.insert(rows, service_card(pair.svc, pair.proj, metrics, pair.warm))
         end
     end
     return Util.encode_array(rows)
@@ -151,7 +164,7 @@ function M.service_rows(service_pairs: {ServicePair}, metrics: MetricsMap?, term
     local filtered: {GridCard} = {}
     for _, pair in ipairs(service_pairs) do
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
-            table.insert(filtered, service_card(pair.svc, pair.proj, metrics))
+            table.insert(filtered, service_card(pair.svc, pair.proj, metrics, pair.warm))
         end
     end
     local columns = grid_cols()

@@ -60,6 +60,7 @@ export type MetricEntry = {
 export type ServicePair = {
     svc: Service,
     proj: string,
+    warm: any?, -- ServiceWarmStatus do snapshot (nil = serviço sem build)
 }
 
 export type GridCard = { filler: string, [string]: any }

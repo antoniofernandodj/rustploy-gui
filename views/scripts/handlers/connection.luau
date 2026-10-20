@@ -150,6 +150,7 @@ function init(): ()
         "jobs_summary",
         "project_jobs",
         "monitoring",
+        "running",
         "deploy_engine_active",
         "deploy_engine_recent",
         "project_services",

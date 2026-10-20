@@ -394,6 +394,7 @@ local function docker_cleanup_apply_config(config: any): ()
     ctx.docker_cleanup_build_cache = tostring(config.build_cache)
     ctx.docker_cleanup_build_cache_older_than_hours = tostring(config.build_cache_older_than_hours or 168)
     ctx.docker_cleanup_images_older_than_hours = tostring(config.images_older_than_hours or 168)
+    ctx.docker_cleanup_warm_after = tostring(config.warm_after_cleanup ~= false)
     local kind, hours, hour, minute, weekday = docker_cleanup_unpack_recurrence(config.recurrence)
     ctx.docker_cleanup_kind = kind
     ctx.docker_cleanup_hours = hours
@@ -492,6 +493,7 @@ function docker_cleanup_save(): ()
                 build_cache = ctx.docker_cleanup_build_cache == "true",
                 build_cache_older_than_hours = docker_cleanup_retention_hours(ctx.docker_cleanup_build_cache_older_than_hours),
                 images_older_than_hours = docker_cleanup_retention_hours(ctx.docker_cleanup_images_older_than_hours),
+                warm_after_cleanup = ctx.docker_cleanup_warm_after ~= "false",
                 last_run_at = State.docker_cleanup_last_run_at_raw,
             },
         },

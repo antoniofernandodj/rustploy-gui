@@ -46,6 +46,15 @@ function M.run_status(run: any): (string, string)
     return "falhou", "bad"
 end
 
+-- Aquecimento de um serviço com build (`ServiceWarmStatus`); `nil` = sem build,
+-- sem selo. Mesmas cores do job.
+function M.service_warm_status(warm: any): (string, string)
+    if warm == nil then
+        return "", "muted"
+    end
+    return M.warm_status(warm)
+end
+
 -- Rótulo/cor (mesmo esquema de StateCell) do aquecimento de um job. `warm` é o
 -- `JobWarmStatus` do daemon (fonte única da verdade): aqui só se formata, nunca
 -- se deduz. `nil` (daemon antigo, sem o campo) conta como frio.

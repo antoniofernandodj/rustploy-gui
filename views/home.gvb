@@ -2,6 +2,7 @@
 // Ingress, Deploy Engine, Docker (e Registry), Settings, Schedules e Suporte.
 component {
   resources {
+    link(rel = import, href = "home/running.gvb", as = HomeRunning)
     link(rel = import, href = "home/monitoring.gvb", as = HomeMonitoring)
     link(rel = import, href = "home/ingress.gvb", as = HomeIngress)
     link(rel = import, href = "home/deploy_engine.gvb", as = HomeDeployEngine)
@@ -20,6 +21,11 @@ component {
   }
 
   column(class = content) {
+    // ── Em execução ────────────────────────────────────────────────────
+    if @view == "running" {
+      HomeRunning
+    }
+
     // ── Monitoring ─────────────────────────────────────────────────────
     if @view == "monitoring" {
       HomeMonitoring

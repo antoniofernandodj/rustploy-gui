@@ -45,6 +45,8 @@ export type State = {
     -- (open_logs_window / deployment_logs) e o daemon (endpoints /api/.../logs).
     deploy_track: DeployTrack,
     new_service_templates_all: { any },         -- catálogo completo de templates (filtrar busca)
+    running_revealed: { [string]: boolean }, -- service_id → webhook revelado no painel "Em execução"
+    service_warm_by_id: { [string]: any }, -- service_id → ServiceWarmStatus (snapshot)
     jobs_by_id: { [string]: any },     -- job_id → Job cru (do snapshot) — job_toggle precisa do compose/name/main_service completos pra reenviar o JobUpdate.
     jobs_inflight: { [string]: boolean }, -- job_id → true entre o click em "Rodar agora" e o refresh_now() que confirma o novo job_run — trava double-click durante o round-trip da RPC (o botão só reflete `running` do snapshot DEPOIS disso).
     docker_cleanup_last_run_at_raw: any,           -- DockerCleanupConfig.last_run_at cru (ISO8601 ou nil), round-trip opaco: preserva o horário real entre saves do formulário de Manutenção, pra um agendamento IntervalHours não reiniciar a contagem a cada "Save" — ver handlers/settings.luau.
@@ -59,6 +61,8 @@ local shared_state: State = {
     search_term = "",
     deploy_track = { service_id = "", deployment_id = "", running = false, name = "" },
     new_service_templates_all = {},
+    running_revealed = {},
+    service_warm_by_id = {},
     jobs_by_id = {},
     jobs_inflight = {},
     docker_cleanup_last_run_at_raw = nil,

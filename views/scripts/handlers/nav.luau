@@ -22,6 +22,10 @@ function nav_deploy_engine(): ()
     end
 end
 
+function nav_running(): ()
+    goto_view("running")
+end
+
 function nav_monitoring(): ()
     goto_view("monitoring")
 end

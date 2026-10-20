@@ -149,6 +149,21 @@ component {
         }
       }
 
+      checkbox(
+        :checked = docker_cleanup_warm_after,
+        on_toggle = field:docker_cleanup_warm_after,
+        label = "Aquecer os builds depois da limpeza",
+      )
+
+      text(
+        class = u-muted,
+        content = """
+          Depois de limpar, reconstrói a imagem de cada serviço com repositório
+          Git ou zip, um de cada vez, na fila de deploy. Sem isso, o primeiro
+          deploy depois da limpeza paga o build inteiro.
+        """,
+      )
+
       hr
       text(class = "u-label-cap u-error", content = "VOLUMES — CUIDADO")
 
