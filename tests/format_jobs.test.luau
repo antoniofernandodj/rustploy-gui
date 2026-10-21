@@ -2,221 +2,234 @@
 local Jobs = require("format/jobs")
 local Util = require("format/util")
 
-describe("format/jobs · recorrência", function()
-    test("sem recorrência é manual", function()
-        expect(Jobs.recurrence_label(nil)):toBe("manual")
-    end)
+--- sem recorrência é manual
+function test_format_jobs_recorrencia__sem_recorrencia_e_manual()
+    assert_eq(Jobs.recurrence_label(nil), "manual")
+end
 
-    test("intervalo, diária e semanal", function()
-        expect(Jobs.recurrence_label({ IntervalHours = 6 })):toBe("a cada 6h")
-        expect(Jobs.recurrence_label({ Daily = { hour = 3, minute = 5 } })):toBe("diariamente às 03:05")
-        expect(Jobs.recurrence_label({ Weekly = { weekday = 0, hour = 9, minute = 30 } })):toBe("semanalmente seg às 09:30")
-        expect(Jobs.recurrence_label({ Weekly = { weekday = 6, hour = 23, minute = 0 } })):toBe("semanalmente dom às 23:00")
-    end)
+--- intervalo, diária e semanal
+function test_format_jobs_recorrencia__intervalo_diaria_e_semanal()
+    assert_eq(Jobs.recurrence_label({ IntervalHours = 6 }), "a cada 6h")
+    assert_eq(Jobs.recurrence_label({ Daily = { hour = 3, minute = 5 } }), "diariamente às 03:05")
+    assert_eq(Jobs.recurrence_label({ Weekly = { weekday = 0, hour = 9, minute = 30 } }), "semanalmente seg às 09:30")
+    assert_eq(Jobs.recurrence_label({ Weekly = { weekday = 6, hour = 23, minute = 0 } }), "semanalmente dom às 23:00")
+end
 
-    test("o dia da semana dá a volta (módulo 7)", function()
-        expect(Jobs.recurrence_label({ Weekly = { weekday = 7, hour = 0, minute = 0 } })):toContain("seg")
-        expect(Jobs.recurrence_label({ Weekly = { weekday = 9, hour = 0, minute = 0 } })):toContain("qua")
-    end)
+--- o dia da semana dá a volta (módulo 7)
+function test_format_jobs_recorrencia__o_dia_da_semana_da_a_volta_modulo_7()
+    assert_has(Jobs.recurrence_label({ Weekly = { weekday = 7, hour = 0, minute = 0 } }), "seg")
+    assert_has(Jobs.recurrence_label({ Weekly = { weekday = 9, hour = 0, minute = 0 } }), "qua")
+end
 
-    test("forma desconhecida vira traço", function()
-        expect(Jobs.recurrence_label({ Mensal = {} })):toBe("—")
-    end)
-end)
+--- forma desconhecida vira traço
+function test_format_jobs_recorrencia__forma_desconhecida_vira_traco()
+    assert_eq(Jobs.recurrence_label({ Mensal = {} }), "—")
+end
 
-describe("format/jobs · estado", function()
-    test("última execução: nunca, rodando, ok, falhou", function()
-        local label, kind = Jobs.run_status(nil)
-        expect(label):toBe("nunca rodou")
-        expect(kind):toBe("muted")
-        label, kind = Jobs.run_status({})
-        expect(label):toBe("rodando…")
-        expect(kind):toBe("warn")
-        label, kind = Jobs.run_status({ success = true })
-        expect(label):toBe("ok")
-        expect(kind):toBe("ok")
-        label, kind = Jobs.run_status({ success = false })
-        expect(label):toBe("falhou")
-        expect(kind):toBe("bad")
-    end)
+--- última execução: nunca, rodando, ok, falhou
+function test_format_jobs_estado__ultima_execucao_nunca_rodando_ok_falhou()
+    local label, kind = Jobs.run_status(nil)
+    assert_eq(label, "nunca rodou")
+    assert_eq(kind, "muted")
+    label, kind = Jobs.run_status({})
+    assert_eq(label, "rodando…")
+    assert_eq(kind, "warn")
+    label, kind = Jobs.run_status({ success = true })
+    assert_eq(label, "ok")
+    assert_eq(kind, "ok")
+    label, kind = Jobs.run_status({ success = false })
+    assert_eq(label, "falhou")
+    assert_eq(kind, "bad")
+end
 
-    test("aquecimento: aquecendo vence quente, e nil conta como frio", function()
-        expect(Jobs.warm_status({ warming = true, warm = true })):toBe("aquecendo…")
-        expect(Jobs.warm_status({ warm = true })):toBe("quente")
-        expect(Jobs.warm_status({})):toBe("frio")
-        expect(Jobs.warm_status(nil)):toBe("frio")
-        expect(select(2, Jobs.warm_status({ warm = true }))):toBe("ok")
-        expect(select(2, Jobs.warm_status({ warming = true }))):toBe("warn")
-    end)
+--- aquecimento: aquecendo vence quente, e nil conta como frio
+function test_format_jobs_estado__aquecimento_aquecendo_vence_quente_e_nil_conta_como_frio()
+    assert_eq(Jobs.warm_status({ warming = true, warm = true }), "aquecendo…")
+    assert_eq(Jobs.warm_status({ warm = true }), "quente")
+    assert_eq(Jobs.warm_status({}), "frio")
+    assert_eq(Jobs.warm_status(nil), "frio")
+    assert_eq(select(2, Jobs.warm_status({ warm = true })), "ok")
+    assert_eq(select(2, Jobs.warm_status({ warming = true })), "warn")
+end
 
-    test("serviço sem build não tem selo", function()
-        local label, kind = Jobs.service_warm_status(nil)
-        expect(label):toBe("")
-        expect(kind):toBe("muted")
-        expect(Jobs.service_warm_status({ warm = true })):toBe("quente")
-    end)
-end)
+--- serviço sem build não tem selo
+function test_format_jobs_estado__servico_sem_build_nao_tem_selo()
+    local label, kind = Jobs.service_warm_status(nil)
+    assert_eq(label, "")
+    assert_eq(kind, "muted")
+    assert_eq(Jobs.service_warm_status({ warm = true }), "quente")
+end
 
-describe("format/jobs · tela Schedules", function()
-    local function resumo(sobrescrita)
-        local base = {
-            job = { id = "j1", name = "migrate", recurrence = { IntervalHours = 2 }, enabled = true },
-            project_name = "loja",
-            trigger_service_name = "api",
-            last_run = { id = "r1", success = true },
-        }
-        for k, v in sobrescrita or {} do
-            base[k] = v
-        end
-        return base
+local function resumo(sobrescrita)
+    local base = {
+        job = { id = "j1", name = "migrate", recurrence = { IntervalHours = 2 }, enabled = true },
+        project_name = "loja",
+        trigger_service_name = "api",
+        last_run = { id = "r1", success = true },
+    }
+    for k, v in sobrescrita or {} do
+        base[k] = v
     end
+    return base
+end
 
-    test("uma linha por job, com o total", function()
-        local json_texto, total = Jobs.summaries({ resumo(), resumo({ job = { id = "j2", name = "x", enabled = false } }) }, nil)
-        expect(total):toBe(2)
-        local linhas = json.decode(json_texto)
-        expect(#linhas):toBe(2)
-        expect(linhas[1].id):toBe("j1")
-        expect(linhas[1].recurrence):toBe("a cada 2h")
-        expect(linhas[1].enabled_label):toBe("Pausar")
-        expect(linhas[2].enabled_label):toBe("Ativar")
-        expect(linhas[1].last_run_label):toBe("ok")
-        expect(linhas[1].last_run_id):toBe("r1")
-    end)
+--- uma linha por job, com o total
+function test_format_jobs_tela_schedules__uma_linha_por_job_com_o_total()
+    local json_texto, total = Jobs.summaries({ resumo(), resumo({ job = { id = "j2", name = "x", enabled = false } }) }, nil)
+    assert_eq(total, 2)
+    local linhas = json.decode(json_texto)
+    assert_eq(#linhas, 2)
+    assert_eq(linhas[1].id, "j1")
+    assert_eq(linhas[1].recurrence, "a cada 2h")
+    assert_eq(linhas[1].enabled_label, "Pausar")
+    assert_eq(linhas[2].enabled_label, "Ativar")
+    assert_eq(linhas[1].last_run_label, "ok")
+    assert_eq(linhas[1].last_run_id, "r1")
+end
 
-    test("o dono mostra projeto / serviço gatilho, ou só o projeto quando autônomo", function()
-        local autonomo = resumo()
-        autonomo.trigger_service_name = nil
-        local linhas = json.decode((Jobs.summaries({ resumo(), autonomo }, nil)))
-        -- O orçamento de caracteres depende da largura da janela (ver
-        -- Util.column_budgets), então o esperado passa pelo mesmo ellipsis.
-        local orcamento = Util.column_budgets().proj
-        expect(linhas[1].owner):toBe(Util.ellipsis("loja / api", orcamento))
-        expect(linhas[2].owner):toBe(Util.ellipsis("loja", orcamento))
-        expect(linhas[1].trigger_service):toBe("api")
-    end)
+--- o dono mostra projeto / serviço gatilho, ou só o projeto quando autônomo
+function test_format_jobs_tela_schedules__o_dono_mostra_projeto_servico_gatilho_ou_so_o_projeto_quando_autonomo()
+    local autonomo = resumo()
+    autonomo.trigger_service_name = nil
+    local linhas = json.decode((Jobs.summaries({ resumo(), autonomo }, nil)))
+    -- O orçamento de caracteres depende da largura da janela (ver
+    -- Util.column_budgets), então o esperado passa pelo mesmo ellipsis.
+    local orcamento = Util.column_budgets().proj
+    assert_eq(linhas[1].owner, Util.ellipsis("loja / api", orcamento))
+    assert_eq(linhas[2].owner, Util.ellipsis("loja", orcamento))
+    assert_eq(linhas[1].trigger_service, "api")
+end
 
-    test("o nome comprido é truncado na exibição e guardado inteiro", function()
-        local longo = string.rep("n", 80)
-        local linha = json.decode((Jobs.summaries({ resumo({ job = { id = "j", name = longo } }) }, nil)))[1]
-        expect(linha.name_full):toBe(longo)
-        expect(utf8.len(linha.name) < 80):toBe(true)
-    end)
+--- o nome comprido é truncado na exibição e guardado inteiro
+function test_format_jobs_tela_schedules__o_nome_comprido_e_truncado_na_exibicao_e_guardado_inteiro()
+    local longo = string.rep("n", 80)
+    local linha = json.decode((Jobs.summaries({ resumo({ job = { id = "j", name = longo } }) }, nil)))[1]
+    assert_eq(linha.name_full, longo)
+    assert_eq(utf8.len(linha.name) < 80, true)
+end
 
-    test("running reflete o servidor OU o clique em voo", function()
-        local rodando = resumo({ last_run = {} })
-        local parado = resumo()
-        local linhas = json.decode((Jobs.summaries({ rodando, parado }, nil)))
-        expect(linhas[1].running):toBe(true)
-        expect(linhas[2].running):toBe(false)
+--- running reflete o servidor OU o clique em voo
+function test_format_jobs_tela_schedules__running_reflete_o_servidor_ou_o_clique_em_voo()
+    local rodando = resumo({ last_run = {} })
+    local parado = resumo()
+    local linhas = json.decode((Jobs.summaries({ rodando, parado }, nil)))
+    assert_eq(linhas[1].running, true)
+    assert_eq(linhas[2].running, false)
 
-        linhas = json.decode((Jobs.summaries({ parado }, { j1 = true })))
-        expect(linhas[1].running):toBe(true)
-        linhas = json.decode((Jobs.summaries({ parado }, { j1 = false })))
-        expect(linhas[1].running):toBe(false)
-    end)
+    linhas = json.decode((Jobs.summaries({ parado }, { j1 = true })))
+    assert_eq(linhas[1].running, true)
+    linhas = json.decode((Jobs.summaries({ parado }, { j1 = false })))
+    assert_eq(linhas[1].running, false)
+end
 
-    test("próxima execução e aquecimento", function()
-        local linha = json.decode((Jobs.summaries({
-            resumo({
-                job = { id = "j", name = "n", next_run_at = "2026-03-01T10:00:00Z" },
-                warm = { warm = true, warmed_at = "2026-03-01T09:00:00Z", reason = "build ok" },
-            }),
-        }, nil)))[1]
-        expect(linha.next_run_at):toMatch("^%d%d/%d%d %d%d:%d%d$")
-        expect(linha.is_warm):toBe(true)
-        expect(linha.is_warming):toBe(false)
-        expect(linha.warm_label):toBe("quente")
-        expect(linha.warm_reason):toBe("build ok")
-        expect(linha.warmed_at_label):toMatch("^%d%d/%d%d")
-    end)
+--- próxima execução e aquecimento
+function test_format_jobs_tela_schedules__proxima_execucao_e_aquecimento()
+    local linha = json.decode((Jobs.summaries({
+        resumo({
+            job = { id = "j", name = "n", next_run_at = "2026-03-01T10:00:00Z" },
+            warm = { warm = true, warmed_at = "2026-03-01T09:00:00Z", reason = "build ok" },
+        }),
+    }, nil)))[1]
+    assert_match(linha.next_run_at, "^%d%d/%d%d %d%d:%d%d$")
+    assert_eq(linha.is_warm, true)
+    assert_eq(linha.is_warming, false)
+    assert_eq(linha.warm_label, "quente")
+    assert_eq(linha.warm_reason, "build ok")
+    assert_match(linha.warmed_at_label, "^%d%d/%d%d")
+end
 
-    test("sem next_run_at nem aquecimento, os campos têm padrão seguro", function()
-        local linha = json.decode((Jobs.summaries({ resumo() }, nil)))[1]
-        expect(linha.next_run_at):toBe("—")
-        expect(linha.is_warm):toBe(false)
-        expect(linha.warm_label):toBe("frio")
-        expect(linha.warm_reason):toBe("")
-        expect(linha.warmed_at_label):toBe("")
-    end)
+--- sem next_run_at nem aquecimento, os campos têm padrão seguro
+function test_format_jobs_tela_schedules__sem_next_run_at_nem_aquecimento_os_campos_tem_padrao_seguro()
+    local linha = json.decode((Jobs.summaries({ resumo() }, nil)))[1]
+    assert_eq(linha.next_run_at, "—")
+    assert_eq(linha.is_warm, false)
+    assert_eq(linha.warm_label, "frio")
+    assert_eq(linha.warm_reason, "")
+    assert_eq(linha.warmed_at_label, "")
+end
 
-    test("job que nunca rodou", function()
-        local nunca = resumo()
-        nunca.last_run = nil
-        local linha = json.decode((Jobs.summaries({ nunca }, nil)))[1]
-        expect(linha.last_run_label):toBe("nunca rodou")
-        expect(linha.last_run_id):toBe("")
-        expect(linha.running):toBe(false)
-    end)
+--- job que nunca rodou
+function test_format_jobs_tela_schedules__job_que_nunca_rodou()
+    local nunca = resumo()
+    nunca.last_run = nil
+    local linha = json.decode((Jobs.summaries({ nunca }, nil)))[1]
+    assert_eq(linha.last_run_label, "nunca rodou")
+    assert_eq(linha.last_run_id, "")
+    assert_eq(linha.running, false)
+end
 
-    test("sem jobs dá [] e zero", function()
-        local texto, total = Jobs.summaries(nil, nil)
-        expect(texto):toBe("[]")
-        expect(total):toBe(0)
-    end)
-end)
+--- sem jobs dá [] e zero
+function test_format_jobs_tela_schedules__sem_jobs_da_e_zero()
+    local texto, total = Jobs.summaries(nil, nil)
+    assert_eq(texto, "[]")
+    assert_eq(total, 0)
+end
 
-describe("format/jobs · fila de pré-deploy", function()
-    local jobs = { { id = "a", name = "migrar" }, { id = "b", name = "seed" }, { id = "c", name = "limpar" } }
+local jobs = { { id = "a", name = "migrar" }, { id = "b", name = "seed" }, { id = "c", name = "limpar" } }
 
-    test("a fila respeita a ordem configurada e resolve o nome", function()
-        local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "c", "a" } }, jobs))
-        expect(#fila):toBe(2)
-        expect(fila[1].name):toBe("limpar")
-        expect(fila[1].index):toBe("1")
-        expect(fila[2].name):toBe("migrar")
-        expect(fila[2].index):toBe("2")
-    end)
+--- a fila respeita a ordem configurada e resolve o nome
+function test_format_jobs_fila_de_pre_deploy__a_fila_respeita_a_ordem_configurada_e_resolve_o_nome()
+    local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "c", "a" } }, jobs))
+    assert_eq(#fila, 2)
+    assert_eq(fila[1].name, "limpar")
+    assert_eq(fila[1].index, "1")
+    assert_eq(fila[2].name, "migrar")
+    assert_eq(fila[2].index, "2")
+end
 
-    test("um job apagado por fora aparece como removido, para dar para tirá-lo da fila", function()
-        local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "zzz" } }, jobs))
-        expect(fila[1].id):toBe("zzz")
-        expect(fila[1].name):toBe("(job removido: zzz)")
-    end)
+--- um job apagado por fora aparece como removido, para dar para tirá-lo da fila
+function test_format_jobs_fila_de_pre_deploy__um_job_apagado_por_fora_aparece_como_removido_para_dar_para_tira_lo_da_fila()
+    local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "zzz" } }, jobs))
+    assert_eq(fila[1].id, "zzz")
+    assert_eq(fila[1].name, "(job removido: zzz)")
+end
 
-    test("o id legado vale quando a fila nova está vazia", function()
-        local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_id = "b" }, jobs))
-        expect(fila[1].name):toBe("seed")
-    end)
+--- o id legado vale quando a fila nova está vazia
+function test_format_jobs_fila_de_pre_deploy__o_id_legado_vale_quando_a_fila_nova_esta_vazia()
+    local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_id = "b" }, jobs))
+    assert_eq(fila[1].name, "seed")
+end
 
-    test("os disponíveis são os que ainda não estão na fila", function()
-        local livres = json.decode(Jobs.pre_deploy_available({ pre_deploy_job_ids = { "a" } }, jobs))
-        expect(#livres):toBe(2)
-        expect(livres[1].id):toBe("b")
-        expect(livres[2].id):toBe("c")
-    end)
+--- os disponíveis são os que ainda não estão na fila
+function test_format_jobs_fila_de_pre_deploy__os_disponiveis_sao_os_que_ainda_nao_estao_na_fila()
+    local livres = json.decode(Jobs.pre_deploy_available({ pre_deploy_job_ids = { "a" } }, jobs))
+    assert_eq(#livres, 2)
+    assert_eq(livres[1].id, "b")
+    assert_eq(livres[2].id, "c")
+end
 
-    test("fila e disponíveis juntos cobrem todos os jobs, sem repetir", function()
-        local spec = { pre_deploy_job_ids = { "b" } }
-        local na_fila = json.decode(Jobs.pre_deploy_queue(spec, jobs))
-        local livres = json.decode(Jobs.pre_deploy_available(spec, jobs))
-        expect(#na_fila + #livres):toBe(#jobs)
-    end)
+--- fila e disponíveis juntos cobrem todos os jobs, sem repetir
+function test_format_jobs_fila_de_pre_deploy__fila_e_disponiveis_juntos_cobrem_todos_os_jobs_sem_repetir()
+    local spec = { pre_deploy_job_ids = { "b" } }
+    local na_fila = json.decode(Jobs.pre_deploy_queue(spec, jobs))
+    local livres = json.decode(Jobs.pre_deploy_available(spec, jobs))
+    assert_eq(#na_fila + #livres, #jobs)
+end
 
-    test("sem jobs dá []", function()
-        expect(Jobs.pre_deploy_queue({}, nil)):toBe("[]")
-        expect(Jobs.pre_deploy_available({}, nil)):toBe("[]")
-    end)
-end)
+--- sem jobs dá []
+function test_format_jobs_fila_de_pre_deploy__sem_jobs_da()
+    assert_eq(Jobs.pre_deploy_queue({}, nil), "[]")
+    assert_eq(Jobs.pre_deploy_available({}, nil), "[]")
+end
 
-describe("format/jobs · histórico", function()
-    test("cada execução com seu estado, código de saída e horários", function()
-        local linhas = json.decode(Jobs.runs({
-            { id = "r1", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:09Z", exit_code = 0, success = true },
-            { id = "r2", started_at = "2026-03-01T10:00:00Z", exit_code = 1, success = false },
-            { id = "r3", started_at = "2026-03-01T10:00:00Z" },
-        }))
-        expect(linhas[1].status_label):toBe("ok")
-        expect(linhas[1].exit_code):toBe("0")
-        expect(linhas[1].finished_at):toMatch("^%d%d/%d%d %d%d:%d%d:%d%d$")
-        expect(linhas[2].status_label):toBe("falhou")
-        expect(linhas[2].status_kind):toBe("bad")
-        expect(linhas[2].finished_at):toBe("—")
-        expect(linhas[3].status_label):toBe("rodando…")
-        expect(linhas[3].exit_code):toBe("—")
-    end)
+--- cada execução com seu estado, código de saída e horários
+function test_format_jobs_historico__cada_execucao_com_seu_estado_codigo_de_saida_e_horarios()
+    local linhas = json.decode(Jobs.runs({
+        { id = "r1", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:09Z", exit_code = 0, success = true },
+        { id = "r2", started_at = "2026-03-01T10:00:00Z", exit_code = 1, success = false },
+        { id = "r3", started_at = "2026-03-01T10:00:00Z" },
+    }))
+    assert_eq(linhas[1].status_label, "ok")
+    assert_eq(linhas[1].exit_code, "0")
+    assert_match(linhas[1].finished_at, "^%d%d/%d%d %d%d:%d%d:%d%d$")
+    assert_eq(linhas[2].status_label, "falhou")
+    assert_eq(linhas[2].status_kind, "bad")
+    assert_eq(linhas[2].finished_at, "—")
+    assert_eq(linhas[3].status_label, "rodando…")
+    assert_eq(linhas[3].exit_code, "—")
+end
 
-    test("sem execuções dá []", function()
-        expect(Jobs.runs(nil)):toBe("[]")
-    end)
-end)
+--- sem execuções dá []
+function test_format_jobs_historico__sem_execucoes_da()
+    assert_eq(Jobs.runs(nil), "[]")
+end

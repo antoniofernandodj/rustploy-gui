@@ -37,229 +37,244 @@ local function linhas(tela)
     return por_chave
 end
 
-describe("janela · exportar serviço", function()
-    test("o init resume o plano", function()
-        local tela = exportar()
-        expect(tela:get("export_service")):toBe("api")
-        expect(tela:get("export_project")):toBe("loja")
-        expect(tela:get("export_service_vars")):toBe("A, S 🔒")
-        expect(tela:get("export_service_count")):toBe("2")
-        expect(tela:get("export_has_vars")):toBe("true")
-        expect(tela:get("export_values")):toBe("true")
-        expect(tela:get("export_error")):toBe("")
-        expect(tela:get("export_yaml")):toBe("")
-    end)
+--- o init resume o plano
+function test_janela_exportar_servico__o_init_resume_o_plano()
+    local tela = exportar()
+    assert_eq(tela:get("export_service"), "api")
+    assert_eq(tela:get("export_project"), "loja")
+    assert_eq(tela:get("export_service_vars"), "A, S 🔒")
+    assert_eq(tela:get("export_service_count"), "2")
+    assert_eq(tela:get("export_has_vars"), "true")
+    assert_eq(tela:get("export_values"), "true")
+    assert_eq(tela:get("export_error"), "")
+    assert_eq(tela:get("export_yaml"), "")
+end
 
-    test("as variáveis do projeto nascem marcadas só quando o serviço as cita", function()
-        local tela = exportar()
-        local vars = linhas(tela)
-        expect(vars.DB.mark):toBe("☑")
-        expect(vars.LOG.mark):toBe("☐")
-        expect(vars.TOK.mark):toBe("☑")
-        expect(tela:get("export_picked_count")):toBe("2")
-    end)
+--- as variáveis do projeto nascem marcadas só quando o serviço as cita
+function test_janela_exportar_servico__as_variaveis_do_projeto_nascem_marcadas_so_quando_o_servico_as_cita()
+    local tela = exportar()
+    local vars = linhas(tela)
+    assert_eq(vars.DB.mark, "☑")
+    assert_eq(vars.LOG.mark, "☐")
+    assert_eq(vars.TOK.mark, "☑")
+    assert_eq(tela:get("export_picked_count"), "2")
+end
 
-    test("as etiquetas dizem se é secret e se o serviço a cita", function()
-        local vars = linhas(exportar())
-        expect(vars.DB.tag):toBe("citada pelo serviço")
-        expect(vars.LOG.tag):toBe("")
-        expect(vars.TOK.tag):toBe("secret · citada pelo serviço")
-    end)
+--- as etiquetas dizem se é secret e se o serviço a cita
+function test_janela_exportar_servico__as_etiquetas_dizem_se_e_secret_e_se_o_servico_a_cita()
+    local vars = linhas(exportar())
+    assert_eq(vars.DB.tag, "citada pelo serviço")
+    assert_eq(vars.LOG.tag, "")
+    assert_eq(vars.TOK.tag, "secret · citada pelo serviço")
+end
 
-    test("alternar uma variável inverte só ela", function()
-        local tela = exportar()
-        tela:call("export_toggle", "LOG")
-        expect(linhas(tela).LOG.mark):toBe("☑")
-        expect(tela:get("export_picked_count")):toBe("3")
-        tela:call("export_toggle", "LOG")
-        expect(linhas(tela).LOG.mark):toBe("☐")
-        expect(tela:get("export_picked_count")):toBe("2")
-    end)
+--- alternar uma variável inverte só ela
+function test_janela_exportar_servico__alternar_uma_variavel_inverte_so_ela()
+    local tela = exportar()
+    tela:call("export_toggle", "LOG")
+    assert_eq(linhas(tela).LOG.mark, "☑")
+    assert_eq(tela:get("export_picked_count"), "3")
+    tela:call("export_toggle", "LOG")
+    assert_eq(linhas(tela).LOG.mark, "☐")
+    assert_eq(tela:get("export_picked_count"), "2")
+end
 
-    test("todas, nenhuma e sugeridas", function()
-        local tela = exportar()
-        tela:call("export_all")
-        expect(tela:get("export_picked_count")):toBe("3")
-        tela:call("export_none")
-        expect(tela:get("export_picked_count")):toBe("0")
-        expect(linhas(tela).DB.mark):toBe("☐")
-        tela:call("export_suggested")
-        expect(tela:get("export_picked_count")):toBe("2")
-        expect(linhas(tela).LOG.mark):toBe("☐")
-    end)
+--- todas, nenhuma e sugeridas
+function test_janela_exportar_servico__todas_nenhuma_e_sugeridas()
+    local tela = exportar()
+    tela:call("export_all")
+    assert_eq(tela:get("export_picked_count"), "3")
+    tela:call("export_none")
+    assert_eq(tela:get("export_picked_count"), "0")
+    assert_eq(linhas(tela).DB.mark, "☐")
+    tela:call("export_suggested")
+    assert_eq(tela:get("export_picked_count"), "2")
+    assert_eq(linhas(tela).LOG.mark, "☐")
+end
 
-    test("o plano bloqueado repassa o motivo", function()
-        local plano = { service_name = "x", blocked = "serviço compose não exporta" }
-        expect(exportar(plano):get("export_blocked")):toBe("serviço compose não exporta")
-    end)
+--- o plano bloqueado repassa o motivo
+function test_janela_exportar_servico__o_plano_bloqueado_repassa_o_motivo()
+    local plano = { service_name = "x", blocked = "serviço compose não exporta" }
+    assert_eq(exportar(plano):get("export_blocked"), "serviço compose não exporta")
+end
 
-    test("plano vazio ou ilegível não quebra: sem variáveis e lista []", function()
-        for _, texto in { "{}", "isso não é json" } do
-            local tela = janela("views/service_export_window.gvb", { export_plan = texto })
-            expect(tela:get("export_service")):toBe("")
-            expect(tela:get("export_service_vars")):toBe("(este serviço não tem variáveis próprias)")
-            expect(tela:get("export_service_count")):toBe("0")
-            expect(tela:get("export_has_vars")):toBe("false")
-            expect(tela:get("export_vars")):toBe("[]")
-            expect(tela:get("export_picked_count")):toBe("0")
-        end
-    end)
+--- plano vazio ou ilegível não quebra: sem variáveis e lista []
+function test_janela_exportar_servico__plano_vazio_ou_ilegivel_nao_quebra_sem_variaveis_e_lista()
+    for _, texto in { "{}", "isso não é json" } do
+        local tela = janela("views/service_export_window.gvb", { export_plan = texto })
+        assert_eq(tela:get("export_service"), "")
+        assert_eq(tela:get("export_service_vars"), "(este serviço não tem variáveis próprias)")
+        assert_eq(tela:get("export_service_count"), "0")
+        assert_eq(tela:get("export_has_vars"), "false")
+        assert_eq(tela:get("export_vars"), "[]")
+        assert_eq(tela:get("export_picked_count"), "0")
+    end
+end
 
-    test("mostrar o pacote sem conexão explica o que fazer", function()
-        local tela = exportar()
-        tela:call("export_show")
-        expect(tela:get("export_error")):toBe("sem conexão — reabra a janela pelo app")
-        expect(tela:get("export_yaml")):toBe("")
-    end)
+--- mostrar o pacote sem conexão explica o que fazer
+function test_janela_exportar_servico__mostrar_o_pacote_sem_conexao_explica_o_que_fazer()
+    local tela = exportar()
+    tela:call("export_show")
+    assert_eq(tela:get("export_error"), "sem conexão — reabra a janela pelo app")
+    assert_eq(tela:get("export_yaml"), "")
+end
 
-    test("o setter field grava a chave pedida", function()
-        local tela = exportar()
-        tela:call("field", "export_values")
-        expect(tela:get("export_values")):toBe("")
-    end)
-end)
+--- o setter field grava a chave pedida
+function test_janela_exportar_servico__o_setter_field_grava_a_chave_pedida()
+    local tela = exportar()
+    tela:call("field", "export_values")
+    assert_eq(tela:get("export_values"), "")
+end
 
 -- ── Logs ao vivo ────────────────────────────────────────────────────────────
 
-describe("janela · logs", function()
-    local function semente(n)
-        local linhas_log = {}
-        for i = 1, n do
-            table.insert(linhas_log, { line = "linha " .. i, timestamp = "2026-03-01T10:00:00Z" })
-        end
-        return json.encode(linhas_log)
+local function semente(n)
+    local linhas_log = {}
+    for i = 1, n do
+        table.insert(linhas_log, { line = "linha " .. i, timestamp = "2026-03-01T10:00:00Z" })
     end
+    return json.encode(linhas_log)
+end
 
-    test("o histórico semeado vira texto, uma linha por evento, terminado em \\n", function()
-        local tela = janela("views/log_window.gvb", { log_window_seed = semente(3) })
-        expect(tela:get("log_window_count")):toBe("3")
-        local texto = tela:get("log_window_logs_text") or ""
-        expect(texto):toMatch("^%d%d:%d%d:%d%d linha 1\n")
-        expect(texto):toMatch("linha 3\n$")
-        local n = 0
-        for _ in string.gmatch(texto, "[^\n]+") do
-            n += 1
-        end
-        expect(n):toBe(3)
-    end)
+--- o histórico semeado vira texto, uma linha por evento, terminado em \\n
+function test_janela_logs__o_historico_semeado_vira_texto_uma_linha_por_evento_terminado_em_n()
+    local tela = janela("views/log_window.gvb", { log_window_seed = semente(3) })
+    assert_eq(tela:get("log_window_count"), "3")
+    local texto = tela:get("log_window_logs_text") or ""
+    assert_match(texto, "^%d%d:%d%d:%d%d linha 1\n")
+    assert_match(texto, "linha 3\n$")
+    local n = 0
+    for _ in string.gmatch(texto, "[^\n]+") do
+        n += 1
+    end
+    assert_eq(n, 3)
+end
 
-    test("sem semente a janela abre vazia", function()
-        local tela = janela("views/log_window.gvb")
-        expect(tela:get("log_window_count")):toBe("0")
-        expect(tela:get("log_window_logs_text")):toBe("")
-    end)
+--- sem semente a janela abre vazia
+function test_janela_logs__sem_semente_a_janela_abre_vazia()
+    local tela = janela("views/log_window.gvb")
+    assert_eq(tela:get("log_window_count"), "0")
+    assert_eq(tela:get("log_window_logs_text"), "")
+end
 
-    test("semente ilegível é tratada como vazia", function()
-        local tela = janela("views/log_window.gvb", { log_window_seed = "não é json" })
-        expect(tela:get("log_window_count")):toBe("0")
-    end)
+--- semente ilegível é tratada como vazia
+function test_janela_logs__semente_ilegivel_e_tratada_como_vazia()
+    local tela = janela("views/log_window.gvb", { log_window_seed = "não é json" })
+    assert_eq(tela:get("log_window_count"), "0")
+end
 
-    test("o título padrão é Logs, e o que o pai mandou vale", function()
-        expect(janela("views/log_window.gvb"):get("log_window_title")):toBe("Logs")
-        expect(janela("views/log_window.gvb", { log_window_title = "api · build" }):get("log_window_title")):toBe("api · build")
-    end)
-end)
+--- o título padrão é Logs, e o que o pai mandou vale
+function test_janela_logs__o_titulo_padrao_e_logs_e_o_que_o_pai_mandou_vale()
+    assert_eq(janela("views/log_window.gvb"):get("log_window_title"), "Logs")
+    assert_eq(janela("views/log_window.gvb", { log_window_title = "api · build" }):get("log_window_title"), "api · build")
+end
 
 -- ── Novo projeto ────────────────────────────────────────────────────────────
 
-describe("janela · novo projeto", function()
-    test("o init zera mensagens e semeia os campos sem pisar no que veio", function()
-        local tela = janela("views/new_project_form.gvb")
-        expect(tela:get("new_project_name")):toBe("")
-        expect(tela:get("new_project_description")):toBe("")
-        expect(tela:get("new_project_error")):toBe("")
-        expect(tela:get("new_project_message")):toBe("")
-        local preenchida = janela("views/new_project_form.gvb", { new_project_name = "loja" })
-        expect(preenchida:get("new_project_name")):toBe("loja")
-    end)
+--- o init zera mensagens e semeia os campos sem pisar no que veio
+function test_janela_novo_projeto__o_init_zera_mensagens_e_semeia_os_campos_sem_pisar_no_que_veio()
+    local tela = janela("views/new_project_form.gvb")
+    assert_eq(tela:get("new_project_name"), "")
+    assert_eq(tela:get("new_project_description"), "")
+    assert_eq(tela:get("new_project_error"), "")
+    assert_eq(tela:get("new_project_message"), "")
+    local preenchida = janela("views/new_project_form.gvb", { new_project_name = "loja" })
+    assert_eq(preenchida:get("new_project_name"), "loja")
+end
 
-    test("a falha de validação só avisa", function()
-        local tela = janela("views/new_project_form.gvb")
-        tela:call("new_project_show_validation_errors", "[]")
-        expect(tela:toasts()[1].message):toBe("Corrija os campos destacados")
-        expect(tela:toasts()[1].kind):toBe("warning")
-    end)
+--- a falha de validação só avisa
+function test_janela_novo_projeto__a_falha_de_validacao_so_avisa()
+    local tela = janela("views/new_project_form.gvb")
+    tela:call("new_project_show_validation_errors", "[]")
+    assert_eq(tela:toasts()[1].message, "Corrija os campos destacados")
+    assert_eq(tela:toasts()[1].kind, "warning")
+end
 
-    test("criar sem a conexão semeada manda reabrir a janela", function()
-        local tela = janela("views/new_project_form.gvb", { new_project_name = "loja" })
-        tela:call("submit_project")
-        expect(tela:get("new_project_error")):toBe("sem conexão — reabra a janela pelo app")
-        expect(tela:get("new_project_busy")):toBe("")
-    end)
-end)
+--- criar sem a conexão semeada manda reabrir a janela
+function test_janela_novo_projeto__criar_sem_a_conexao_semeada_manda_reabrir_a_janela()
+    local tela = janela("views/new_project_form.gvb", { new_project_name = "loja" })
+    tela:call("submit_project")
+    assert_eq(tela:get("new_project_error"), "sem conexão — reabra a janela pelo app")
+    assert_eq(tela:get("new_project_busy"), "")
+end
 
 -- ── Novo token do registry ──────────────────────────────────────────────────
 
-describe("janela · novo token do registry", function()
-    test("o init abre no formulário com escopo de leitura", function()
-        local tela = janela("views/new_registry_token_window.gvb")
-        expect(tela:get("new_registry_token_step")):toBe("form")
-        expect(tela:get("new_registry_token_scope")):toBe("pull")
-        expect(tela:get("new_registry_token_name")):toBe("")
-        expect(tela:get("new_registry_token_login_command")):toBe("")
-    end)
+--- o init abre no formulário com escopo de leitura
+function test_janela_novo_token_do_registry__o_init_abre_no_formulario_com_escopo_de_leitura()
+    local tela = janela("views/new_registry_token_window.gvb")
+    assert_eq(tela:get("new_registry_token_step"), "form")
+    assert_eq(tela:get("new_registry_token_scope"), "pull")
+    assert_eq(tela:get("new_registry_token_name"), "")
+    assert_eq(tela:get("new_registry_token_login_command"), "")
+end
 
-    test("os escopos oferecidos são pull e push", function()
-        local escopos = json.decode(janela("views/new_registry_token_window.gvb"):get("new_registry_token_scopes") or "[]")
-        expect(#escopos):toBe(2)
-        expect(escopos[1].id):toBe("pull")
-        expect(escopos[2].id):toBe("push")
-    end)
+--- os escopos oferecidos são pull e push
+function test_janela_novo_token_do_registry__os_escopos_oferecidos_sao_pull_e_push()
+    local escopos = json.decode(janela("views/new_registry_token_window.gvb"):get("new_registry_token_scopes") or "[]")
+    assert_eq(#escopos, 2)
+    assert_eq(escopos[1].id, "pull")
+    assert_eq(escopos[2].id, "push")
+end
 
-    test("o host do registry vem do pai, com um padrão local", function()
-        expect(janela("views/new_registry_token_window.gvb"):get("registry_host")):toBe("127.0.0.1:5100")
-        expect(janela("views/new_registry_token_window.gvb", { registry_host = "r.exemplo.com" }):get("registry_host")):toBe("r.exemplo.com")
-    end)
+--- o host do registry vem do pai, com um padrão local
+function test_janela_novo_token_do_registry__o_host_do_registry_vem_do_pai_com_um_padrao_local()
+    assert_eq(janela("views/new_registry_token_window.gvb"):get("registry_host"), "127.0.0.1:5100")
+    assert_eq(janela("views/new_registry_token_window.gvb", { registry_host = "r.exemplo.com" }):get("registry_host"), "r.exemplo.com")
+end
 
-    test("criar sem conexão e a falha de validação", function()
-        local tela = janela("views/new_registry_token_window.gvb")
-        tela:call("new_registry_token_create")
-        expect(tela:get("new_registry_token_error")):toBe("sem conexão — reabra a janela pelo app")
-        expect(tela:get("new_registry_token_step")):toBe("form")
-        tela:call("new_registry_token_show_validation_errors", "[]")
-        expect(tela:toasts()[1].message):toBe("Informe o nome do token")
-    end)
-end)
+--- criar sem conexão e a falha de validação
+function test_janela_novo_token_do_registry__criar_sem_conexao_e_a_falha_de_validacao()
+    local tela = janela("views/new_registry_token_window.gvb")
+    tela:call("new_registry_token_create")
+    assert_eq(tela:get("new_registry_token_error"), "sem conexão — reabra a janela pelo app")
+    assert_eq(tela:get("new_registry_token_step"), "form")
+    tela:call("new_registry_token_show_validation_errors", "[]")
+    assert_eq(tela:toasts()[1].message, "Informe o nome do token")
+end
 
 -- ── Novo serviço ────────────────────────────────────────────────────────────
 
-describe("janela · novo serviço", function()
-    local function wizard(ctx_inicial)
-        local base = { project_name = "loja", new_service_templates = "[]" }
-        for k, v in ctx_inicial or {} do
-            base[k] = v
-        end
-        return janela("views/new_service_window.gvb", base)
+local function wizard(ctx_inicial)
+    local base = { project_name = "loja", new_service_templates = "[]" }
+    for k, v in ctx_inicial or {} do
+        base[k] = v
     end
+    return janela("views/new_service_window.gvb", base)
+end
 
-    test("abre escolhendo o tipo, com o formulário zerado", function()
-        local tela = wizard()
-        expect(tela:get("new_service_step")):toBe("pick_type")
-        expect(tela:get("new_service_name")):toBe("")
-        expect(tela:get("new_service_template_search")):toBe("")
-        expect(tela:get("new_service_busy")):toBe("")
-    end)
+--- abre escolhendo o tipo, com o formulário zerado
+function test_janela_novo_servico__abre_escolhendo_o_tipo_com_o_formulario_zerado()
+    local tela = wizard()
+    assert_eq(tela:get("new_service_step"), "pick_type")
+    assert_eq(tela:get("new_service_name"), "")
+    assert_eq(tela:get("new_service_template_search"), "")
+    assert_eq(tela:get("new_service_busy"), "")
+end
 
-    test("pedida para importar, abre direto no passo de importação", function()
-        expect(wizard({ new_service_start = "import" }):get("new_service_step")):toBe("import_form")
-    end)
+--- pedida para importar, abre direto no passo de importação
+function test_janela_novo_servico__pedida_para_importar_abre_direto_no_passo_de_importacao()
+    assert_eq(wizard({ new_service_start = "import" }):get("new_service_step"), "import_form")
+end
 
-    test("o passo de importação nasce zerado", function()
-        local tela = wizard()
-        expect(tela:get("import_text")):toBe("")
-        expect(tela:get("import_report")):toBe("false")
-        expect(tela:get("import_drop_domains")):toBe("false")
-        expect(tela:get("import_deploy")):toBe("false")
-    end)
+--- o passo de importação nasce zerado
+function test_janela_novo_servico__o_passo_de_importacao_nasce_zerado()
+    local tela = wizard()
+    assert_eq(tela:get("import_text"), "")
+    assert_eq(tela:get("import_report"), "false")
+    assert_eq(tela:get("import_drop_domains"), "false")
+    assert_eq(tela:get("import_deploy"), "false")
+end
 
-    test("catálogo ilegível não derruba a janela", function()
-        local tela = wizard({ new_service_templates = "não é json" })
-        expect(tela:get("new_service_step")):toBe("pick_type")
-    end)
+--- catálogo ilegível não derruba a janela
+function test_janela_novo_servico__catalogo_ilegivel_nao_derruba_a_janela()
+    local tela = wizard({ new_service_templates = "não é json" })
+    assert_eq(tela:get("new_service_step"), "pick_type")
+end
 
-    test("o setter field existe nesta janela (digitar nos inputs escreve no ctx)", function()
-        local tela = wizard()
-        tela:call("field", "new_service_name")
-        expect(tela:get("new_service_name")):toBe("")
-    end)
-end)
+--- o setter field existe nesta janela (digitar nos inputs escreve no ctx)
+function test_janela_novo_servico__o_setter_field_existe_nesta_janela_digitar_nos_inputs_escreve_no_ctx()
+    local tela = wizard()
+    tela:call("field", "new_service_name")
+    assert_eq(tela:get("new_service_name"), "")
+end

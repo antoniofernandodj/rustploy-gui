@@ -9,374 +9,396 @@ local function postgres_vars()
     }
 end
 
-describe("service_detail · origem e healthcheck", function()
-    test("source_summary_parts de cada origem", function()
-        local kind, detalhe, motor = SD.source_summary_parts({ Registry = { image = "nginx:1" } })
-        expect(kind):toBe("Registry")
-        expect(detalhe):toBe("nginx:1")
-        expect(motor):toBe("—")
+--- source_summary_parts de cada origem
+function test_service_detail_origem_e_healthcheck__source_summary_parts_de_cada_origem()
+    local kind, detalhe, motor = SD.source_summary_parts({ Registry = { image = "nginx:1" } })
+    assert_eq(kind, "Registry")
+    assert_eq(detalhe, "nginx:1")
+    assert_eq(motor, "—")
 
-        kind, detalhe, motor = SD.source_summary_parts({ Git = { url = "https://x/r.git", branch = "main" } })
-        expect(kind):toBe("Git")
-        expect(detalhe):toBe("https://x/r.git @ main")
-        expect(motor):toBe("Dockerfile")
+    kind, detalhe, motor = SD.source_summary_parts({ Git = { url = "https://x/r.git", branch = "main" } })
+    assert_eq(kind, "Git")
+    assert_eq(detalhe, "https://x/r.git @ main")
+    assert_eq(motor, "Dockerfile")
 
-        kind, detalhe, motor = SD.source_summary_parts({ Git = { url = "u", branch = "b", dockerfile_path = "docker/App.Dockerfile" } })
-        expect(motor):toBe("docker/App.Dockerfile")
+    kind, detalhe, motor = SD.source_summary_parts({ Git = { url = "u", branch = "b", dockerfile_path = "docker/App.Dockerfile" } })
+    assert_eq(motor, "docker/App.Dockerfile")
 
-        kind, detalhe = SD.source_summary_parts({ Archive = { original_filename = "app.zip" } })
-        expect(kind):toBe("Zip")
-        expect(detalhe):toBe("app.zip")
+    kind, detalhe = SD.source_summary_parts({ Archive = { original_filename = "app.zip" } })
+    assert_eq(kind, "Zip")
+    assert_eq(detalhe, "app.zip")
 
-        kind, detalhe, motor = SD.source_summary_parts({ Compose = {} })
-        expect(kind):toBe("Compose")
-        expect(detalhe):toBe("docker-compose")
-        expect(motor):toBe("Compose")
-    end)
+    kind, detalhe, motor = SD.source_summary_parts({ Compose = {} })
+    assert_eq(kind, "Compose")
+    assert_eq(detalhe, "docker-compose")
+    assert_eq(motor, "Compose")
+end
 
-    test("source_summary_parts de origem ausente", function()
-        local kind, detalhe, motor = SD.source_summary_parts(nil)
-        expect(kind):toBe("—")
-        expect(detalhe):toBe("—")
-        expect(motor):toBe("—")
-        expect(SD.source_summary_parts({})):toBe("—")
-    end)
+--- source_summary_parts de origem ausente
+function test_service_detail_origem_e_healthcheck__source_summary_parts_de_origem_ausente()
+    local kind, detalhe, motor = SD.source_summary_parts(nil)
+    assert_eq(kind, "—")
+    assert_eq(detalhe, "—")
+    assert_eq(motor, "—")
+    assert_eq(SD.source_summary_parts({}), "—")
+end
 
-    test("healthcheck desligado", function()
-        expect(SD.healthcheck_summary({ kind = "None" })):toBe("disabled")
-    end)
+--- healthcheck desligado
+function test_service_detail_origem_e_healthcheck__healthcheck_desligado()
+    assert_eq(SD.healthcheck_summary({ kind = "None" }), "disabled")
+end
 
-    test("healthcheck HTTP mostra caminho e status esperado", function()
-        local texto = SD.healthcheck_summary({
-            kind = { Http = { path = "/health", expected_status = 200 } },
-            interval_secs = 10, timeout_secs = 5, retries = 3,
-        })
-        expect(texto):toBe("HTTP /health → 200 · every 10s · timeout 5s · 3 retries")
-    end)
+--- healthcheck HTTP mostra caminho e status esperado
+function test_service_detail_origem_e_healthcheck__healthcheck_http_mostra_caminho_e_status_esperado()
+    local texto = SD.healthcheck_summary({
+        kind = { Http = { path = "/health", expected_status = 200 } },
+        interval_secs = 10, timeout_secs = 5, retries = 3,
+    })
+    assert_eq(texto, "HTTP /health → 200 · every 10s · timeout 5s · 3 retries")
+end
 
-    test("healthcheck TCP, Docker e tipo desconhecido", function()
-        local campos = { interval_secs = 1, timeout_secs = 2, retries = 4 }
-        expect(SD.healthcheck_summary({ kind = "Tcp", interval_secs = 1, timeout_secs = 2, retries = 4 }))
-            :toBe("TCP · every 1s · timeout 2s · 4 retries")
-        expect(SD.healthcheck_summary({ kind = "DockerNative", interval_secs = 1, timeout_secs = 2, retries = 4 }))
-            :toBe("Docker · every 1s · timeout 2s · 4 retries")
-        expect(SD.healthcheck_summary({ kind = "Novo", interval_secs = 1, timeout_secs = 2, retries = 4 }))
-            :toBe("Novo · every 1s · timeout 2s · 4 retries")
-        expect(campos.retries):toBe(4)
-    end)
-end)
+--- healthcheck TCP, Docker e tipo desconhecido
+function test_service_detail_origem_e_healthcheck__healthcheck_tcp_docker_e_tipo_desconhecido()
+    local campos = { interval_secs = 1, timeout_secs = 2, retries = 4 }
+    assert_eq(SD.healthcheck_summary({ kind = "Tcp", interval_secs = 1, timeout_secs = 2, retries = 4 }), "TCP · every 1s · timeout 2s · 4 retries")
+    assert_eq(SD.healthcheck_summary({ kind = "DockerNative", interval_secs = 1, timeout_secs = 2, retries = 4 }), "Docker · every 1s · timeout 2s · 4 retries")
+    assert_eq(SD.healthcheck_summary({ kind = "Novo", interval_secs = 1, timeout_secs = 2, retries = 4 }), "Novo · every 1s · timeout 2s · 4 retries")
+    assert_eq(campos.retries, 4)
+end
 
-describe("service_detail · containers", function()
-    test("cor por estado e id encurtado", function()
-        local linhas = json.decode(SD.containers({
-            { id = "abcdef0123456789", name = "api", state = "running" },
-            { id = "b", name = "db", state = "restarting" },
-            { id = "c", name = "x", state = "exited" },
-            { id = "d" },
-        }))
-        expect(#linhas):toBe(4)
-        expect(linhas[1].id_short):toBe("abcdef012345")
-        expect(linhas[1].id):toBe("abcdef0123456789")
-        expect(linhas[1].state_color):toBe("#3FB950")
-        expect(linhas[2].state_color):toBe("#D29922")
-        expect(linhas[3].state_color):toBe("#8B949E")
-        expect(linhas[4].name):toBe("—")
-        expect(linhas[4].state):toBe("—")
-    end)
+--- cor por estado e id encurtado
+function test_service_detail_containers__cor_por_estado_e_id_encurtado()
+    local linhas = json.decode(SD.containers({
+        { id = "abcdef0123456789", name = "api", state = "running" },
+        { id = "b", name = "db", state = "restarting" },
+        { id = "c", name = "x", state = "exited" },
+        { id = "d" },
+    }))
+    assert_eq(#linhas, 4)
+    assert_eq(linhas[1].id_short, "abcdef012345")
+    assert_eq(linhas[1].id, "abcdef0123456789")
+    assert_eq(linhas[1].state_color, "#3FB950")
+    assert_eq(linhas[2].state_color, "#D29922")
+    assert_eq(linhas[3].state_color, "#8B949E")
+    assert_eq(linhas[4].name, "—")
+    assert_eq(linhas[4].state, "—")
+end
 
-    test("sem containers dá []", function()
-        expect(SD.containers(nil)):toBe("[]")
-        expect(SD.containers({})):toBe("[]")
-    end)
-end)
+--- sem containers dá []
+function test_service_detail_containers__sem_containers_da()
+    assert_eq(SD.containers(nil), "[]")
+    assert_eq(SD.containers({}), "[]")
+end
 
-describe("service_detail · variáveis de ambiente", function()
-    test("segredo aparece por referência, com cadeado, e se distingue do texto igual", function()
-        local linhas = json.decode(SD.env_json_with_comments({
-            { key = "A", value = { Secret = "t" } },
-            { key = "B", value = { Plain = "secret:t" } },
-        }, {}))
-        expect(linhas[1].kind):toBe("secret")
-        expect(linhas[1].value):toBe("🔒 secret:t")
-        expect(linhas[2].kind):toBe("plain")
-        expect(linhas[2].value):toBe("secret:t")
-    end)
+--- segredo aparece por referência, com cadeado, e se distingue do texto igual
+function test_service_detail_variaveis_de_ambiente__segredo_aparece_por_referencia_com_cadeado_e_se_distingue_do_texto_igual()
+    local linhas = json.decode(SD.env_json_with_comments({
+        { key = "A", value = { Secret = "t" } },
+        { key = "B", value = { Plain = "secret:t" } },
+    }, {}))
+    assert_eq(linhas[1].kind, "secret")
+    assert_eq(linhas[1].value, "🔒 secret:t")
+    assert_eq(linhas[2].kind, "plain")
+    assert_eq(linhas[2].value, "secret:t")
+end
 
-    test("a chave longa trunca só na exibição", function()
-        local longa = string.rep("K", 40)
-        local linha = json.decode(SD.env_json_with_comments({ { key = longa, value = { Plain = "1" } } }, {}))[1]
-        expect(linha.key):toBe(longa)
-        expect(utf8.len(linha.key_display)):toBe(31)
-    end)
+--- a chave longa trunca só na exibição
+function test_service_detail_variaveis_de_ambiente__a_chave_longa_trunca_so_na_exibicao()
+    local longa = string.rep("K", 40)
+    local linha = json.decode(SD.env_json_with_comments({ { key = longa, value = { Plain = "1" } } }, {}))[1]
+    assert_eq(linha.key, longa)
+    assert_eq(utf8.len(linha.key_display), 31)
+end
 
-    test("comentários voltam para junto da chave a que estavam ancorados", function()
-        local linhas = json.decode(SD.env_json_with_comments(
-            { { key = "A", value = { Plain = "1" } }, { key = "B", value = { Plain = "2" } } },
-            { { before_key = "B", text = "# sobre B" }, { text = "# no fim" } }
-        ))
-        expect(#linhas):toBe(4)
-        expect(linhas[1].key):toBe("A")
-        expect(linhas[2].kind):toBe("comment")
-        expect(linhas[2].key):toBe("__c0")
-        expect(linhas[2].value):toBe("# sobre B")
-        expect(linhas[3].key):toBe("B")
-        expect(linhas[4].key):toBe("__c1")
-        expect(linhas[4].value):toBe("# no fim")
-    end)
+--- comentários voltam para junto da chave a que estavam ancorados
+function test_service_detail_variaveis_de_ambiente__comentarios_voltam_para_junto_da_chave_a_que_estavam_ancorados()
+    local linhas = json.decode(SD.env_json_with_comments(
+        { { key = "A", value = { Plain = "1" } }, { key = "B", value = { Plain = "2" } } },
+        { { before_key = "B", text = "# sobre B" }, { text = "# no fim" } }
+    ))
+    assert_eq(#linhas, 4)
+    assert_eq(linhas[1].key, "A")
+    assert_eq(linhas[2].kind, "comment")
+    assert_eq(linhas[2].key, "__c0")
+    assert_eq(linhas[2].value, "# sobre B")
+    assert_eq(linhas[3].key, "B")
+    assert_eq(linhas[4].key, "__c1")
+    assert_eq(linhas[4].value, "# no fim")
+end
 
-    test("o .env sai com segredo entre <secret:> e comentários nos lugares", function()
-        local texto = SD.env_dotenv_with_comments(
-            { { key = "A", value = { Plain = "1" } }, { key = "B", value = { Secret = "S" } } },
-            { { before_key = "B", text = "# b" }, { text = "# fim" } }
-        )
-        expect(texto):toBe("A=1\n# b\nB=<secret:S>\n# fim")
-    end)
+--- o .env sai com segredo entre <secret:> e comentários nos lugares
+function test_service_detail_variaveis_de_ambiente__o_env_sai_com_segredo_entre_secret_e_comentarios_nos_lugares()
+    local texto = SD.env_dotenv_with_comments(
+        { { key = "A", value = { Plain = "1" } }, { key = "B", value = { Secret = "S" } } },
+        { { before_key = "B", text = "# b" }, { text = "# fim" } }
+    )
+    assert_eq(texto, "A=1\n# b\nB=<secret:S>\n# fim")
+end
 
-    test("o .env faz ida e volta com o parser de .env", function()
-        local H = require("helpers")
-        local vars = {
-            { key = "A", value = { Plain = "1" } },
-            { key = "B", value = { Secret = "S" } },
-            { key = "URL", value = { Plain = "x=y" } },
-        }
-        local texto = SD.env_dotenv_with_comments(vars, {})
-        local lidas = H.parse_dotenv(texto)
-        expect(#lidas):toBe(3)
-        for i, v in vars do
-            expect(lidas[i].key):toBe(v.key)
-            expect(lidas[i].value.Plain):toBe(v.value.Plain)
-            expect(lidas[i].value.Secret):toBe(v.value.Secret)
-        end
-    end)
+--- o .env faz ida e volta com o parser de .env
+function test_service_detail_variaveis_de_ambiente__o_env_faz_ida_e_volta_com_o_parser_de_env()
+    local H = require("helpers")
+    local vars = {
+        { key = "A", value = { Plain = "1" } },
+        { key = "B", value = { Secret = "S" } },
+        { key = "URL", value = { Plain = "x=y" } },
+    }
+    local texto = SD.env_dotenv_with_comments(vars, {})
+    local lidas = H.parse_dotenv(texto)
+    assert_eq(#lidas, 3)
+    for i, v in vars do
+        assert_eq(lidas[i].key, v.key)
+        assert_eq(lidas[i].value.Plain, v.value.Plain)
+        assert_eq(lidas[i].value.Secret, v.value.Secret)
+    end
+end
 
-    test("vazio dá [] e string vazia", function()
-        expect(SD.env_json_with_comments(nil, nil)):toBe("[]")
-        expect(SD.env_dotenv_with_comments(nil, nil)):toBe("")
-    end)
+--- vazio dá [] e string vazia
+function test_service_detail_variaveis_de_ambiente__vazio_da_e_string_vazia()
+    assert_eq(SD.env_json_with_comments(nil, nil), "[]")
+    assert_eq(SD.env_dotenv_with_comments(nil, nil), "")
+end
 
-    test("secret_rows só carrega nomes", function()
-        local linhas = json.decode(SD.secret_rows({ "DB", string.rep("S", 40) }))
-        expect(linhas[1].name):toBe("DB")
-        expect(utf8.len(linhas[2].name_display)):toBe(31)
-        expect(SD.secret_rows(nil)):toBe("[]")
-    end)
-end)
+--- secret_rows só carrega nomes
+function test_service_detail_variaveis_de_ambiente__secret_rows_so_carrega_nomes()
+    local linhas = json.decode(SD.secret_rows({ "DB", string.rep("S", 40) }))
+    assert_eq(linhas[1].name, "DB")
+    assert_eq(utf8.len(linhas[2].name_display), 31)
+    assert_eq(SD.secret_rows(nil), "[]")
+end
 
-describe("service_detail · logs", function()
-    test("stderr é vermelho, ANSI some e a hora é formatada", function()
-        local linhas = json.decode(SD.logs_json({
-            { stream = "Stdout", line = "\27[32mok\27[0m", timestamp = "2026-03-01T10:00:00Z" },
-            { stream = "Stderr", line = "falhou", timestamp = "2026-03-01T10:00:01Z" },
-        }))
-        expect(linhas[1].line):toBe("ok")
-        expect(linhas[1].color):toBe("#9DA7B3")
-        expect(linhas[2].color):toBe("#F85149")
-        expect(linhas[1].time):toMatch("^%d%d:%d%d:%d%d$")
-    end)
+--- stderr é vermelho, ANSI some e a hora é formatada
+function test_service_detail_logs__stderr_e_vermelho_ansi_some_e_a_hora_e_formatada()
+    local linhas = json.decode(SD.logs_json({
+        { stream = "Stdout", line = "\27[32mok\27[0m", timestamp = "2026-03-01T10:00:00Z" },
+        { stream = "Stderr", line = "falhou", timestamp = "2026-03-01T10:00:01Z" },
+    }))
+    assert_eq(linhas[1].line, "ok")
+    assert_eq(linhas[1].color, "#9DA7B3")
+    assert_eq(linhas[2].color, "#F85149")
+    assert_match(linhas[1].time, "^%d%d:%d%d:%d%d$")
+end
 
-    test("só a cauda de 500 linhas é materializada", function()
-        local entradas = {}
-        for i = 1, 600 do
-            table.insert(entradas, { stream = "Stdout", line = "l" .. i, timestamp = "2026-03-01T10:00:00Z" })
-        end
-        local linhas = json.decode(SD.logs_json(entradas))
-        expect(#linhas):toBe(500)
-        expect(linhas[1].line):toBe("l101")
-        expect(linhas[500].line):toBe("l600")
-    end)
+--- só a cauda de 500 linhas é materializada
+function test_service_detail_logs__so_a_cauda_de_500_linhas_e_materializada()
+    local entradas = {}
+    for i = 1, 600 do
+        table.insert(entradas, { stream = "Stdout", line = "l" .. i, timestamp = "2026-03-01T10:00:00Z" })
+    end
+    local linhas = json.decode(SD.logs_json(entradas))
+    assert_eq(#linhas, 500)
+    assert_eq(linhas[1].line, "l101")
+    assert_eq(linhas[500].line, "l600")
+end
 
-    test("linha absurda é cortada em 2000 caracteres", function()
-        local linhas = json.decode(SD.logs_json({ { stream = "Stdout", line = string.rep("x", 5000), timestamp = "2026-03-01T10:00:00Z" } }))
-        expect(utf8.len(linhas[1].line)):toBe(2001)
-    end)
+--- linha absurda é cortada em 2000 caracteres
+function test_service_detail_logs__linha_absurda_e_cortada_em_2000_caracteres()
+    local linhas = json.decode(SD.logs_json({ { stream = "Stdout", line = string.rep("x", 5000), timestamp = "2026-03-01T10:00:00Z" } }))
+    assert_eq(utf8.len(linhas[1].line), 2001)
+end
 
-    test("build_logs_json é o mesmo formatador", function()
-        expect(SD.build_logs_json == SD.logs_json):toBe(true)
-        expect(SD.logs_json(nil)):toBe("[]")
-    end)
+--- build_logs_json é o mesmo formatador
+function test_service_detail_logs__build_logs_json_e_o_mesmo_formatador()
+    assert_eq(SD.build_logs_json == SD.logs_json, true)
+    assert_eq(SD.logs_json(nil), "[]")
+end
 
-    test("join_log_lines junta tudo, sem o teto de linhas", function()
-        local entradas = {}
-        for i = 1, 600 do
-            table.insert(entradas, { line = "l" .. i, timestamp = "2026-03-01T10:00:00Z" })
-        end
-        local texto = SD.join_log_lines(entradas)
-        local n = 0
-        for _ in string.gmatch(texto, "[^\n]+") do
-            n += 1
-        end
-        expect(n):toBe(600)
-        expect(SD.join_log_lines(nil)):toBe("")
-    end)
-end)
+--- join_log_lines junta tudo, sem o teto de linhas
+function test_service_detail_logs__join_log_lines_junta_tudo_sem_o_teto_de_linhas()
+    local entradas = {}
+    for i = 1, 600 do
+        table.insert(entradas, { line = "l" .. i, timestamp = "2026-03-01T10:00:00Z" })
+    end
+    local texto = SD.join_log_lines(entradas)
+    local n = 0
+    for _ in string.gmatch(texto, "[^\n]+") do
+        n += 1
+    end
+    assert_eq(n, 600)
+    assert_eq(SD.join_log_lines(nil), "")
+end
 
-describe("service_detail · deployments e domínios", function()
-    test("linha de deployment: id, estado, duração e se pode apagar", function()
-        local linhas = json.decode(SD.deployments_detail({
-            { id = "0123456789abcdefXYZ", image = "img:1", state = "Live", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:01:05Z" },
-            { id = "b", state = "BuildingImage", started_at = "2026-03-01T10:00:00Z" },
-        }))
-        expect(linhas[1].id):toBe("0123456789ab")
-        expect(linhas[1].id_full):toBe("0123456789abcdefXYZ")
-        expect(linhas[1].state_label):toBe("LIVE")
-        expect(linhas[1].state_kind):toBe("ok")
-        expect(linhas[1].duration):toBe("1m 5s")
-        expect(linhas[1].can_delete):toBe("1")
-        expect(linhas[2].can_delete):toBe("0")
-    end)
+--- linha de deployment: id, estado, duração e se pode apagar
+function test_service_detail_deployments_e_dominios__linha_de_deployment_id_estado_duracao_e_se_pode_apagar()
+    local linhas = json.decode(SD.deployments_detail({
+        { id = "0123456789abcdefXYZ", image = "img:1", state = "Live", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:01:05Z" },
+        { id = "b", state = "BuildingImage", started_at = "2026-03-01T10:00:00Z" },
+    }))
+    assert_eq(linhas[1].id, "0123456789ab")
+    assert_eq(linhas[1].id_full, "0123456789abcdefXYZ")
+    assert_eq(linhas[1].state_label, "LIVE")
+    assert_eq(linhas[1].state_kind, "ok")
+    assert_eq(linhas[1].duration, "1m 5s")
+    assert_eq(linhas[1].can_delete, "1")
+    assert_eq(linhas[2].can_delete, "0")
+end
 
-    test("todo estado terminal pode ser apagado, nenhum em andamento", function()
-        for estado, esperado in { Live = "1", Stopped = "1", Failed = "1", Pruning = "1", PreDeployCheck = "0", BuildingImage = "0" } do
-            local linha = json.decode(SD.deployments_detail({ { id = "x", state = estado, started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:01Z" } }))[1]
-            expect(linha.can_delete):toBe(esperado)
-        end
-    end)
+--- todo estado terminal pode ser apagado, nenhum em andamento
+function test_service_detail_deployments_e_dominios__todo_estado_terminal_pode_ser_apagado_nenhum_em_andamento()
+    for estado, esperado in { Live = "1", Stopped = "1", Failed = "1", Pruning = "1", PreDeployCheck = "0", BuildingImage = "0" } do
+        local linha = json.decode(SD.deployments_detail({ { id = "x", state = estado, started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:01Z" } }))[1]
+        assert_eq(linha.can_delete, esperado)
+    end
+end
 
-    test("a rota sem porta própria herda a do serviço", function()
-        local linhas = json.decode(SD.domains_json({
-            port = 80,
-            domains = { { domain = "a.com", port = 8080, tls = true }, { domain = "b.com" } },
-        } :: any))
-        expect(linhas[1].port):toBe("8080")
-        expect(linhas[1].tls):toBe("true")
-        expect(linhas[1].tls_label):toBe("TLS")
-        expect(linhas[2].port):toBe("80")
-        expect(linhas[2].tls):toBe("false")
-        expect(linhas[2].tls_label):toBe("—")
-    end)
+--- a rota sem porta própria herda a do serviço
+function test_service_detail_deployments_e_dominios__a_rota_sem_porta_propria_herda_a_do_servico()
+    local linhas = json.decode(SD.domains_json({
+        port = 80,
+        domains = { { domain = "a.com", port = 8080, tls = true }, { domain = "b.com" } },
+    } :: any))
+    assert_eq(linhas[1].port, "8080")
+    assert_eq(linhas[1].tls, "true")
+    assert_eq(linhas[1].tls_label, "TLS")
+    assert_eq(linhas[2].port, "80")
+    assert_eq(linhas[2].tls, "false")
+    assert_eq(linhas[2].tls_label, "—")
+end
 
-    test("sem domínio dá []", function()
-        expect(SD.domains_json({ port = 80 } :: any)):toBe("[]")
-    end)
-end)
+--- sem domínio dá []
+function test_service_detail_deployments_e_dominios__sem_dominio_da()
+    assert_eq(SD.domains_json({ port = 80 } :: any), "[]")
+end
 
-describe("service_detail · nomes e hosts", function()
-    test("safe_name: minúsculas, não-alfanumérico vira _ colapsado e sem bordas", function()
-        expect(SD.safe_name("Meu App!")):toBe("meu_app")
-        expect(SD.safe_name("--a--b--")):toBe("a_b")
-        expect(SD.safe_name("API v2.0")):toBe("api_v2_0")
-        expect(SD.safe_name("já")):toBe("j")
-        expect(SD.safe_name("")):toBe("")
-        expect(SD.safe_name("___")):toBe("")
-    end)
+--- safe_name: minúsculas, não-alfanumérico vira _ colapsado e sem bordas
+function test_service_detail_nomes_e_hosts__safe_name_minusculas_nao_alfanumerico_vira_colapsado_e_sem_bordas()
+    assert_eq(SD.safe_name("Meu App!"), "meu_app")
+    assert_eq(SD.safe_name("--a--b--"), "a_b")
+    assert_eq(SD.safe_name("API v2.0"), "api_v2_0")
+    assert_eq(SD.safe_name("já"), "j")
+    assert_eq(SD.safe_name(""), "")
+    assert_eq(SD.safe_name("___"), "")
+end
 
-    test("compose_host: ingress_service declarado vence", function()
-        expect(SD.compose_host("services:\n  web:\n", "proxy")):toBe("proxy")
-    end)
+--- compose_host: ingress_service declarado vence
+function test_service_detail_nomes_e_hosts__compose_host_ingress_service_declarado_vence()
+    assert_eq(SD.compose_host("services:\n  web:\n", "proxy"), "proxy")
+end
 
-    test("compose_host: primeira chave de services:", function()
-        expect(SD.compose_host("version: '3'\nservices:\n  web:\n    image: x\n  db:\n    image: y\n", nil)):toBe("web")
-        expect(SD.compose_host("services:\n\n  # app\n  api-1.x:\n", "")):toBe("api-1.x")
-    end)
+--- compose_host: primeira chave de services:
+function test_service_detail_nomes_e_hosts__compose_host_primeira_chave_de_services()
+    assert_eq(SD.compose_host("version: '3'\nservices:\n  web:\n    image: x\n  db:\n    image: y\n", nil), "web")
+    assert_eq(SD.compose_host("services:\n\n  # app\n  api-1.x:\n", ""), "api-1.x")
+end
 
-    test("compose_host: sem services: ou com o bloco vazio dá nil", function()
-        expect(SD.compose_host(nil, nil)):toBeNil()
-        expect(SD.compose_host("version: '3'\n", nil)):toBeNil()
-        expect(SD.compose_host("services:\nvolumes:\n  v:\n", nil)):toBeNil()
-    end)
-end)
+--- compose_host: sem services: ou com o bloco vazio dá nil
+function test_service_detail_nomes_e_hosts__compose_host_sem_services_ou_com_o_bloco_vazio_da_nil()
+    assert_nil(SD.compose_host(nil, nil))
+    assert_nil(SD.compose_host("version: '3'\n", nil))
+    assert_nil(SD.compose_host("services:\nvolumes:\n  v:\n", nil))
+end
 
-describe("service_detail · URL interna", function()
-    test("esquema por tipo de banco e host rp_<nome>", function()
-        expect(SD.internal_url("postgres", "app", 5432)):toBe("postgresql://rp_app:5432")
-        expect(SD.internal_url("PostgreSQL", "app", 5432)):toBe("postgresql://rp_app:5432")
-        expect(SD.internal_url("mariadb", "app", 3306)):toBe("mysql://rp_app:3306")
-        expect(SD.internal_url("redis", "app", 6379)):toBe("redis://rp_app:6379")
-        expect(SD.internal_url("mongo", "app", 27017)):toBe("mongodb://rp_app:27017")
-        expect(SD.internal_url("rabbitmq", "app", 5672)):toBe("amqp://rp_app:5672")
-        expect(SD.internal_url("nats", "app", 4222)):toBe("nats://rp_app:4222")
-    end)
+--- esquema por tipo de banco e host rp_<nome>
+function test_service_detail_url_interna__esquema_por_tipo_de_banco_e_host_rp_nome()
+    assert_eq(SD.internal_url("postgres", "app", 5432), "postgresql://rp_app:5432")
+    assert_eq(SD.internal_url("PostgreSQL", "app", 5432), "postgresql://rp_app:5432")
+    assert_eq(SD.internal_url("mariadb", "app", 3306), "mysql://rp_app:3306")
+    assert_eq(SD.internal_url("redis", "app", 6379), "redis://rp_app:6379")
+    assert_eq(SD.internal_url("mongo", "app", 27017), "mongodb://rp_app:27017")
+    assert_eq(SD.internal_url("rabbitmq", "app", 5672), "amqp://rp_app:5672")
+    assert_eq(SD.internal_url("nats", "app", 4222), "nats://rp_app:4222")
+end
 
-    test("serviço comum é http, e kafka é host:porta puro", function()
-        expect(SD.internal_url(nil, "app", 80)):toBe("http://rp_app:80")
-        expect(SD.internal_url("kafka", "app", 9092)):toBe("rp_app:9092")
-    end)
+--- serviço comum é http, e kafka é host:porta puro
+function test_service_detail_url_interna__servico_comum_e_http_e_kafka_e_host_porta_puro()
+    assert_eq(SD.internal_url(nil, "app", 80), "http://rp_app:80")
+    assert_eq(SD.internal_url("kafka", "app", 9092), "rp_app:9092")
+end
 
-    test("serviço compose usa o nome do YAML, não rp_<nome>", function()
-        expect(SD.internal_url(nil, "app", 80, "web")):toBe("http://web:80")
-    end)
-end)
+--- serviço compose usa o nome do YAML, não rp_<nome>
+function test_service_detail_url_interna__servico_compose_usa_o_nome_do_yaml_nao_rp_nome()
+    assert_eq(SD.internal_url(nil, "app", 80, "web"), "http://web:80")
+end
 
-describe("service_detail · URL externa", function()
-    test("domínio HTTP tem prioridade e respeita o TLS", function()
-        expect(SD.external_url("app.com", true, 5432, "postgres", "https://1.2.3.4:8443", {})):toBe("https://app.com")
-        expect(SD.external_url("app.com//", false, nil, nil, nil, nil)):toBe("http://app.com")
-    end)
+--- domínio HTTP tem prioridade e respeita o TLS
+function test_service_detail_url_externa__dominio_http_tem_prioridade_e_respeita_o_tls()
+    assert_eq(SD.external_url("app.com", true, 5432, "postgres", "https://1.2.3.4:8443", {}), "https://app.com")
+    assert_eq(SD.external_url("app.com//", false, nil, nil, nil, nil), "http://app.com")
+end
 
-    test("domínio só com espaços não conta", function()
-        expect(SD.external_url("   ", false, nil, nil, nil, nil)):toBe("—")
-    end)
+--- domínio só com espaços não conta
+function test_service_detail_url_externa__dominio_so_com_espacos_nao_conta()
+    assert_eq(SD.external_url("   ", false, nil, nil, nil, nil), "—")
+end
 
-    test("sem domínio nem porta publicada, não há URL", function()
-        expect(SD.external_url(nil, false, nil, "postgres", "https://h", {})):toBe("—")
-        expect(SD.external_url("", false, "", "postgres", "https://h", {})):toBe("—")
-    end)
+--- sem domínio nem porta publicada, não há URL
+function test_service_detail_url_externa__sem_dominio_nem_porta_publicada_nao_ha_url()
+    assert_eq(SD.external_url(nil, false, nil, "postgres", "https://h", {}), "—")
+    assert_eq(SD.external_url("", false, "", "postgres", "https://h", {}), "—")
+end
 
-    test("postgres vira string JDBC com as credenciais das env vars", function()
-        expect(SD.external_url(nil, false, 5432, "postgres", "https://1.2.3.4:8443", postgres_vars()))
-            :toBe("jdbc:postgresql://1.2.3.4:5432/app?user=u&password=p")
-    end)
+--- postgres vira string JDBC com as credenciais das env vars
+function test_service_detail_url_externa__postgres_vira_string_jdbc_com_as_credenciais_das_env_vars()
+    assert_eq(SD.external_url(nil, false, 5432, "postgres", "https://1.2.3.4:8443", postgres_vars()), "jdbc:postgresql://1.2.3.4:5432/app?user=u&password=p")
+end
 
-    test("postgres sem credenciais devolve a base intacta", function()
-        expect(SD.external_url(nil, false, 5432, "postgresql", "https://1.2.3.4", {}))
-            :toBe("jdbc:postgresql://1.2.3.4:5432")
-    end)
+--- postgres sem credenciais devolve a base intacta
+function test_service_detail_url_externa__postgres_sem_credenciais_devolve_a_base_intacta()
+    assert_eq(SD.external_url(nil, false, 5432, "postgresql", "https://1.2.3.4", {}), "jdbc:postgresql://1.2.3.4:5432")
+end
 
-    test("mysql e mariadb: usuário, senha e banco no userinfo", function()
-        local vars = {
-            { key = "MYSQL_DATABASE", value = { Plain = "d" } },
-            { key = "MYSQL_USER", value = { Plain = "u" } },
-            { key = "MYSQL_PASSWORD", value = { Plain = "p" } },
-        }
-        expect(SD.external_url(nil, false, 3306, "mysql", "https://h:1", vars)):toBe("mysql://u:p@h:3306/d")
-        expect(SD.external_url(nil, false, 3306, "mariadb", "https://h:1", vars)):toBe("mariadb://u:p@h:3306/d")
-    end)
+--- mysql e mariadb: usuário, senha e banco no userinfo
+function test_service_detail_url_externa__mysql_e_mariadb_usuario_senha_e_banco_no_userinfo()
+    local vars = {
+        { key = "MYSQL_DATABASE", value = { Plain = "d" } },
+        { key = "MYSQL_USER", value = { Plain = "u" } },
+        { key = "MYSQL_PASSWORD", value = { Plain = "p" } },
+    }
+    assert_eq(SD.external_url(nil, false, 3306, "mysql", "https://h:1", vars), "mysql://u:p@h:3306/d")
+    assert_eq(SD.external_url(nil, false, 3306, "mariadb", "https://h:1", vars), "mariadb://u:p@h:3306/d")
+end
 
-    test("redis só tem senha: userinfo começa em :", function()
-        local vars = { { key = "REDIS_PASSWORD", value = { Plain = "pw" } } }
-        expect(SD.external_url(nil, false, 6379, "redis", "https://h", vars)):toBe("redis://:pw@h:6379")
-    end)
+--- redis só tem senha: userinfo começa em :
+function test_service_detail_url_externa__redis_so_tem_senha_userinfo_comeca_em()
+    local vars = { { key = "REDIS_PASSWORD", value = { Plain = "pw" } } }
+    assert_eq(SD.external_url(nil, false, 6379, "redis", "https://h", vars), "redis://:pw@h:6379")
+end
 
-    test("mongodb leva barra final e authSource=admin quando há usuário", function()
-        local vars = {
-            { key = "MONGO_INITDB_ROOT_USERNAME", value = { Plain = "root" } },
-            { key = "MONGO_INITDB_ROOT_PASSWORD", value = { Plain = "pw" } },
-        }
-        expect(SD.external_url(nil, false, 27017, "mongodb", "https://h", vars)):toBe("mongodb://root:pw@h:27017/?authSource=admin")
-        expect(SD.external_url(nil, false, 27017, "mongo", "https://h", {})):toBe("mongodb://h:27017/")
-    end)
+--- mongodb leva barra final e authSource=admin quando há usuário
+function test_service_detail_url_externa__mongodb_leva_barra_final_e_authsource_admin_quando_ha_usuario()
+    local vars = {
+        { key = "MONGO_INITDB_ROOT_USERNAME", value = { Plain = "root" } },
+        { key = "MONGO_INITDB_ROOT_PASSWORD", value = { Plain = "pw" } },
+    }
+    assert_eq(SD.external_url(nil, false, 27017, "mongodb", "https://h", vars), "mongodb://root:pw@h:27017/?authSource=admin")
+    assert_eq(SD.external_url(nil, false, 27017, "mongo", "https://h", {}), "mongodb://h:27017/")
+end
 
-    test("rabbitmq e nats", function()
-        local vars = {
-            { key = "RABBITMQ_DEFAULT_USER", value = { Plain = "guest" } },
-            { key = "RABBITMQ_DEFAULT_PASS", value = { Plain = "guest" } },
-        }
-        expect(SD.external_url(nil, false, 5672, "rabbitmq", "https://h", vars)):toBe("amqp://guest:guest@h:5672")
-        expect(SD.external_url(nil, false, 4222, "nats", "https://h", {})):toBe("nats://h:4222")
-    end)
+--- rabbitmq e nats
+function test_service_detail_url_externa__rabbitmq_e_nats()
+    local vars = {
+        { key = "RABBITMQ_DEFAULT_USER", value = { Plain = "guest" } },
+        { key = "RABBITMQ_DEFAULT_PASS", value = { Plain = "guest" } },
+    }
+    assert_eq(SD.external_url(nil, false, 5672, "rabbitmq", "https://h", vars), "amqp://guest:guest@h:5672")
+    assert_eq(SD.external_url(nil, false, 4222, "nats", "https://h", {}), "nats://h:4222")
+end
 
-    test("sem esquema de banco (kafka, serviço comum) é host:porta puro", function()
-        expect(SD.external_url(nil, false, 9092, "kafka", "https://h", {})):toBe("h:9092")
-        expect(SD.external_url(nil, false, 8080, nil, "https://h", {})):toBe("h:8080")
-    end)
+--- sem esquema de banco (kafka, serviço comum) é host:porta puro
+function test_service_detail_url_externa__sem_esquema_de_banco_kafka_servico_comum_e_host_porta_puro()
+    assert_eq(SD.external_url(nil, false, 9092, "kafka", "https://h", {}), "h:9092")
+    assert_eq(SD.external_url(nil, false, 8080, nil, "https://h", {}), "h:8080")
+end
 
-    test("senha com caracteres reservados é percent-encoded", function()
-        local vars = {
-            { key = "MYSQL_USER", value = { Plain = "u@x" } },
-            { key = "MYSQL_PASSWORD", value = { Plain = "p@ss:w/d?#" } },
-        }
-        expect(SD.external_url(nil, false, 3306, "mysql", "https://h", vars)):toBe("mysql://u%40x:p%40ss%3Aw%2Fd%3F%23@h:3306")
-    end)
+--- senha com caracteres reservados é percent-encoded
+function test_service_detail_url_externa__senha_com_caracteres_reservados_e_percent_encoded()
+    local vars = {
+        { key = "MYSQL_USER", value = { Plain = "u@x" } },
+        { key = "MYSQL_PASSWORD", value = { Plain = "p@ss:w/d?#" } },
+    }
+    assert_eq(SD.external_url(nil, false, 3306, "mysql", "https://h", vars), "mysql://u%40x:p%40ss%3Aw%2Fd%3F%23@h:3306")
+end
 
-    test("segredo (referência) não vira credencial", function()
-        local vars = { { key = "REDIS_PASSWORD", value = { Secret = "S" } } }
-        expect(SD.external_url(nil, false, 6379, "redis", "https://h", vars)):toBe("redis://h:6379")
-    end)
+--- segredo (referência) não vira credencial
+function test_service_detail_url_externa__segredo_referencia_nao_vira_credencial()
+    local vars = { { key = "REDIS_PASSWORD", value = { Secret = "S" } } }
+    assert_eq(SD.external_url(nil, false, 6379, "redis", "https://h", vars), "redis://h:6379")
+end
 
-    test("o host sai do api_url, ou <host> quando ele falta", function()
-        expect(SD.external_url(nil, false, 1, "kafka", "http://10.0.0.5:9797/x", {})):toBe("10.0.0.5:1")
-        expect(SD.external_url(nil, false, 1, "kafka", "srv.com", {})):toBe("srv.com:1")
-        expect(SD.external_url(nil, false, 1, "kafka", nil, {})):toBe("<host>:1")
-        expect(SD.external_url(nil, false, 1, "kafka", "   ", {})):toBe("<host>:1")
-    end)
-end)
+--- o host sai do api_url, ou <host> quando ele falta
+function test_service_detail_url_externa__o_host_sai_do_api_url_ou_host_quando_ele_falta()
+    assert_eq(SD.external_url(nil, false, 1, "kafka", "http://10.0.0.5:9797/x", {}), "10.0.0.5:1")
+    assert_eq(SD.external_url(nil, false, 1, "kafka", "srv.com", {}), "srv.com:1")
+    assert_eq(SD.external_url(nil, false, 1, "kafka", nil, {}), "<host>:1")
+    assert_eq(SD.external_url(nil, false, 1, "kafka", "   ", {}), "<host>:1")
+end

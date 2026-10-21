@@ -45,8 +45,8 @@ local function confere(tela, ...)
     table.sort(novas)
     table.sort(sumidas)
     -- Duas asserções para a mensagem de falha nomear as chaves.
-    expect(novas):toEqual({}) -- lidas pelo markup e que ninguém publica
-    expect(sumidas):toEqual({}) -- esperadas, mas já publicadas (ou não lidas): atualize a lista
+    assert_eq(novas, {}) -- lidas pelo markup e que ninguém publica
+    assert_eq(sumidas, {}) -- esperadas, mas já publicadas (ou não lidas): atualize a lista
 end
 
 local function app(visao)
@@ -60,107 +60,120 @@ local function app(visao)
     return tela
 end
 
-describe("login", function()
-    test("a tela de login só espera o erro opcional e o estado da janela", function()
-        -- error_access_key só é escrita quando o conectar falha; `if=@error_access_key`.
-        confere(app(), MOTOR, { "error_access_key" })
-    end)
-end)
+--- a tela de login só espera o erro opcional e o estado da janela
+function test_login__a_tela_de_login_so_espera_o_erro_opcional_e_o_estado_da_janela()
+    -- error_access_key só é escrita quando o conectar falha; `if=@error_access_key`.
+    confere(app(), MOTOR, { "error_access_key" })
+end
 
-describe("shell · cada visão", function()
-    test("deployments", function()
-        confere(app("deployments"), MOTOR, SESSAO, {
-            "daemon_uptime", "services_label", -- snapshot
-            "deployments_message", -- só depois de "limpar finalizados"
-            "deployments_sort", -- a tabela grava ao ordenar
-        })
-    end)
+--- deployments
+function test_shell_cada_visao__deployments()
+    confere(app("deployments"), MOTOR, SESSAO, {
+        "daemon_uptime", "services_label", -- snapshot
+        "deployments_message", -- só depois de "limpar finalizados"
+        "deployments_sort", -- a tabela grava ao ordenar
+    })
+end
 
-    test("projects", function()
-        confere(app("projects"), MOTOR, SESSAO)
-    end)
+--- projects
+function test_shell_cada_visao__projects()
+    confere(app("projects"), MOTOR, SESSAO)
+end
 
-    test("project_services", function()
-        confere(app("project_services"), MOTOR, SESSAO, {
-            "editing_project", "project_action_message", "project_can_delete",
-            "project_description", "project_loading", "project_name", "project_tab",
-        })
-    end)
+--- project_services
+function test_shell_cada_visao__project_services()
+    confere(app("project_services"), MOTOR, SESSAO, {
+        "editing_project", "project_action_message", "project_can_delete",
+        "project_description", "project_loading", "project_name", "project_tab",
+    })
+end
 
-    test("service", function()
-        confere(app("service"), MOTOR, SESSAO, {
-            "daemon_uptime", "services_label",
-            "service_action_message", "service_can_migrate", "service_deploy_running",
-            "service_error", "service_name", "service_project", "service_project_id",
-            "service_shared", "service_status_color", "service_status_label",
-            "service_warm_visible", "tab",
-        })
-    end)
+--- service
+function test_shell_cada_visao__service()
+    confere(app("service"), MOTOR, SESSAO, {
+        "daemon_uptime", "services_label",
+        "service_action_message", "service_can_migrate", "service_deploy_running",
+        "service_error", "service_name", "service_project", "service_project_id",
+        "service_shared", "service_status_color", "service_status_label",
+        "service_warm_visible", "tab",
+    })
+end
 
-    test("running", function()
-        confere(app("running"), MOTOR, SESSAO, { "running_count" })
-    end)
+--- running
+function test_shell_cada_visao__running()
+    confere(app("running"), MOTOR, SESSAO, { "running_count" })
+end
 
-    test("monitoring", function()
-        confere(app("monitoring"), MOTOR, SESSAO, { "host_cpu", "host_disk", "host_load", "host_memory", "monitoring_sort" })
-    end)
+--- monitoring
+function test_shell_cada_visao__monitoring()
+    confere(app("monitoring"), MOTOR, SESSAO, { "host_cpu", "host_disk", "host_load", "host_memory", "monitoring_sort" })
+end
 
-    test("ingress", function()
-        confere(app("ingress"), MOTOR, SESSAO, { "host_ports_sort", "ingress_sort" })
-    end)
+--- ingress
+function test_shell_cada_visao__ingress()
+    confere(app("ingress"), MOTOR, SESSAO, { "host_ports_sort", "ingress_sort" })
+end
 
-    test("deploy_engine", function()
-        confere(app("deploy_engine"), MOTOR, SESSAO, { "deploy_engine_queued_count", "deploy_engine_tab", "deploy_engine_uptime" })
-    end)
+--- deploy_engine
+function test_shell_cada_visao__deploy_engine()
+    confere(app("deploy_engine"), MOTOR, SESSAO, { "deploy_engine_queued_count", "deploy_engine_tab", "deploy_engine_uptime" })
+end
 
-    test("docker", function()
-        confere(app("docker"), MOTOR, SESSAO, { "docker_containers_count", "docker_tab" })
-    end)
+--- docker
+function test_shell_cada_visao__docker()
+    confere(app("docker"), MOTOR, SESSAO, { "docker_containers_count", "docker_tab" })
+end
 
-    test("settings", function()
-        confere(app("settings"), MOTOR, SESSAO, { "settings_tab" })
-    end)
+--- settings
+function test_shell_cada_visao__settings()
+    confere(app("settings"), MOTOR, SESSAO, { "settings_tab" })
+end
 
-    test("schedules", function()
-        confere(app("schedules"), MOTOR, SESSAO, { "jobs_sort" })
-    end)
+--- schedules
+function test_shell_cada_visao__schedules()
+    confere(app("schedules"), MOTOR, SESSAO, { "jobs_sort" })
+end
 
-    test("support", function()
-        confere(app("support"), MOTOR, SESSAO)
-    end)
-end)
+--- support
+function test_shell_cada_visao__support()
+    confere(app("support"), MOTOR, SESSAO)
+end
 
-describe("janelas auxiliares", function()
-    local function janela(caminho, ctx_inicial)
-        local tela = component(caminho, ctx_inicial)
-        tela:call("init")
-        return tela
-    end
+local function janela(caminho, ctx_inicial)
+    local tela = component(caminho, ctx_inicial)
+    tela:call("init")
+    return tela
+end
 
-    test("logs ao vivo", function()
-        confere(janela("views/log_window.gvb"), MOTOR)
-    end)
+--- logs ao vivo
+function test_janelas_auxiliares__logs_ao_vivo()
+    confere(janela("views/log_window.gvb"), MOTOR)
+end
 
-    test("novo job", function()
-        confere(janela("views/new_job_window.gvb"), {})
-    end)
+--- novo job
+function test_janelas_auxiliares__novo_job()
+    confere(janela("views/new_job_window.gvb"), {})
+end
 
-    test("novo serviço (com o projeto-alvo semeado pelo open_window)", function()
-        confere(janela("views/new_service_window.gvb", { project_name = "loja", new_service_templates = "[]" }), {})
-    end)
+--- novo serviço (com o projeto-alvo semeado pelo open_window)
+function test_janelas_auxiliares__novo_servico_com_o_projeto_alvo_semeado_pelo_open_window()
+    confere(janela("views/new_service_window.gvb", { project_name = "loja", new_service_templates = "[]" }), {})
+end
 
-    test("novo projeto", function()
-        -- O motor lê `erro_<campo>` de TODO form_control, mesmo sem `rules` (aqui
-        -- a descrição é opcional) — uma leitura interna, não esquecimento do app.
-        -- error_new_project_name só existe depois de uma validação que falha.
-        confere(janela("views/new_project_form.gvb"), { "erro_new_project_description", "error_new_project_name" })
-    end)
+--- novo projeto
+function test_janelas_auxiliares__novo_projeto()
+    -- O motor lê `erro_<campo>` de TODO form_control, mesmo sem `rules` (aqui
+    -- a descrição é opcional) — uma leitura interna, não esquecimento do app.
+    -- error_new_project_name só existe depois de uma validação que falha.
+    confere(janela("views/new_project_form.gvb"), { "erro_new_project_description", "error_new_project_name" })
+end
 
-    test("novo token do registry", function()
-        confere(janela("views/new_registry_token_window.gvb"), { "error_new_registry_token_name" })
-    end)
+--- novo token do registry
+function test_janelas_auxiliares__novo_token_do_registry()
+    confere(janela("views/new_registry_token_window.gvb"), { "error_new_registry_token_name" })
+end
 
-    test("exportar serviço", function()
-        confere(janela("views/service_export_window.gvb", { export_plan = "{}" }), {})
-    end)
-end)
+--- exportar serviço
+function test_janelas_auxiliares__exportar_servico()
+    confere(janela("views/service_export_window.gvb", { export_plan = "{}" }), {})
+end

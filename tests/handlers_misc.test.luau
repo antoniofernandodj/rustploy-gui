@@ -10,112 +10,116 @@ local function nova(ctx_inicial)
     return tela
 end
 
-describe("deploy_queue · sem conexão", function()
-    test("cancelar, promover, reordenar e pausar são inertes", function()
-        local tela = nova({ deploy_engine_paused = "false" })
-        tela:call("queue_cancel", "d1")
-        tela:call("queue_promote", "d1")
-        tela:call("queue_reorder", "[\"d1\",\"d2\"]")
-        tela:call("queue_toggle_pause")
-        expect(#tela:toasts()):toBe(0)
-        expect(tela:get("deploy_engine_paused")):toBe("false")
-    end)
+--- cancelar, promover, reordenar e pausar são inertes
+function test_deploy_queue_sem_conexao__cancelar_promover_reordenar_e_pausar_sao_inertes()
+    local tela = nova({ deploy_engine_paused = "false" })
+    tela:call("queue_cancel", "d1")
+    tela:call("queue_promote", "d1")
+    tela:call("queue_reorder", "[\"d1\",\"d2\"]")
+    tela:call("queue_toggle_pause")
+    assert_eq(#tela:toasts(), 0)
+    assert_eq(tela:get("deploy_engine_paused"), "false")
+end
 
-    test("id vazio também não faz nada", function()
-        local tela = nova()
-        tela:call("queue_cancel", "")
-        tela:call("queue_promote", "")
-        expect(#tela:toasts()):toBe(0)
-    end)
-end)
+--- id vazio também não faz nada
+function test_deploy_queue_sem_conexao__id_vazio_tambem_nao_faz_nada()
+    local tela = nova()
+    tela:call("queue_cancel", "")
+    tela:call("queue_promote", "")
+    assert_eq(#tela:toasts(), 0)
+end
 
-describe("deploy_queue · detalhe do deploy", function()
-    -- O painel só faz sentido para um deploy ATIVO: open_detail marca o serviço e
-    -- logo em seguida refresh_deploy_engine_detail procura esse id entre os
-    -- deploys ativos do snapshot. Sem snapshot (ou sem esse id lá) o deploy já
-    -- terminou, e o painel se fecha em vez de ficar apontando para o nada.
-    test("sem um deploy ativo com esse id, o painel se fecha na hora", function()
-        local tela = nova()
-        tela:call("deploy_engine_open_detail", "svc-9")
-        expect(tela:get("deploy_engine_detail_id")):toBe("")
-        expect(tela:get("deploy_engine_detail_open")):toBe("false")
-    end)
+-- O painel só faz sentido para um deploy ATIVO: open_detail marca o serviço e
+-- logo em seguida refresh_deploy_engine_detail procura esse id entre os
+-- deploys ativos do snapshot. Sem snapshot (ou sem esse id lá) o deploy já
+-- terminou, e o painel se fecha em vez de ficar apontando para o nada.
+--- sem um deploy ativo com esse id, o painel se fecha na hora
+function test_deploy_queue_detalhe_do_deploy__sem_um_deploy_ativo_com_esse_id_o_painel_se_fecha_na_hora()
+    local tela = nova()
+    tela:call("deploy_engine_open_detail", "svc-9")
+    assert_eq(tela:get("deploy_engine_detail_id"), "")
+    assert_eq(tela:get("deploy_engine_detail_open"), "false")
+end
 
-    test("fechar limpa o id e desmarca aberto", function()
-        local tela = nova({ deploy_engine_detail_id = "svc-9", deploy_engine_detail_open = "true" })
-        tela:call("deploy_engine_close_detail")
-        expect(tela:get("deploy_engine_detail_id")):toBe("")
-        expect(tela:get("deploy_engine_detail_open")):toBe("false")
-    end)
-end)
+--- fechar limpa o id e desmarca aberto
+function test_deploy_queue_detalhe_do_deploy__fechar_limpa_o_id_e_desmarca_aberto()
+    local tela = nova({ deploy_engine_detail_id = "svc-9", deploy_engine_detail_open = "true" })
+    tela:call("deploy_engine_close_detail")
+    assert_eq(tela:get("deploy_engine_detail_id"), "")
+    assert_eq(tela:get("deploy_engine_detail_open"), "false")
+end
 
-describe("secrets", function()
-    test("secret_use arma o form em modo secret com o nome escolhido", function()
-        local tela = nova()
-        tela:call("secret_use", "DB_PASS")
-        expect(tela:get("project_env_new_is_secret")):toBe("true")
-        expect(tela:get("project_env_new_value")):toBe("DB_PASS")
-        expect(tela:get("project_env_new_key")):toBe("DB_PASS")
-    end)
+--- secret_use arma o form em modo secret com o nome escolhido
+function test_secrets__secret_use_arma_o_form_em_modo_secret_com_o_nome_escolhido()
+    local tela = nova()
+    tela:call("secret_use", "DB_PASS")
+    assert_eq(tela:get("project_env_new_is_secret"), "true")
+    assert_eq(tela:get("project_env_new_value"), "DB_PASS")
+    assert_eq(tela:get("project_env_new_key"), "DB_PASS")
+end
 
-    test("secret_use não pisa numa chave que o usuário já digitou", function()
-        local tela = nova({ project_env_new_key = "MINHA_CHAVE" })
-        tela:call("secret_use", "DB_PASS")
-        expect(tela:get("project_env_new_key")):toBe("MINHA_CHAVE")
-        expect(tela:get("project_env_new_value")):toBe("DB_PASS")
-    end)
+--- secret_use não pisa numa chave que o usuário já digitou
+function test_secrets__secret_use_nao_pisa_numa_chave_que_o_usuario_ja_digitou()
+    local tela = nova({ project_env_new_key = "MINHA_CHAVE" })
+    tela:call("secret_use", "DB_PASS")
+    assert_eq(tela:get("project_env_new_key"), "MINHA_CHAVE")
+    assert_eq(tela:get("project_env_new_value"), "DB_PASS")
+end
 
-    test("secret_use trata chave só de espaços como vazia", function()
-        local tela = nova({ project_env_new_key = "   " })
-        tela:call("secret_use", "X")
-        expect(tela:get("project_env_new_key")):toBe("X")
-    end)
+--- secret_use trata chave só de espaços como vazia
+function test_secrets__secret_use_trata_chave_so_de_espacos_como_vazia()
+    local tela = nova({ project_env_new_key = "   " })
+    tela:call("secret_use", "X")
+    assert_eq(tela:get("project_env_new_key"), "X")
+end
 
-    test("o interruptor de secret alterna e limpa o valor digitado", function()
-        local tela = nova({ project_env_new_value = "abc" })
-        tela:call("project_env_secret_toggle")
-        expect(tela:get("project_env_new_is_secret")):toBe("true")
-        expect(tela:get("project_env_new_value")):toBe("")
-        tela:set("project_env_new_value", "def")
-        tela:call("project_env_secret_toggle")
-        expect(tela:get("project_env_new_is_secret")):toBe("false")
-        expect(tela:get("project_env_new_value")):toBe("")
-    end)
+--- o interruptor de secret alterna e limpa o valor digitado
+function test_secrets__o_interruptor_de_secret_alterna_e_limpa_o_valor_digitado()
+    local tela = nova({ project_env_new_value = "abc" })
+    tela:call("project_env_secret_toggle")
+    assert_eq(tela:get("project_env_new_is_secret"), "true")
+    assert_eq(tela:get("project_env_new_value"), "")
+    tela:set("project_env_new_value", "def")
+    tela:call("project_env_secret_toggle")
+    assert_eq(tela:get("project_env_new_is_secret"), "false")
+    assert_eq(tela:get("project_env_new_value"), "")
+end
 
-    test("a falha de validação só avisa", function()
-        local tela = nova()
-        tela:call("secret_add_show_validation_errors", "[]")
-        local avisos = tela:toasts()
-        expect(#avisos):toBe(1)
-        expect(avisos[1].kind):toBe("warning")
-    end)
+--- a falha de validação só avisa
+function test_secrets__a_falha_de_validacao_so_avisa()
+    local tela = nova()
+    tela:call("secret_add_show_validation_errors", "[]")
+    local avisos = tela:toasts()
+    assert_eq(#avisos, 1)
+    assert_eq(avisos[1].kind, "warning")
+end
 
-    test("adicionar sem projeto ou sem conexão não faz nada", function()
-        local tela = nova({ project_secret_new_name = "A", project_secret_new_value = "1" })
-        tela:call("secret_add")
-        expect(#tela:toasts()):toBe(0)
-        expect(tela:get("project_secret_new_name")):toBe("A")
+--- adicionar sem projeto ou sem conexão não faz nada
+function test_secrets__adicionar_sem_projeto_ou_sem_conexao_nao_faz_nada()
+    local tela = nova({ project_secret_new_name = "A", project_secret_new_value = "1" })
+    tela:call("secret_add")
+    assert_eq(#tela:toasts(), 0)
+    assert_eq(tela:get("project_secret_new_name"), "A")
 
-        local com_projeto = nova({ selected_project_id = "p1", project_secret_new_name = "A", project_secret_new_value = "1" })
-        com_projeto:call("secret_add")
-        expect(#com_projeto:toasts()):toBe(0)
-        expect(com_projeto:get("project_secret_new_name")):toBe("A")
-    end)
+    local com_projeto = nova({ selected_project_id = "p1", project_secret_new_name = "A", project_secret_new_value = "1" })
+    com_projeto:call("secret_add")
+    assert_eq(#com_projeto:toasts(), 0)
+    assert_eq(com_projeto:get("project_secret_new_name"), "A")
+end
 
-    test("apagar sem projeto ou com nome vazio não pergunta nem faz nada", function()
-        local tela = nova()
-        tela:call("secret_delete", "X")
-        local com_projeto = nova({ selected_project_id = "p1" })
-        com_projeto:call("secret_delete", "")
-        expect(#tela:toasts() + #com_projeto:toasts()):toBe(0)
-    end)
-end)
+--- apagar sem projeto ou com nome vazio não pergunta nem faz nada
+function test_secrets__apagar_sem_projeto_ou_com_nome_vazio_nao_pergunta_nem_faz_nada()
+    local tela = nova()
+    tela:call("secret_delete", "X")
+    local com_projeto = nova({ selected_project_id = "p1" })
+    com_projeto:call("secret_delete", "")
+    assert_eq(#tela:toasts() + #com_projeto:toasts(), 0)
+end
 
-describe("bundle · exportar serviço", function()
-    test("sem conexão ou sem serviço escolhido não abre janela nem avisa", function()
-        local tela = nova({ selected_service = "svc-1" })
-        tela:call("open_export_window", "")
-        tela:call("open_export_window", "svc-2")
-        expect(#tela:toasts()):toBe(0)
-    end)
-end)
+--- sem conexão ou sem serviço escolhido não abre janela nem avisa
+function test_bundle_exportar_servico__sem_conexao_ou_sem_servico_escolhido_nao_abre_janela_nem_avisa()
+    local tela = nova({ selected_service = "svc-1" })
+    tela:call("open_export_window", "")
+    tela:call("open_export_window", "svc-2")
+    assert_eq(#tela:toasts(), 0)
+end

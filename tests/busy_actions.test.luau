@@ -5,29 +5,31 @@
 
 local Actions = require("busy_actions")
 
-describe("busy_actions", function()
-    test("não está vazia", function()
-        expect(#Actions > 50):toBe(true)
-    end)
+--- não está vazia
+function test_nao_esta_vazia()
+    assert_eq(#Actions > 50, true)
+end
 
-    test("só tem nomes de função válidos em Luau", function()
-        for _, nome in Actions do
-            expect(type(nome)):toBe("string")
-            expect(nome):toMatch("^[%a_][%w_]*$")
-        end
-    end)
+--- só tem nomes de função válidos em Luau
+function test_so_tem_nomes_de_funcao_validos_em_luau()
+    for _, nome in Actions do
+        assert_eq(type(nome), "string")
+        assert_match(nome, "^[%a_][%w_]*$")
+    end
+end
 
-    test("não repete nome (a segunda trava envolveria a primeira)", function()
-        local vistos = {}
-        for _, nome in Actions do
-            expect(vistos[nome]).never:toBe(true)
-            vistos[nome] = true
-        end
-    end)
+--- não repete nome (a segunda trava envolveria a primeira)
+function test_nao_repete_nome_a_segunda_trava_envolveria_a_primeira()
+    local vistos = {}
+    for _, nome in Actions do
+        assert_ne(vistos[nome], true)
+        vistos[nome] = true
+    end
+end
 
-    test("está em ordem alfabética, para o diff do --check ser legível", function()
-        for i = 2, #Actions do
-            expect(Actions[i - 1] < Actions[i]):toBe(true)
-        end
-    end)
-end)
+--- está em ordem alfabética, para o diff do --check ser legível
+function test_esta_em_ordem_alfabetica_para_o_diff_do_check_ser_legivel()
+    for i = 2, #Actions do
+        assert_eq(Actions[i - 1] < Actions[i], true)
+    end
+end
