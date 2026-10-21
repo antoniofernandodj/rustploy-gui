@@ -239,7 +239,9 @@ function new_job_pick_project(project_id: string): ()
             table.insert(filtered, service)
         end
     end
-    ctx.new_job_services_filtered = json.encode(filtered)
+    -- `json.array`: sem ele um projeto sem serviços sairia como `{}` (objeto), e o
+    -- for-each do passo seguinte espera um array (ver Util.encode_array).
+    ctx.new_job_services_filtered = json.encode(json.array(filtered))
     ctx.new_job_step = "pick_service"
 end
 
