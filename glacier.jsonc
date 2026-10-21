@@ -1,0 +1,41 @@
+// glacier.jsonc — padrões da CLI `glacier` (glacier-cli >= 0.8.0) para o rustploy-gui.
+//
+// Lido por `glacier serve` e `glacier test` na raiz deste repo. É JSONC: aceita
+// comentários e vírgula no fim. Campo desconhecido é ERRO, não aviso.
+//
+// Este projeto não tem ajuste fora do padrão — o arquivo existe para registrar o
+// que a CLI assume e dar onde pôr o próximo (uma feature do Cargo, um argumento do
+// app). O que NÃO cabe aqui: variáveis de ambiente (o Xvfb de `AGENTS.md` usa
+// `env -u WAYLAND_DISPLAY DISPLAY=:99`) e a feature `tray`, que é do `glacier-ui`
+// e vive no Cargo.toml.
+//
+// Quem vence: flag › configuração (`-c`) › este arquivo › padrão da CLI.
+{
+  "serve": {
+    // `glacier serve desktop` = `cargo run` na raiz do projeto, de QUALQUER
+    // subpasta. O debug lê views/ e assets/ do disco, relativos ao diretório
+    // corrente; a CLI roda o cargo na raiz, então o app não abre com a janela vazia
+    // por ter sido lançado de src/ ou de um diretório acima.
+    "desktop": {
+      "release": false,
+
+      // Entregues ao app depois do `--`. Os da linha de comando substituem estes.
+      "args": []
+    }
+  },
+
+  "test": {
+    // `glacier test`: roda os tests/*.test.luau com o app em modo de teste, sem
+    // janela. `require` já enxerga views/scripts e views/ (ex.: `require("format/running")`);
+    // só pastas ALÉM dessas entram em "luau_path".
+    "release": false,
+    "luau_path": []
+  },
+
+  // `glacier serve desktop -c release` = `cargo run --release`.
+  "configurations": {
+    "release": {
+      "serve": { "desktop": { "release": true } }
+    }
+  }
+}
