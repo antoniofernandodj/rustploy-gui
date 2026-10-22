@@ -10,6 +10,7 @@ local format = require("../format")
 local Stream = require("stream")
 local Settings = require("settings")
 local AccessKey = require("../access_key")
+local History = require("history")
 
 -- ── login lembrado: lista de servidor/token (via o `storage` do glacier) ────
 -- O login é UM campo: o token de conexão (endereço + token, ver
@@ -321,6 +322,7 @@ function connect(): ()
     remember_server(base, token)
     publish_access_key_target()
 
+    History.clear()
     ctx.connected = "true"
     ctx.status_line = "conectado"
     ctx.screen = "shell"
@@ -351,6 +353,7 @@ function disconnect(): ()
         end)
         State.state_conn = nil
     end
+    History.clear()
     State.api = nil
     State.snap = nil
     State.last_pairs = {}

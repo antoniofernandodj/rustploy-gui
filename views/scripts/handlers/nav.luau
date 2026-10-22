@@ -5,8 +5,12 @@
 local State = require("../state")
 local Stream = require("stream")
 local Registry = require("registry")
+local History = require("history")
 
 local function goto_view(view: string): ()
+    if (ctx.view or "") ~= view or (ctx.selected_service or "") ~= "" then
+        History.push()
+    end
     ctx.view = view
     ctx.selected_service = ""
 end
@@ -43,8 +47,8 @@ function nav_docker(): ()
 end
 
 function nav_projects(): ()
-    ctx.selected_project_id = ""
     goto_view("projects")
+    ctx.selected_project_id = ""
 end
 
 function nav_settings(): ()
@@ -63,6 +67,12 @@ function nav_support(): ()
     goto_view("support")
 end
 
+
+-- Voltar uma visão: Backspace, Alt+← e o botão "voltar" do mouse (o motor chama
+-- `on_back` quando a pilha de telas dele está vazia, que é sempre o caso aqui).
+function on_back(): ()
+    History.back()
+end
 
 -- Genérico p/ NavItem que usa action="nav" com value=target (se algum usar).
 function nav(view: string?): () 

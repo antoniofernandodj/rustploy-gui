@@ -9,6 +9,7 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 local format = require("../format")
+local History = require("history")
 
 local M = {}
 
@@ -49,6 +50,7 @@ end
 -- deployments + provedores Git). O fetch suspende a corrotina, sem travar a
 -- UI; service_loading=true segura os Selects até tudo chegar.
 function open_service(service_id: string): ()
+    History.push()
     ctx.selected_service = service_id
     ctx.view = "service"
     ctx.tab = "general"
@@ -63,6 +65,13 @@ function open_service(service_id: string): ()
     ctx.service_loading = "true"
     M.fetch_service_detail(service_id)
 end
+
+-- Voltar (history.luau) reabre o serviço pelo mesmo caminho do clique — o `ctx`
+-- ainda guarda o detalhe do ÚLTIMO serviço aberto — e devolve a aba em que estava.
+History.register("service", function(snap)
+    open_service(snap.selected_service or "")
+    ctx.tab = snap.tab
+end)
 
 -- One-shot: monta TODAS as chaves svc_*/f_* do painel de detalhe (equivalente
 -- a net/services.rs::fetch_detail_inner).

@@ -9,9 +9,11 @@ local Helpers = require("../helpers")
 local format = require("../format")
 local Stream = require("stream")
 local Registry = require("registry")
+local History = require("history")
 
 -- Abrir a lista de serviços de um projeto (grade read-only via snapshot).
 function open_project(project_id: string): ()
+    History.push()
     ctx.selected_project_id = project_id
     ctx.view = "project_services"
     ctx.project_tab = "services"
@@ -21,6 +23,12 @@ function open_project(project_id: string): ()
     ctx.project_loading = "true"
     Stream.update_open_project()
 end
+
+-- Voltar (history.luau) reabre o projeto pelo mesmo caminho do clique e devolve a aba.
+History.register("project_services", function(snap)
+    open_project(snap.selected_project_id or "")
+    ctx.project_tab = snap.project_tab
+end)
 
 -- ── Criar projeto (agora em uma JANELA à parte) ──────────────────────────
 
@@ -156,6 +164,7 @@ function delete_project(project_id: string): ()
     ctx.project_action_message = "removendo…"
     local project_delete_ok, project_delete_response = api:rpc_checked{ ProjectDelete = { id = project_id } }
     if project_delete_ok then
+        History.drop("selected_project_id", project_id)
         ctx.selected_project_id = ""
         ctx.view = "projects"
         toast{ message = tostring("Projeto removido"), kind = "success" }
@@ -536,6 +545,7 @@ function stop_delete_service(service_id: string): ()
     local service_delete_ok, service_delete_response = api:rpc_checked{ ServiceDelete = { id = service_id } }
     ctx.project_action_message = service_delete_ok and "serviço parado e removido" or ("erro ao remover: " .. service_delete_response)
     if service_delete_ok then
+        History.drop("selected_service", service_id)
         toast{ message = tostring("Serviço removido"), kind = "success" }
     else
         toast{ message = tostring(service_delete_response), kind = "error" }
