@@ -13,6 +13,7 @@ return {
     "connect",
     "copy_container_id",
     "copy_container_name",
+    "copy_ctx",
     "copy_webhook",
     "delete_deployment",
     "delete_project",

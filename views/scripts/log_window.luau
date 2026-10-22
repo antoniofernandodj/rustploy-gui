@@ -74,6 +74,12 @@ local function log_event_to_row(event: any): any?
     return event.LogLine or event.BuildLog or event.JobLogLine
 end
 
+-- Botão "Copiar" da markup: copia a chave de contexto e avisa por toast.
+function copy_ctx(key: string): ()
+    copy(ctx[key] or "")
+    toast{ message = "Copiado para a área de transferência", kind = "success" }
+end
+
 function init(): ()
     ctx.log_window_title = ctx.log_window_title or "Logs"
 

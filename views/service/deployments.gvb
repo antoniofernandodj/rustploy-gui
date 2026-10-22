@@ -26,7 +26,7 @@ component {
         row(class = webhook__actions) {
           button(
             class = "btn btn--ghost btn--xs",
-            on_click = clipboard:service_webhook_url,
+            on_click = copy_ctx:service_webhook_url,
             text = Copiar,
           )
 

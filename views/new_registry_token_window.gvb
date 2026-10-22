@@ -118,7 +118,7 @@ screen(title = "Novo token — Rustploy") {
 
               button(
                 class = "btn btn--ghost btn--xs",
-                on_click = clipboard:new_registry_token_login_command,
+                on_click = copy_ctx:new_registry_token_login_command,
                 text = Copiar,
               )
             }

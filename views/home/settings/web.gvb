@@ -9,7 +9,7 @@ component {
 
         button(
           class = "btn btn--ghost btn--xs",
-          on_click = clipboard:server_settings_public_base,
+          on_click = copy_ctx:server_settings_public_base,
           text = Copiar,
         )
       }
@@ -30,7 +30,7 @@ component {
 
         button(
           class = "btn btn--ghost btn--xs",
-          on_click = clipboard:server_access_key,
+          on_click = copy_ctx:server_access_key,
           text = Copiar,
         )
       }
@@ -46,14 +46,40 @@ component {
         """,
       )
 
-      text(class = u-label-cap, content = "CONECTAR UM AGENTE (CLAUDE CODE)")
+      text(class = u-label-cap, content = "CONECTAR UM AGENTE DE IA (MCP)")
+
+      text(class = u-label-cap, content = "CLAUDE CODE")
 
       row(class = kv-list__row) {
         text(class = "kv-list__val kv-list__val--compact", content = "claude mcp add … rustploy …/mcp")
 
         button(
           class = "btn btn--ghost btn--xs",
-          on_click = clipboard:server_mcp_command,
+          on_click = copy_ctx:server_mcp_command,
+          text = Copiar,
+        )
+      }
+
+      text(class = u-label-cap, content = "CODEX (~/.codex/config.toml)")
+
+      row(class = kv-list__row) {
+        text(class = "kv-list__val kv-list__val--compact", content = "[mcp_servers.rustploy] url = …/mcp")
+
+        button(
+          class = "btn btn--ghost btn--xs",
+          on_click = copy_ctx:server_mcp_command_codex,
+          text = Copiar,
+        )
+      }
+
+      text(class = u-label-cap, content = "GEMINI CLI")
+
+      row(class = kv-list__row) {
+        text(class = "kv-list__val kv-list__val--compact", content = "gemini mcp add … rustploy …/mcp")
+
+        button(
+          class = "btn btn--ghost btn--xs",
+          on_click = copy_ctx:server_mcp_command_gemini,
           text = Copiar,
         )
       }
@@ -61,9 +87,11 @@ component {
       text(
         class = u-muted,
         content = """
-          Copia o comando que registra o MCP deste servidor no Claude Code, já
-          com o token. Cole num terminal e abra uma sessão nova do Claude Code;
-          confira com /mcp. Contém o token: não cole em lugar público.
+          Cada botão copia o registro do MCP deste servidor para o agente
+          correspondente, já com o token. Claude Code e Gemini: cole num
+          terminal; Codex: acrescente o bloco ao ~/.codex/config.toml. Abra uma
+          sessão nova do agente e confira com /mcp. Contém o token: não cole em
+          lugar público.
         """,
       )
 

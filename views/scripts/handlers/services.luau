@@ -36,6 +36,13 @@ function copy_container_id(container_id: string): ()
     toast{ message = "ID copiado", kind = "success" }
 end
 
+-- Botões "Copiar" da markup: copia o valor da chave de contexto e avisa por toast
+-- (o `clipboard:` embutido copia em silêncio). O sufixo é o NOME da chave.
+function copy_ctx(key: string): ()
+    copy(ctx[key] or "")
+    toast{ message = "Copiado para a área de transferência", kind = "success" }
+end
+
 -- ── Fetch completo do painel de detalhe ─────────────────────────────────────
 
 -- Abrir o detalhe de um serviço: navega e dispara o fetch (spec + logs +

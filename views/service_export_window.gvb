@@ -126,7 +126,7 @@ screen(title = "Exportar serviço — Rustploy") {
             textarea(class = dialog__yaml, font = mono, :value = export_yaml)
             button(
               class = "btn btn--ghost btn--xs",
-              on_click = clipboard:export_yaml,
+              on_click = copy_ctx:export_yaml,
               text = "Copiar texto",
             )
           }

@@ -79,7 +79,7 @@ screen {
 
             button(
               class = tabs__tab,
-              on_click = clipboard:log_window_logs_text,
+              on_click = copy_ctx:log_window_logs_text,
               text = "Copiar tudo",
             )
           }

@@ -168,7 +168,7 @@ component {
 
             button(
               class = "btn btn--ghost btn--xs",
-              on_click = clipboard:git_provider_redirect,
+              on_click = copy_ctx:git_provider_redirect,
               text = Copiar,
             )
           }

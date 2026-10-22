@@ -19,6 +19,12 @@ local function client(): Api.Client?
     return Api.new(url, ctx.api_token)
 end
 
+-- Botão "Copiar" da markup: copia a chave de contexto e avisa por toast.
+function copy_ctx(key: string): ()
+    copy(ctx[key] or "")
+    toast{ message = "Copiado para a área de transferência", kind = "success" }
+end
+
 function init(): ()
     -- ctx.registry_host já chega pronto (semeado via data).
     ctx.registry_host = ctx.registry_host or "127.0.0.1:5100"

@@ -60,6 +60,12 @@ local function pick(rule: (env_var: any) -> boolean): ()
     render()
 end
 
+-- Botão "Copiar" da markup: copia a chave de contexto e avisa por toast.
+function copy_ctx(key: string): ()
+    copy(ctx[key] or "")
+    toast{ message = "Copiado para a área de transferência", kind = "success" }
+end
+
 function init(): ()
     local json_decode_ok, decoded = pcall(json.decode, ctx.export_plan or "{}")
     plan = (json_decode_ok and type(decoded) == "table") and decoded or {}

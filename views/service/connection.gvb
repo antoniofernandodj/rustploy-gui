@@ -15,7 +15,7 @@ component {
 
       button(
         class = "btn btn--ghost btn--xs",
-        on_click = clipboard:service_port,
+        on_click = copy_ctx:service_port,
         text = Copiar,
       )
     }
@@ -27,7 +27,7 @@ component {
 
       button(
         class = "btn btn--ghost btn--xs",
-        on_click = clipboard:service_host_port,
+        on_click = copy_ctx:service_host_port,
         text = Copiar,
       )
     }
@@ -39,7 +39,7 @@ component {
 
       button(
         class = "btn btn--ghost btn--xs",
-        on_click = clipboard:service_domain,
+        on_click = copy_ctx:service_domain,
         text = Copiar,
       )
     }
@@ -56,7 +56,7 @@ component {
 
       button(
         class = "btn btn--ghost btn--xs",
-        on_click = clipboard:service_external_url,
+        on_click = copy_ctx:service_external_url,
         text = Copiar,
       )
     }
@@ -68,7 +68,7 @@ component {
 
       button(
         class = "btn btn--ghost btn--xs",
-        on_click = clipboard:service_internal_url,
+        on_click = copy_ctx:service_internal_url,
         text = Copiar,
       )
     }

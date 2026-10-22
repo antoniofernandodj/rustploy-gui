@@ -39,7 +39,7 @@ component {
 
         button(
           class = "btn btn--ghost btn--xs",
-          on_click = clipboard:shared_database_url,
+          on_click = copy_ctx:shared_database_url,
           text = Copiar,
         )
       }

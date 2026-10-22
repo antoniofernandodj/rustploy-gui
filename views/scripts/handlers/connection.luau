@@ -230,6 +230,12 @@ local function load_settings(): ()
     ctx.server_mcp_command = "claude mcp add --transport http --scope user rustploy "
         .. api.base_url .. "/mcp"
         .. (if api.token then ' --header "Authorization: Bearer ' .. api.token .. '"' else "")
+    -- Codex lê MCP HTTP do ~/.codex/config.toml: o cabeçalho vai num bloco TOML.
+    ctx.server_mcp_command_codex = '[mcp_servers.rustploy]\nurl = "' .. api.base_url .. '/mcp"'
+        .. (if api.token then '\nhttp_headers = { Authorization = "Bearer ' .. api.token .. '" }' else "")
+    ctx.server_mcp_command_gemini = "gemini mcp add --transport http --scope user "
+        .. (if api.token then '--header "Authorization: Bearer ' .. api.token .. '" ' else "")
+        .. "rustploy " .. api.base_url .. "/mcp"
     ctx.server_access_key_short = if api.token
         then string.sub(ctx.server_access_key, 1, 12) .. "…" .. string.sub(ctx.server_access_key, -6)
         else "— (daemon sem token)"
