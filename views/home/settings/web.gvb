@@ -1,149 +1,151 @@
 // Web Server (default)
 component {
   form(name = settings, on_submit = settings_save, width = fill) {
-    column(class = form-panel) {
-      text(class = u-label-cap, content = "URL PÚBLICA DA API")
+    scrollable(direction = vertical, class = u-fill-all) {
+      column(class = form-panel) {
+        text(class = u-label-cap, content = "URL PÚBLICA DA API")
 
-      row(class = kv-list__row) {
-        text(class = "kv-list__val kv-list__val--compact", content = "@server_settings_public_base")
+        row(class = kv-list__row) {
+          text(class = "kv-list__val kv-list__val--compact", content = "@server_settings_public_base")
 
-        button(
-          class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:server_settings_public_base,
-          text = Copiar,
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:server_settings_public_base,
+            text = Copiar,
+          )
+        }
+
+        text(
+          class = u-muted,
+          content = """
+            Derivada de [api] domain/port no daemon — é a base das URLs de
+            webhook dos serviços e do callback OAuth (mesma porta da API).
+            Para mudá-la, configure api.domain e reinicie o daemon.
+          """,
         )
-      }
 
-      text(
-        class = u-muted,
-        content = """
-          Derivada de [api] domain/port no daemon — é a base das URLs de
-          webhook dos serviços e do callback OAuth (mesma porta da API).
-          Para mudá-la, configure api.domain e reinicie o daemon.
-        """,
-      )
+        text(class = u-label-cap, content = "TOKEN DE CONEXÃO")
 
-      text(class = u-label-cap, content = "TOKEN DE CONEXÃO")
+        row(class = kv-list__row) {
+          text(class = "kv-list__val kv-list__val--compact", content = "@server_access_key_short")
 
-      row(class = kv-list__row) {
-        text(class = "kv-list__val kv-list__val--compact", content = "@server_access_key_short")
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:server_access_key,
+            text = Copiar,
+          )
+        }
 
-        button(
-          class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:server_access_key,
-          text = Copiar,
+        text(
+          class = u-muted,
+          content = """
+            base64 de host:porta::token — endereço do servidor + token numa
+            string só. É o que se cola no login da GUI e da webui, e o que um
+            agente de IA usa em POST /api/login. O daemon também o deixa no
+            config.toml, em [api].connection_token. Vale tanto quanto o token:
+            não compartilhe à toa.
+          """,
         )
-      }
 
-      text(
-        class = u-muted,
-        content = """
-          base64 de host:porta::token — endereço do servidor + token numa
-          string só. É o que se cola no login da GUI e da webui, e o que um
-          agente de IA usa em POST /api/login. O daemon também o deixa no
-          config.toml, em [api].connection_token. Vale tanto quanto o token:
-          não compartilhe à toa.
-        """,
-      )
+        text(class = u-label-cap, content = "CONECTAR UM AGENTE DE IA (MCP)")
 
-      text(class = u-label-cap, content = "CONECTAR UM AGENTE DE IA (MCP)")
+        text(class = u-label-cap, content = "CLAUDE CODE")
 
-      text(class = u-label-cap, content = "CLAUDE CODE")
+        row(class = kv-list__row) {
+          text(class = "kv-list__val kv-list__val--compact", content = "claude mcp add … rustploy …/mcp")
 
-      row(class = kv-list__row) {
-        text(class = "kv-list__val kv-list__val--compact", content = "claude mcp add … rustploy …/mcp")
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:server_mcp_command,
+            text = Copiar,
+          )
+        }
 
-        button(
-          class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:server_mcp_command,
-          text = Copiar,
+        text(class = u-label-cap, content = "CODEX (~/.codex/config.toml)")
+
+        row(class = kv-list__row) {
+          text(class = "kv-list__val kv-list__val--compact", content = "[mcp_servers.rustploy] url = …/mcp")
+
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:server_mcp_command_codex,
+            text = Copiar,
+          )
+        }
+
+        text(class = u-label-cap, content = "GEMINI CLI")
+
+        row(class = kv-list__row) {
+          text(class = "kv-list__val kv-list__val--compact", content = "gemini mcp add … rustploy …/mcp")
+
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:server_mcp_command_gemini,
+            text = Copiar,
+          )
+        }
+
+        text(
+          class = u-muted,
+          content = """
+            Cada botão copia o registro do MCP deste servidor para o agente
+            correspondente, já com o token. Claude Code e Gemini: cole num
+            terminal; Codex: acrescente o bloco ao ~/.codex/config.toml. Abra uma
+            sessão nova do agente e confira com /mcp. Contém o token: não cole em
+            lugar público.
+          """,
         )
-      }
 
-      text(class = u-label-cap, content = "CODEX (~/.codex/config.toml)")
-
-      row(class = kv-list__row) {
-        text(class = "kv-list__val kv-list__val--compact", content = "[mcp_servers.rustploy] url = …/mcp")
-
-        button(
-          class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:server_mcp_command_codex,
-          text = Copiar,
+        text(
+          class = u-label-cap,
+          content = "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",
         )
-      }
 
-      text(class = u-label-cap, content = "GEMINI CLI")
-
-      row(class = kv-list__row) {
-        text(class = "kv-list__val kv-list__val--compact", content = "gemini mcp add … rustploy …/mcp")
-
-        button(
-          class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:server_mcp_command_gemini,
-          text = Copiar,
+        input(
+          placeholder = voce@@exemplo.com,
+          class = field__input,
+          form_control = server_settings_email,
         )
-      }
 
-      text(
-        class = u-muted,
-        content = """
-          Cada botão copia o registro do MCP deste servidor para o agente
-          correspondente, já com o token. Claude Code e Gemini: cole num
-          terminal; Codex: acrescente o bloco ao ~/.codex/config.toml. Abra uma
-          sessão nova do agente e confira com /mcp. Contém o token: não cole em
-          lugar público.
-        """,
-      )
+        text(
+          if = @error_server_settings_email,
+          not_equals = "",
+          class = u-error,
+          content = "@error_server_settings_email",
+        )
 
-      text(
-        class = u-label-cap,
-        content = "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",
-      )
+        text(
+          class = u-muted,
+          content = """
+            Certificados TLS emitidos automaticamente. Requer restart do
+            daemon.
+          """,
+        )
 
-      input(
-        placeholder = voce@@exemplo.com,
-        class = field__input,
-        form_control = server_settings_email,
-      )
+        text(
+          class = u-label-cap,
+          content = "DOMÍNIO DO REGISTRY (EXPOSIÇÃO PÚBLICA)",
+        )
 
-      text(
-        if = @error_server_settings_email,
-        not_equals = "",
-        class = u-error,
-        content = "@error_server_settings_email",
-      )
+        input(
+          placeholder = registry.meusite.com,
+          class = field__input,
+          form_control = server_settings_registry_domain,
+        )
 
-      text(
-        class = u-muted,
-        content = """
-          Certificados TLS emitidos automaticamente. Requer restart do
-          daemon.
-        """,
-      )
+        text(
+          class = u-muted,
+          content = """
+            Expõe o registry Docker embutido via ingress + certificado
+            automático. Requer [registry] enabled = true na config. Vazio =
+            só acessível em 127.0.0.1.
+          """,
+        )
 
-      text(
-        class = u-label-cap,
-        content = "DOMÍNIO DO REGISTRY (EXPOSIÇÃO PÚBLICA)",
-      )
-
-      input(
-        placeholder = registry.meusite.com,
-        class = field__input,
-        form_control = server_settings_registry_domain,
-      )
-
-      text(
-        class = u-muted,
-        content = """
-          Expõe o registry Docker embutido via ingress + certificado
-          automático. Requer [registry] enabled = true na config. Vazio =
-          só acessível em 127.0.0.1.
-        """,
-      )
-
-      row(class = env__add) {
-        button(class = "btn btn--primary", on_click = settings_save, disabled = @busy_settings_save, text = Save)
-        text(class = u-muted, content = "@settings_message")
+        row(class = env__add) {
+          button(class = "btn btn--primary", on_click = settings_save, disabled = @busy_settings_save, text = Save)
+          text(class = u-muted, content = "@settings_message")
+        }
       }
     }
   }
