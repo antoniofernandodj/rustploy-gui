@@ -1665,9 +1665,9 @@ dependencies = [
 
 [[package]]
 name = "glacier-ui"
-version = "0.133.0"
+version = "0.137.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "196f4a28d166951d95c2069c0939cd228673b8324055a2aafcddbe1737dd41b9"
+checksum = "169367caac4b2b79822151f77b665b136b2bc3193ec345a23c16c33d93fd5b35"
 dependencies = [
  "base64",
  "console_error_panic_hook",
@@ -1690,6 +1690,7 @@ dependencies = [
  "rfd",
  "roxmltree 0.21.1",
  "rustls",
+ "serde",
  "serde_json",
  "tokio",
  "tokio-tungstenite",
