@@ -1,6 +1,6 @@
 [package]
 name = "rustploy-gui"
-version = "0.1.13"
+version = "0.1.14"
 edition = "2024"
 default-run = "rustploy-gui"
 description = "Rustploy — desktop client (glacier-ui) for the Rustploy PaaS daemon"
@@ -32,7 +32,7 @@ path = "src/main.rs"
 # num `Stack` fixo — abrir menu/diálogo/toast deixa de zerar a rolagem/foco de
 # um `<scrollable>` (era o pulo pro topo no clique-direito num input).
 # Ver docs/plano-reforma-gui-glacier-0.102.md.
-glacier-ui = { version = "0.129.0", features = ["tray"] }
+glacier-ui = { version = "0.130.0", features = ["tray"] }
 
 # GUI — features must stay compatible with glacier-ui's iced.
 iced = { version = "0.14", features = ["image", "svg", "tokio"] }

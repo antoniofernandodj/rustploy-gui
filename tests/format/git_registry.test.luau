@@ -4,7 +4,7 @@ local Registry = require("format/registry")
 local DockerCleanup = require("format/docker_cleanup")
 
 --- provedor conectado mostra o @login
-function test_format_git__provedor_conectado_mostra_o_login()
+function test_provedor_conectado_mostra_o_login()
     local rows = json.decode(Git.git_providers({
         { id = "p1", name = "gh", kind = "Github", base_url = "https://github.com", auth_mode = "OAuth", account = { login = "ana" } },
     }))
@@ -17,7 +17,7 @@ function test_format_git__provedor_conectado_mostra_o_login()
 end
 
 --- provedor sem conta diz que não está conectado
-function test_format_git__provedor_sem_conta_diz_que_nao_esta_conectado()
+function test_provedor_sem_conta_diz_que_nao_esta_conectado()
     local rows = json.decode(Git.git_providers({
         { id = "p2", name = "meu-gitea", kind = "Gitea", auth_mode = "Pat" },
     }))
@@ -29,21 +29,21 @@ function test_format_git__provedor_sem_conta_diz_que_nao_esta_conectado()
 end
 
 --- tipo desconhecido aparece como veio, e ausente como Git
-function test_format_git__tipo_desconhecido_aparece_como_veio_e_ausente_como_git()
+function test_tipo_desconhecido_aparece_como_veio_e_ausente_como_git()
     local rows = json.decode(Git.git_providers({ { name = "a", kind = "Gitlab" }, { name = "b" } }))
     assert_eq(rows[1].kind, "Gitlab")
     assert_eq(rows[2].kind, "Git")
 end
 
 --- listas vazias viram [] e não {}
-function test_format_git__listas_vazias_viram_e_nao()
+function test_listas_vazias_viram_e_nao()
     assert_eq(Git.git_providers(nil), "[]")
     assert_eq(Git.git_repos({}), "[]")
     assert_eq(Git.git_branches(nil), "[]")
 end
 
 --- repositórios marcam private/public e branches só carregam o nome
-function test_format_git__repositorios_marcam_private_public_e_branches_so_carregam_o_nome()
+function test_repositorios_marcam_private_public_e_branches_so_carregam_o_nome()
     local repos = json.decode(Git.git_repos({
         { full_name = "a/b", clone_url = "u", default_branch = "main", private = true },
         { full_name = "a/c", clone_url = "v", default_branch = "dev" },

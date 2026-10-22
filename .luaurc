@@ -28,6 +28,13 @@
         "before_each",
         "fail",
         "expect",
-        "component"
+        "component",
+        "assert_ne",
+        "assert_match",
+        "assert_eq",
+        "assert_has",
+        "assert_nil",
+        "assert_not_nil",
+        "assert_fails"
     ]
 }

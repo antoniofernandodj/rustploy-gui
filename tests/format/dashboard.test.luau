@@ -23,7 +23,7 @@ local function par(nome, projeto, extras)
 end
 
 --- filtra por serviço ou projeto e formata o estado
-function test_format_dashboard_deployments__filtra_por_servico_ou_projeto_e_formata_o_estado()
+function test_deployments__filtra_por_servico_ou_projeto_e_formata_o_estado()
     local entradas = {
         { service_name = "api", project_name = "loja", deployment = { state = "Live", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:30Z" } },
         { service_name = "web", project_name = "blog", deployment = { state = "Failed", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:05Z" } },
@@ -44,7 +44,7 @@ function test_format_dashboard_deployments__filtra_por_servico_ou_projeto_e_form
 end
 
 --- status, porta e métricas
-function test_format_dashboard_cards_de_servico__status_porta_e_metricas()
+function test_cards_de_servico__status_porta_e_metricas()
     local cartoes = json.decode(Dashboard.services(
         { par("api", "loja") },
         { ["id-api"] = { cpu_percent = 12.34, mem_used_bytes = 5 * 1024 * 1024 } },
@@ -61,7 +61,7 @@ function test_format_dashboard_cards_de_servico__status_porta_e_metricas()
 end
 
 --- sem métricas o card mostra —
-function test_format_dashboard_cards_de_servico__sem_metricas_o_card_mostra()
+function test_cards_de_servico__sem_metricas_o_card_mostra()
     local c = json.decode(Dashboard.services({ par("api", "loja") }, nil, ""))[1]
     assert_eq(c.cpu, "—")
     assert_eq(c.mem, "—")
@@ -70,7 +70,7 @@ function test_format_dashboard_cards_de_servico__sem_metricas_o_card_mostra()
 end
 
 --- o container primário é o live; senão o primeiro em execução; +N quando há mais
-function test_format_dashboard_cards_de_servico__o_container_primario_e_o_live_senao_o_primeiro_em_execucao_n_quando_ha_mais()
+function test_cards_de_servico__o_container_primario_e_o_live_senao_o_primeiro_em_execucao_n_quando_ha_mais()
     local com_live = par("a", "p", {
         live_container_id = "idb",
         containers = {
@@ -95,7 +95,7 @@ function test_format_dashboard_cards_de_servico__o_container_primario_e_o_live_s
 end
 
 --- o selo de aquecimento só existe quando há warm
-function test_format_dashboard_cards_de_servico__o_selo_de_aquecimento_so_existe_quando_ha_warm()
+function test_cards_de_servico__o_selo_de_aquecimento_so_existe_quando_ha_warm()
     local quente = par("a", "p")
     quente.warm = { warm = true, reason = "build ok" }
     local linhas = json.decode(Dashboard.services({ quente, par("b", "p") }, nil, ""))
@@ -107,7 +107,7 @@ function test_format_dashboard_cards_de_servico__o_selo_de_aquecimento_so_existe
 end
 
 --- a busca casa serviço ou projeto
-function test_format_dashboard_cards_de_servico__a_busca_casa_servico_ou_projeto()
+function test_cards_de_servico__a_busca_casa_servico_ou_projeto()
     local pares = { par("api", "loja"), par("worker", "blog") }
     assert_eq(#json.decode(Dashboard.services(pares, nil, "blog")), 1)
     assert_eq(#json.decode(Dashboard.services(pares, nil, "api")), 1)
@@ -124,7 +124,7 @@ local function linhas_para(n)
 end
 
 --- 1 a 3 colunas, todas as fileiras com a mesma largura
-function test_format_dashboard_grade__1_a_3_colunas_todas_as_fileiras_com_a_mesma_largura()
+function test_grade__1_a_3_colunas_todas_as_fileiras_com_a_mesma_largura()
     com_menu(false)
     local linhas = linhas_para(7)
     local colunas = #linhas[1].cards
@@ -135,7 +135,7 @@ function test_format_dashboard_grade__1_a_3_colunas_todas_as_fileiras_com_a_mesm
 end
 
 --- a última fileira é completada com cards vazios (a grade não tem grid)
-function test_format_dashboard_grade__a_ultima_fileira_e_completada_com_cards_vazios_a_grade_nao_tem_grid()
+function test_grade__a_ultima_fileira_e_completada_com_cards_vazios_a_grade_nao_tem_grid()
     com_menu(false)
     local linhas = linhas_para(7)
     local colunas = #linhas[1].cards
@@ -155,7 +155,7 @@ function test_format_dashboard_grade__a_ultima_fileira_e_completada_com_cards_va
 end
 
 --- o card vazio carrega os campos dos dois contratos, como texto
-function test_format_dashboard_grade__o_card_vazio_carrega_os_campos_dos_dois_contratos_como_texto()
+function test_grade__o_card_vazio_carrega_os_campos_dos_dois_contratos_como_texto()
     com_menu(false)
     local linhas = linhas_para(1)
     local vazio
@@ -172,7 +172,7 @@ function test_format_dashboard_grade__o_card_vazio_carrega_os_campos_dos_dois_co
 end
 
 --- a gaveta aberta nunca dá mais colunas que a fechada
-function test_format_dashboard_grade__a_gaveta_aberta_nunca_da_mais_colunas_que_a_fechada()
+function test_grade__a_gaveta_aberta_nunca_da_mais_colunas_que_a_fechada()
     com_menu(false)
     local fechada = #linhas_para(9)[1].cards
     com_menu(true)
@@ -182,13 +182,13 @@ function test_format_dashboard_grade__a_gaveta_aberta_nunca_da_mais_colunas_que_
 end
 
 --- sem serviços não há fileiras
-function test_format_dashboard_grade__sem_servicos_nao_ha_fileiras()
+function test_grade__sem_servicos_nao_ha_fileiras()
     com_menu(false)
     assert_eq(Dashboard.service_rows({}, nil, ""), "[]")
 end
 
 --- project_rows segue a mesma regra de grade
-function test_format_dashboard_grade__project_rows_segue_a_mesma_regra_de_grade()
+function test_grade__project_rows_segue_a_mesma_regra_de_grade()
     com_menu(false)
     local projetos = {}
     for i = 1, 4 do
@@ -203,7 +203,7 @@ function test_format_dashboard_grade__project_rows_segue_a_mesma_regra_de_grade(
 end
 
 --- conta serviços e os que estão rodando, e só deixa apagar projeto vazio
-function test_format_dashboard_projetos__conta_servicos_e_os_que_estao_rodando_e_so_deixa_apagar_projeto_vazio()
+function test_projetos__conta_servicos_e_os_que_estao_rodando_e_so_deixa_apagar_projeto_vazio()
     local pares = {
         par("a", "x"), -- project_id "p-x"
         par("b", "x", { status = "Stopped" }),
@@ -223,7 +223,7 @@ function test_format_dashboard_projetos__conta_servicos_e_os_que_estao_rodando_e
 end
 
 --- a busca olha nome e descrição
-function test_format_dashboard_projetos__a_busca_olha_nome_e_descricao()
+function test_projetos__a_busca_olha_nome_e_descricao()
     local projetos = { { id = "1", name = "loja", description = "vendas" }, { id = "2", name = "blog" } }
     assert_eq(#json.decode(Dashboard.projects(projetos, {}, "vend")), 1)
     assert_eq(#json.decode(Dashboard.projects(projetos, {}, "blog")), 1)
@@ -231,7 +231,7 @@ function test_format_dashboard_projetos__a_busca_olha_nome_e_descricao()
 end
 
 --- docker_rows ordena por nome e resume a imagem
-function test_format_dashboard_docker__docker_rows_ordena_por_nome_e_resume_a_imagem()
+function test_docker__docker_rows_ordena_por_nome_e_resume_a_imagem()
     local linhas = json.decode(Dashboard.docker_rows({
         par("zeta", "p", { live_container_id = "0123456789abcdefff" }),
         par("alfa", "p"),
@@ -250,7 +250,7 @@ local imagens = {
 }
 
 --- imagens: ordenadas por tag, sem sha256: e com <none> para as sem tag
-function test_format_dashboard_docker__imagens_ordenadas_por_tag_sem_sha256_e_com_none_para_as_sem_tag()
+function test_docker__imagens_ordenadas_por_tag_sem_sha256_e_com_none_para_as_sem_tag()
     local linhas = json.decode(Dashboard.docker_images(imagens, "", false))
     assert_eq(#linhas, 3)
     -- ordem por tags unidas: "" < "api:2" < "web:1"
@@ -262,7 +262,7 @@ function test_format_dashboard_docker__imagens_ordenadas_por_tag_sem_sha256_e_co
 end
 
 --- imagens: em uso, dono e tamanhos crus para ordenar
-function test_format_dashboard_docker__imagens_em_uso_dono_e_tamanhos_crus_para_ordenar()
+function test_docker__imagens_em_uso_dono_e_tamanhos_crus_para_ordenar()
     local linhas = json.decode(Dashboard.docker_images(imagens, "", false))
     local web = linhas[3]
     assert_eq(web.in_use_label, "EM USO")
@@ -277,7 +277,7 @@ function test_format_dashboard_docker__imagens_em_uso_dono_e_tamanhos_crus_para_
 end
 
 --- imagens: 'somente em uso' esconde as órfãs, e a busca olha tags e dono
-function test_format_dashboard_docker__imagens_somente_em_uso_esconde_as_orfas_e_a_busca_olha_tags_e_dono()
+function test_docker__imagens_somente_em_uso_esconde_as_orfas_e_a_busca_olha_tags_e_dono()
     local em_uso = json.decode(Dashboard.docker_images(imagens, "", true))
     assert_eq(#em_uso, 1)
     assert_eq(em_uso[1].tags, "web:1")
@@ -286,7 +286,7 @@ function test_format_dashboard_docker__imagens_somente_em_uso_esconde_as_orfas_e
 end
 
 --- volumes: filtro de uso, tamanho desconhecido e dono
-function test_format_dashboard_docker__volumes_filtro_de_uso_tamanho_desconhecido_e_dono()
+function test_docker__volumes_filtro_de_uso_tamanho_desconhecido_e_dono()
     local volumes = {
         { name = "dados", driver = "local", mountpoint = "/v/dados", in_use = true, size_bytes = 5 * 1024 * 1024 },
         { name = "antigo", driver = "local", mountpoint = "/v/antigo", in_use = false },
@@ -309,7 +309,7 @@ function test_format_dashboard_docker__volumes_filtro_de_uso_tamanho_desconhecid
 end
 
 --- redes: ordem, contagem de containers e filtro
-function test_format_dashboard_docker__redes_ordem_contagem_de_containers_e_filtro()
+function test_docker__redes_ordem_contagem_de_containers_e_filtro()
     local redes = {
         { name = "zz", id = "n2", driver = "bridge", scope = "local", in_use = false },
         { name = "aa", id = "n1", driver = "bridge", scope = "local", in_use = true, container_count = 3, project = "loja" },
@@ -324,7 +324,7 @@ function test_format_dashboard_docker__redes_ordem_contagem_de_containers_e_filt
 end
 
 --- containers: dono, removível só parado, imagem sem sha256:
-function test_format_dashboard_docker__containers_dono_removivel_so_parado_imagem_sem_sha256()
+function test_docker__containers_dono_removivel_so_parado_imagem_sem_sha256()
     local linhas = json.decode(Dashboard.docker_containers({
         { id = "0123456789abcdef", name = "rp_api", image = "sha256:abcdef", state = "running", project = "loja", service = "api" },
         { id = "b", name = "rp_db", image = "pg:16", state = "exited", managed = true },
@@ -343,7 +343,7 @@ function test_format_dashboard_docker__containers_dono_removivel_so_parado_image
 end
 
 --- containers: a busca olha nome, imagem, estado e dono
-function test_format_dashboard_docker__containers_a_busca_olha_nome_imagem_estado_e_dono()
+function test_docker__containers_a_busca_olha_nome_imagem_estado_e_dono()
     local lista = {
         { name = "a", image = "pg:16", state = "running" },
         { name = "b", image = "x", state = "exited", project = "loja", service = "web" },
@@ -355,7 +355,7 @@ function test_format_dashboard_docker__containers_a_busca_olha_nome_imagem_estad
 end
 
 --- ingress: uma linha por rota, com a porta do upstream
-function test_format_dashboard_ingress_portas_e_monitoramento__ingress_uma_linha_por_rota_com_a_porta_do_upstream()
+function test_ingress_portas_e_monitoramento__ingress_uma_linha_por_rota_com_a_porta_do_upstream()
     local a = par("api", "loja")
     a.svc.spec.domains = { { domain = "a.com", port = 3000, tls = true }, { domain = "b.com" } }
     local texto, total = Dashboard.ingress({ a })
@@ -370,7 +370,7 @@ function test_format_dashboard_ingress_portas_e_monitoramento__ingress_uma_linha
 end
 
 --- ingress ignora domínio em branco e entende o campo legado
-function test_format_dashboard_ingress_portas_e_monitoramento__ingress_ignora_dominio_em_branco_e_entende_o_campo_legado()
+function test_ingress_portas_e_monitoramento__ingress_ignora_dominio_em_branco_e_entende_o_campo_legado()
     local vazio = par("a", "p")
     vazio.svc.spec.domains = { { domain = "   " } }
     local legado = par("b", "p")
@@ -383,7 +383,7 @@ function test_format_dashboard_ingress_portas_e_monitoramento__ingress_ignora_do
 end
 
 --- portas de host: só quem tem host_port, em ordem numérica
-function test_format_dashboard_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host_port_em_ordem_numerica()
+function test_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host_port_em_ordem_numerica()
     local a, b = par("a", "p"), par("b", "p")
     a.svc.spec.host_port = 9000
     b.svc.spec.host_port = 80
@@ -397,7 +397,7 @@ function test_format_dashboard_ingress_portas_e_monitoramento__portas_de_host_so
 end
 
 --- monitoramento: só serviços com métricas vivas, com valores crus
-function test_format_dashboard_ingress_portas_e_monitoramento__monitoramento_so_servicos_com_metricas_vivas_com_valores_crus()
+function test_ingress_portas_e_monitoramento__monitoramento_so_servicos_com_metricas_vivas_com_valores_crus()
     local linhas = json.decode(Dashboard.monitoring(
         { par("api", "loja"), par("web", "loja") },
         { ["id-api"] = { cpu_percent = 50, mem_used_bytes = 2048, net_rx_bytes = 1024, net_tx_bytes = 0 } }
@@ -431,7 +431,7 @@ local function status_dos_passos(i)
 end
 
 --- são oito passos, do 'Fila' ao 'Live'
-function test_format_dashboard_motor_de_deploy__sao_oito_passos_do_fila_ao_live()
+function test_motor_de_deploy__sao_oito_passos_do_fila_ao_live()
     local _, passos = status_dos_passos(info("Pending"))
     assert_eq(#passos, 8)
     assert_eq(passos[1].text, "● Fila")
@@ -439,21 +439,21 @@ function test_format_dashboard_motor_de_deploy__sao_oito_passos_do_fila_ao_live(
 end
 
 --- em andamento: os anteriores feitos, o atual marcado, os seguintes pendentes
-function test_format_dashboard_motor_de_deploy__em_andamento_os_anteriores_feitos_o_atual_marcado_os_seguintes_pendentes()
+function test_motor_de_deploy__em_andamento_os_anteriores_feitos_o_atual_marcado_os_seguintes_pendentes()
     assert_eq(status_dos_passos(info("BuildingImage")), { "done", "done", "done", "current", "pending", "pending", "pending", "pending" })
     assert_eq(status_dos_passos(info("Pending")), { "current", "pending", "pending", "pending", "pending", "pending", "pending", "pending" })
     assert_eq(status_dos_passos(info("Draining")), { "done", "done", "done", "done", "done", "done", "current", "pending" })
 end
 
 --- os quatro estados de 'Obter' caem no mesmo passo
-function test_format_dashboard_motor_de_deploy__os_quatro_estados_de_obter_caem_no_mesmo_passo()
+function test_motor_de_deploy__os_quatro_estados_de_obter_caem_no_mesmo_passo()
     for _, estado in { "PullingImage", "CloningRepo", "BuildingImage", "ComposingUp" } do
         assert_eq(status_dos_passos(info(estado))[4], "current")
     end
 end
 
 --- Live, Stopped e Pruning terminam com tudo feito
-function test_format_dashboard_motor_de_deploy__live_stopped_e_pruning_terminam_com_tudo_feito()
+function test_motor_de_deploy__live_stopped_e_pruning_terminam_com_tudo_feito()
     for _, estado in { "Live", "Stopped", "Pruning" } do
         local lista = status_dos_passos(info(estado))
         for _, status in lista do
@@ -463,7 +463,7 @@ function test_format_dashboard_motor_de_deploy__live_stopped_e_pruning_terminam_
 end
 
 --- falha marca o passo em que estava, achado no histórico
-function test_format_dashboard_motor_de_deploy__falha_marca_o_passo_em_que_estava_achado_no_historico()
+function test_motor_de_deploy__falha_marca_o_passo_em_que_estava_achado_no_historico()
     local falhou = info("Failed", {
         states = {
             { from = "Pending", to = "BuildingImage" },
@@ -475,7 +475,7 @@ function test_format_dashboard_motor_de_deploy__falha_marca_o_passo_em_que_estav
 end
 
 --- falha sem histórico não marca nenhum passo como atual
-function test_format_dashboard_motor_de_deploy__falha_sem_historico_nao_marca_nenhum_passo_como_atual()
+function test_motor_de_deploy__falha_sem_historico_nao_marca_nenhum_passo_como_atual()
     local lista = status_dos_passos(info("Failed"))
     for _, status in lista do
         assert_ne(status, "current")
@@ -483,7 +483,7 @@ function test_format_dashboard_motor_de_deploy__falha_sem_historico_nao_marca_ne
 end
 
 --- estado desconhecido deixa tudo pendente
-function test_format_dashboard_motor_de_deploy__estado_desconhecido_deixa_tudo_pendente()
+function test_motor_de_deploy__estado_desconhecido_deixa_tudo_pendente()
     local lista = status_dos_passos(info("Qualquer"))
     for _, status in lista do
         assert_eq(status, "pending")
@@ -491,7 +491,7 @@ function test_format_dashboard_motor_de_deploy__estado_desconhecido_deixa_tudo_p
 end
 
 --- detalhe: duração entre transições, tipo e motivo
-function test_format_dashboard_motor_de_deploy__detalhe_duracao_entre_transicoes_tipo_e_motivo()
+function test_motor_de_deploy__detalhe_duracao_entre_transicoes_tipo_e_motivo()
     local linhas = json.decode(Dashboard.deploy_engine_detail(info("Failed", {
         states = {
             { to = "Pending", at = "2026-03-01T10:00:00Z" },
@@ -510,7 +510,7 @@ function test_format_dashboard_motor_de_deploy__detalhe_duracao_entre_transicoes
 end
 
 --- detalhe: a transição corrente mostra o tempo no estado e fica 'info'
-function test_format_dashboard_motor_de_deploy__detalhe_a_transicao_corrente_mostra_o_tempo_no_estado_e_fica_info()
+function test_motor_de_deploy__detalhe_a_transicao_corrente_mostra_o_tempo_no_estado_e_fica_info()
     local linhas = json.decode(Dashboard.deploy_engine_detail(info("BuildingImage", {
         current_state_secs = 42,
         states = {
@@ -524,7 +524,7 @@ function test_format_dashboard_motor_de_deploy__detalhe_a_transicao_corrente_mos
 end
 
 --- detalhe: timestamp inválido não dá duração negativa
-function test_format_dashboard_motor_de_deploy__detalhe_timestamp_invalido_nao_da_duracao_negativa()
+function test_motor_de_deploy__detalhe_timestamp_invalido_nao_da_duracao_negativa()
     local linhas = json.decode(Dashboard.deploy_engine_detail(info("Live", {
         states = { { to = "Pending", at = "lixo" }, { to = "Live", at = "lixo" } },
     })))
@@ -532,7 +532,7 @@ function test_format_dashboard_motor_de_deploy__detalhe_timestamp_invalido_nao_d
 end
 
 --- executando agora traz estado, tempos e os passos
-function test_format_dashboard_motor_de_deploy__executando_agora_traz_estado_tempos_e_os_passos()
+function test_motor_de_deploy__executando_agora_traz_estado_tempos_e_os_passos()
     local linhas = json.decode(Dashboard.deploy_engine_active({ info("BuildingImage") }))
     assert_eq(#linhas, 1)
     assert_eq(linhas[1].service, "api")
@@ -545,7 +545,7 @@ function test_format_dashboard_motor_de_deploy__executando_agora_traz_estado_tem
 end
 
 --- a fila numera de 1 e guarda o id para cancelar
-function test_format_dashboard_motor_de_deploy__a_fila_numera_de_1_e_guarda_o_id_para_cancelar()
+function test_motor_de_deploy__a_fila_numera_de_1_e_guarda_o_id_para_cancelar()
     local linhas = json.decode(Dashboard.deploy_engine_queued({ info("Pending", { deployment_id = "q1" }), info("Pending", { deployment_id = "q2" }) }))
     assert_eq(linhas[1].pos, "1")
     assert_eq(linhas[2].pos, "2")
@@ -554,7 +554,7 @@ function test_format_dashboard_motor_de_deploy__a_fila_numera_de_1_e_guarda_o_id
 end
 
 --- o histórico escolhe o ícone pelo resultado
-function test_format_dashboard_motor_de_deploy__o_historico_escolhe_o_icone_pelo_resultado()
+function test_motor_de_deploy__o_historico_escolhe_o_icone_pelo_resultado()
     local linhas = json.decode(Dashboard.deploy_engine_recent({
         info("Live", { started_at = "2026-03-01T10:00:00Z" }),
         info("Failed"),

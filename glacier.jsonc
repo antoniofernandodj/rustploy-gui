@@ -35,7 +35,11 @@
   // `glacier serve desktop -c release` = `cargo run --release`.
   "configurations": {
     "release": {
-      "serve": { "desktop": { "release": true } }
+      "serve": {
+        "desktop": {
+          "release": true
+        }
+      }
     }
   }
 }

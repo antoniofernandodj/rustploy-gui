@@ -8,7 +8,7 @@ local function nova()
 end
 
 --- a sidebar troca a visão e limpa o serviço selecionado
-function test_nav_visoes__a_sidebar_troca_a_visao_e_limpa_o_servico_selecionado()
+function test_visoes__a_sidebar_troca_a_visao_e_limpa_o_servico_selecionado()
     for acao, visao in {
         nav_deployments = "deployments",
         nav_running = "running",
@@ -27,7 +27,7 @@ function test_nav_visoes__a_sidebar_troca_a_visao_e_limpa_o_servico_selecionado(
 end
 
 --- projetos também limpa o projeto selecionado
-function test_nav_visoes__projetos_tambem_limpa_o_projeto_selecionado()
+function test_visoes__projetos_tambem_limpa_o_projeto_selecionado()
     local tela = nova()
     tela:set("selected_project_id", "p1")
     tela:call("nav_projects")
@@ -36,7 +36,7 @@ function test_nav_visoes__projetos_tambem_limpa_o_projeto_selecionado()
 end
 
 --- o Deploy Engine abre na aba da fila, sem pisar numa aba já escolhida
-function test_nav_visoes__o_deploy_engine_abre_na_aba_da_fila_sem_pisar_numa_aba_ja_escolhida()
+function test_visoes__o_deploy_engine_abre_na_aba_da_fila_sem_pisar_numa_aba_ja_escolhida()
     local tela = nova()
     tela:call("nav_deploy_engine")
     assert_eq(tela:get("view"), "deploy_engine")
@@ -49,7 +49,7 @@ function test_nav_visoes__o_deploy_engine_abre_na_aba_da_fila_sem_pisar_numa_aba
 end
 
 --- as configurações abrem na aba web e semeiam o provedor Git sem pisar no escolhido
-function test_nav_visoes__as_configuracoes_abrem_na_aba_web_e_semeiam_o_provedor_git_sem_pisar_no_escolhid()
+function test_visoes__as_configuracoes_abrem_na_aba_web_e_semeiam_o_provedor_git_sem_pisar_no_escolhid()
     local tela = nova()
     tela:call("nav_settings")
     assert_eq(tela:get("view"), "settings")
@@ -66,7 +66,7 @@ function test_nav_visoes__as_configuracoes_abrem_na_aba_web_e_semeiam_o_provedor
 end
 
 --- nav genérico vai para a visão pedida e ignora valor vazio
-function test_nav_visoes__nav_generico_vai_para_a_visao_pedida_e_ignora_valor_vazio()
+function test_visoes__nav_generico_vai_para_a_visao_pedida_e_ignora_valor_vazio()
     local tela = nova()
     tela:call("nav", "docker")
     assert_eq(tela:get("view"), "docker")
@@ -75,7 +75,7 @@ function test_nav_visoes__nav_generico_vai_para_a_visao_pedida_e_ignora_valor_va
 end
 
 --- cada aba grava a sua chave
-function test_nav_abas_e_campos__cada_aba_grava_a_sua_chave()
+function test_abas_e_campos__cada_aba_grava_a_sua_chave()
     local tela = nova()
     tela:call("project_tab", "jobs")
     tela:call("deploy_engine_tab", "historico")
@@ -92,14 +92,14 @@ function test_nav_abas_e_campos__cada_aba_grava_a_sua_chave()
 end
 
 --- o setter genérico field grava a chave com o valor
-function test_nav_abas_e_campos__o_setter_generico_field_grava_a_chave_com_o_valor()
+function test_abas_e_campos__o_setter_generico_field_grava_a_chave_com_o_valor()
     local tela = nova()
     tela:call("field", "qualquer_chave")
     assert_eq(tela:get("qualquer_chave"), "")
 end
 
 --- a busca guarda o texto como veio e não quebra sem snapshot
-function test_nav_abas_e_campos__a_busca_guarda_o_texto_como_veio_e_nao_quebra_sem_snapshot()
+function test_abas_e_campos__a_busca_guarda_o_texto_como_veio_e_nao_quebra_sem_snapshot()
     local tela = nova()
     tela:call("search_changed", "Minha API")
     assert_eq(tela:get("search"), "Minha API")

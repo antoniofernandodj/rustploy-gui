@@ -1665,9 +1665,9 @@ dependencies = [
 
 [[package]]
 name = "glacier-ui"
-version = "0.129.0"
+version = "0.130.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "603b3b1ecb1fe32f268e3026b88181a11e6ea79b321c4dd9a8f7e801241114b5"
+checksum = "8d975fbadadaec948582d6857a2775d8987e60b782fbd857b5b71db670b6750d"
 dependencies = [
  "base64",
  "console_error_panic_hook",
@@ -4349,7 +4349,7 @@ dependencies = [
 
 [[package]]
 name = "rustploy-gui"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "anyhow",
  "chrono",

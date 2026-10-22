@@ -10,7 +10,7 @@ local function postgres_vars()
 end
 
 --- source_summary_parts de cada origem
-function test_service_detail_origem_e_healthcheck__source_summary_parts_de_cada_origem()
+function test_origem_e_healthcheck__source_summary_parts_de_cada_origem()
     local kind, detalhe, motor = SD.source_summary_parts({ Registry = { image = "nginx:1" } })
     assert_eq(kind, "Registry")
     assert_eq(detalhe, "nginx:1")
@@ -35,7 +35,7 @@ function test_service_detail_origem_e_healthcheck__source_summary_parts_de_cada_
 end
 
 --- source_summary_parts de origem ausente
-function test_service_detail_origem_e_healthcheck__source_summary_parts_de_origem_ausente()
+function test_origem_e_healthcheck__source_summary_parts_de_origem_ausente()
     local kind, detalhe, motor = SD.source_summary_parts(nil)
     assert_eq(kind, "—")
     assert_eq(detalhe, "—")
@@ -44,12 +44,12 @@ function test_service_detail_origem_e_healthcheck__source_summary_parts_de_orige
 end
 
 --- healthcheck desligado
-function test_service_detail_origem_e_healthcheck__healthcheck_desligado()
+function test_origem_e_healthcheck__healthcheck_desligado()
     assert_eq(SD.healthcheck_summary({ kind = "None" }), "disabled")
 end
 
 --- healthcheck HTTP mostra caminho e status esperado
-function test_service_detail_origem_e_healthcheck__healthcheck_http_mostra_caminho_e_status_esperado()
+function test_origem_e_healthcheck__healthcheck_http_mostra_caminho_e_status_esperado()
     local texto = SD.healthcheck_summary({
         kind = { Http = { path = "/health", expected_status = 200 } },
         interval_secs = 10, timeout_secs = 5, retries = 3,
@@ -58,7 +58,7 @@ function test_service_detail_origem_e_healthcheck__healthcheck_http_mostra_camin
 end
 
 --- healthcheck TCP, Docker e tipo desconhecido
-function test_service_detail_origem_e_healthcheck__healthcheck_tcp_docker_e_tipo_desconhecido()
+function test_origem_e_healthcheck__healthcheck_tcp_docker_e_tipo_desconhecido()
     local campos = { interval_secs = 1, timeout_secs = 2, retries = 4 }
     assert_eq(SD.healthcheck_summary({ kind = "Tcp", interval_secs = 1, timeout_secs = 2, retries = 4 }), "TCP · every 1s · timeout 2s · 4 retries")
     assert_eq(SD.healthcheck_summary({ kind = "DockerNative", interval_secs = 1, timeout_secs = 2, retries = 4 }), "Docker · every 1s · timeout 2s · 4 retries")
@@ -67,7 +67,7 @@ function test_service_detail_origem_e_healthcheck__healthcheck_tcp_docker_e_tipo
 end
 
 --- cor por estado e id encurtado
-function test_service_detail_containers__cor_por_estado_e_id_encurtado()
+function test_containers__cor_por_estado_e_id_encurtado()
     local linhas = json.decode(SD.containers({
         { id = "abcdef0123456789", name = "api", state = "running" },
         { id = "b", name = "db", state = "restarting" },
@@ -85,13 +85,13 @@ function test_service_detail_containers__cor_por_estado_e_id_encurtado()
 end
 
 --- sem containers dá []
-function test_service_detail_containers__sem_containers_da()
+function test_containers__sem_containers_da()
     assert_eq(SD.containers(nil), "[]")
     assert_eq(SD.containers({}), "[]")
 end
 
 --- segredo aparece por referência, com cadeado, e se distingue do texto igual
-function test_service_detail_variaveis_de_ambiente__segredo_aparece_por_referencia_com_cadeado_e_se_distingue_do_texto_igual()
+function test_variaveis_de_ambiente__segredo_aparece_por_referencia_com_cadeado_e_se_distingue_do_texto_igual()
     local linhas = json.decode(SD.env_json_with_comments({
         { key = "A", value = { Secret = "t" } },
         { key = "B", value = { Plain = "secret:t" } },
@@ -103,7 +103,7 @@ function test_service_detail_variaveis_de_ambiente__segredo_aparece_por_referenc
 end
 
 --- a chave longa trunca só na exibição
-function test_service_detail_variaveis_de_ambiente__a_chave_longa_trunca_so_na_exibicao()
+function test_variaveis_de_ambiente__a_chave_longa_trunca_so_na_exibicao()
     local longa = string.rep("K", 40)
     local linha = json.decode(SD.env_json_with_comments({ { key = longa, value = { Plain = "1" } } }, {}))[1]
     assert_eq(linha.key, longa)
@@ -111,7 +111,7 @@ function test_service_detail_variaveis_de_ambiente__a_chave_longa_trunca_so_na_e
 end
 
 --- comentários voltam para junto da chave a que estavam ancorados
-function test_service_detail_variaveis_de_ambiente__comentarios_voltam_para_junto_da_chave_a_que_estavam_ancorados()
+function test_variaveis_de_ambiente__comentarios_voltam_para_junto_da_chave_a_que_estavam_ancorados()
     local linhas = json.decode(SD.env_json_with_comments(
         { { key = "A", value = { Plain = "1" } }, { key = "B", value = { Plain = "2" } } },
         { { before_key = "B", text = "# sobre B" }, { text = "# no fim" } }
@@ -127,7 +127,7 @@ function test_service_detail_variaveis_de_ambiente__comentarios_voltam_para_junt
 end
 
 --- o .env sai com segredo entre <secret:> e comentários nos lugares
-function test_service_detail_variaveis_de_ambiente__o_env_sai_com_segredo_entre_secret_e_comentarios_nos_lugares()
+function test_variaveis_de_ambiente__o_env_sai_com_segredo_entre_secret_e_comentarios_nos_lugares()
     local texto = SD.env_dotenv_with_comments(
         { { key = "A", value = { Plain = "1" } }, { key = "B", value = { Secret = "S" } } },
         { { before_key = "B", text = "# b" }, { text = "# fim" } }
@@ -136,7 +136,7 @@ function test_service_detail_variaveis_de_ambiente__o_env_sai_com_segredo_entre_
 end
 
 --- o .env faz ida e volta com o parser de .env
-function test_service_detail_variaveis_de_ambiente__o_env_faz_ida_e_volta_com_o_parser_de_env()
+function test_variaveis_de_ambiente__o_env_faz_ida_e_volta_com_o_parser_de_env()
     local H = require("helpers")
     local vars = {
         { key = "A", value = { Plain = "1" } },
@@ -154,13 +154,13 @@ function test_service_detail_variaveis_de_ambiente__o_env_faz_ida_e_volta_com_o_
 end
 
 --- vazio dá [] e string vazia
-function test_service_detail_variaveis_de_ambiente__vazio_da_e_string_vazia()
+function test_variaveis_de_ambiente__vazio_da_e_string_vazia()
     assert_eq(SD.env_json_with_comments(nil, nil), "[]")
     assert_eq(SD.env_dotenv_with_comments(nil, nil), "")
 end
 
 --- secret_rows só carrega nomes
-function test_service_detail_variaveis_de_ambiente__secret_rows_so_carrega_nomes()
+function test_variaveis_de_ambiente__secret_rows_so_carrega_nomes()
     local linhas = json.decode(SD.secret_rows({ "DB", string.rep("S", 40) }))
     assert_eq(linhas[1].name, "DB")
     assert_eq(utf8.len(linhas[2].name_display), 31)
@@ -168,7 +168,7 @@ function test_service_detail_variaveis_de_ambiente__secret_rows_so_carrega_nomes
 end
 
 --- stderr é vermelho, ANSI some e a hora é formatada
-function test_service_detail_logs__stderr_e_vermelho_ansi_some_e_a_hora_e_formatada()
+function test_logs__stderr_e_vermelho_ansi_some_e_a_hora_e_formatada()
     local linhas = json.decode(SD.logs_json({
         { stream = "Stdout", line = "\27[32mok\27[0m", timestamp = "2026-03-01T10:00:00Z" },
         { stream = "Stderr", line = "falhou", timestamp = "2026-03-01T10:00:01Z" },
@@ -180,7 +180,7 @@ function test_service_detail_logs__stderr_e_vermelho_ansi_some_e_a_hora_e_format
 end
 
 --- só a cauda de 500 linhas é materializada
-function test_service_detail_logs__so_a_cauda_de_500_linhas_e_materializada()
+function test_logs__so_a_cauda_de_500_linhas_e_materializada()
     local entradas = {}
     for i = 1, 600 do
         table.insert(entradas, { stream = "Stdout", line = "l" .. i, timestamp = "2026-03-01T10:00:00Z" })
@@ -192,19 +192,19 @@ function test_service_detail_logs__so_a_cauda_de_500_linhas_e_materializada()
 end
 
 --- linha absurda é cortada em 2000 caracteres
-function test_service_detail_logs__linha_absurda_e_cortada_em_2000_caracteres()
+function test_logs__linha_absurda_e_cortada_em_2000_caracteres()
     local linhas = json.decode(SD.logs_json({ { stream = "Stdout", line = string.rep("x", 5000), timestamp = "2026-03-01T10:00:00Z" } }))
     assert_eq(utf8.len(linhas[1].line), 2001)
 end
 
 --- build_logs_json é o mesmo formatador
-function test_service_detail_logs__build_logs_json_e_o_mesmo_formatador()
+function test_logs__build_logs_json_e_o_mesmo_formatador()
     assert_eq(SD.build_logs_json == SD.logs_json, true)
     assert_eq(SD.logs_json(nil), "[]")
 end
 
 --- join_log_lines junta tudo, sem o teto de linhas
-function test_service_detail_logs__join_log_lines_junta_tudo_sem_o_teto_de_linhas()
+function test_logs__join_log_lines_junta_tudo_sem_o_teto_de_linhas()
     local entradas = {}
     for i = 1, 600 do
         table.insert(entradas, { line = "l" .. i, timestamp = "2026-03-01T10:00:00Z" })
@@ -219,7 +219,7 @@ function test_service_detail_logs__join_log_lines_junta_tudo_sem_o_teto_de_linha
 end
 
 --- linha de deployment: id, estado, duração e se pode apagar
-function test_service_detail_deployments_e_dominios__linha_de_deployment_id_estado_duracao_e_se_pode_apagar()
+function test_deployments_e_dominios__linha_de_deployment_id_estado_duracao_e_se_pode_apagar()
     local linhas = json.decode(SD.deployments_detail({
         { id = "0123456789abcdefXYZ", image = "img:1", state = "Live", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:01:05Z" },
         { id = "b", state = "BuildingImage", started_at = "2026-03-01T10:00:00Z" },
@@ -234,7 +234,7 @@ function test_service_detail_deployments_e_dominios__linha_de_deployment_id_esta
 end
 
 --- todo estado terminal pode ser apagado, nenhum em andamento
-function test_service_detail_deployments_e_dominios__todo_estado_terminal_pode_ser_apagado_nenhum_em_andamento()
+function test_deployments_e_dominios__todo_estado_terminal_pode_ser_apagado_nenhum_em_andamento()
     for estado, esperado in { Live = "1", Stopped = "1", Failed = "1", Pruning = "1", PreDeployCheck = "0", BuildingImage = "0" } do
         local linha = json.decode(SD.deployments_detail({ { id = "x", state = estado, started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:01Z" } }))[1]
         assert_eq(linha.can_delete, esperado)
@@ -242,7 +242,7 @@ function test_service_detail_deployments_e_dominios__todo_estado_terminal_pode_s
 end
 
 --- a rota sem porta própria herda a do serviço
-function test_service_detail_deployments_e_dominios__a_rota_sem_porta_propria_herda_a_do_servico()
+function test_deployments_e_dominios__a_rota_sem_porta_propria_herda_a_do_servico()
     local linhas = json.decode(SD.domains_json({
         port = 80,
         domains = { { domain = "a.com", port = 8080, tls = true }, { domain = "b.com" } },
@@ -256,12 +256,12 @@ function test_service_detail_deployments_e_dominios__a_rota_sem_porta_propria_he
 end
 
 --- sem domínio dá []
-function test_service_detail_deployments_e_dominios__sem_dominio_da()
+function test_deployments_e_dominios__sem_dominio_da()
     assert_eq(SD.domains_json({ port = 80 } :: any), "[]")
 end
 
 --- safe_name: minúsculas, não-alfanumérico vira _ colapsado e sem bordas
-function test_service_detail_nomes_e_hosts__safe_name_minusculas_nao_alfanumerico_vira_colapsado_e_sem_bordas()
+function test_nomes_e_hosts__safe_name_minusculas_nao_alfanumerico_vira_colapsado_e_sem_bordas()
     assert_eq(SD.safe_name("Meu App!"), "meu_app")
     assert_eq(SD.safe_name("--a--b--"), "a_b")
     assert_eq(SD.safe_name("API v2.0"), "api_v2_0")
@@ -271,25 +271,25 @@ function test_service_detail_nomes_e_hosts__safe_name_minusculas_nao_alfanumeric
 end
 
 --- compose_host: ingress_service declarado vence
-function test_service_detail_nomes_e_hosts__compose_host_ingress_service_declarado_vence()
+function test_nomes_e_hosts__compose_host_ingress_service_declarado_vence()
     assert_eq(SD.compose_host("services:\n  web:\n", "proxy"), "proxy")
 end
 
 --- compose_host: primeira chave de services:
-function test_service_detail_nomes_e_hosts__compose_host_primeira_chave_de_services()
+function test_nomes_e_hosts__compose_host_primeira_chave_de_services()
     assert_eq(SD.compose_host("version: '3'\nservices:\n  web:\n    image: x\n  db:\n    image: y\n", nil), "web")
     assert_eq(SD.compose_host("services:\n\n  # app\n  api-1.x:\n", ""), "api-1.x")
 end
 
 --- compose_host: sem services: ou com o bloco vazio dá nil
-function test_service_detail_nomes_e_hosts__compose_host_sem_services_ou_com_o_bloco_vazio_da_nil()
+function test_nomes_e_hosts__compose_host_sem_services_ou_com_o_bloco_vazio_da_nil()
     assert_nil(SD.compose_host(nil, nil))
     assert_nil(SD.compose_host("version: '3'\n", nil))
     assert_nil(SD.compose_host("services:\nvolumes:\n  v:\n", nil))
 end
 
 --- esquema por tipo de banco e host rp_<nome>
-function test_service_detail_url_interna__esquema_por_tipo_de_banco_e_host_rp_nome()
+function test_url_interna__esquema_por_tipo_de_banco_e_host_rp_nome()
     assert_eq(SD.internal_url("postgres", "app", 5432), "postgresql://rp_app:5432")
     assert_eq(SD.internal_url("PostgreSQL", "app", 5432), "postgresql://rp_app:5432")
     assert_eq(SD.internal_url("mariadb", "app", 3306), "mysql://rp_app:3306")
@@ -300,45 +300,45 @@ function test_service_detail_url_interna__esquema_por_tipo_de_banco_e_host_rp_no
 end
 
 --- serviço comum é http, e kafka é host:porta puro
-function test_service_detail_url_interna__servico_comum_e_http_e_kafka_e_host_porta_puro()
+function test_url_interna__servico_comum_e_http_e_kafka_e_host_porta_puro()
     assert_eq(SD.internal_url(nil, "app", 80), "http://rp_app:80")
     assert_eq(SD.internal_url("kafka", "app", 9092), "rp_app:9092")
 end
 
 --- serviço compose usa o nome do YAML, não rp_<nome>
-function test_service_detail_url_interna__servico_compose_usa_o_nome_do_yaml_nao_rp_nome()
+function test_url_interna__servico_compose_usa_o_nome_do_yaml_nao_rp_nome()
     assert_eq(SD.internal_url(nil, "app", 80, "web"), "http://web:80")
 end
 
 --- domínio HTTP tem prioridade e respeita o TLS
-function test_service_detail_url_externa__dominio_http_tem_prioridade_e_respeita_o_tls()
+function test_url_externa__dominio_http_tem_prioridade_e_respeita_o_tls()
     assert_eq(SD.external_url("app.com", true, 5432, "postgres", "https://1.2.3.4:8443", {}), "https://app.com")
     assert_eq(SD.external_url("app.com//", false, nil, nil, nil, nil), "http://app.com")
 end
 
 --- domínio só com espaços não conta
-function test_service_detail_url_externa__dominio_so_com_espacos_nao_conta()
+function test_url_externa__dominio_so_com_espacos_nao_conta()
     assert_eq(SD.external_url("   ", false, nil, nil, nil, nil), "—")
 end
 
 --- sem domínio nem porta publicada, não há URL
-function test_service_detail_url_externa__sem_dominio_nem_porta_publicada_nao_ha_url()
+function test_url_externa__sem_dominio_nem_porta_publicada_nao_ha_url()
     assert_eq(SD.external_url(nil, false, nil, "postgres", "https://h", {}), "—")
     assert_eq(SD.external_url("", false, "", "postgres", "https://h", {}), "—")
 end
 
 --- postgres vira string JDBC com as credenciais das env vars
-function test_service_detail_url_externa__postgres_vira_string_jdbc_com_as_credenciais_das_env_vars()
+function test_url_externa__postgres_vira_string_jdbc_com_as_credenciais_das_env_vars()
     assert_eq(SD.external_url(nil, false, 5432, "postgres", "https://1.2.3.4:8443", postgres_vars()), "jdbc:postgresql://1.2.3.4:5432/app?user=u&password=p")
 end
 
 --- postgres sem credenciais devolve a base intacta
-function test_service_detail_url_externa__postgres_sem_credenciais_devolve_a_base_intacta()
+function test_url_externa__postgres_sem_credenciais_devolve_a_base_intacta()
     assert_eq(SD.external_url(nil, false, 5432, "postgresql", "https://1.2.3.4", {}), "jdbc:postgresql://1.2.3.4:5432")
 end
 
 --- mysql e mariadb: usuário, senha e banco no userinfo
-function test_service_detail_url_externa__mysql_e_mariadb_usuario_senha_e_banco_no_userinfo()
+function test_url_externa__mysql_e_mariadb_usuario_senha_e_banco_no_userinfo()
     local vars = {
         { key = "MYSQL_DATABASE", value = { Plain = "d" } },
         { key = "MYSQL_USER", value = { Plain = "u" } },
@@ -349,13 +349,13 @@ function test_service_detail_url_externa__mysql_e_mariadb_usuario_senha_e_banco_
 end
 
 --- redis só tem senha: userinfo começa em :
-function test_service_detail_url_externa__redis_so_tem_senha_userinfo_comeca_em()
+function test_url_externa__redis_so_tem_senha_userinfo_comeca_em()
     local vars = { { key = "REDIS_PASSWORD", value = { Plain = "pw" } } }
     assert_eq(SD.external_url(nil, false, 6379, "redis", "https://h", vars), "redis://:pw@h:6379")
 end
 
 --- mongodb leva barra final e authSource=admin quando há usuário
-function test_service_detail_url_externa__mongodb_leva_barra_final_e_authsource_admin_quando_ha_usuario()
+function test_url_externa__mongodb_leva_barra_final_e_authsource_admin_quando_ha_usuario()
     local vars = {
         { key = "MONGO_INITDB_ROOT_USERNAME", value = { Plain = "root" } },
         { key = "MONGO_INITDB_ROOT_PASSWORD", value = { Plain = "pw" } },
@@ -365,7 +365,7 @@ function test_service_detail_url_externa__mongodb_leva_barra_final_e_authsource_
 end
 
 --- rabbitmq e nats
-function test_service_detail_url_externa__rabbitmq_e_nats()
+function test_url_externa__rabbitmq_e_nats()
     local vars = {
         { key = "RABBITMQ_DEFAULT_USER", value = { Plain = "guest" } },
         { key = "RABBITMQ_DEFAULT_PASS", value = { Plain = "guest" } },
@@ -375,13 +375,13 @@ function test_service_detail_url_externa__rabbitmq_e_nats()
 end
 
 --- sem esquema de banco (kafka, serviço comum) é host:porta puro
-function test_service_detail_url_externa__sem_esquema_de_banco_kafka_servico_comum_e_host_porta_puro()
+function test_url_externa__sem_esquema_de_banco_kafka_servico_comum_e_host_porta_puro()
     assert_eq(SD.external_url(nil, false, 9092, "kafka", "https://h", {}), "h:9092")
     assert_eq(SD.external_url(nil, false, 8080, nil, "https://h", {}), "h:8080")
 end
 
 --- senha com caracteres reservados é percent-encoded
-function test_service_detail_url_externa__senha_com_caracteres_reservados_e_percent_encoded()
+function test_url_externa__senha_com_caracteres_reservados_e_percent_encoded()
     local vars = {
         { key = "MYSQL_USER", value = { Plain = "u@x" } },
         { key = "MYSQL_PASSWORD", value = { Plain = "p@ss:w/d?#" } },
@@ -390,13 +390,13 @@ function test_service_detail_url_externa__senha_com_caracteres_reservados_e_perc
 end
 
 --- segredo (referência) não vira credencial
-function test_service_detail_url_externa__segredo_referencia_nao_vira_credencial()
+function test_url_externa__segredo_referencia_nao_vira_credencial()
     local vars = { { key = "REDIS_PASSWORD", value = { Secret = "S" } } }
     assert_eq(SD.external_url(nil, false, 6379, "redis", "https://h", vars), "redis://h:6379")
 end
 
 --- o host sai do api_url, ou <host> quando ele falta
-function test_service_detail_url_externa__o_host_sai_do_api_url_ou_host_quando_ele_falta()
+function test_url_externa__o_host_sai_do_api_url_ou_host_quando_ele_falta()
     assert_eq(SD.external_url(nil, false, 1, "kafka", "http://10.0.0.5:9797/x", {}), "10.0.0.5:1")
     assert_eq(SD.external_url(nil, false, 1, "kafka", "srv.com", {}), "srv.com:1")
     assert_eq(SD.external_url(nil, false, 1, "kafka", nil, {}), "<host>:1")
