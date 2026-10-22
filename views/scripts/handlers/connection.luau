@@ -1,7 +1,8 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/connection.luau — ciclo de vida da sessão: init (semeia o contexto),
--- login/logout, configurações do daemon buscadas uma vez na conexão.
+-- handlers/connection.luau — ciclo de vida da sessão: init (semeia o
+-- contexto), login/logout, configurações do daemon buscadas uma vez na
+-- conexão.
 
 local State = require("../state")
 local Helpers = require("../helpers")
@@ -17,10 +18,11 @@ local History = require("history")
 -- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
 -- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
 -- no `<select>` (login.gvb): cada item mostra o `host:porta`, e escolher um
--- preenche o campo com o token de conexão dele. O armazenamento continua `{url, token}` (o token é montado na hora
--- de mostrar), então servidores salvos antes do login por token não se
--- perdem. `storage` grava em `~/.local/share/rustploy/.glacier-storage/app.json`
--- (raiz definida por `app(id = rustploy)` de `views/app.gvb`).
+-- preenche o campo com o token de conexão dele. O armazenamento continua
+-- `{url, token}` (o token é montado na hora de mostrar), então servidores
+-- salvos antes do login por token não se perdem. `storage` grava em
+-- `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida por
+-- `app(id = rustploy)` de `views/app.gvb`).
 local saved_servers: { { url: string, token: string } } = {}
 
 -- Publica `{label, value}` para o `<select>` de servidores salvos: o rótulo é
@@ -29,10 +31,13 @@ local saved_servers: { { url: string, token: string } } = {}
 -- propósito: num `<ComboEdit>` o campo mostra o RÓTULO da opção escolhida, e
 -- não dá para ter o endereço na lista e o token no campo ao mesmo tempo.
 local function publish_saved_servers(): ()
-    local server_options = json.array{}
+    local server_options = json.array {}
     for _, saved_server in ipairs(saved_servers) do
         local key = AccessKey.encode(saved_server.url, saved_server.token)
-        table.insert(server_options, { label = AccessKey.address_of(saved_server.url), value = key })
+        table.insert(
+            server_options,
+            { label = AccessKey.address_of(saved_server.url), value = key }
+        )
     end
     ctx.saved_servers = json.encode(server_options)
 end
@@ -41,7 +46,9 @@ end
 -- corresponde ao token digitado/colado (vazio quando não é nenhum salvo).
 local function publish_access_key_target(): ()
     local decoded_key = AccessKey.decode(ctx.access_key)
-    ctx.access_key_target = if decoded_key then "conecta em " .. decoded_key.address else ""
+    ctx.access_key_target = if decoded_key
+        then "conecta em " .. decoded_key.address
+        else ""
     ctx.saved_server_choice = ""
     for _, saved_server in ipairs(saved_servers) do
         local key = AccessKey.encode(saved_server.url, saved_server.token)
@@ -92,7 +99,9 @@ function forget_server(): ()
     local address = if decoded_key then decoded_key.address else nil
     for index = #saved_servers, 1, -1 do
         local saved_server = saved_servers[index]
-        if AccessKey.encode(saved_server.url, saved_server.token) == ctx.access_key
+        if
+            AccessKey.encode(saved_server.url, saved_server.token)
+                == ctx.access_key
             or AccessKey.address_of(saved_server.url) == address
         then
             table.remove(saved_servers, index)
@@ -126,17 +135,35 @@ function init(): ()
     ctx.manifest_deploy = ctx.manifest_deploy or "false"
     ctx.data_loading = "true"
     -- Coleção fixa do <radiogroup> de dia da semana (aba Manutenção). Semeada
-    -- aqui, e não no docker_cleanup_apply_config, porque não depende da config carregada:
-    -- se o load falhasse, a lista sumiria e o grupo ficaria vazio.
-    ctx.weekdays = format.WEEKDAYS_JSON
+    -- aqui, e não no docker_cleanup_apply_config, porque não depende da config
+    -- carregada: se o load falhasse, a lista sumiria e o grupo ficaria vazio.
+    ctx.weekdays = format.WEEKDAYS
     -- Itens das <tabbar> de rótulo fixo ({id,label}); a barra grava o id na
     -- chave `:value` sozinha, sem handler.
-    ctx.settings_tabs = [=[[{"id":"web","label":"Web Server"},{"id":"git","label":"Git"},{"id":"iac","label":"Infra as Code"},{"id":"maintenance","label":"Manutenção"}]]=]
-    ctx.docker_cleanup_kinds = [=[[{"id":"interval","label":"A cada N horas"},{"id":"daily","label":"Todo dia"},{"id":"weekly","label":"Toda semana"}]]=]
-    ctx.git_provider_modes = [=[[{"id":"oauth","label":"OAuth2"},{"id":"pat","label":"Token (PAT)"}]]=]
-    ctx.healthcheck_kinds = [=[[{"id":"none","label":"None"},{"id":"tcp","label":"Tcp"},{"id":"http","label":"Http"},{"id":"docker","label":"Docker"}]]=]
-    -- Listas vazias como "[]" (não nil) para os ForEach não verem literal.
-    for _, key in ipairs{
+    ctx.settings_tabs = {
+        { id = "web", label = "Web Server" },
+        { id = "git", label = "Git" },
+        { id = "iac", label = "Infra as Code" },
+        { id = "maintenance", label = "Manutenção" },
+    }
+    ctx.docker_cleanup_kinds = {
+        { id = "interval", label = "A cada N horas" },
+        { id = "daily", label = "Todo dia" },
+        { id = "weekly", label = "Toda semana" },
+    }
+    ctx.git_provider_modes = {
+        { id = "oauth", label = "OAuth2" },
+        { id = "pat", label = "Token (PAT)" },
+    }
+    ctx.healthcheck_kinds = {
+        { id = "none", label = "None" },
+        { id = "tcp", label = "Tcp" },
+        { id = "http", label = "Http" },
+        { id = "docker", label = "Docker" },
+    }
+    -- Listas vazias (não nil): declaram que a chave existe, e `tela:missing()`
+    -- acusa a que o markup lê e ninguém semeou.
+    for _, key in ipairs {
         "deployments",
         "projects",
         "project_rows",
@@ -157,17 +184,18 @@ function init(): ()
         "project_services",
     } do
         if not ctx[key] or ctx[key] == "" then
-            ctx[key] = "[]"
+            ctx[key] = json.array({})
         end
     end
     -- Contadores nascem "…", não "0": antes do primeiro snapshot não sabemos
-    -- quantos são, e "0" AFIRMA vazio — a UI piscava "Projects (0)" → "Projects
-    -- (2)", e mensagens como "Nenhum job cadastrado ainda" apareciam durante o
-    -- carregamento. O snapshot troca todos por número (apply_snapshot em
-    -- handlers/stream.luau, junto de `data_loading = "false"`). Os `equals="0"`
-    -- dos templates continuam valendo: com "…" não casam, então o estado vazio
-    -- só pinta quando o dado realmente chegou e é zero.
-    for _, key in ipairs{
+    -- quantos são, e "0" AFIRMA vazio — a UI piscava "Projects (0)" →
+    -- "Projects (2)", e mensagens como "Nenhum job cadastrado ainda" apareciam
+    -- durante o carregamento. O snapshot troca todos por número
+    -- (apply_snapshot em handlers/stream.luau, junto de `data_loading =
+    -- "false"`). Os `equals="0"` dos templates continuam valendo: com "…" não
+    -- casam, então o estado vazio só pinta quando o dado realmente chegou e é
+    -- zero.
+    for _, key in ipairs {
         "deployments_count",
         "projects_count",
         "services_count",
@@ -193,15 +221,16 @@ function init(): ()
         end
     end
     -- Semeia o formulário de login com a lista de servidores salvos, e
-    -- pré-preenche o token de conexão do mais usado por último (topo da lista) — para
-    -- nascer pronto pra conectar de novo sem escolher nada.
+    -- pré-preenche o token de conexão do mais usado por último (topo da lista)
+    -- — para nascer pronto pra conectar de novo sem escolher nada.
     local stored = storage.get("saved_servers")
     if type(stored) == "table" then
         saved_servers = stored
     end
     publish_saved_servers()
     if #saved_servers > 0 and (not ctx.access_key or ctx.access_key == "") then
-        ctx.access_key = AccessKey.encode(saved_servers[1].url, saved_servers[1].token)
+        ctx.access_key =
+            AccessKey.encode(saved_servers[1].url, saved_servers[1].token)
     end
     publish_access_key_target()
 end
@@ -210,53 +239,93 @@ end
 -- entram no snapshot para não sobrescrever campos que o usuário edita).
 local function load_settings(): ()
     local api = State.api
-    if not api then return end
-    local get_daemon_settings_ok, get_daemon_settings_response = api:rpc("GetDaemonSettings")
-    if get_daemon_settings_ok and get_daemon_settings_response.DaemonSettings then
+    if not api then
+        return
+    end
+    local get_daemon_settings_ok, get_daemon_settings_response =
+        api:rpc("GetDaemonSettings")
+    if
+        get_daemon_settings_ok and get_daemon_settings_response.DaemonSettings
+    then
         -- Base pública derivada pelo daemon a partir de [api] domain/port — é
         -- só-leitura (não há setter no protocolo), serve para exibir a base do
         -- webhook e montar a redirect URI do OAuth.
-        local base = get_daemon_settings_response.DaemonSettings.public_base_url or ""
+        local daemon_settings = get_daemon_settings_response.DaemonSettings
+        local base = daemon_settings.public_base_url or ""
         ctx.server_settings_public_base = base
-        ctx.server_settings_email = get_daemon_settings_response.DaemonSettings.acme_email or ""
-        ctx.server_settings_registry_domain = get_daemon_settings_response.DaemonSettings.registry_domain or ""
+        ctx.server_settings_email = daemon_settings.acme_email or ""
+        ctx.server_settings_registry_domain = daemon_settings.registry_domain
+            or ""
         ctx.git_provider_redirect = Helpers.oauth_redirect_uri(base)
     end
-    -- O token de conexão deste servidor, para Settings → Web Server → copiar. Montado
-    -- aqui (já temos url + token da sessão) em vez de pedida ao daemon: assim
-    -- ele é o que FUNCIONOU desta máquina, não o do `public_base_url`.
-    ctx.server_access_key = if api.token then AccessKey.encode(api.base_url, api.token) else ""
-    -- O comando que liga o Claude Code ao MCP deste servidor, pronto para colar
-    -- num terminal: o token já resolvido, sem `curl /api/login` no meio.
-    ctx.server_mcp_command = "claude mcp add --transport http --scope user rustploy "
-        .. api.base_url .. "/mcp"
-        .. (if api.token then ' --header "Authorization: Bearer ' .. api.token .. '"' else "")
-    -- Codex lê MCP HTTP do ~/.codex/config.toml: o cabeçalho vai num bloco TOML.
-    ctx.server_mcp_command_codex = '[mcp_servers.rustploy]\nurl = "' .. api.base_url .. '/mcp"'
-        .. (if api.token then '\nhttp_headers = { Authorization = "Bearer ' .. api.token .. '" }' else "")
-    ctx.server_mcp_command_gemini = "gemini mcp add --transport http --scope user "
-        .. (if api.token then '--header "Authorization: Bearer ' .. api.token .. '" ' else "")
-        .. "rustploy " .. api.base_url .. "/mcp"
+    -- O token de conexão deste servidor, para Settings → Web Server → copiar.
+    -- Montado aqui (já temos url + token da sessão) em vez de pedida ao
+    -- daemon: assim ele é o que FUNCIONOU desta máquina, não o do
+    -- `public_base_url`.
+    ctx.server_access_key = if api.token
+        then AccessKey.encode(api.base_url, api.token)
+        else ""
+    -- O comando que liga o Claude Code ao MCP deste servidor, pronto para
+    -- colar num terminal: o token já resolvido, sem `curl /api/login` no meio.
+    ctx.server_mcp_command = "claude mcp add --transport http --scope user "
+        .. "rustploy "
+        .. api.base_url
+        .. "/mcp"
+        .. (
+            if api.token
+                then ' --header "Authorization: Bearer ' .. api.token .. '"'
+                else ""
+        )
+    -- Codex lê MCP HTTP do ~/.codex/config.toml: o cabeçalho vai num bloco
+    -- TOML.
+    ctx.server_mcp_command_codex = '[mcp_servers.rustploy]\nurl = "'
+        .. api.base_url
+        .. '/mcp"'
+        .. (
+            if api.token
+                then '\nhttp_headers = { Authorization = "Bearer '
+                    .. api.token
+                    .. '" }'
+                else ""
+        )
+    ctx.server_mcp_command_gemini = "gemini mcp add --transport http --scope "
+        .. "user "
+        .. (if api.token
+            then '--header "Authorization: Bearer ' .. api.token .. '" '
+            else "")
+        .. "rustploy "
+        .. api.base_url
+        .. "/mcp"
     ctx.server_access_key_short = if api.token
-        then string.sub(ctx.server_access_key, 1, 12) .. "…" .. string.sub(ctx.server_access_key, -6)
+        then string.sub(ctx.server_access_key, 1, 12) .. "…" .. string.sub(
+            ctx.server_access_key,
+            -6
+        )
         else "— (daemon sem token)"
-    local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+    local git_provider_list_ok, git_provider_list_response =
+        api:rpc("GitProviderList")
     if git_provider_list_ok and git_provider_list_response.GitProviders then
         ctx.gitea_count = tostring(#git_provider_list_response.GitProviders)
     end
     Settings.docker_cleanup_load()
 end
 
--- O esquema de um `host:porta`: o token de conexão não o carrega. Sonda
--- `GET /api/version` (pública, sem token) primeiro com o esquema de um servidor
--- já salvo com esse endereço, depois https, depois http — qualquer resposta
--- HTTP, até um 404, prova que o esquema é aquele; erro de transporte (TLS
--- recusado, conexão fechada) passa para o próximo.
+-- O esquema de um `host:porta`: o token de conexão não o carrega. Sonda `GET
+-- /api/version` (pública, sem token) primeiro com o esquema de um servidor já
+-- salvo com esse endereço, depois https, depois http — qualquer resposta HTTP,
+-- até um 404, prova que o esquema é aquele; erro de transporte (TLS recusado,
+-- conexão fechada) passa para o próximo.
 local function resolve_base(address: string): (string?, string?)
     local schemes: { string } = {}
     for _, saved_server in ipairs(saved_servers) do
         if AccessKey.address_of(saved_server.url) == address then
-            table.insert(schemes, string.lower(string.match(saved_server.url, "^(%a[%w+.-]*)://") or "https"))
+            table.insert(
+                schemes,
+                string.lower(
+                    string.match(saved_server.url, "^(%a[%w+.-]*)://")
+                        or "https"
+                )
+            )
             break
         end
     end
@@ -268,13 +337,22 @@ local function resolve_base(address: string): (string?, string?)
     local last_error = ""
     for _, scheme in ipairs(schemes) do
         local base = scheme .. "://" .. address
-        local http_response = fetch(base .. "/api/version", { method = "GET", timeout = 8000 })
+        local http_response =
+            fetch(base .. "/api/version", { method = "GET", timeout = 8000 })
         if http_response.status ~= nil and http_response.status > 0 then
             return base, nil
         end
-        last_error = if http_response.error ~= nil and http_response.error ~= "" then http_response.error else "sem resposta"
+        last_error = if http_response.error ~= nil
+                and http_response.error ~= ""
+            then http_response.error
+            else "sem resposta"
     end
-    return nil, "não deu para falar com " .. address .. " nem por https nem por http (" .. last_error .. ")"
+    return nil,
+        "não deu para falar com "
+            .. address
+            .. " nem por https nem por http ("
+            .. last_error
+            .. ")"
 end
 
 -- on_submit/on_click do formulário de login: decodifica o token de conexão
@@ -293,9 +371,15 @@ function connect(): ()
     ctx.error = ""
 
     local resolved_base, resolve_error = resolve_base(decoded_key.address)
-    local base = if resolved_base then Helpers.normalize_url(resolved_base) else nil
+    local base = if resolved_base
+        then Helpers.normalize_url(resolved_base)
+        else nil
     if not base then
-        ctx.error = resolve_error or ("endereço inválido no token de conexão: " .. decoded_key.address)
+        ctx.error = resolve_error
+            or (
+                "endereço inválido no token de conexão: "
+                .. decoded_key.address
+            )
         ctx.status_line = "falha na conexão"
         ctx.connected = "false"
         return
@@ -304,7 +388,8 @@ function connect(): ()
 
     ctx.api_url = base
     ctx.api_token = token
-    -- Topbar: a qual servidor esta janela está ligada (host:porta, sem esquema).
+    -- Topbar: a qual servidor esta janela está ligada (host:porta, sem
+    -- esquema).
     ctx.connected_server = string.match(base, "^%a[%w+.-]*://(.+)$") or base
     local client = Api.new(base, token)
     State.api = client
@@ -340,12 +425,12 @@ end
 --
 -- Em vez de enumerar as chaves a limpar — a lista cresce a cada tela nova e
 -- sempre esquece alguma — apagamos o `ctx` INTEIRO e deixamos `init()` semear
--- os defaults como no boot. O login lembrado volta do `storage` (disco), não da
--- memória, então conectar de novo continua nascendo preenchido.
+-- os defaults como no boot. O login lembrado volta do `storage` (disco), não
+-- da memória, então conectar de novo continua nascendo preenchido.
 --
 -- `ctx[k] = nil` é remoção de verdade, não só sumiço do lado Luau: o glacier
--- espelha o contexto na tabela no início da execução e, no fim, remove do motor
--- toda chave ausente nela (sync_to_luau/sync_from_luau).
+-- espelha o contexto na tabela no início da execução e, no fim, remove do
+-- motor toda chave ausente nela (sync_to_luau/sync_from_luau).
 function disconnect(): ()
     if State.state_conn then
         pcall(function()

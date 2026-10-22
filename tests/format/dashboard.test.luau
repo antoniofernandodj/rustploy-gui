@@ -25,8 +25,24 @@ end
 --- filtra por serviço ou projeto e formata o estado
 function test_deployments__filtra_por_servico_ou_projeto_e_formata_o_estado()
     local entradas = {
-        { service_name = "api", project_name = "loja", deployment = { state = "Live", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:30Z" } },
-        { service_name = "web", project_name = "blog", deployment = { state = "Failed", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:05Z" } },
+        {
+            service_name = "api",
+            project_name = "loja",
+            deployment = {
+                state = "Live",
+                started_at = "2026-03-01T10:00:00Z",
+                finished_at = "2026-03-01T10:00:30Z",
+            },
+        },
+        {
+            service_name = "web",
+            project_name = "blog",
+            deployment = {
+                state = "Failed",
+                started_at = "2026-03-01T10:00:00Z",
+                finished_at = "2026-03-01T10:00:05Z",
+            },
+        },
     }
     local todas = json.decode(Dashboard.deployments(entradas, ""))
     assert_eq(#todas, 2)
@@ -45,11 +61,12 @@ end
 
 --- status, porta e métricas
 function test_cards_de_servico__status_porta_e_metricas()
-    local cartoes = json.decode(Dashboard.services(
-        { par("api", "loja") },
-        { ["id-api"] = { cpu_percent = 12.34, mem_used_bytes = 5 * 1024 * 1024 } },
-        ""
-    ))
+    local cartoes = json.decode(Dashboard.services({ par("api", "loja") }, {
+        ["id-api"] = {
+            cpu_percent = 12.34,
+            mem_used_bytes = 5 * 1024 * 1024,
+        },
+    }, ""))
     assert_eq(#cartoes, 1)
     assert_eq(cartoes[1].name, "api")
     assert_eq(cartoes[1].project, "loja")
@@ -62,15 +79,17 @@ end
 
 --- sem métricas o card mostra —
 function test_cards_de_servico__sem_metricas_o_card_mostra()
-    local c = json.decode(Dashboard.services({ par("api", "loja") }, nil, ""))[1]
+    local c =
+        json.decode(Dashboard.services({ par("api", "loja") }, nil, ""))[1]
     assert_eq(c.cpu, "—")
     assert_eq(c.mem, "—")
     assert_eq(c.container_name, "—")
     assert_eq(c.container_extra, "")
 end
 
---- o container primário é o live; senão o primeiro em execução; +N quando há mais
-function test_cards_de_servico__o_container_primario_e_o_live_senao_o_primeiro_em_execucao_n_quando_ha_mais()
+--- o container primário é o live; senão o primeiro em execução; +N quando há
+--- mais
+function test_cards_de_servico__o_container_primario_e_o_live_senao_o()
     local com_live = par("a", "p", {
         live_container_id = "idb",
         containers = {
@@ -95,10 +114,11 @@ function test_cards_de_servico__o_container_primario_e_o_live_senao_o_primeiro_e
 end
 
 --- o selo de aquecimento só existe quando há warm
-function test_cards_de_servico__o_selo_de_aquecimento_so_existe_quando_ha_warm()
+function test_cards_de_servico__o_selo_de_aquecimento_so_existe_quando_ha()
     local quente = par("a", "p")
     quente.warm = { warm = true, reason = "build ok" }
-    local linhas = json.decode(Dashboard.services({ quente, par("b", "p") }, nil, ""))
+    local linhas =
+        json.decode(Dashboard.services({ quente, par("b", "p") }, nil, ""))
     assert_eq(linhas[1].has_warm, "true")
     assert_eq(linhas[1].warm_label, "quente")
     assert_eq(linhas[1].warm_reason, "build ok")
@@ -135,7 +155,7 @@ function test_grade__1_a_3_colunas_todas_as_fileiras_com_a_mesma_largura()
 end
 
 --- a última fileira é completada com cards vazios (a grade não tem grid)
-function test_grade__a_ultima_fileira_e_completada_com_cards_vazios_a_grade_nao_tem_grid()
+function test_grade__a_ultima_fileira_e_completada_com_cards_vazios_a_grade()
     com_menu(false)
     local linhas = linhas_para(7)
     local colunas = #linhas[1].cards
@@ -155,7 +175,7 @@ function test_grade__a_ultima_fileira_e_completada_com_cards_vazios_a_grade_nao_
 end
 
 --- o card vazio carrega os campos dos dois contratos, como texto
-function test_grade__o_card_vazio_carrega_os_campos_dos_dois_contratos_como_texto()
+function test_grade__o_card_vazio_carrega_os_campos_dos_dois_contratos_como()
     com_menu(false)
     local linhas = linhas_para(1)
     local vazio
@@ -165,7 +185,20 @@ function test_grade__o_card_vazio_carrega_os_campos_dos_dois_contratos_como_text
         end
     end
     if vazio then
-        for _, campo in { "id", "name", "project", "port", "status_label", "cpu", "mem", "description", "service_count", "can_delete" } do
+        for _, campo in
+            {
+                "id",
+                "name",
+                "project",
+                "port",
+                "status_label",
+                "cpu",
+                "mem",
+                "description",
+                "service_count",
+                "can_delete",
+            }
+        do
             assert_eq(vazio[campo], "")
         end
     end
@@ -203,7 +236,7 @@ function test_grade__project_rows_segue_a_mesma_regra_de_grade()
 end
 
 --- conta serviços e os que estão rodando, e só deixa apagar projeto vazio
-function test_projetos__conta_servicos_e_os_que_estao_rodando_e_so_deixa_apagar_projeto_vazio()
+function test_projetos__conta_servicos_e_os_que_estao_rodando_e_so_deixa()
     local pares = {
         par("a", "x"), -- project_id "p-x"
         par("b", "x", { status = "Stopped" }),
@@ -224,7 +257,10 @@ end
 
 --- a busca olha nome e descrição
 function test_projetos__a_busca_olha_nome_e_descricao()
-    local projetos = { { id = "1", name = "loja", description = "vendas" }, { id = "2", name = "blog" } }
+    local projetos = {
+        { id = "1", name = "loja", description = "vendas" },
+        { id = "2", name = "blog" },
+    }
     assert_eq(#json.decode(Dashboard.projects(projetos, {}, "vend")), 1)
     assert_eq(#json.decode(Dashboard.projects(projetos, {}, "blog")), 1)
     assert_eq(Dashboard.projects(nil, {}, ""), "[]")
@@ -244,13 +280,26 @@ function test_docker__docker_rows_ordena_por_nome_e_resume_a_imagem()
 end
 
 local imagens = {
-    { id = "sha256:aaaaaaaaaaaaaaaa", tags = { "web:1" }, size_bytes = 2048, containers = 1, project = "loja", service = "web", created = "2026-03-01T10:00:00Z" },
-    { id = "sha256:bbbbbbbbbbbbbbbb", tags = {}, size_bytes = 1024, containers = 0 },
+    {
+        id = "sha256:aaaaaaaaaaaaaaaa",
+        tags = { "web:1" },
+        size_bytes = 2048,
+        containers = 1,
+        project = "loja",
+        service = "web",
+        created = "2026-03-01T10:00:00Z",
+    },
+    {
+        id = "sha256:bbbbbbbbbbbbbbbb",
+        tags = {},
+        size_bytes = 1024,
+        containers = 0,
+    },
     { id = "cccc", tags = { "api:2" }, containers = 0 },
 }
 
 --- imagens: ordenadas por tag, sem sha256: e com <none> para as sem tag
-function test_docker__imagens_ordenadas_por_tag_sem_sha256_e_com_none_para_as_sem_tag()
+function test_docker__imagens_ordenadas_por_tag_sem_sha256_e_com_none_para_as()
     local linhas = json.decode(Dashboard.docker_images(imagens, "", false))
     assert_eq(#linhas, 3)
     -- ordem por tags unidas: "" < "api:2" < "web:1"
@@ -267,7 +316,10 @@ function test_docker__imagens_em_uso_dono_e_tamanhos_crus_para_ordenar()
     local web = linhas[3]
     assert_eq(web.in_use_label, "EM USO")
     assert_eq(web.in_use_kind, "ok")
-    assert_eq(web.owner, Util.ellipsis("loja / web", Util.column_budgets().proj))
+    assert_eq(
+        web.owner,
+        Util.ellipsis("loja / web", Util.column_budgets().proj)
+    )
     assert_eq(web.size, "2 KB")
     assert_eq(web.size_bytes, 2048)
     assert_eq(web.created_iso, "2026-03-01T10:00:00Z")
@@ -277,7 +329,7 @@ function test_docker__imagens_em_uso_dono_e_tamanhos_crus_para_ordenar()
 end
 
 --- imagens: 'somente em uso' esconde as órfãs, e a busca olha tags e dono
-function test_docker__imagens_somente_em_uso_esconde_as_orfas_e_a_busca_olha_tags_e_dono()
+function test_docker__imagens_somente_em_uso_esconde_as_orfas_e_a_busca_olha()
     local em_uso = json.decode(Dashboard.docker_images(imagens, "", true))
     assert_eq(#em_uso, 1)
     assert_eq(em_uso[1].tags, "web:1")
@@ -288,9 +340,26 @@ end
 --- volumes: filtro de uso, tamanho desconhecido e dono
 function test_docker__volumes_filtro_de_uso_tamanho_desconhecido_e_dono()
     local volumes = {
-        { name = "dados", driver = "local", mountpoint = "/v/dados", in_use = true, size_bytes = 5 * 1024 * 1024 },
-        { name = "antigo", driver = "local", mountpoint = "/v/antigo", in_use = false },
-        { name = "neg", driver = "nfs", mountpoint = "/v/n", in_use = false, size_bytes = -1 },
+        {
+            name = "dados",
+            driver = "local",
+            mountpoint = "/v/dados",
+            in_use = true,
+            size_bytes = 5 * 1024 * 1024,
+        },
+        {
+            name = "antigo",
+            driver = "local",
+            mountpoint = "/v/antigo",
+            in_use = false,
+        },
+        {
+            name = "neg",
+            driver = "nfs",
+            mountpoint = "/v/n",
+            in_use = false,
+            size_bytes = -1,
+        },
     }
     local todos = json.decode(Dashboard.docker_volumes(volumes, "", false))
     assert_eq(#todos, 3)
@@ -311,8 +380,22 @@ end
 --- redes: ordem, contagem de containers e filtro
 function test_docker__redes_ordem_contagem_de_containers_e_filtro()
     local redes = {
-        { name = "zz", id = "n2", driver = "bridge", scope = "local", in_use = false },
-        { name = "aa", id = "n1", driver = "bridge", scope = "local", in_use = true, container_count = 3, project = "loja" },
+        {
+            name = "zz",
+            id = "n2",
+            driver = "bridge",
+            scope = "local",
+            in_use = false,
+        },
+        {
+            name = "aa",
+            id = "n1",
+            driver = "bridge",
+            scope = "local",
+            in_use = true,
+            container_count = 3,
+            project = "loja",
+        },
     }
     local linhas = json.decode(Dashboard.docker_networks(redes, "", false))
     assert_eq(linhas[1].name, "aa")
@@ -326,8 +409,21 @@ end
 --- containers: dono, removível só parado, imagem sem sha256:
 function test_docker__containers_dono_removivel_so_parado_imagem_sem_sha256()
     local linhas = json.decode(Dashboard.docker_containers({
-        { id = "0123456789abcdef", name = "rp_api", image = "sha256:abcdef", state = "running", project = "loja", service = "api" },
-        { id = "b", name = "rp_db", image = "pg:16", state = "exited", managed = true },
+        {
+            id = "0123456789abcdef",
+            name = "rp_api",
+            image = "sha256:abcdef",
+            state = "running",
+            project = "loja",
+            service = "api",
+        },
+        {
+            id = "b",
+            name = "rp_db",
+            image = "pg:16",
+            state = "exited",
+            managed = true,
+        },
         { id = "c", name = "outro", image = "x", state = "created" },
     }, ""))
     assert_eq(#linhas, 3)
@@ -338,7 +434,10 @@ function test_docker__containers_dono_removivel_so_parado_imagem_sem_sha256()
     assert_eq(linhas[2].image, "abcdef")
     assert_eq(linhas[2].can_remove, "0")
     assert_eq(linhas[2].state_kind, "ok")
-    assert_eq(linhas[3].owner, Util.ellipsis("rustploy", Util.column_budgets().state))
+    assert_eq(
+        linhas[3].owner,
+        Util.ellipsis("rustploy", Util.column_budgets().state)
+    )
     assert_eq(linhas[3].can_remove, "1")
 end
 
@@ -346,7 +445,13 @@ end
 function test_docker__containers_a_busca_olha_nome_imagem_estado_e_dono()
     local lista = {
         { name = "a", image = "pg:16", state = "running" },
-        { name = "b", image = "x", state = "exited", project = "loja", service = "web" },
+        {
+            name = "b",
+            image = "x",
+            state = "exited",
+            project = "loja",
+            service = "web",
+        },
     }
     assert_eq(#json.decode(Dashboard.docker_containers(lista, "pg")), 1)
     assert_eq(#json.decode(Dashboard.docker_containers(lista, "exited")), 1)
@@ -355,9 +460,10 @@ function test_docker__containers_a_busca_olha_nome_imagem_estado_e_dono()
 end
 
 --- ingress: uma linha por rota, com a porta do upstream
-function test_ingress_portas_e_monitoramento__ingress_uma_linha_por_rota_com_a_porta_do_upstream()
+function test_ingress_portas_e_monitoramento__ingress_uma_linha_por_rota_com()
     local a = par("api", "loja")
-    a.svc.spec.domains = { { domain = "a.com", port = 3000, tls = true }, { domain = "b.com" } }
+    a.svc.spec.domains =
+        { { domain = "a.com", port = 3000, tls = true }, { domain = "b.com" } }
     local texto, total = Dashboard.ingress({ a })
     local linhas = json.decode(texto)
     assert_eq(total, 2)
@@ -370,7 +476,7 @@ function test_ingress_portas_e_monitoramento__ingress_uma_linha_por_rota_com_a_p
 end
 
 --- ingress ignora domínio em branco e entende o campo legado
-function test_ingress_portas_e_monitoramento__ingress_ignora_dominio_em_branco_e_entende_o_campo_legado()
+function test_ingress_portas_e_monitoramento__ingress_ignora_dominio_em()
     local vazio = par("a", "p")
     vazio.svc.spec.domains = { { domain = "   " } }
     local legado = par("b", "p")
@@ -383,7 +489,7 @@ function test_ingress_portas_e_monitoramento__ingress_ignora_dominio_em_branco_e
 end
 
 --- portas de host: só quem tem host_port, em ordem numérica
-function test_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host_port_em_ordem_numerica()
+function test_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host()
     local a, b = par("a", "p"), par("b", "p")
     a.svc.spec.host_port = 9000
     b.svc.spec.host_port = 80
@@ -397,11 +503,17 @@ function test_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host_po
 end
 
 --- monitoramento: só serviços com métricas vivas, com valores crus
-function test_ingress_portas_e_monitoramento__monitoramento_so_servicos_com_metricas_vivas_com_valores_crus()
-    local linhas = json.decode(Dashboard.monitoring(
-        { par("api", "loja"), par("web", "loja") },
-        { ["id-api"] = { cpu_percent = 50, mem_used_bytes = 2048, net_rx_bytes = 1024, net_tx_bytes = 0 } }
-    ))
+function test_ingress_portas_e_monitoramento__monitoramento_so_servicos_com()
+    local linhas = json.decode(
+        Dashboard.monitoring({ par("api", "loja"), par("web", "loja") }, {
+            ["id-api"] = {
+                cpu_percent = 50,
+                mem_used_bytes = 2048,
+                net_rx_bytes = 1024,
+                net_tx_bytes = 0,
+            },
+        })
+    )
     assert_eq(#linhas, 1)
     assert_eq(linhas[1].name, "api")
     assert_eq(linhas[1].cpu, "50.0%")
@@ -414,7 +526,16 @@ function test_ingress_portas_e_monitoramento__monitoramento_so_servicos_com_metr
 end
 
 local function info(estado, extras)
-    local base = { state = estado, service_name = "api", project_name = "loja", elapsed_secs = 75, current_state_secs = 5, service_id = "s1", deployment_id = "d1", states = {} }
+    local base = {
+        state = estado,
+        service_name = "api",
+        project_name = "loja",
+        elapsed_secs = 75,
+        current_state_secs = 5,
+        service_id = "s1",
+        deployment_id = "d1",
+        states = {},
+    }
     for k, v in extras or {} do
         base[k] = v
     end
@@ -439,15 +560,44 @@ function test_motor_de_deploy__sao_oito_passos_do_fila_ao_live()
 end
 
 --- em andamento: os anteriores feitos, o atual marcado, os seguintes pendentes
-function test_motor_de_deploy__em_andamento_os_anteriores_feitos_o_atual_marcado_os_seguintes_pendentes()
-    assert_eq(status_dos_passos(info("BuildingImage")), { "done", "done", "done", "current", "pending", "pending", "pending", "pending" })
-    assert_eq(status_dos_passos(info("Pending")), { "current", "pending", "pending", "pending", "pending", "pending", "pending", "pending" })
-    assert_eq(status_dos_passos(info("Draining")), { "done", "done", "done", "done", "done", "done", "current", "pending" })
+function test_motor_de_deploy__em_andamento_os_anteriores_feitos_o_atual()
+    assert_eq(status_dos_passos(info("BuildingImage")), {
+        "done",
+        "done",
+        "done",
+        "current",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+    })
+    assert_eq(status_dos_passos(info("Pending")), {
+        "current",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+    })
+    assert_eq(status_dos_passos(info("Draining")), {
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "current",
+        "pending",
+    })
 end
 
 --- os quatro estados de 'Obter' caem no mesmo passo
 function test_motor_de_deploy__os_quatro_estados_de_obter_caem_no_mesmo_passo()
-    for _, estado in { "PullingImage", "CloningRepo", "BuildingImage", "ComposingUp" } do
+    for _, estado in
+        { "PullingImage", "CloningRepo", "BuildingImage", "ComposingUp" }
+    do
         assert_eq(status_dos_passos(info(estado))[4], "current")
     end
 end
@@ -463,7 +613,7 @@ function test_motor_de_deploy__live_stopped_e_pruning_terminam_com_tudo_feito()
 end
 
 --- falha marca o passo em que estava, achado no histórico
-function test_motor_de_deploy__falha_marca_o_passo_em_que_estava_achado_no_historico()
+function test_motor_de_deploy__falha_marca_o_passo_em_que_estava_achado_no()
     local falhou = info("Failed", {
         states = {
             { from = "Pending", to = "BuildingImage" },
@@ -471,11 +621,20 @@ function test_motor_de_deploy__falha_marca_o_passo_em_que_estava_achado_no_histo
             { from = "HealthcheckPolling", to = "Failed" },
         },
     })
-    assert_eq(status_dos_passos(falhou), { "done", "done", "done", "done", "done", "failed", "pending", "pending" })
+    assert_eq(status_dos_passos(falhou), {
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "failed",
+        "pending",
+        "pending",
+    })
 end
 
 --- falha sem histórico não marca nenhum passo como atual
-function test_motor_de_deploy__falha_sem_historico_nao_marca_nenhum_passo_como_atual()
+function test_motor_de_deploy__falha_sem_historico_nao_marca_nenhum_passo()
     local lista = status_dos_passos(info("Failed"))
     for _, status in lista do
         assert_ne(status, "current")
@@ -496,7 +655,11 @@ function test_motor_de_deploy__detalhe_duracao_entre_transicoes_tipo_e_motivo()
         states = {
             { to = "Pending", at = "2026-03-01T10:00:00Z" },
             { to = "BuildingImage", at = "2026-03-01T10:00:10Z" },
-            { to = "Failed", at = "2026-03-01T10:01:10Z", message = "\nerro no build\nlinha 2" },
+            {
+                to = "Failed",
+                at = "2026-03-01T10:01:10Z",
+                message = "\nerro no build\nlinha 2",
+            },
         },
     })))
     assert_eq(#linhas, 3)
@@ -510,30 +673,35 @@ function test_motor_de_deploy__detalhe_duracao_entre_transicoes_tipo_e_motivo()
 end
 
 --- detalhe: a transição corrente mostra o tempo no estado e fica 'info'
-function test_motor_de_deploy__detalhe_a_transicao_corrente_mostra_o_tempo_no_estado_e_fica_info()
-    local linhas = json.decode(Dashboard.deploy_engine_detail(info("BuildingImage", {
-        current_state_secs = 42,
-        states = {
-            { to = "Pending", at = "2026-03-01T10:00:00Z" },
-            { to = "BuildingImage", at = "2026-03-01T10:00:10Z" },
-        },
-    })))
+function test_motor_de_deploy__detalhe_a_transicao_corrente_mostra_o_tempo_no()
+    local linhas =
+        json.decode(Dashboard.deploy_engine_detail(info("BuildingImage", {
+            current_state_secs = 42,
+            states = {
+                { to = "Pending", at = "2026-03-01T10:00:00Z" },
+                { to = "BuildingImage", at = "2026-03-01T10:00:10Z" },
+            },
+        })))
     assert_eq(linhas[2].dur, "42s")
     assert_eq(linhas[2].kind, "info")
     assert_eq(linhas[1].kind, "ok")
 end
 
 --- detalhe: timestamp inválido não dá duração negativa
-function test_motor_de_deploy__detalhe_timestamp_invalido_nao_da_duracao_negativa()
+function test_motor_de_deploy__detalhe_timestamp_invalido_nao_da_duracao()
     local linhas = json.decode(Dashboard.deploy_engine_detail(info("Live", {
-        states = { { to = "Pending", at = "lixo" }, { to = "Live", at = "lixo" } },
+        states = {
+            { to = "Pending", at = "lixo" },
+            { to = "Live", at = "lixo" },
+        },
     })))
     assert_eq(linhas[1].dur, "0s")
 end
 
 --- executando agora traz estado, tempos e os passos
-function test_motor_de_deploy__executando_agora_traz_estado_tempos_e_os_passos()
-    local linhas = json.decode(Dashboard.deploy_engine_active({ info("BuildingImage") }))
+function test_motor_de_deploy__executando_agora_traz_estado_tempos_e_os()
+    local linhas =
+        json.decode(Dashboard.deploy_engine_active({ info("BuildingImage") }))
     assert_eq(#linhas, 1)
     assert_eq(linhas[1].service, "api")
     assert_eq(linhas[1].state_label, "BUILDING")
@@ -546,7 +714,10 @@ end
 
 --- a fila numera de 1 e guarda o id para cancelar
 function test_motor_de_deploy__a_fila_numera_de_1_e_guarda_o_id_para_cancelar()
-    local linhas = json.decode(Dashboard.deploy_engine_queued({ info("Pending", { deployment_id = "q1" }), info("Pending", { deployment_id = "q2" }) }))
+    local linhas = json.decode(Dashboard.deploy_engine_queued({
+        info("Pending", { deployment_id = "q1" }),
+        info("Pending", { deployment_id = "q2" }),
+    }))
     assert_eq(linhas[1].pos, "1")
     assert_eq(linhas[2].pos, "2")
     assert_eq(linhas[2].deployment_id, "q2")

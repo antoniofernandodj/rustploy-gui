@@ -4,14 +4,14 @@
 --
 -- O app tem UMA tela: a visão, o serviço, o projeto e as abas são chaves do
 -- `ctx`, e a pilha de telas do motor fica sempre vazia. Quem sabe o caminho
--- percorrido é este módulo: cada troca de visão empilha um retrato dessas chaves
--- ANTES de mudá-las, e voltar desempilha e restaura.
+-- percorrido é este módulo: cada troca de visão empilha um retrato dessas
+-- chaves ANTES de mudá-las, e voltar desempilha e restaura.
 --
--- Telas com dados buscados (o detalhe de um serviço, a lista de um projeto) não
--- se restauram só pelas chaves — o `ctx` ainda guarda o detalhe do ÚLTIMO serviço
--- aberto. Quem as abre registra um `register(view, restaurar)` que as reabre pelo
--- mesmo caminho do clique; durante o voltar `replaying` impede que essa reabertura
--- empilhe de novo.
+-- Telas com dados buscados (o detalhe de um serviço, a lista de um projeto)
+-- não se restauram só pelas chaves — o `ctx` ainda guarda o detalhe do ÚLTIMO
+-- serviço aberto. Quem as abre registra um `register(view, restaurar)` que as
+-- reabre pelo mesmo caminho do clique; durante o voltar `replaying` impede que
+-- essa reabertura empilhe de novo.
 
 local History = {}
 

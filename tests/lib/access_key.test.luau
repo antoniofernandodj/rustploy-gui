@@ -32,7 +32,10 @@ end
 function test_encode__e_o_base64_padrao_de_host_porta_token()
     assert_eq(AccessKey.encode("https://h:9797", "tok"), "aDo5Nzk3Ojp0b2s=")
     assert_eq(AccessKey.encode("https://h", "abc"), "aDo0NDM6OmFiYw==")
-    assert_eq(AccessKey.encode("https://srv.example.com:9797", "0123456789abcdef"), "c3J2LmV4YW1wbGUuY29tOjk3OTc6OjAxMjM0NTY3ODlhYmNkZWY=")
+    assert_eq(
+        AccessKey.encode("https://srv.example.com:9797", "0123456789abcdef"),
+        "c3J2LmV4YW1wbGUuY29tOjk3OTc6OjAxMjM0NTY3ODlhYmNkZWY="
+    )
 end
 
 --- token vazio (API aberta) ainda gera uma chave
@@ -55,13 +58,18 @@ end
 
 --- encode e decode são inversos
 function test_decode__encode_e_decode_sao_inversos()
-    for _, par in {
-        { "https://h:9797", "tok" },
-        { "https://servidor.exemplo.com:1234", "0123456789abcdef0123456789abcdef" },
-        { "http://10.0.0.5", "t" },
-        { "https://[::1]:9797", "tk" },
-        { "https://h", "" },
-    } do
+    for _, par in
+        {
+            { "https://h:9797", "tok" },
+            {
+                "https://servidor.exemplo.com:1234",
+                "0123456789abcdef0123456789abcdef",
+            },
+            { "http://10.0.0.5", "t" },
+            { "https://[::1]:9797", "tk" },
+            { "https://h", "" },
+        }
+    do
         local chave = AccessKey.decode(AccessKey.encode(par[1], par[2]))
         assert_not_nil(chave)
         assert_eq(chave.address, AccessKey.address_of(par[1]))
@@ -112,7 +120,7 @@ function test_decode__vazio_pede_para_colar()
 end
 
 --- caractere fora do alfabeto ou comprimento impossível = corrompido
-function test_decode__caractere_fora_do_alfabeto_ou_comprimento_impossivel_corrompido()
+function test_decode__caractere_fora_do_alfabeto_ou_comprimento_impossivel()
     for _, ruim in { "!!!!", "aDo5Nzk3Ojp0b2s$", "a" } do
         local chave, motivo = AccessKey.decode(ruim)
         assert_nil(chave)
@@ -121,7 +129,7 @@ function test_decode__caractere_fora_do_alfabeto_ou_comprimento_impossivel_corro
 end
 
 --- o token da API colado no lugar do de conexão é reconhecido
-function test_decode__o_token_da_api_colado_no_lugar_do_de_conexao_e_reconhecido()
+function test_decode__o_token_da_api_colado_no_lugar_do_de_conexao_e()
     -- Um token hex também "decodifica" como base64, mas não traz o `::`.
     local chave, motivo = AccessKey.decode("0123456789abcdef0123456789abcdef")
     assert_nil(chave)
@@ -144,5 +152,8 @@ end
 
 --- mostra o servidor e as pontas da chave
 function test_hint__mostra_o_servidor_e_as_pontas_da_chave()
-    assert_eq(AccessKey.hint("https://h:9797", "aDo5Nzk3Ojp0b2s="), "h:9797 · aDo5Nz…p0b2s=")
+    assert_eq(
+        AccessKey.hint("https://h:9797", "aDo5Nzk3Ojp0b2s="),
+        "h:9797 · aDo5Nz…p0b2s="
+    )
 end

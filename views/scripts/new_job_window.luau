@@ -9,8 +9,8 @@
 -- executor), mesma razão de `new_service_window.luau`.
 --
 -- require resolve relativo a ESTE arquivo (scripts/): "net/api", "helpers" e
--- "format" (só os builders de git_providers/git_repos/git_branches, reusados da
--- aba Gitea de serviço — ver handlers/services.luau).
+-- "format" (só os builders de git_providers/git_repos/git_branches, reusados
+-- da aba Gitea de serviço — ver handlers/services.luau).
 
 local Api = require("net/api")
 local Helpers = require("helpers")
@@ -25,7 +25,7 @@ local function client(): Api.Client?
 end
 
 local function decode(json_text: string?): { any }
-    local json_decode_ok, decoded = pcall(json.decode, json_text or "[]")
+    local json_decode_ok, decoded = Helpers.decode_list(json_text)
     if json_decode_ok and type(decoded) == "table" then
         return decoded
     end
@@ -34,7 +34,9 @@ end
 
 -- Recorrência (Option<Recurrence>, externally-tagged) → (kind, hours, hour,
 -- minute, weekday), pro formulário. Inverso do bloco em new_job_create.
-local function unpack_recurrence(recurrence: any): (string, string, string, string, string)
+local function unpack_recurrence(
+    recurrence: any
+): (string, string, string, string, string)
     if recurrence == nil then
         return "manual", "6", "3", "0", "0"
     end
@@ -42,19 +44,28 @@ local function unpack_recurrence(recurrence: any): (string, string, string, stri
         return "interval", tostring(recurrence.IntervalHours), "3", "0", "0"
     end
     if recurrence.Daily ~= nil then
-        return "daily", "6", tostring(recurrence.Daily.hour), tostring(recurrence.Daily.minute), "0"
+        return "daily",
+            "6",
+            tostring(recurrence.Daily.hour),
+            tostring(recurrence.Daily.minute),
+            "0"
     end
     if recurrence.Weekly ~= nil then
-        return "weekly", "6", tostring(recurrence.Weekly.hour), tostring(recurrence.Weekly.minute), tostring(recurrence.Weekly.weekday)
+        return "weekly",
+            "6",
+            tostring(recurrence.Weekly.hour),
+            tostring(recurrence.Weekly.minute),
+            tostring(recurrence.Weekly.weekday)
     end
     return "manual", "6", "3", "0", "0"
 end
 
 function init(): ()
-    -- ctx.new_job_projects/new_job_services já chegam como JSON (semeados via data).
-    ctx.new_job_projects = ctx.new_job_projects or "[]"
-    ctx.new_job_services_all = ctx.new_job_services or "[]"
-    ctx.new_job_services_filtered = "[]"
+    -- ctx.new_job_projects/new_job_services já chegam como JSON (semeados via
+    -- data).
+    ctx.new_job_projects = ctx.new_job_projects or json.array({})
+    ctx.new_job_services_all = ctx.new_job_services or json.array({})
+    ctx.new_job_services_filtered = json.array({})
 
     ctx.new_job_step = "pick_project"
     ctx.new_job_project_id = ""
@@ -67,16 +78,17 @@ function init(): ()
 
     -- Fonte do compose: "compose" (colado, default) | "git" (clona um repo
     -- a cada execução — mesmo picker conta→repo→branch da aba Gitea de
-    -- serviço). Ver new_job_source/new_job_git_provider_pick/new_job_git_repo_pick.
-    -- Os campos de picker usam `or` (não sobrescrevem à força): em modo
-    -- edição de job git-sourced, open_edit_job_window já resolveu e semeou
-    -- esses valores (não dá pra buscar aqui dentro, ver docstring do topo).
+    -- serviço). Ver
+    -- new_job_source/new_job_git_provider_pick/new_job_git_repo_pick. Os
+    -- campos de picker usam `or` (não sobrescrevem à força): em modo edição de
+    -- job git-sourced, open_edit_job_window já resolveu e semeou esses valores
+    -- (não dá pra buscar aqui dentro, ver docstring do topo).
     ctx.new_job_source = "compose"
-    ctx.new_job_git_providers = ctx.new_job_git_providers or "[]"
+    ctx.new_job_git_providers = ctx.new_job_git_providers or json.array({})
     ctx.new_job_git_provider_id = ""
-    ctx.new_job_git_repos = ctx.new_job_git_repos or "[]"
+    ctx.new_job_git_repos = ctx.new_job_git_repos or json.array({})
     ctx.new_job_git_repo = ctx.new_job_git_repo or ""
-    ctx.new_job_git_branches = ctx.new_job_git_branches or "[]"
+    ctx.new_job_git_branches = ctx.new_job_git_branches or json.array({})
     ctx.new_job_git_branch = ""
     ctx.new_job_compose_path = "docker-compose.yml"
     ctx.new_job_git_message = ""
@@ -90,11 +102,12 @@ function init(): ()
     ctx.new_job_hours = "6"
     -- Uma chave só, "HH:MM": quem edita o horário agora é o <timeedit> do
     -- .gvb. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
-    -- formato do daemon) e format.hour_minute_join/hour_minute_split fazem a ponte.
+    -- formato do daemon) e format.hour_minute_join/hour_minute_split fazem a
+    -- ponte.
     ctx.new_job_time = "03:00"
     ctx.new_job_weekday = "0"
     -- Coleção fixa do <radiogroup> de dia da semana (recorrência Semanal).
-    ctx.weekdays = format.WEEKDAYS_JSON
+    ctx.weekdays = format.WEEKDAYS
     ctx.new_job_error = ""
     ctx.new_job_message = ""
 
@@ -116,16 +129,19 @@ function init(): ()
                 ctx.new_job_source = "git"
                 ctx.new_job_git_provider_id = job.git_source.provider_id or ""
                 ctx.new_job_git_branch = job.git_source.branch or ""
-                ctx.new_job_compose_path = job.git_source.compose_path or "docker-compose.yml"
+                ctx.new_job_compose_path = job.git_source.compose_path
+                    or "docker-compose.yml"
                 -- new_job_git_repo já vem semeado (resolvido por
                 -- open_edit_job_window a partir de git_source.url).
             else
                 ctx.new_job_compose = job.compose or ""
             end
 
-            ctx.new_job_env_text = format.env_dotenv_with_comments(job.env_vars, job.env_comments)
+            ctx.new_job_env_text =
+                format.env_dotenv_with_comments(job.env_vars, job.env_comments)
 
-            local kind, hours, hour, minute, weekday = unpack_recurrence(job.recurrence)
+            local kind, hours, hour, minute, weekday =
+                unpack_recurrence(job.recurrence)
             ctx.new_job_kind = kind
             ctx.new_job_hours = hours
             ctx.new_job_time = format.hour_minute_join(hour, minute)
@@ -148,17 +164,21 @@ end
 
 function new_job_source(kind: string): ()
     ctx.new_job_source = kind
-    if kind == "git" and ctx.new_job_git_providers == "[]" then
+    if kind == "git" and Helpers.list_is_empty(ctx.new_job_git_providers) then
         local api = client()
         if not api then
             return
         end
         ctx.new_job_git_message = "carregando contas…"
         ctx.new_job_git_busy = "true"
-        local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
+        local git_provider_list_ok, git_provider_list_response =
+            api:rpc("GitProviderList")
         ctx.new_job_git_busy = ""
-        if git_provider_list_ok and git_provider_list_response.GitProviders then
-            ctx.new_job_git_providers = format.git_providers(git_provider_list_response.GitProviders)
+        if
+            git_provider_list_ok and git_provider_list_response.GitProviders
+        then
+            ctx.new_job_git_providers =
+                format.git_providers(git_provider_list_response.GitProviders)
             ctx.new_job_git_message = ""
         else
             ctx.new_job_git_message = "erro ao listar contas conectadas"
@@ -169,21 +189,23 @@ end
 function new_job_git_provider_pick(provider_id: string): ()
     ctx.new_job_git_provider_id = provider_id or ""
     ctx.new_job_git_repo = ""
-    ctx.new_job_git_repos = "[]"
-    ctx.new_job_git_branches = "[]"
+    ctx.new_job_git_repos = json.array({})
+    ctx.new_job_git_branches = json.array({})
     local api = client()
     if not api or ctx.new_job_git_provider_id == "" then
         return
     end
     ctx.new_job_git_message = "carregando repositórios…"
     ctx.new_job_git_busy = "true"
-    local git_repo_list_ok, git_repo_list_response = api:rpc{
-        GitRepoList = { provider_id = ctx.new_job_git_provider_id }
+    local git_repo_list_ok, git_repo_list_response = api:rpc {
+        GitRepoList = { provider_id = ctx.new_job_git_provider_id },
     }
     ctx.new_job_git_busy = ""
     if git_repo_list_ok and git_repo_list_response.GitRepos then
-        ctx.new_job_git_repos = format.git_repos(git_repo_list_response.GitRepos)
-        ctx.new_job_git_message = tostring(#git_repo_list_response.GitRepos) .. " repositório(s)"
+        ctx.new_job_git_repos =
+            format.git_repos(git_repo_list_response.GitRepos)
+        ctx.new_job_git_message = tostring(#git_repo_list_response.GitRepos)
+            .. " repositório(s)"
     else
         ctx.new_job_git_message = "erro ao listar repositórios"
     end
@@ -194,16 +216,20 @@ function new_job_git_repo_pick(full_name: string): ()
         return
     end
     ctx.new_job_git_repo = full_name
-    local json_decode_ok, repos = pcall(json.decode, ctx.new_job_git_repos or "[]")
+    local json_decode_ok, repos = Helpers.decode_list(ctx.new_job_git_repos)
     if json_decode_ok and type(repos) == "table" then
         for _, repo in ipairs(repos) do
-            if repo.full_name == full_name and repo.default_branch and repo.default_branch ~= "" then
+            if
+                repo.full_name == full_name
+                and repo.default_branch
+                and repo.default_branch ~= ""
+            then
                 ctx.new_job_git_branch = repo.default_branch
                 break
             end
         end
     end
-    ctx.new_job_git_branches = "[]"
+    ctx.new_job_git_branches = json.array({})
     local provider_id = ctx.new_job_git_provider_id or ""
     local api = client()
     if not api or provider_id == "" then
@@ -211,12 +237,16 @@ function new_job_git_repo_pick(full_name: string): ()
     end
     ctx.new_job_git_message = "carregando branches…"
     ctx.new_job_git_busy = "true"
-    local git_branch_list_ok, git_branch_list_response = api:rpc{
-        GitBranchList = { provider_id = provider_id, repo_full_name = full_name }
+    local git_branch_list_ok, git_branch_list_response = api:rpc {
+        GitBranchList = {
+            provider_id = provider_id,
+            repo_full_name = full_name,
+        },
     }
     ctx.new_job_git_busy = ""
     if git_branch_list_ok and git_branch_list_response.GitBranches then
-        ctx.new_job_git_branches = format.git_branches(git_branch_list_response.GitBranches)
+        ctx.new_job_git_branches =
+            format.git_branches(git_branch_list_response.GitBranches)
         ctx.new_job_git_message = ""
     else
         ctx.new_job_git_message = "erro ao listar branches"
@@ -239,8 +269,8 @@ function new_job_pick_project(project_id: string): ()
             table.insert(filtered, service)
         end
     end
-    -- `json.array`: sem ele um projeto sem serviços sairia como `{}` (objeto), e o
-    -- for-each do passo seguinte espera um array (ver Util.encode_array).
+    -- `json.array`: sem ele um projeto sem serviços sairia como `{}` (objeto),
+    -- e o for-each do passo seguinte espera um array (ver Util.encode_array).
     ctx.new_job_services_filtered = json.encode(json.array(filtered))
     ctx.new_job_step = "pick_service"
 end
@@ -301,7 +331,8 @@ function new_job_create(): ()
     end
     local main_service = Helpers.trim(ctx.new_job_main_service)
     if main_service == "" then
-        ctx.new_job_error = "informe o main_service (nome do serviço dentro do compose)"
+        ctx.new_job_error =
+            "informe o main_service (nome do serviço dentro do compose)"
         return
     end
 
@@ -320,7 +351,8 @@ function new_job_create(): ()
         -- URL de clone vem da lista de repos já carregada (mesma resolução
         -- de gitea_repo_pick em handlers/services.luau).
         local url = ""
-        local json_decode_ok, repos = pcall(json.decode, ctx.new_job_git_repos or "[]")
+        local json_decode_ok, repos =
+            Helpers.decode_list(ctx.new_job_git_repos)
         if json_decode_ok and type(repos) == "table" then
             for _, repo in ipairs(repos) do
                 if repo.full_name == ctx.new_job_git_repo then
@@ -330,11 +362,15 @@ function new_job_create(): ()
             end
         end
         if url == "" then
-            ctx.new_job_error = "não foi possível resolver a URL do repositório — selecione de novo"
+            ctx.new_job_error = "não foi possível resolver a URL do "
+                .. "repositório — selecione de "
+                .. "novo"
             return
         end
         git_source = {
-            provider_id = ctx.new_job_git_provider_id ~= "" and ctx.new_job_git_provider_id or nil,
+            provider_id = ctx.new_job_git_provider_id ~= ""
+                    and ctx.new_job_git_provider_id
+                or nil,
             url = url,
             branch = branch,
             username = nil,
@@ -355,7 +391,8 @@ function new_job_create(): ()
     local hour, minute = format.hour_minute_split(ctx.new_job_time)
     local recurrence: any = nil
     if ctx.new_job_kind == "interval" then
-        recurrence = { IntervalHours = math.max(1, tonumber(ctx.new_job_hours) or 1) }
+        recurrence =
+            { IntervalHours = math.max(1, tonumber(ctx.new_job_hours) or 1) }
     elseif ctx.new_job_kind == "daily" then
         recurrence = {
             Daily = {
@@ -380,7 +417,7 @@ function new_job_create(): ()
     ctx.new_job_busy = "true"
     local save_ok, save_response
     if editing then
-        save_ok, save_response = api:rpc_checked{
+        save_ok, save_response = api:rpc_checked {
             JobUpdate = {
                 id = ctx.new_job_edit_id,
                 name = name,
@@ -394,7 +431,7 @@ function new_job_create(): ()
             },
         }
     else
-        save_ok, save_response = api:rpc_checked{
+        save_ok, save_response = api:rpc_checked {
             JobCreate = {
                 project_id = ctx.new_job_project_id,
                 trigger_service_id = ctx.new_job_service_id,
@@ -416,7 +453,10 @@ function new_job_create(): ()
     end
 
     local job = (type(save_response) == "table" and save_response.Job) or {}
-    broadcast(editing and "job_updated" or "job_created", { id = job.id, name = job.name or name })
+    broadcast(
+        editing and "job_updated" or "job_created",
+        { id = job.id, name = job.name or name }
+    )
     close_window()
 end
 
@@ -424,5 +464,6 @@ function cancel(): ()
     close_window()
 end
 
--- Trava de ação em andamento (ver busy.luau): por último, com todas as funções já definidas.
+-- Trava de ação em andamento (ver busy.luau): por último, com todas as funções
+-- já definidas.
 require("busy").install(require("busy_actions"))

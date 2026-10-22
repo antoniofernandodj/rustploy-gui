@@ -6,7 +6,16 @@
 local SD = require("format/service_detail")
 
 function init(): ()
-    local yaml = "services:\n  # comentário\n\n  rp_banco:\n    image: postgres\n  outro:\n    image: y\n"
+    local yaml = table.concat({
+        "services:",
+        "  # comentário",
+        "",
+        "  rp_banco:",
+        "    image: postgres",
+        "  outro:",
+        "    image: y",
+        "",
+    }, "\n")
 
     -- A primeira chave de `services:`, pulando comentário e linha em branco.
     ctx.host_primeira = SD.compose_host(yaml, nil) or "nil"
@@ -18,7 +27,12 @@ function init(): ()
     ctx.host_nil = SD.compose_host(nil, nil) or "nil"
 
     -- Serviço Compose: o host é a chave do YAML, não `rp_<nome>`.
-    ctx.url_compose = SD.internal_url("postgres", "meu_banco", 5432, SD.compose_host(yaml, nil))
+    ctx.url_compose = SD.internal_url(
+        "postgres",
+        "meu_banco",
+        5432,
+        SD.compose_host(yaml, nil)
+    )
     -- Application: `rp_<nome>`, como sempre foi.
     ctx.url_app = SD.internal_url(nil, "api", 80, nil)
     ctx.url_app_db = SD.internal_url("redis", "cache", 6379, nil)

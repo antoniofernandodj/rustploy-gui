@@ -2,9 +2,9 @@
 -- Fixture do teste `format_time.rs`: exercita o `format/time.luau` de verdade,
 -- através do motor, e deixa cada resultado numa chave de contexto.
 --
--- O `require("format/time")` resolve por `GLACIER_LUAU_PATH`, que o teste aponta
--- para `views/scripts` — este arquivo mora em `tests/fixtures/`, fora da
--- árvore da aplicação, justamente para não virar script do app.
+-- O `require("format/time")` resolve por `GLACIER_LUAU_PATH`, que o teste
+-- aponta para `views/scripts` — este arquivo mora em `tests/fixtures/`, fora
+-- da árvore da aplicação, justamente para não virar script do app.
 local Time = require("format/time")
 
 function init(): ()
@@ -29,7 +29,8 @@ function init(): ()
         finished_at = "2026-07-06T12:01:30Z",
     })
     -- Sem `finished_at` conta até agora; só precisa não explodir.
-    ctx.dur_aberta = Time.format_duration({ started_at = "2026-07-06T12:00:00Z" })
+    ctx.dur_aberta =
+        Time.format_duration({ started_at = "2026-07-06T12:00:00Z" })
     -- `started_at` inválido cai no default.
     ctx.dur_invalida = Time.format_duration({ started_at = "" })
 end

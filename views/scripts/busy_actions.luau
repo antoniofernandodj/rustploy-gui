@@ -1,7 +1,8 @@
 --!strict
 
--- busy_actions.luau — ações (on_click/on_submit) que ganham a trava de busy.luau.
--- Mantida em sincronia com os templates por `tools/busy_actions.py --check`.
+-- busy_actions.luau — ações (on_click/on_submit) que ganham a trava de
+-- busy.luau. Mantida em sincronia com os templates por `tools/busy_actions.py
+-- --check`.
 
 return {
     "advanced_save",

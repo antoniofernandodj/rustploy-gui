@@ -12,10 +12,15 @@ local M = {}
 -- ── Busca ────────────────────────────────────────────────────────────────
 -- Termo vazio sempre casa (a busca é filtro, não requisito). `term` já deve
 -- vir em minúsculas.
-function M.matches(term: string?, fields: {any}): boolean
-    if not term or term == "" then return true end
+function M.matches(term: string?, fields: { any }): boolean
+    if not term or term == "" then
+        return true
+    end
     for _, field in ipairs(fields) do
-        if type(field) == "string" and string.find(string.lower(field), term, 1, true) then
+        if
+            type(field) == "string"
+            and string.find(string.lower(field), term, 1, true)
+        then
             return true
         end
     end
@@ -29,7 +34,10 @@ end
 -- disponível noutra chave de contexto para o clipboard.
 function M.ellipsis(text: string?, max: number): string
     local normalized_text = text or ""
-    if utf8.len(normalized_text) and (utf8.len(normalized_text) :: number) > max then
+    if
+        utf8.len(normalized_text)
+        and (utf8.len(normalized_text) :: number) > max
+    then
         local cut_offset = utf8.offset(normalized_text, max + 1)
         if cut_offset then
             return string.sub(normalized_text, 1, cut_offset - 1) .. "…"
@@ -63,8 +71,14 @@ end
 -- pro "…" do ellipsis). O Row do glacier não clipa filhos: um valor sem
 -- espaços mais largo que a coluna sobrepõe as vizinhas — então todo texto de
 -- dado (nome de serviço/volume, tag, domínio…) passa por M.ellipsis com estes
--- limites. Recalculado a cada snapshot (~2s), como grid_cols em dashboard.luau.
-export type ColBudgets = { svc: number, proj: number, state: number, img: number }
+-- limites. Recalculado a cada snapshot (~2s), como grid_cols em
+-- dashboard.luau.
+export type ColBudgets = {
+    svc: number,
+    proj: number,
+    state: number,
+    img: number,
+}
 function M.column_budgets(): ColBudgets
     local viewport_width = viewport().width
     if viewport_width < 560 then
@@ -79,13 +93,15 @@ end
 -- daemon repassa o stdout/stderr cru dos containers, cheio de CSI (`ESC[..m`
 -- etc.); sem limpar, além de aparecerem como lixo (`[2m[32m…`) na UI, cada
 -- linha vira uma string longa com bytes de controle que o text-shaping do iced
--- processa a um custo patológico — reconstruído a CADA re-render (por evento de
--- log), o que congela a janela. Também tira CR e NUL soltos.
+-- processa a um custo patológico — reconstruído a CADA re-render (por evento
+-- de log), o que congela a janela. Também tira CR e NUL soltos.
 function M.strip_ansi(text: string?): string
     local cleaned_text = text or ""
-    -- CSI: ESC [ params byte-final(letra) — cobre SGR (cor), erase (K/J), cursor.
+    -- CSI: ESC [ params byte-final(letra) — cobre SGR (cor), erase (K/J),
+    -- cursor.
     cleaned_text = string.gsub(cleaned_text, "\27%[[%d;?]*%a", "")
-    -- OSC: ESC ] … BEL. E qualquer ESC + 1 byte remanescente (ESC c, ESC =, …).
+    -- OSC: ESC ] … BEL. E qualquer ESC + 1 byte remanescente (ESC c, ESC =,
+    -- …).
     cleaned_text = string.gsub(cleaned_text, "\27%][^\7]*\7", "")
     cleaned_text = string.gsub(cleaned_text, "\27.", "")
     cleaned_text = string.gsub(cleaned_text, "[\r\0]", "")
@@ -95,8 +111,10 @@ end
 -- ── Codificação de arrays ────────────────────────────────────────────────
 -- CUIDADO: uma tabela Luau vazia vira `{}` (objeto) no json.encode, não `[]`.
 -- Os templates iteram arrays, então forçamos "[]" quando vazio.
-function M.encode_array(items: {any}): string
-    if #items == 0 then return "[]" end
+function M.encode_array(items: { any }): string
+    if #items == 0 then
+        return "[]"
+    end
     return json.encode(items)
 end
 
@@ -105,96 +123,142 @@ end
 -- ServiceStatus vem como string ("Running") ou tabela ({Error="..."}).
 function M.status_label_color(status: any): (string, string)
     if type(status) == "table" then
-        if status.Error ~= nil then return "Error", "#F85149" end
+        if status.Error ~= nil then
+            return "Error", "#F85149"
+        end
     end
-    if status == "Running" then return "Running", "#3FB950"
-    elseif status == "Deploying" then return "Deploying", "#58A6FF"
-    elseif status == "Queued" then return "Na fila", "#8B949E"
-    elseif status == "Degraded" then return "Degraded", "#D29922"
-    elseif status == "Stopping" then return "Stopping", "#8B949E"
-    elseif status == "Stopped" then return "Stopped", "#8B949E"
+    if status == "Running" then
+        return "Running", "#3FB950"
+    elseif status == "Deploying" then
+        return "Deploying", "#58A6FF"
+    elseif status == "Queued" then
+        return "Na fila", "#8B949E"
+    elseif status == "Degraded" then
+        return "Degraded", "#D29922"
+    elseif status == "Stopping" then
+        return "Stopping", "#8B949E"
+    elseif status == "Stopped" then
+        return "Stopped", "#8B949E"
     end
     return "Error", "#F85149"
 end
 
 function M.status_kind(status: any): string
-    if type(status) == "table" and status.Error ~= nil then return "bad" end
-    if status == "Running" then return "ok"
-    elseif status == "Deploying" then return "info"
-    elseif status == "Queued" then return "muted"
-    elseif status == "Degraded" then return "warn"
-    elseif status == "Stopping" or status == "Stopped" then return "muted"
+    if type(status) == "table" and status.Error ~= nil then
+        return "bad"
+    end
+    if status == "Running" then
+        return "ok"
+    elseif status == "Deploying" then
+        return "info"
+    elseif status == "Queued" then
+        return "muted"
+    elseif status == "Degraded" then
+        return "warn"
+    elseif status == "Stopping" or status == "Stopped" then
+        return "muted"
     end
     return "bad"
 end
 
 -- DeployState vem como string ("Live", "Failed", "BuildingImage", ...).
 function M.state_label_color(state: string?): (string, string)
-    if state == "Live" then return "LIVE", "#3FB950"
-    elseif state == "Stopped" then return "STOPPED", "#8B949E"
-    elseif state == "Failed" then return "FAILED", "#F85149"
-    elseif state == "PreDeployCheck" then return "PRÉ-DEPLOY CHECK", "#58A6FF"
+    if state == "Live" then
+        return "LIVE", "#3FB950"
+    elseif state == "Stopped" then
+        return "STOPPED", "#8B949E"
+    elseif state == "Failed" then
+        return "FAILED", "#F85149"
+    elseif state == "PreDeployCheck" then
+        return "PRÉ-DEPLOY CHECK", "#58A6FF"
     end
     return "BUILDING", "#58A6FF"
 end
 
 function M.state_kind(state: string?): string
-    if state == "Live" then return "ok"
-    elseif state == "Stopped" then return "muted"
-    elseif state == "Failed" then return "bad"
+    if state == "Live" then
+        return "ok"
+    elseif state == "Stopped" then
+        return "muted"
+    elseif state == "Failed" then
+        return "bad"
     end
     return "info"
 end
 
 function M.in_use_kind(in_use: boolean): string
-    if in_use then return "ok" end
+    if in_use then
+        return "ok"
+    end
     return "muted"
 end
 
--- Estado bruto de um container Docker ("running"/"exited"/… ) → (rótulo, kind).
--- Só "running"/"restarting"/"paused" contam como "ativo" (não removíveis sem
--- force); o resto é parado e pode ser removido individualmente.
+-- Estado bruto de um container Docker ("running"/"exited"/… ) → (rótulo,
+-- kind). Só "running"/"restarting"/"paused" contam como "ativo" (não
+-- removíveis sem force); o resto é parado e pode ser removido individualmente.
 function M.container_state(state: string?): (string, string)
     local lowered_state = string.lower(state or "")
-    if lowered_state == "running" then return "running", "ok"
-    elseif lowered_state == "restarting" then return "restarting", "info"
-    elseif lowered_state == "paused" then return "paused", "warn"
-    elseif lowered_state == "created" then return "created", "info"
-    elseif lowered_state == "dead" then return "dead", "bad"
+    if lowered_state == "running" then
+        return "running", "ok"
+    elseif lowered_state == "restarting" then
+        return "restarting", "info"
+    elseif lowered_state == "paused" then
+        return "paused", "warn"
+    elseif lowered_state == "created" then
+        return "created", "info"
+    elseif lowered_state == "dead" then
+        return "dead", "bad"
     end
     -- exited, removing, ou desconhecido
     return (lowered_state ~= "" and lowered_state or "exited"), "muted"
 end
 
--- `true` quando o container está PARADO (removível sem force). Espelha o daemon
--- (Docker recusa `rm` de um container rodando/reiniciando sem `-f`).
+-- `true` quando o container está PARADO (removível sem force). Espelha o
+-- daemon (Docker recusa `rm` de um container rodando/reiniciando sem `-f`).
 function M.container_stopped(state: string?): boolean
     local lowered_state = string.lower(state or "")
-    return lowered_state ~= "running" and lowered_state ~= "restarting" and lowered_state ~= "paused"
+    return lowered_state ~= "running"
+        and lowered_state ~= "restarting"
+        and lowered_state ~= "paused"
 end
 
 -- ServiceSource → texto de "imagem/origem" (source_summary().1).
 function M.source_summary(source: any): string
-    if type(source) ~= "table" then return "—" end
-    if source.Registry then return source.Registry.image or "—"
+    if type(source) ~= "table" then
+        return "—"
+    end
+    if source.Registry then
+        return source.Registry.image or "—"
     elseif source.Git then
         local git_source = source.Git
         return (git_source.url or "") .. " @ " .. (git_source.branch or "")
-    elseif source.Archive then return source.Archive.original_filename or source.Archive.archive_id or "zip enviado"
-    elseif source.Compose then return "docker-compose"
+    elseif source.Archive then
+        return source.Archive.original_filename
+            or source.Archive.archive_id
+            or "zip enviado"
+    elseif source.Compose then
+        return "docker-compose"
     end
     return "—"
 end
 
 -- domain_routes(): a lista `domains` nova, ou o legado `domain`/`tls_enabled`.
-function M.domain_routes(spec: ServiceSpec): {DomainRoute}
-    local routes: {DomainRoute} = {}
+function M.domain_routes(spec: ServiceSpec): { DomainRoute }
+    local routes: { DomainRoute } = {}
     if spec.domains and #spec.domains > 0 then
         for _, domain in ipairs(spec.domains) do
-            table.insert(routes, { domain = domain.domain, port = domain.port, tls = domain.tls == true })
+            table.insert(routes, {
+                domain = domain.domain,
+                port = domain.port,
+                tls = domain.tls == true,
+            })
         end
     elseif spec.domain and spec.domain ~= "" then
-        table.insert(routes, { domain = spec.domain :: string, port = nil, tls = spec.tls_enabled == true })
+        table.insert(routes, {
+            domain = spec.domain :: string,
+            port = nil,
+            tls = spec.tls_enabled == true,
+        })
     end
     return routes
 end
@@ -213,10 +277,13 @@ end
 
 -- `services` do snapshot é uma lista de { project_name, service }.
 -- Normaliza para pares { svc = Service, proj = "nome" }.
-function M.service_pair_list(services: {any}?): {ServicePair}
-    local out: {ServicePair} = {}
+function M.service_pair_list(services: { any }?): { ServicePair }
+    local out: { ServicePair } = {}
     for _, service in ipairs(services or {}) do
-        table.insert(out, { svc = service.service, proj = service.project_name or "" })
+        table.insert(
+            out,
+            { svc = service.service, proj = service.project_name or "" }
+        )
     end
     return out
 end

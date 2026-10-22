@@ -1,7 +1,8 @@
 --!strict
--- format/dashboard.luau — builders de lista do dashboard (deployments/projects/
--- services/docker/ingress/monitoring/deploy engine), mesma forma JSON que
--- view.rs produzia. Iterado pelos ForEach dos templates via a fachada format.luau.
+-- format/dashboard.luau — builders de lista do dashboard
+-- (deployments/projects/ services/docker/ingress/monitoring/deploy engine),
+-- mesma forma JSON que view.rs produzia. Iterado pelos ForEach dos templates
+-- via a fachada format.luau.
 
 local Types = require("types")
 type ServicePair = Types.ServicePair
@@ -16,19 +17,20 @@ local M = {}
 
 -- Nº de colunas da grade de cards (services/projects). glacier não reestrutura
 -- Row↔Column via @media, então o número de colunas tem que ser decidido aqui
--- (recalculado a cada snapshot, ~2s). O que importa é a largura que SOBRA para a
--- grade, não a da janela: a sidebar-gaveta (264) come espaço enquanto está aberta
--- (`ctx.menu`, o ☰ da topbar) e o `.content` tem padding lateral — contar só a
--- janela dava 3 colunas de ~235px numa janela de 1100px, e o card era esmagado
--- (o `name:`/`id:` do container quebrava em várias linhas). Cada card precisa de
--- CARD_MIN px; cabem os que couberem, entre 1 e 3.
+-- (recalculado a cada snapshot, ~2s). O que importa é a largura que SOBRA para
+-- a grade, não a da janela: a sidebar-gaveta (264) come espaço enquanto está
+-- aberta (`ctx.menu`, o ☰ da topbar) e o `.content` tem padding lateral —
+-- contar só a janela dava 3 colunas de ~235px numa janela de 1100px, e o card
+-- era esmagado (o `name:`/`id:` do container quebrava em várias linhas). Cada
+-- card precisa de CARD_MIN px; cabem os que couberem, entre 1 e 3.
 local CARD_MIN = 350
 local SIDEBAR = 264
 local function grid_cols(): number
     local viewport_width = viewport().width
     local menu = (ctx :: any).menu
     local sidebar = if menu == "true" or menu == true then SIDEBAR else 0
-    -- Mesmos breakpoints do app.gss: padding lateral do `.content` e vão entre cards.
+    -- Mesmos breakpoints do app.gss: padding lateral do `.content` e vão entre
+    -- cards.
     local horizontal_padding, card_gap = 64, 16
     if viewport_width < 560 then
         horizontal_padding, card_gap = 20, 10
@@ -36,7 +38,8 @@ local function grid_cols(): number
         horizontal_padding, card_gap = 36, 10
     end
     local available_width = viewport_width - sidebar - horizontal_padding
-    local columns = math.floor((available_width + card_gap) / (CARD_MIN + card_gap))
+    local columns =
+        math.floor((available_width + card_gap) / (CARD_MIN + card_gap))
     return math.max(1, math.min(3, columns))
 end
 
@@ -72,47 +75,84 @@ local FILLER: GridCard = {
     can_delete = "",
 }
 
--- Deployments (aba Deployments). `list` = Vec<DeploymentSummary>.
--- Nomes truncados por Util.column_budgets (o filtro `matches` roda antes, sobre o
+-- Deployments (aba Deployments). `list` = Vec<DeploymentSummary>. Nomes
+-- truncados por Util.column_budgets (o filtro `matches` roda antes, sobre o
 -- valor completo — a busca continua casando com o que foi cortado).
-function M.deployments(deployments: {any}?, term: string?): string
+function M.deployments(deployments: { any }?, term: string?): string
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, deployment_entry in ipairs(deployments or {}) do
-        if Util.matches(term, { deployment_entry.service_name, deployment_entry.project_name }) then
+        if
+            Util.matches(term, {
+                deployment_entry.service_name,
+                deployment_entry.project_name,
+            })
+        then
             local deployment = deployment_entry.deployment
             local label, _ = Util.state_label_color(deployment.state)
             table.insert(rows, {
-                service = Util.ellipsis(deployment_entry.service_name, column_budgets.svc),
-                project = Util.ellipsis(deployment_entry.project_name, column_budgets.proj),
+                service = Util.ellipsis(
+                    deployment_entry.service_name,
+                    column_budgets.svc
+                ),
+                project = Util.ellipsis(
+                    deployment_entry.project_name,
+                    column_budgets.proj
+                ),
                 state_label = label,
                 state_kind = Util.state_kind(deployment.state),
                 duration = Time.format_duration(deployment),
-                start = Time.date_day_month_hour_minute_second(deployment.started_at),
-                start_iso = deployment.started_at or "", -- `sort_key` da coluna INÍCIO
+                start = Time.date_day_month_hour_minute_second(
+                    deployment.started_at
+                ),
+                -- `sort_key` da coluna INÍCIO
+                start_iso = deployment.started_at or "",
             })
         end
     end
     return Util.encode_array(rows)
 end
 
--- Escolhe o container "primário" de um serviço p/ exibir no card: o live, senão
--- o primeiro em execução, senão o primeiro da lista. Devolve (nome, id_curto,
--- extra, nome_completo, id_completo) onde extra é "+N" quando há mais de um container.
-local function primary_container(service: Types.Service): (string, string, string, string, string)
+-- Escolhe o container "primário" de um serviço p/ exibir no card: o live,
+-- senão o primeiro em execução, senão o primeiro da lista. Devolve (nome,
+-- id_curto, extra, nome_completo, id_completo) onde extra é "+N" quando há
+-- mais de um container.
+local function primary_container(
+    service: Types.Service
+): (string, string, string, string, string)
     local containers = service.containers or {}
-    if #containers == 0 then return "—", "", "", "", "" end
+    if #containers == 0 then
+        return "—", "", "", "", ""
+    end
     local chosen = containers[1]
     for _, container in ipairs(containers) do
-        if service.live_container_id and container.id == service.live_container_id then chosen = container; break end
-        if container.state == "running" and chosen.state ~= "running" then chosen = container end
+        if
+            service.live_container_id
+            and container.id == service.live_container_id
+        then
+            chosen = container
+            break
+        end
+        if container.state == "running" and chosen.state ~= "running" then
+            chosen = container
+        end
     end
-    local extra = #containers > 1 and string.format("+%d", #containers - 1) or ""
-    return chosen.name or "—", string.sub(chosen.id or "", 1, 12), extra, chosen.name or "", chosen.id or ""
+    local extra = #containers > 1 and string.format("+%d", #containers - 1)
+        or ""
+    return chosen.name or "—",
+        string.sub(chosen.id or "", 1, 12),
+        extra,
+        chosen.name or "",
+        chosen.id or ""
 end
 
 -- Card de serviço (com CPU/mem mesclados de `metrics_by_id[svc.id]`).
-local function service_card(service: Types.Service, project_name: string, metrics: MetricsMap?, warm: any?)
+local function service_card(
+    service: Types.Service,
+    project_name: string,
+    metrics: MetricsMap?,
+    warm: any?
+)
     local status_label, status_color = Util.status_label_color(service.status)
     local cpu, mem = "—", "—"
     local metrics_point = metrics and metrics[service.id]
@@ -120,7 +160,8 @@ local function service_card(service: Types.Service, project_name: string, metric
         cpu = string.format("%.1f%%", metrics_point.cpu_percent or 0)
         mem = Time.format_bytes(metrics_point.mem_used_bytes)
     end
-    local container_name, container_id, container_extra, container_name_full, container_id_full = primary_container(service)
+    local container_name, container_id, container_extra, name_full, id_full =
+        primary_container(service)
     local warm_label, warm_color = "", "muted"
     if warm ~= nil then
         warm_label, warm_color = Jobs.warm_status(warm)
@@ -141,18 +182,25 @@ local function service_card(service: Types.Service, project_name: string, metric
         mem = mem,
         container_name = container_name,
         container_id = container_id,
-        container_name_full = container_name_full,
-        container_id_full = container_id_full,
+        container_name_full = name_full,
+        container_id_full = id_full,
         container_extra = container_extra,
     }
 end
 
 -- Array plano de cards de serviço (para seleção/contagem).
-function M.services(service_pairs: {ServicePair}, metrics: MetricsMap?, term: string?): string
+function M.services(
+    service_pairs: { ServicePair },
+    metrics: MetricsMap?,
+    term: string?
+): string
     local rows = {}
     for _, pair in ipairs(service_pairs) do
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
-            table.insert(rows, service_card(pair.svc, pair.proj, metrics, pair.warm))
+            table.insert(
+                rows,
+                service_card(pair.svc, pair.proj, metrics, pair.warm)
+            )
         end
     end
     return Util.encode_array(rows)
@@ -160,11 +208,18 @@ end
 
 -- Cards de serviço em linhas de N colunas (grid_cols), com filler (glacier
 -- não tem grid).
-function M.service_rows(service_pairs: {ServicePair}, metrics: MetricsMap?, term: string?): string
-    local filtered: {GridCard} = {}
+function M.service_rows(
+    service_pairs: { ServicePair },
+    metrics: MetricsMap?,
+    term: string?
+): string
+    local filtered: { GridCard } = {}
     for _, pair in ipairs(service_pairs) do
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
-            table.insert(filtered, service_card(pair.svc, pair.proj, metrics, pair.warm))
+            table.insert(
+                filtered,
+                service_card(pair.svc, pair.proj, metrics, pair.warm)
+            )
         end
     end
     local columns = grid_cols()
@@ -172,10 +227,13 @@ function M.service_rows(service_pairs: {ServicePair}, metrics: MetricsMap?, term
     local row_start = 1
     while row_start <= #filtered do
         local cards = {}
-        for card_index = row_start, math.min(row_start + columns - 1, #filtered) do
+        local last_card = math.min(row_start + columns - 1, #filtered)
+        for card_index = row_start, last_card do
             table.insert(cards, filtered[card_index])
         end
-        while #cards < columns do table.insert(cards, FILLER) end
+        while #cards < columns do
+            table.insert(cards, FILLER)
+        end
         table.insert(rows, { cards = cards })
         row_start = row_start + columns
     end
@@ -183,12 +241,14 @@ function M.service_rows(service_pairs: {ServicePair}, metrics: MetricsMap?, term
 end
 
 -- Card de projeto, agregando contagem de serviços de `pairs_`.
-local function project_card(project: any, service_pairs: {ServicePair})
+local function project_card(project: any, service_pairs: { ServicePair })
     local count, running = 0, 0
     for _, pair in ipairs(service_pairs) do
         if pair.svc.spec.project_id == project.id then
             count = count + 1
-            if pair.svc.status == "Running" then running = running + 1 end
+            if pair.svc.status == "Running" then
+                running = running + 1
+            end
         end
     end
     return {
@@ -202,7 +262,11 @@ local function project_card(project: any, service_pairs: {ServicePair})
     }
 end
 
-function M.projects(projects: {any}?, service_pairs: {ServicePair}, term: string?): string
+function M.projects(
+    projects: { any }?,
+    service_pairs: { ServicePair },
+    term: string?
+): string
     local rows = {}
     for _, project in ipairs(projects or {}) do
         if Util.matches(term, { project.name, project.description or "" }) then
@@ -212,8 +276,12 @@ function M.projects(projects: {any}?, service_pairs: {ServicePair}, term: string
     return Util.encode_array(rows)
 end
 
-function M.project_rows(projects: {any}?, service_pairs: {ServicePair}, term: string?): string
-    local filtered: {GridCard} = {}
+function M.project_rows(
+    projects: { any }?,
+    service_pairs: { ServicePair },
+    term: string?
+): string
+    local filtered: { GridCard } = {}
     for _, project in ipairs(projects or {}) do
         if Util.matches(term, { project.name, project.description or "" }) then
             table.insert(filtered, project_card(project, service_pairs))
@@ -224,10 +292,13 @@ function M.project_rows(projects: {any}?, service_pairs: {ServicePair}, term: st
     local row_start = 1
     while row_start <= #filtered do
         local cards = {}
-        for card_index = row_start, math.min(row_start + columns - 1, #filtered) do
+        local last_card = math.min(row_start + columns - 1, #filtered)
+        for card_index = row_start, last_card do
             table.insert(cards, filtered[card_index])
         end
-        while #cards < columns do table.insert(cards, FILLER) end
+        while #cards < columns do
+            table.insert(cards, FILLER)
+        end
         table.insert(rows, { cards = cards })
         row_start = row_start + columns
     end
@@ -235,9 +306,11 @@ function M.project_rows(projects: {any}?, service_pairs: {ServicePair}, term: st
 end
 
 -- Linhas Docker (containers gerenciados) derivadas dos serviços, ordenadas.
-function M.docker_rows(service_pairs: {ServicePair}, term: string?): string
-    local sorted: {ServicePair} = {}
-    for _, pair in ipairs(service_pairs) do table.insert(sorted, pair) end
+function M.docker_rows(service_pairs: { ServicePair }, term: string?): string
+    local sorted: { ServicePair } = {}
+    for _, pair in ipairs(service_pairs) do
+        table.insert(sorted, pair)
+    end
     table.sort(sorted, function(left: ServicePair, right: ServicePair)
         return left.svc.spec.name < right.svc.spec.name
     end)
@@ -246,8 +319,12 @@ function M.docker_rows(service_pairs: {ServicePair}, term: string?): string
         if Util.matches(term, { item.svc.spec.name, item.proj }) then
             local label, _ = Util.status_label_color(item.svc.status)
             local container_id = "—"
-            if item.svc.live_container_id and item.svc.live_container_id ~= "" then
-                container_id = string.sub(item.svc.live_container_id :: string, 1, 12)
+            if
+                item.svc.live_container_id
+                and item.svc.live_container_id ~= ""
+            then
+                container_id =
+                    string.sub(item.svc.live_container_id :: string, 1, 12)
             end
             table.insert(rows, {
                 name = item.svc.spec.name,
@@ -264,29 +341,44 @@ end
 
 -- `only_used`: o "Somente em uso" da aba — filtrado aqui porque a tabela
 -- (tableview) desenha toda linha que recebe.
-function M.docker_images(images: {any}?, term: string?, only_used: boolean?): string
+function M.docker_images(
+    images: { any }?,
+    term: string?,
+    only_used: boolean?
+): string
     local column_budgets = Util.column_budgets()
     local sorted = {}
-    for _, image in ipairs(images or {}) do table.insert(sorted, image) end
+    for _, image in ipairs(images or {}) do
+        table.insert(sorted, image)
+    end
     table.sort(sorted, function(left: any, right: any)
-        return table.concat(left.tags or {}, ",") < table.concat(right.tags or {}, ",")
+        return table.concat(left.tags or {}, ",")
+            < table.concat(right.tags or {}, ",")
     end)
     local rows = {}
     for _, image in ipairs(sorted) do
         local tags_text = table.concat(image.tags or {}, " ")
         local in_use = (image.containers or 0) > 0
-        if Util.matches(term, { tags_text, image.project or "", image.service or "" })
-            and (in_use or not only_used) then
+        if
+            Util.matches(
+                term,
+                { tags_text, image.project or "", image.service or "" }
+            ) and (in_use or not only_used)
+        then
             -- Trunca por caractere (não por palavra): uma tag sem espaços mais
-            -- longa que a coluna estoura e sobrepõe as vizinhas (o Row não clipa
-            -- filhos) — mesmo caso do sha256 em docker_containers.
+            -- longa que a coluna estoura e sobrepõe as vizinhas (o Row não
+            -- clipa filhos) — mesmo caso do sha256 em docker_containers.
             local tags = (#(image.tags or {}) == 0) and "<none>"
-                or Util.ellipsis(table.concat(image.tags, ", "), column_budgets.svc)
+                or Util.ellipsis(
+                    table.concat(image.tags, ", "),
+                    column_budgets.svc
+                )
             local image_id = image.id or ""
             image_id = string.gsub(image_id, "^sha256:", "")
             table.insert(rows, {
                 id = string.sub(image_id, 1, 12),
-                id_full = image_id, -- sem "sha256:" (o `:` quebraria a ação nome:sufixo)
+                -- sem "sha256:" (o `:` quebraria a ação nome:sufixo)
+                id_full = image_id,
                 tags = tags,
                 size = Time.format_bytes(image.size_bytes),
                 -- Crus, para o `sort_key` da coluna: "1.2 GB" e "08/10 14:03"
@@ -298,7 +390,12 @@ function M.docker_images(images: {any}?, term: string?, only_used: boolean?): st
                 service = image.service or "—",
                 -- "PROJETO / SERVIÇO" já combinado e truncado pra col_proj (o
                 -- template exibe {i.owner}; project/service ficam pra ações).
-                owner = Util.ellipsis((image.project or "—") .. " / " .. (image.service or "—"), column_budgets.proj),
+                owner = Util.ellipsis(
+                    (image.project or "—")
+                        .. " / "
+                        .. (image.service or "—"),
+                    column_budgets.proj
+                ),
                 in_use_label = in_use and "EM USO" or "SEM USO",
                 in_use_kind = Util.in_use_kind(in_use),
             })
@@ -307,14 +404,25 @@ function M.docker_images(images: {any}?, term: string?, only_used: boolean?): st
     return Util.encode_array(rows)
 end
 
-function M.docker_volumes(volumes: {any}?, term: string?, only_used: boolean?): string
+function M.docker_volumes(
+    volumes: { any }?,
+    term: string?,
+    only_used: boolean?
+): string
     local column_budgets = Util.column_budgets()
     local sorted = {}
-    for _, volume in ipairs(volumes or {}) do table.insert(sorted, volume) end
-    table.sort(sorted, function(left: any, right: any) return left.name < right.name end)
+    for _, volume in ipairs(volumes or {}) do
+        table.insert(sorted, volume)
+    end
+    table.sort(sorted, function(left: any, right: any)
+        return left.name < right.name
+    end)
     local rows = {}
     for _, item in ipairs(sorted) do
-        if Util.matches(term, { item.name, item.driver }) and (item.in_use or not only_used) then
+        if
+            Util.matches(term, { item.name, item.driver })
+            and (item.in_use or not only_used)
+        then
             table.insert(rows, {
                 -- Nome truncado só pra exibição; a ação de remover usa v.name
                 -- completo via `name_full`.
@@ -322,7 +430,9 @@ function M.docker_volumes(volumes: {any}?, term: string?, only_used: boolean?): 
                 name_full = item.name,
                 driver = item.driver,
                 mountpoint = item.mountpoint,
-                size = (item.size_bytes and item.size_bytes >= 0) and Time.format_bytes(item.size_bytes) or "—",
+                size = (item.size_bytes and item.size_bytes >= 0)
+                        and Time.format_bytes(item.size_bytes)
+                    or "—",
                 size_bytes = item.size_bytes or -1,
                 in_use_label = item.in_use and "EM USO" or "SEM USO",
                 in_use_kind = Util.in_use_kind(item.in_use),
@@ -332,20 +442,34 @@ function M.docker_volumes(volumes: {any}?, term: string?, only_used: boolean?): 
     return Util.encode_array(rows)
 end
 
-function M.docker_networks(networks: {any}?, term: string?, only_used: boolean?): string
+function M.docker_networks(
+    networks: { any }?,
+    term: string?,
+    only_used: boolean?
+): string
     local column_budgets = Util.column_budgets()
     local sorted = {}
-    for _, network in ipairs(networks or {}) do table.insert(sorted, network) end
-    table.sort(sorted, function(left: any, right: any) return left.name < right.name end)
+    for _, network in ipairs(networks or {}) do
+        table.insert(sorted, network)
+    end
+    table.sort(sorted, function(left: any, right: any)
+        return left.name < right.name
+    end)
     local rows = {}
     for _, item in ipairs(sorted) do
-        if Util.matches(term, { item.name, item.project or "" }) and (item.in_use or not only_used) then
+        if
+            Util.matches(term, { item.name, item.project or "" })
+            and (item.in_use or not only_used)
+        then
             table.insert(rows, {
                 name = Util.ellipsis(item.name, column_budgets.svc),
                 id_full = item.id or "",
                 driver = item.driver,
                 scope = item.scope,
-                project = Util.ellipsis(item.project or "—", column_budgets.proj),
+                project = Util.ellipsis(
+                    item.project or "—",
+                    column_budgets.proj
+                ),
                 containers = tostring(item.container_count or 0),
                 in_use_label = item.in_use and "EM USO" or "SEM USO",
                 in_use_kind = Util.in_use_kind(item.in_use),
@@ -355,32 +479,48 @@ function M.docker_networks(networks: {any}?, term: string?, only_used: boolean?)
     return Util.encode_array(rows)
 end
 
--- Containers do host (DockerContainerInfo): todos, rodando + parados. `can_remove`
+-- Containers do host (DockerContainerInfo): todos, rodando + parados.
+-- `can_remove`
 -- = "1" só nos parados (o Docker recusa remover um rodando sem force). `owner`
 -- mostra projeto/serviço quando atribuído (label rustploy.service_id), senão
 -- "rustploy" (managed) ou "—".
-function M.docker_containers(containers: {any}?, term: string?): string
+function M.docker_containers(containers: { any }?, term: string?): string
     local column_budgets = Util.column_budgets()
     local sorted = {}
-    for _, container in ipairs(containers or {}) do table.insert(sorted, container) end
-    table.sort(sorted, function(left: any, right: any) return (left.name or "") < (right.name or "") end)
+    for _, container in ipairs(containers or {}) do
+        table.insert(sorted, container)
+    end
+    table.sort(sorted, function(left: any, right: any)
+        return (left.name or "") < (right.name or "")
+    end)
     local rows = {}
     for _, item in ipairs(sorted) do
-        if Util.matches(term, { item.name, item.image, item.state, item.project or "", item.service or "" }) then
+        if
+            Util.matches(term, {
+                item.name,
+                item.image,
+                item.state,
+                item.project or "",
+                item.service or "",
+            })
+        then
             local label, kind = Util.container_state(item.state)
             local owner: string
             if item.project and item.service then
-                owner = tostring(item.project) .. " / " .. tostring(item.service)
+                owner = tostring(item.project)
+                    .. " / "
+                    .. tostring(item.service)
             elseif item.managed then
                 owner = "rustploy"
             else
                 owner = "—"
             end
-            -- A referência da imagem vira `sha256:<digest>` quando a tag original
-            -- some (imagem removida/reconstruída) — sem espaços, não quebra linha
-            -- e, sem truncar, estoura a coluna e sobrepõe as vizinhas (o Row não
-            -- clipa filhos). Tira o prefixo redundante (igual a docker_images) e
-            -- trunca por caractere (Util.ellipsis, não por palavra).
+            -- A referência da imagem vira `sha256:<digest>` quando a tag
+            -- original some (imagem removida/reconstruída) — sem espaços, não
+            -- quebra linha e, sem truncar, estoura a coluna e sobrepõe as
+            -- vizinhas (o Row não clipa filhos). Tira o prefixo redundante
+            -- (igual a docker_images) e trunca por caractere (Util.ellipsis,
+            -- não por palavra).
             local image = item.image or "—"
             image = string.gsub(image, "^sha256:", "")
             table.insert(rows, {
@@ -398,8 +538,9 @@ function M.docker_containers(containers: {any}?, term: string?): string
     return Util.encode_array(rows)
 end
 
--- Ingress: uma linha por rota de domínio (não filtrado pela busca). Retorna (json, count).
-function M.ingress(service_pairs: {ServicePair}): (string, number)
+-- Ingress: uma linha por rota de domínio (não filtrado pela busca). Retorna
+-- (json, count).
+function M.ingress(service_pairs: { ServicePair }): (string, number)
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, pair in ipairs(service_pairs) do
@@ -427,7 +568,7 @@ end
 -- exposição direta de porta TCP no host, independente das rotas HTTP de
 -- domínio acima (um serviço pode ter as duas, só uma, ou nenhuma). Não
 -- filtrado pela busca (mesma convenção de `M.ingress`).
-function M.host_ports(service_pairs: {ServicePair}): (string, number)
+function M.host_ports(service_pairs: { ServicePair }): (string, number)
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, pair in ipairs(service_pairs) do
@@ -442,12 +583,17 @@ function M.host_ports(service_pairs: {ServicePair}): (string, number)
             })
         end
     end
-    table.sort(rows, function(left: any, right: any) return left.host_port_n < right.host_port_n end)
+    table.sort(rows, function(left: any, right: any)
+        return left.host_port_n < right.host_port_n
+    end)
     return Util.encode_array(rows), #rows
 end
 
 -- Monitoring: uma linha por serviço COM métricas vivas.
-function M.monitoring(service_pairs: {ServicePair}, metrics: MetricsMap?): string
+function M.monitoring(
+    service_pairs: { ServicePair },
+    metrics: MetricsMap?
+): string
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, pair in ipairs(service_pairs) do
@@ -475,14 +621,23 @@ local DEPLOY_STEPS = {
     { label = "Fila", states = { "Pending" } },
     { label = "Checks", states = { "PreDeployCheck" } },
     { label = "Deps", states = { "ResolvingDeps" } },
-    { label = "Obter", states = { "PullingImage", "CloningRepo", "BuildingImage", "ComposingUp" } },
+    {
+        label = "Obter",
+        states = {
+            "PullingImage",
+            "CloningRepo",
+            "BuildingImage",
+            "ComposingUp",
+        },
+    },
     { label = "Staging", states = { "Staging" } },
     { label = "Health", states = { "HealthcheckPolling" } },
     { label = "Swap", states = { "SwappingIn", "Draining", "Promoting" } },
     { label = "Live", states = { "Live" } },
 }
 
-local STEP_ICON = { done = "✓ ", current = "● ", failed = "✕ ", pending = "○ " }
+local STEP_ICON =
+    { done = "✓ ", current = "● ", failed = "✕ ", pending = "○ " }
 
 local function deploy_step_index(state: any): number
     for index, step in ipairs(DEPLOY_STEPS) do
@@ -493,7 +648,7 @@ local function deploy_step_index(state: any): number
     return 0
 end
 
-local function deploy_stepper(info: any): {any}
+local function deploy_stepper(info: any): { any }
     local state = info.state
     local current_step = deploy_step_index(state)
     local failed = 0
@@ -520,23 +675,29 @@ local function deploy_stepper(info: any): {any}
         elseif index == current_step then
             status = "current"
         end
-        table.insert(out, { text = STEP_ICON[status] .. step.label, status = status })
+        table.insert(
+            out,
+            { text = STEP_ICON[status] .. step.label, status = status }
+        )
     end
     return out
 end
 
 local function iso_to_epoch_seconds(iso_timestamp: string?): number
-    local year_text, month_text, day_text, hour_text, minute_text, second_text = string.match(iso_timestamp or "", "^(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
-    if not year_text then
+    local year_s, month_s, day_s, hour_s, min_s, sec_s = string.match(
+        iso_timestamp or "",
+        "^(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)"
+    )
+    if not year_s then
         return 0
     end
     return os.time({
-        year = tonumber(year_text),
-        month = tonumber(month_text),
-        day = tonumber(day_text),
-        hour = tonumber(hour_text),
-        min = tonumber(minute_text),
-        sec = tonumber(second_text)
+        year = tonumber(year_s),
+        month = tonumber(month_s),
+        day = tonumber(day_s),
+        hour = tonumber(hour_s),
+        min = tonumber(min_s),
+        sec = tonumber(sec_s),
     } :: any)
 end
 
@@ -547,8 +708,20 @@ function M.deploy_engine_detail(info: any): string
         local last = index == #log
         local duration = "—"
         if index < #log then
-            duration = Time.format_seconds(math.max(0, iso_to_epoch_seconds(log[index + 1].at) - iso_to_epoch_seconds(transition.at)))
-        elseif not (transition.to == "Failed" or transition.to == "Live" or transition.to == "Stopped") then
+            duration = Time.format_seconds(
+                math.max(
+                    0,
+                    iso_to_epoch_seconds(log[index + 1].at)
+                        - iso_to_epoch_seconds(transition.at)
+                )
+            )
+        elseif
+            not (
+                transition.to == "Failed"
+                or transition.to == "Live"
+                or transition.to == "Stopped"
+            )
+        then
             duration = Time.format_seconds(info.current_state_secs)
         end
         local kind = "ok"
@@ -561,7 +734,7 @@ function M.deploy_engine_detail(info: any): string
             label = transition.to,
             kind = kind,
             dur = duration,
-            msg = Util.short_reason(transition.message)
+            msg = Util.short_reason(transition.message),
         })
     end
     return Util.encode_array(rows)
@@ -572,7 +745,7 @@ function M.deploy_engine_detail_steps(info: any): string
 end
 
 -- Deploy Engine: "Executando agora".
-function M.deploy_engine_active(active: {any}?): string
+function M.deploy_engine_active(active: { any }?): string
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, info in ipairs(active or {}) do
@@ -592,9 +765,9 @@ function M.deploy_engine_active(active: {any}?): string
     return Util.encode_array(rows)
 end
 
--- Deploy Engine: "Na fila" (deploys esperando; o primeiro é o próximo a rodar).
--- Inclui deployment_id (para cancelar/promover) e uma posição 1-based.
-function M.deploy_engine_queued(queued: {any}?): string
+-- Deploy Engine: "Na fila" (deploys esperando; o primeiro é o próximo a
+-- rodar). Inclui deployment_id (para cancelar/promover) e uma posição 1-based.
+function M.deploy_engine_queued(queued: { any }?): string
     local column_budgets = Util.column_budgets()
     local rows = {}
     for index, info in ipairs(queued or {}) do
@@ -609,14 +782,17 @@ function M.deploy_engine_queued(queued: {any}?): string
 end
 
 -- Deploy Engine: "Histórico 24h".
-function M.deploy_engine_recent(recent: {any}?): string
+function M.deploy_engine_recent(recent: { any }?): string
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, info in ipairs(recent or {}) do
         local label, _ = Util.state_label_color(info.state)
         local icon = "○"
-        if info.state == "Live" then icon = "✓"
-        elseif info.state == "Failed" then icon = "✕" end
+        if info.state == "Live" then
+            icon = "✓"
+        elseif info.state == "Failed" then
+            icon = "✕"
+        end
         table.insert(rows, {
             icon = icon,
             service = Util.ellipsis(info.service_name, column_budgets.svc),

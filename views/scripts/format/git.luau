@@ -1,10 +1,12 @@
 --!strict
--- format/git.luau — builders dos provedores/repositórios/branches Git conectados
--- (Gitea/GitHub) — Settings → Git e o picker da aba General do serviço.
+-- format/git.luau — builders dos provedores/repositórios/branches Git
+-- conectados (Gitea/GitHub) — Settings → Git e o picker da aba General do
+-- serviço.
 
 local Util = require("util")
 
--- Rótulo amigável do tipo de provedor a partir do enum do wire (GitProviderKind).
+-- Rótulo amigável do tipo de provedor a partir do enum do wire
+-- (GitProviderKind).
 local function kind_label(kind: any): string
     if kind == "Github" then
         return "GitHub"
@@ -16,7 +18,7 @@ end
 
 local M = {}
 
-function M.git_providers(providers: {any}?): string
+function M.git_providers(providers: { any }?): string
     local rows = {}
     for _, provider in ipairs(providers or {}) do
         local login = provider.account and provider.account.login or nil
@@ -25,7 +27,10 @@ function M.git_providers(providers: {any}?): string
         local account_lbl: string
         local account_login: string
         if connected then
-            display = tostring(provider.name or "") .. " (@" .. tostring(login or "") .. ")"
+            display = tostring(provider.name or "")
+                .. " (@"
+                .. tostring(login or "")
+                .. ")"
             account_lbl = "@" .. tostring(login or "")
             account_login = tostring(login or "")
         else
@@ -49,7 +54,7 @@ function M.git_providers(providers: {any}?): string
     return Util.encode_array(rows)
 end
 
-function M.git_repos(repositories: {any}?): string
+function M.git_repos(repositories: { any }?): string
     local rows = {}
     for _, repository in ipairs(repositories or {}) do
         table.insert(rows, {
@@ -62,7 +67,7 @@ function M.git_repos(repositories: {any}?): string
     return Util.encode_array(rows)
 end
 
-function M.git_branches(branches: {any}?): string
+function M.git_branches(branches: { any }?): string
     local rows = {}
     for _, branch in ipairs(branches or {}) do
         table.insert(rows, { name = branch.name })

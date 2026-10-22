@@ -2,7 +2,7 @@
 local Util = require("format/util")
 
 --- termo vazio ou nil sempre casa (a busca é filtro, não requisito)
-function test_busca__termo_vazio_ou_nil_sempre_casa_a_busca_e_filtro_nao_requisito()
+function test_busca__termo_vazio_ou_nil_sempre_casa_a_busca_e_filtro_nao()
     assert_eq(Util.matches("", { "qualquer" }), true)
     assert_eq(Util.matches(nil, {}), true)
 end
@@ -41,7 +41,10 @@ end
 
 --- short_reason fica com a primeira linha não vazia, aparada
 function test_texto__short_reason_fica_com_a_primeira_linha_nao_vazia_aparada()
-    assert_eq(Util.short_reason("\n\n   falhou o build  \nlinha dois"), "falhou o build")
+    assert_eq(
+        Util.short_reason("\n\n   falhou o build  \nlinha dois"),
+        "falhou o build"
+    )
 end
 
 --- short_reason trunca no limite pedido e tem padrão de 140
@@ -69,7 +72,10 @@ end
 
 --- strip_ansi não mexe em texto limpo
 function test_texto__strip_ansi_nao_mexe_em_texto_limpo()
-    assert_eq(Util.strip_ansi("sem [colchetes] nem ESC"), "sem [colchetes] nem ESC")
+    assert_eq(
+        Util.strip_ansi("sem [colchetes] nem ESC"),
+        "sem [colchetes] nem ESC"
+    )
 end
 
 --- encode_array força [] quando vazio (tabela vazia viraria {})
@@ -86,7 +92,7 @@ function test_arrays__encode_array_codifica_a_lista_quando_ha_itens()
 end
 
 --- status_label_color e status_kind concordam em todos os estados
-function test_estados__status_label_color_e_status_kind_concordam_em_todos_os_estados()
+function test_estados__status_label_color_e_status_kind_concordam_em_todos_os()
     local casos = {
         { "Running", "Running", "ok" },
         { "Deploying", "Deploying", "info" },
@@ -103,7 +109,7 @@ function test_estados__status_label_color_e_status_kind_concordam_em_todos_os_es
 end
 
 --- status com erro (tabela) ou desconhecido cai em Error/bad
-function test_estados__status_com_erro_tabela_ou_desconhecido_cai_em_error_bad()
+function test_estados__status_com_erro_tabela_ou_desconhecido_cai_em_error()
     local label, cor = Util.status_label_color({ Error = "boom" })
     assert_eq(label, "Error")
     assert_eq(cor, "#F85149")
@@ -145,7 +151,7 @@ function test_estados__container_state_normaliza_a_caixa_e_classifica()
 end
 
 --- container_state: parado ou desconhecido é muted; vazio vira exited
-function test_estados__container_state_parado_ou_desconhecido_e_muted_vazio_vira_exited()
+function test_estados__container_state_parado_ou_desconhecido_e_muted_vazio()
     local rotulo, kind = Util.container_state("removing")
     assert_eq(rotulo, "removing")
     assert_eq(kind, "muted")
@@ -154,7 +160,7 @@ function test_estados__container_state_parado_ou_desconhecido_e_muted_vazio_vira
 end
 
 --- container_stopped: só ativo (running/restarting/paused) não é removível
-function test_estados__container_stopped_so_ativo_running_restarting_paused_nao_e_removivel()
+function test_estados__container_stopped_so_ativo_running_restarting_paused()
     assert_eq(Util.container_stopped("running"), false)
     assert_eq(Util.container_stopped("Restarting"), false)
     assert_eq(Util.container_stopped("paused"), false)
@@ -164,16 +170,27 @@ end
 
 --- source_summary de cada origem
 function test_dominio_do_servico__source_summary_de_cada_origem()
-    assert_eq(Util.source_summary({ Registry = { image = "nginx:1" } }), "nginx:1")
-    assert_eq(Util.source_summary({ Git = { url = "https://x/r.git", branch = "main" } }), "https://x/r.git @ main")
-    assert_eq(Util.source_summary({ Archive = { original_filename = "app.zip" } }), "app.zip")
+    assert_eq(
+        Util.source_summary({ Registry = { image = "nginx:1" } }),
+        "nginx:1"
+    )
+    assert_eq(
+        Util.source_summary({
+            Git = { url = "https://x/r.git", branch = "main" },
+        }),
+        "https://x/r.git @ main"
+    )
+    assert_eq(
+        Util.source_summary({ Archive = { original_filename = "app.zip" } }),
+        "app.zip"
+    )
     assert_eq(Util.source_summary({ Archive = { archive_id = "a1" } }), "a1")
     assert_eq(Util.source_summary({ Archive = {} }), "zip enviado")
     assert_eq(Util.source_summary({ Compose = {} }), "docker-compose")
 end
 
 --- source_summary de origem ausente ou desconhecida é —
-function test_dominio_do_servico__source_summary_de_origem_ausente_ou_desconhecida_e()
+function test_dominio_do_servico__source_summary_de_origem_ausente_ou()
     assert_eq(Util.source_summary(nil), "—")
     assert_eq(Util.source_summary("Git"), "—")
     assert_eq(Util.source_summary({}), "—")
@@ -181,9 +198,12 @@ function test_dominio_do_servico__source_summary_de_origem_ausente_ou_desconheci
 end
 
 --- domain_routes usa a lista nova e converte tls para booleano
-function test_dominio_do_servico__domain_routes_usa_a_lista_nova_e_converte_tls_para_booleano()
+function test_dominio_do_servico__domain_routes_usa_a_lista_nova_e_converte()
     local rotas = Util.domain_routes({
-        domains = { { domain = "a.com", port = 80, tls = true }, { domain = "b.com" } },
+        domains = {
+            { domain = "a.com", port = 80, tls = true },
+            { domain = "b.com" },
+        },
     } :: any)
     assert_eq(#rotas, 2)
     assert_eq(rotas[1].tls, true)
@@ -192,8 +212,9 @@ function test_dominio_do_servico__domain_routes_usa_a_lista_nova_e_converte_tls_
 end
 
 --- domain_routes cai no domain/tls_enabled legado
-function test_dominio_do_servico__domain_routes_cai_no_domain_tls_enabled_legado()
-    local rotas = Util.domain_routes({ domain = "velho.com", tls_enabled = true } :: any)
+function test_dominio_do_servico__domain_routes_cai_no_domain_tls_enabled()
+    local rotas =
+        Util.domain_routes({ domain = "velho.com", tls_enabled = true } :: any)
     assert_eq(#rotas, 1)
     assert_eq(rotas[1].domain, "velho.com")
     assert_eq(rotas[1].tls, true)
@@ -201,8 +222,10 @@ function test_dominio_do_servico__domain_routes_cai_no_domain_tls_enabled_legado
 end
 
 --- a lista nova vence o legado, e vazio não gera rota
-function test_dominio_do_servico__a_lista_nova_vence_o_legado_e_vazio_nao_gera_rota()
-    local rotas = Util.domain_routes({ domains = { { domain = "novo.com" } }, domain = "velho.com" } :: any)
+function test_dominio_do_servico__a_lista_nova_vence_o_legado_e_vazio_nao()
+    local rotas = Util.domain_routes(
+        { domains = { { domain = "novo.com" } }, domain = "velho.com" } :: any
+    )
     assert_eq(#rotas, 1)
     assert_eq(rotas[1].domain, "novo.com")
     assert_eq(#Util.domain_routes({ domain = "" } :: any), 0)
@@ -210,9 +233,21 @@ function test_dominio_do_servico__a_lista_nova_vence_o_legado_e_vazio_nao_gera_r
 end
 
 --- pre_deploy_checks: a fila nova vence o id legado
-function test_dominio_do_servico__pre_deploy_checks_a_fila_nova_vence_o_id_legado()
-    assert_eq(Util.pre_deploy_checks({ pre_deploy_job_ids = { "a", "b" }, pre_deploy_job_id = "z" }), { "a", "b" })
-    assert_eq(Util.pre_deploy_checks({ pre_deploy_job_ids = {}, pre_deploy_job_id = "z" }), { "z" })
+function test_dominio_do_servico__pre_deploy_checks_a_fila_nova_vence_o_id()
+    assert_eq(
+        Util.pre_deploy_checks({
+            pre_deploy_job_ids = { "a", "b" },
+            pre_deploy_job_id = "z",
+        }),
+        { "a", "b" }
+    )
+    assert_eq(
+        Util.pre_deploy_checks({
+            pre_deploy_job_ids = {},
+            pre_deploy_job_id = "z",
+        }),
+        { "z" }
+    )
     assert_eq(Util.pre_deploy_checks({ pre_deploy_job_id = "" }), {})
     assert_eq(Util.pre_deploy_checks({}), {})
 end
@@ -230,7 +265,7 @@ function test_dominio_do_servico__service_pair_list_normaliza_o_snapshot()
 end
 
 --- segue os breakpoints 560/900 da largura da janela
-function test_orcamento_de_colunas__segue_os_breakpoints_560_900_da_largura_da_janela()
+function test_orcamento_de_colunas__segue_os_breakpoints_560_900_da_largura()
     local largura = viewport().width
     local b = Util.column_budgets()
     if largura < 560 then

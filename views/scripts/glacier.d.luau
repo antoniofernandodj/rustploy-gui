@@ -1,7 +1,7 @@
 --!strict
--- Definições dos globais que o motor glacier-ui injeta no interpretador Luau em
--- runtime (não existem como arquivo). Consumido só pelo type-checker (luau-lsp):
--- o mlua ignora tipos/anotações em runtime. Carregue com
+-- Definições dos globais que o motor glacier-ui injeta no interpretador Luau
+-- em runtime (não existem como arquivo). Consumido só pelo type-checker
+-- (luau-lsp): o mlua ignora tipos/anotações em runtime. Carregue com
 --   luau-lsp analyze --definitions=views/scripts/glacier.d.luau ...
 
 export type FetchResult = {
@@ -20,7 +20,8 @@ export type StreamHandle = {
 -- Contexto global do motor: chave→valor string (o motor coage tudo p/ string).
 declare ctx: { [string]: string }
 
--- Valor do on_change/on_toggle/ação-com-sufixo (nil quando a ação não traz valor).
+-- Valor do on_change/on_toggle/ação-com-sufixo (nil quando a ação não traz
+-- valor).
 declare value: string?
 
 -- Tamanho atual da janela em px lógicos (o que também alimenta @media no GSS).
@@ -33,22 +34,35 @@ declare function viewport(): Viewport
 -- HTTP, ou leitura de arquivo local quando a URL começa com `file://`
 -- (glacier-ui 0.49+): devolve o mesmo FetchResult, com o conteúdo no `body`.
 declare function fetch(url: string, opts: any?): FetchResult
--- Escrita de arquivo local (glacier-ui 0.49+), contraparte do `fetch("file://…")`.
--- Devolve `true` no sucesso, ou `false, mensagem` na falha.
+-- Escrita de arquivo local (glacier-ui 0.49+), contraparte do
+-- `fetch("file://…")`. Devolve `true` no sucesso, ou `false, mensagem` na
+-- falha.
 declare function write_file(path: string, contents: string): (boolean, string?)
 -- Idem, acrescentando ao fim (glacier-ui 0.49+).
-declare function append_file(path: string, contents: string): (boolean, string?)
+declare function append_file(
+    path: string,
+    contents: string
+): (boolean, string?)
 -- Compacta a árvore de `source` (diretório) num `.zip` em `dest` (glacier-ui
--- 0.83+). Síncrono (I/O local). `(true)` no sucesso, `(false, mensagem)` na falha.
+-- 0.83+). Síncrono (I/O local). `(true)` no sucesso, `(false, mensagem)` na
+-- falha.
 declare function zip_dir(source: string, dest: string): (boolean, string?)
 -- `.zip` de entradas de TEXTO, sem diretório de staging (glacier-ui 0.123+).
--- `zip_read` entrega todas as entradas; `text` falta em diretório e em conteúdo
--- que não é UTF-8. Quem decide quais nomes aceitar é o chamador.
+-- `zip_read` entrega todas as entradas; `text` falta em diretório e em
+-- conteúdo que não é UTF-8. Quem decide quais nomes aceitar é o chamador.
 export type ZipEntry = { name: string, dir: boolean?, text: string? }
-declare function zip_write(dest: string, entries: { ZipEntry }): (boolean, string?)
-declare function zip_read(source: string): { ok: boolean, entries: { ZipEntry }?, error: string? }
--- Diálogos nativos do SO (glacier-ui 0.49+). SUSPENDEM a corrotina até o usuário
--- escolher/cancelar; devolvem o caminho escolhido, ou `nil` se cancelou.
+declare function zip_write(
+    dest: string,
+    entries: { ZipEntry }
+): (boolean, string?)
+declare function zip_read(source: string): {
+    ok: boolean,
+    entries: { ZipEntry }?,
+    error: string?,
+}
+-- Diálogos nativos do SO (glacier-ui 0.49+). SUSPENDEM a corrotina até o
+-- usuário escolher/cancelar; devolvem o caminho escolhido, ou `nil` se
+-- cancelou.
 -- `opts`: { title?, starting_dir?, default_name?, filters? }.
 declare function open_file(opts: any?): string?
 declare function save_file(opts: any?): string?
@@ -61,8 +75,9 @@ declare function pick_folder(opts: any?): string?
 -- nada, e falha em silêncio quando está errado.
 export type StreamOptions = {
     headers: { [string]: string }?,
-    -- "window" (padrão): vive até a janela fechar. "screen": o motor fecha ao SAIR
-    -- da tela dona (depois do `on_leave`), com `on_close`. Abra em `on_enter`.
+    -- "window" (padrão): vive até a janela fechar. "screen": o motor fecha ao
+    -- SAIR da tela dona (depois do `on_leave`), com `on_close`. Abra em
+    -- `on_enter`.
     scope: ("screen" | "window")?,
     on_open: (() -> ())?,
     on_message: ((data: string) -> ())?,
@@ -75,19 +90,21 @@ declare function toast(opts: any): ()
 -- Notificação nativa do SO (glacier-ui 0.42+): `notify({ title?, body? })` ou
 -- `notify("mensagem")`. Diferente de `toast` (efêmero, dentro da janela).
 declare function notify(opts: any): ()
--- Copia `text` p/ a área de transferência (glacier-ui 0.126+); não informa sucesso — chame `toast` em seguida.
+-- Copia `text` p/ a área de transferência (glacier-ui 0.126+); não informa
+-- sucesso — chame `toast` em seguida.
 declare function copy(text: any): ()
 declare function confirm(opts: any): boolean
 
--- Multi-janela (glacier-ui 0.36+/0.37+): abrir janela, mensagear entre janelas e
--- fechar a própria. `on_broadcast(event, payload)` é definido pelo usuário (a
--- janela receptora), não injetado — por isso não é declarado aqui.
+-- Multi-janela (glacier-ui 0.36+/0.37+): abrir janela, mensagear entre janelas
+-- e fechar a própria. `on_broadcast(event, payload)` é definido pelo usuário
+-- (a janela receptora), não injetado — por isso não é declarado aqui.
 declare function open_window(opts: any): ()
 declare function broadcast(event: string, payload: any?): ()
 declare function close_window(): ()
 
 -- Anexa texto ao fim do <textarea> ligado a `binding` (chave do `value`), de
--- forma incremental (o motor insere no Content sem recriá-lo — preserva scroll).
+-- forma incremental (o motor insere no Content sem recriá-lo — preserva
+-- scroll).
 declare function append_textarea(binding: string, text: string): ()
 
 declare json: {
@@ -96,12 +113,12 @@ declare json: {
     array: <T>(t: { T }) -> { T },
 }
 
--- Persistência local em JSON, análoga ao `localStorage` do browser: sobrevive a
--- um restart do processo (ao contrário do `ctx`, que é só memória). `set` grava
--- qualquer valor JSON-serializável (string, número, booleano, tabela); `get`
--- devolve o valor guardado ou nil; `remove` apaga a chave. No rustploy grava em
--- `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida no Rust via
--- `GlacierDaemon::storage_dir`, glacier-ui 0.45+).
+-- Persistência local em JSON, análoga ao `localStorage` do browser: sobrevive
+-- a um restart do processo (ao contrário do `ctx`, que é só memória). `set`
+-- grava qualquer valor JSON-serializável (string, número, booleano, tabela);
+-- `get` devolve o valor guardado ou nil; `remove` apaga a chave. No rustploy
+-- grava em `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida
+-- no Rust via `GlacierDaemon::storage_dir`, glacier-ui 0.45+).
 declare storage: {
     get: (key: string) -> any,
     set: (key: string, value: any) -> (),

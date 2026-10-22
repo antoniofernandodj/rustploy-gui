@@ -6,10 +6,11 @@
 -- Formato (o mesmo de `api/agent/access_key.rs` no daemon e de
 -- `decodeAccessKey` na webui): base64 padrão, com padding, de
 -- `host:porta::token` — igual ao `base64.b64encode(b"host:porta::token")` do
--- Python. Sem esquema: o `connect()` descobre se o servidor fala https ou http.
--- O daemon deixa o token pronto no config.toml, em `[api].connection_token`.
--- Esconde o endereço, não o criptografa — quem tem o token de conexão tem o
--- token da API. Ver docs/plano-chave-de-acesso-e-mcp.md.
+-- Python. Sem esquema: o `connect()` descobre se o servidor fala https ou
+-- http. O daemon deixa o token pronto no config.toml, em
+-- `[api].connection_token`. Esconde o endereço, não o criptografa — quem tem o
+-- token de conexão tem o token da API. Ver
+-- docs/plano-chave-de-acesso-e-mcp.md.
 --
 -- Luau não traz base64, daí o codificador aqui embaixo.
 
@@ -17,9 +18,12 @@ local M = {}
 
 M.SEPARATOR = "::"
 
--- Alfabeto url-safe: é nele que o decodificador trabalha (normalizando `+`/`/`).
-local ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-local STANDARD_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+-- Alfabeto url-safe: é nele que o decodificador trabalha (normalizando
+-- `+`/`/`).
+local ALPHABET =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+local STANDARD_ALPHABET =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 local index_of_character: { [string]: number } = {}
 for position = 1, #ALPHABET do
@@ -38,8 +42,12 @@ local function base64_encode(input: string): string
         )
         local characters = if third then 4 elseif second then 3 else 2
         for slot = 1, characters do
-            local sextet = bit32.band(bit32.rshift(group, 18 - (slot - 1) * 6), 63)
-            table.insert(output, string.sub(STANDARD_ALPHABET, sextet + 1, sextet + 1))
+            local sextet =
+                bit32.band(bit32.rshift(group, 18 - (slot - 1) * 6), 63)
+            table.insert(
+                output,
+                string.sub(STANDARD_ALPHABET, sextet + 1, sextet + 1)
+            )
         end
         table.insert(output, string.rep("=", 4 - characters))
     end
@@ -48,7 +56,11 @@ end
 
 -- Aceita os dois alfabetos (`+`/`/` e `-`/`_`), com ou sem `=` no fim.
 local function base64_decode(input: string): string?
-    local cleaned = string.gsub(string.gsub(string.gsub(input, "=+$", ""), "%+", "-"), "/", "_")
+    local cleaned = string.gsub(
+        string.gsub(string.gsub(input, "=+$", ""), "%+", "-"),
+        "/",
+        "_"
+    )
     if #cleaned % 4 == 1 then
         return nil
     end
@@ -57,7 +69,8 @@ local function base64_decode(input: string): string?
         local group = 0
         local characters = 0
         for offset = 0, 3 do
-            local character = string.sub(cleaned, start + offset, start + offset)
+            local character =
+                string.sub(cleaned, start + offset, start + offset)
             if character ~= "" then
                 local value = index_of_character[character]
                 if value == nil then
@@ -67,9 +80,15 @@ local function base64_decode(input: string): string?
                 characters += 1
             end
         end
-        table.insert(output, string.char(bit32.band(bit32.rshift(group, 16), 255)))
+        table.insert(
+            output,
+            string.char(bit32.band(bit32.rshift(group, 16), 255))
+        )
         if characters >= 3 then
-            table.insert(output, string.char(bit32.band(bit32.rshift(group, 8), 255)))
+            table.insert(
+                output,
+                string.char(bit32.band(bit32.rshift(group, 8), 255))
+            )
         end
         if characters == 4 then
             table.insert(output, string.char(bit32.band(group, 255)))
@@ -91,7 +110,9 @@ function M.address_of(url: string): string
     if string.find(after_host, ":", 1, true) then
         return authority
     end
-    return authority .. ":" .. (if scheme and string.lower(scheme) == "http" then "80" else "443")
+    return authority
+        .. ":"
+        .. (if scheme and string.lower(scheme) == "http" then "80" else "443")
 end
 
 --- Monta o token de conexão de um par salvo `{url, token}`.
@@ -101,7 +122,9 @@ end
 
 --- `{ address, token }` do token de conexão (`address` = `host:porta`), ou
 --- `nil` + o motivo (para o erro do campo).
-function M.decode(raw_key: string?): ({ address: string, token: string }?, string?)
+function M.decode(
+    raw_key: string?
+): ({ address: string, token: string }?, string?)
     local key = trim(raw_key or "")
     if key == "" then
         return nil, "cole o token de conexão"
@@ -111,24 +134,35 @@ function M.decode(raw_key: string?): ({ address: string, token: string }?, strin
         return nil, "token de conexão corrompido (cortado ao copiar?)"
     end
     -- Bytes que não são texto, ou sem o `::`: quase sempre o token da API
-    -- colado no lugar do de conexão (todo token hex/base64url também "decodifica").
+    -- colado no lugar do de conexão (todo token hex/base64url também
+    -- "decodifica").
     local separator_at: number? = nil
     local authority_start = 1
     if utf8.len(text) ~= nil then
         -- Um esquema posto à mão não faz parte do formato: é pulado.
         local scheme_end = string.find(text, "://", 1, true)
         authority_start = if scheme_end then scheme_end + 3 else 1
-        -- O primeiro `::` fora do endereço: um IPv6 (`[::1]:9797`) tem os seus.
+        -- O primeiro `::` fora do endereço: um IPv6 (`[::1]:9797`) tem os
+        -- seus.
         local search_from = authority_start
         if string.sub(text, search_from, search_from) == "[" then
-            search_from = string.find(text, "]", search_from, true) or (#text + 1)
+            search_from = string.find(text, "]", search_from, true)
+                or (#text + 1)
         end
         separator_at = string.find(text, M.SEPARATOR, search_from, true)
     end
     if separator_at == nil then
-        return nil, "isso não é um token de conexão — cole o token de conexão inteiro (base64 de host:porta::token), não só o token da API"
+        return nil,
+            "isso não é um token de conexão — cole o token de conexão inteiro "
+                .. "(base64 de host:porta::token), não só o token da API"
     end
-    local address = (string.gsub(trim(string.sub(text, authority_start, separator_at - 1)), "/+$", ""))
+    local address = (
+        string.gsub(
+            trim(string.sub(text, authority_start, separator_at - 1)),
+            "/+$",
+            ""
+        )
+    )
     local token = trim(string.sub(text, separator_at + #M.SEPARATOR))
     -- Token vazio vale: é o de um daemon sem `[api].token` (API aberta).
     if address == "" then
@@ -137,13 +171,17 @@ function M.decode(raw_key: string?): ({ address: string, token: string }?, strin
     return { address = address, token = token }, nil
 end
 
---- Dica `host:porta · cnVzdH…TjQ=` de a qual servidor um token se refere.
---- Sem uso por ora: era o rótulo dos itens do `<ComboEdit>`, mas o combo mostra
---- o rótulo no próprio campo (ver `publish_saved_servers` em
+--- Dica `host:porta · cnVzdH…TjQ=` de a qual servidor um token se refere. Sem
+--- uso por ora: era o rótulo dos itens do `<ComboEdit>`, mas o combo mostra o
+--- rótulo no próprio campo (ver `publish_saved_servers` em
 --- handlers/connection.luau). Volta quando o glacier separar o texto do campo
 --- do texto da lista.
 function M.hint(url: string, key: string): string
-    return M.address_of(url) .. " · " .. string.sub(key, 1, 6) .. "…" .. string.sub(key, -6)
+    return M.address_of(url)
+        .. " · "
+        .. string.sub(key, 1, 6)
+        .. "…"
+        .. string.sub(key, -6)
 end
 
 return M

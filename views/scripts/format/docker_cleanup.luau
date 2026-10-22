@@ -1,7 +1,8 @@
 --!strict
 -- format/docker_cleanup.luau — resumo textual da limpeza automática de Docker
--- (Settings → Manutenção). Usado tanto ao carregar a tela (`DockerCleanupConfig`)
--- quanto ao vivo, quando `Event::DockerCleanupCompleted` chega (stream.luau).
+-- (Settings → Manutenção). Usado tanto ao carregar a tela
+-- (`DockerCleanupConfig`) quanto ao vivo, quando
+-- `Event::DockerCleanupCompleted` chega (stream.luau).
 
 local Time = require("time")
 
@@ -34,10 +35,18 @@ function M.last_run_summary(last_run: any): string
             any_error = true
             table.insert(parts, M.resource_label(result.resource) .. ": erro")
         else
-            table.insert(parts, M.resource_label(result.resource) .. " " .. tostring(result.count or 0))
+            table.insert(
+                parts,
+                M.resource_label(result.resource)
+                    .. " "
+                    .. tostring(result.count or 0)
+            )
         end
     end
-    local head = Time.date_day_month_hour_minute_second(last_run.at) .. " · " .. Time.format_bytes(total_bytes) .. " liberados"
+    local head = Time.date_day_month_hour_minute_second(last_run.at)
+        .. " · "
+        .. Time.format_bytes(total_bytes)
+        .. " liberados"
     if #parts == 0 then
         return head
     end

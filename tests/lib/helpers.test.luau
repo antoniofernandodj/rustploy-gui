@@ -43,7 +43,8 @@ end
 
 --- comentários ficam ligados à chave que vem depois
 function test_env__comentarios_ficam_ligados_a_chave_que_vem_depois()
-    local vars, comments = H.parse_dotenv("# banco\n# principal\nDB=1\nOUTRA=2")
+    local vars, comments =
+        H.parse_dotenv("# banco\n# principal\nDB=1\nOUTRA=2")
     assert_eq(#vars, 2)
     assert_eq(#comments, 2)
     assert_eq(comments[1].text, "# banco")
@@ -66,7 +67,7 @@ function test_env__linhas_vazias_e_sem_sao_ignoradas()
 end
 
 --- entrada vazia ou nil dá listas vazias que codificam como array
-function test_env__entrada_vazia_ou_nil_da_listas_vazias_que_codificam_como_array()
+function test_env__entrada_vazia_ou_nil_da_listas_vazias_que_codificam_como()
     for _, entrada in { "", nil } do
         local vars, comments = H.parse_dotenv(entrada)
         assert_eq(#vars, 0)
@@ -82,20 +83,39 @@ end
 
 --- oauth_redirect_uri monta o callback do provedor
 function test_urls__oauth_redirect_uri_monta_o_callback_do_provedor()
-    assert_eq(H.oauth_redirect_uri("https://d.com", "github"), "https://d.com/oauth/github/callback")
-    assert_eq(H.oauth_redirect_uri("https://d.com///", "gitea"), "https://d.com/oauth/gitea/callback")
+    assert_eq(
+        H.oauth_redirect_uri("https://d.com", "github"),
+        "https://d.com/oauth/github/callback"
+    )
+    assert_eq(
+        H.oauth_redirect_uri("https://d.com///", "gitea"),
+        "https://d.com/oauth/gitea/callback"
+    )
 end
 
 --- provedor desconhecido cai em gitea, e base vazia avisa
 function test_urls__provedor_desconhecido_cai_em_gitea_e_base_vazia_avisa()
-    assert_eq(H.oauth_redirect_uri("https://d.com", "gitlab"), "https://d.com/oauth/gitea/callback")
+    assert_eq(
+        H.oauth_redirect_uri("https://d.com", "gitlab"),
+        "https://d.com/oauth/gitea/callback"
+    )
     assert_has(H.oauth_redirect_uri("", "github"), "indisponível")
     assert_has(H.oauth_redirect_uri(nil, "github"), "/oauth/github/callback")
 end
 
 --- looks_like_git_url reconhece os esquemas e o sufixo .git
 function test_urls__looks_like_git_url_reconhece_os_esquemas_e_o_sufixo_git()
-    for _, boa in { "https://x/r", "http://x/r", "git@github.com:a/b", "ssh://h/r", "file:///tmp/r", "foo/bar.git", "  https://x  " } do
+    for _, boa in
+        {
+            "https://x/r",
+            "http://x/r",
+            "git@github.com:a/b",
+            "ssh://h/r",
+            "file:///tmp/r",
+            "foo/bar.git",
+            "  https://x  ",
+        }
+    do
         assert_eq(H.looks_like_git_url(boa), true)
     end
     for _, ruim in { "", "ftp://x/r", "só texto", "github.com/a/b" } do
@@ -105,7 +125,7 @@ function test_urls__looks_like_git_url_reconhece_os_esquemas_e_o_sufixo_git()
 end
 
 --- normalize_url fixa o esquema e descarta caminho, query e fragmento
-function test_urls__normalize_url_fixa_o_esquema_e_descarta_caminho_query_e_fragmento()
+function test_urls__normalize_url_fixa_o_esquema_e_descarta_caminho_query_e()
     assert_eq(H.normalize_url("https://a.com/x/y?z=1#f"), "https://a.com")
     assert_eq(H.normalize_url("a.com:8080/p"), "https://a.com:8080")
     assert_eq(H.normalize_url("  HTTP://B.com  "), "http://B.com")

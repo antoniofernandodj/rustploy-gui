@@ -43,7 +43,9 @@ function M.format_seconds(seconds: any): string
     local num_secs = math.floor(tonumber(seconds) or 0)
     local minutes = math.floor(num_secs / 60)
     local remaining_seconds = num_secs % 60
-    if minutes > 0 then return string.format("%dm %ds", minutes, remaining_seconds) end
+    if minutes > 0 then
+        return string.format("%dm %ds", minutes, remaining_seconds)
+    end
     return string.format("%ds", remaining_seconds)
 end
 
@@ -53,8 +55,12 @@ function M.format_uptime(seconds: any): string
     local hours = math.floor((num_secs % 86400) / 3600)
     local minutes = math.floor((num_secs % 3600) / 60)
     local remaining_seconds = num_secs % 60
-    if days > 0 then return string.format("%dd %dh %dm", days, hours, minutes) end
-    if hours > 0 then return string.format("%dh %dm", hours, minutes) end
+    if days > 0 then
+        return string.format("%dd %dh %dm", days, hours, minutes)
+    end
+    if hours > 0 then
+        return string.format("%dh %dm", hours, minutes)
+    end
     return string.format("%dm %ds", minutes, remaining_seconds)
 end
 
@@ -64,14 +70,21 @@ function M.format_bytes(bytes_value: any): string
     local KB = 1024.0
     local MB = KB * 1024.0
     local GB = MB * 1024.0
-    if total_bytes == 0 then return "—" end
+    if total_bytes == 0 then
+        return "—"
+    end
     local bytes_float = total_bytes + 0.0
-    if bytes_float >= GB then return string.format("%.1f GB", bytes_float / GB) end
-    if bytes_float >= MB then return string.format("%.0f MB", bytes_float / MB) end
+    if bytes_float >= GB then
+        return string.format("%.1f GB", bytes_float / GB)
+    end
+    if bytes_float >= MB then
+        return string.format("%.0f MB", bytes_float / MB)
+    end
     return string.format("%.0f KB", bytes_float / KB)
 end
 
--- Duração de um deployment (finished_at ou agora) − started_at, em format_seconds.
+-- Duração de um deployment (finished_at ou agora) − started_at, em
+-- format_seconds.
 --
 -- `date.diff_seconds` compara INSTANTES, não texto: ele traz cada lado para a
 -- hora local antes de subtrair, e é por isso que dá para misturar o
@@ -79,21 +92,31 @@ end
 -- (sem fuso, hora local) sem converter nenhum dos dois na mão.
 function M.format_duration(deployment: any): string
     local finished_at: string = deployment.finished_at or date.now(true)
-    local elapsed_seconds: number? = date.diff_seconds(finished_at, deployment.started_at)
-    if elapsed_seconds == nil or elapsed_seconds < 0 then return "0s" end
+    local elapsed_seconds: number? =
+        date.diff_seconds(finished_at, deployment.started_at)
+    if elapsed_seconds == nil or elapsed_seconds < 0 then
+        return "0s"
+    end
     return M.format_seconds(elapsed_seconds)
 end
 
 -- Dias da semana no formato que o <radiogroup> do glacier-ui pede: uma coleção
--- de `{id, label}` no contexto, e não uma lista literal no atributo (o for-each
--- do motor lê chave, não texto). O `id` é o índice que `Recurrence::Weekly`
--- usa no daemon — 0 = segunda —, então ele viaja para o payload sem conversão.
--- Mora aqui, e não em cada tela, porque as duas janelas que agendam por semana
--- (limpeza automática e jobs) precisam da mesma lista.
--- Delimitador `[=[ ]=]` (e não `[[ ]]`) porque o conteúdo é um array JSON:
--- ele começa com `[` e termina com `]`, e as duas pontas encostariam nos
--- colchetes do próprio literal.
-M.WEEKDAYS_JSON = [=[[{"id":"0","label":"Seg"},{"id":"1","label":"Ter"},{"id":"2","label":"Qua"},{"id":"3","label":"Qui"},{"id":"4","label":"Sex"},{"id":"5","label":"Sáb"},{"id":"6","label":"Dom"}]]=]
+-- de `{id, label}` no contexto, e não uma lista literal no atributo (o
+-- for-each do motor lê chave, não texto). O `id` é o índice que
+-- `Recurrence::Weekly` usa no daemon — 0 = segunda —, então ele viaja para o
+-- payload sem conversão. Mora aqui, e não em cada tela, porque as duas janelas
+-- que agendam por semana (limpeza automática e jobs) precisam da mesma lista.
+-- É uma tabela de dados: `ctx.weekdays = format.WEEKDAYS` já grava o JSON que
+-- o <radiogroup> espera em `:items`, sem escrever o JSON em string.
+M.WEEKDAYS = {
+    { id = "0", label = "Seg" },
+    { id = "1", label = "Ter" },
+    { id = "2", label = "Qua" },
+    { id = "3", label = "Qui" },
+    { id = "4", label = "Sex" },
+    { id = "5", label = "Sáb" },
+    { id = "6", label = "Dom" },
+}
 
 -- ── Ponte entre o <timeedit> e o protocolo ──────────────────────────────────
 -- O <timeedit> do glacier-ui (0.68) guarda o horário numa chave ÚNICA, em ISO
@@ -108,8 +131,16 @@ M.WEEKDAYS_JSON = [=[[{"id":"0","label":"Seg"},{"id":"1","label":"Ter"},{"id":"2
 function M.hour_minute_join(hour: any, minute: any): string
     local hour_value = math.floor(tonumber(hour) or 0)
     local minute_value = math.floor(tonumber(minute) or 0)
-    if hour_value < 0 then hour_value = 0 elseif hour_value > 23 then hour_value = 23 end
-    if minute_value < 0 then minute_value = 0 elseif minute_value > 59 then minute_value = 59 end
+    if hour_value < 0 then
+        hour_value = 0
+    elseif hour_value > 23 then
+        hour_value = 23
+    end
+    if minute_value < 0 then
+        minute_value = 0
+    elseif minute_value > 59 then
+        minute_value = 59
+    end
     return string.format("%02d:%02d", hour_value, minute_value)
 end
 
@@ -118,11 +149,17 @@ end
 function M.hour_minute_split(hour_minute_text: any): (number, number)
     local time_text = tostring(hour_minute_text or "")
     local hour_text, minute_text = string.match(time_text, "^(%d+):(%d+)$")
-    if not hour_text then return 0, 0 end
+    if not hour_text then
+        return 0, 0
+    end
     local hour = math.floor(tonumber(hour_text) or 0)
     local minute = math.floor(tonumber(minute_text) or 0)
-    if hour < 0 or hour > 23 then hour = 0 end
-    if minute < 0 or minute > 59 then minute = 0 end
+    if hour < 0 or hour > 23 then
+        hour = 0
+    end
+    if minute < 0 or minute > 59 then
+        minute = 0
+    end
     return hour, minute
 end
 

@@ -5,8 +5,8 @@
 -- handlers/bundle.luau::open_export_window, que semeia a conexão e o plano:
 -- export_plan = JSON do ServiceExportPlan).
 --
--- O usuário marca quais variáveis do PROJETO levar (o rustploy não sabe quais o
--- app lê: o container recebe todas) e escolhe incluir ou não os valores; o
+-- O usuário marca quais variáveis do PROJETO levar (o rustploy não sabe quais
+-- o app lê: o container recebe todas) e escolhe incluir ou não os valores; o
 -- daemon gera o pacote (YAML) — aqui só se escolhe e se grava.
 
 local Api = require("net/api")
@@ -22,9 +22,10 @@ local function client(): Api.Client?
     return Api.new(url, ctx.api_token)
 end
 
--- Reconstrói a lista exibida (☑/☐ por variável do projeto) a partir de `picked`.
+-- Reconstrói a lista exibida (☑/☐ por variável do projeto) a partir de
+-- `picked`.
 local function render(): ()
-    local rows = json.array{}
+    local rows = json.array {}
     local picked_count = 0
 
     for _, env_var in ipairs(plan.project_env or {}) do
@@ -63,7 +64,10 @@ end
 -- Botão "Copiar" da markup: copia a chave de contexto e avisa por toast.
 function copy_ctx(key: string): ()
     copy(ctx[key] or "")
-    toast{ message = "Copiado para a área de transferência", kind = "success" }
+    toast {
+        message = "Copiado para a área de transferência",
+        kind = "success",
+    }
 end
 
 function init(): ()
@@ -76,9 +80,13 @@ function init(): ()
 
     local names = {}
     for _, env_var in ipairs(plan.service_env or {}) do
-        table.insert(names, env_var.key .. (env_var.is_secret and " 🔒" or ""))
+        table.insert(
+            names,
+            env_var.key .. (env_var.is_secret and " 🔒" or "")
+        )
     end
-    ctx.export_service_vars = #names > 0 and table.concat(names, ", ") or "(este serviço não tem variáveis próprias)"
+    ctx.export_service_vars = #names > 0 and table.concat(names, ", ")
+        or "(este serviço não tem variáveis próprias)"
     ctx.export_service_count = tostring(#names)
     ctx.export_has_vars = (#(plan.project_env or {}) > 0) and "true" or "false"
 
@@ -130,7 +138,7 @@ local function generate(): (string?, string?)
         return nil, nil
     end
 
-    local keys = json.array{}
+    local keys = json.array {}
     for _, env_var in ipairs(plan.project_env or {}) do
         if picked[env_var.key] then
             table.insert(keys, env_var.key)
@@ -139,7 +147,7 @@ local function generate(): (string?, string?)
 
     ctx.export_error = ""
     ctx.export_message = "gerando…"
-    local service_export_ok, service_export_response = api:rpc_checked{
+    local service_export_ok, service_export_response = api:rpc_checked {
         ServiceExport = {
             service_id = ctx.export_service_id,
             include_values = ctx.export_values == "true",
@@ -148,12 +156,17 @@ local function generate(): (string?, string?)
     }
     ctx.export_message = ""
 
-    if not service_export_ok or type(service_export_response) ~= "table" or not service_export_response.ServiceBundleYaml then
+    if
+        not service_export_ok
+        or type(service_export_response) ~= "table"
+        or not service_export_response.ServiceBundleYaml
+    then
         ctx.export_error = "erro: " .. tostring(service_export_response)
         return nil, nil
     end
 
-    return service_export_response.ServiceBundleYaml.yaml, service_export_response.ServiceBundleYaml.filename
+    return service_export_response.ServiceBundleYaml.yaml,
+        service_export_response.ServiceBundleYaml.filename
 end
 
 function export_save(): ()
@@ -163,7 +176,7 @@ function export_save(): ()
     end
 
     -- `save_file` (SUSPENDE): o usuário escolhe onde gravar.
-    local path = save_file{
+    local path = save_file {
         title = "Salvar pacote do serviço",
         default_name = filename or "servico.rustploy-service.yml",
         filters = { { name = "YAML", extensions = { "yml", "yaml" } } },
@@ -188,5 +201,6 @@ function export_show(): ()
     end
 end
 
--- Trava de ação em andamento (ver busy.luau): por último, com todas as funções já definidas.
+-- Trava de ação em andamento (ver busy.luau): por último, com todas as funções
+-- já definidas.
 require("busy").install(require("busy_actions"))

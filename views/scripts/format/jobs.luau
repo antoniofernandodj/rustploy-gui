@@ -21,11 +21,21 @@ function M.recurrence_label(recurrence: any): string
         return "a cada " .. tostring(recurrence.IntervalHours) .. "h"
     end
     if recurrence.Daily ~= nil then
-        return string.format("diariamente às %02d:%02d", recurrence.Daily.hour, recurrence.Daily.minute)
+        return string.format(
+            "diariamente às %02d:%02d",
+            recurrence.Daily.hour,
+            recurrence.Daily.minute
+        )
     end
     if recurrence.Weekly ~= nil then
-        local weekday_name = WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1] or "?"
-        return string.format("semanalmente %s às %02d:%02d", weekday_name, recurrence.Weekly.hour, recurrence.Weekly.minute)
+        local weekday_name = WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1]
+            or "?"
+        return string.format(
+            "semanalmente %s às %02d:%02d",
+            weekday_name,
+            recurrence.Weekly.hour,
+            recurrence.Weekly.minute
+        )
     end
     return "—"
 end
@@ -46,8 +56,8 @@ function M.run_status(run: any): (string, string)
     return "falhou", "bad"
 end
 
--- Aquecimento de um serviço com build (`ServiceWarmStatus`); `nil` = sem build,
--- sem selo. Mesmas cores do job.
+-- Aquecimento de um serviço com build (`ServiceWarmStatus`); `nil` = sem
+-- build, sem selo. Mesmas cores do job.
 function M.service_warm_status(warm: any): (string, string)
     if warm == nil then
         return "", "muted"
@@ -56,8 +66,8 @@ function M.service_warm_status(warm: any): (string, string)
 end
 
 -- Rótulo/cor (mesmo esquema de StateCell) do aquecimento de um job. `warm` é o
--- `JobWarmStatus` do daemon (fonte única da verdade): aqui só se formata, nunca
--- se deduz. `nil` (daemon antigo, sem o campo) conta como frio.
+-- `JobWarmStatus` do daemon (fonte única da verdade): aqui só se formata,
+-- nunca se deduz. `nil` (daemon antigo, sem o campo) conta como frio.
 function M.warm_status(warm: any): (string, string)
     if warm ~= nil and warm.warming then
         return "aquecendo…", "warn"
@@ -73,7 +83,10 @@ end
 -- em "Rodar agora" e a confirmação do servidor (ver handlers/jobs.luau::
 -- job_run_now). Sem isso, `running` só reflete o snapshot já confirmado
 -- pelo daemon, deixando o botão clicável durante todo o round-trip da RPC.
-function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?): (string, number)
+function M.summaries(
+    job_summaries: { any }?,
+    inflight: { [string]: boolean }?
+): (string, number)
     local column_budgets = Util.column_budgets()
     local rows = {}
     for _, job_summary in ipairs(job_summaries or {}) do
@@ -89,9 +102,15 @@ function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?):
             trigger_service = job_summary.trigger_service_name,
             -- trigger_service_name é nil quando o job é autônomo (sem
             -- serviço gatilho) — mostra só o projeto nesse caso.
-            owner = job_summary.trigger_service_name
-                and Util.ellipsis(tostring(job_summary.project_name) .. " / " .. tostring(job_summary.trigger_service_name), column_budgets.proj)
-                or Util.ellipsis(tostring(job_summary.project_name), column_budgets.proj),
+            owner = job_summary.trigger_service_name and Util.ellipsis(
+                tostring(job_summary.project_name)
+                    .. " / "
+                    .. tostring(job_summary.trigger_service_name),
+                column_budgets.proj
+            ) or Util.ellipsis(
+                tostring(job_summary.project_name),
+                column_budgets.proj
+            ),
             recurrence = M.recurrence_label(job.recurrence),
             enabled = job.enabled,
             enabled_label = job.enabled and "Pausar" or "Ativar",
@@ -101,15 +120,22 @@ function M.summaries(job_summaries: { any }?, inflight: { [string]: boolean }?):
             -- enquanto o job_run em voo não termina. `status_kind == "warn"`
             -- é o estado CONFIRMADO pelo servidor; `inflight[job.id]` cobre o
             -- intervalo entre o click e essa confirmação chegar.
-            running = status_kind == "warn" or (inflight ~= nil and inflight[job.id] == true),
-            last_run_id = job_summary.last_run and job_summary.last_run.id or "",
-            next_run_at = job.next_run_at and Time.date_day_month_hour_minute(job.next_run_at) or "—",
+            running = status_kind == "warn"
+                or (inflight ~= nil and inflight[job.id] == true),
+            last_run_id = job_summary.last_run and job_summary.last_run.id
+                or "",
+            next_run_at = job.next_run_at and Time.date_day_month_hour_minute(
+                job.next_run_at
+            ) or "—",
             is_warm = warm ~= nil and warm.warm == true,
             is_warming = warm ~= nil and warm.warming == true,
             warm_label = warm_label,
             warm_kind = warm_kind,
             warm_reason = warm ~= nil and warm.reason or "",
-            warmed_at_label = warm ~= nil and warm.warmed_at and Time.date_day_month_hour_minute(warm.warmed_at) or "",
+            warmed_at_label = warm ~= nil
+                    and warm.warmed_at
+                    and Time.date_day_month_hour_minute(warm.warmed_at)
+                or "",
         })
     end
     return Util.encode_array(rows), #rows
@@ -162,9 +188,14 @@ function M.runs(runs: { any }?): string
         local label, kind = M.run_status(run)
         table.insert(rows, {
             id = run.id,
-            started_at = Time.date_day_month_hour_minute_second(run.started_at),
-            finished_at = run.finished_at and Time.date_day_month_hour_minute_second(run.finished_at) or "—",
-            exit_code = run.exit_code ~= nil and tostring(run.exit_code) or "—",
+            started_at = Time.date_day_month_hour_minute_second(
+                run.started_at
+            ),
+            finished_at = run.finished_at
+                    and Time.date_day_month_hour_minute_second(run.finished_at)
+                or "—",
+            exit_code = run.exit_code ~= nil and tostring(run.exit_code)
+                or "—",
             status_label = label,
             status_kind = kind,
         })

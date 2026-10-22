@@ -22,7 +22,10 @@ end
 -- Botão "Copiar" da markup: copia a chave de contexto e avisa por toast.
 function copy_ctx(key: string): ()
     copy(ctx[key] or "")
-    toast{ message = "Copiado para a área de transferência", kind = "success" }
+    toast {
+        message = "Copiado para a área de transferência",
+        kind = "success",
+    }
 end
 
 function init(): ()
@@ -32,50 +35,61 @@ function init(): ()
     ctx.new_registry_token_step = "form"
     ctx.new_registry_token_name = ""
     ctx.new_registry_token_scope = "pull"
-    ctx.new_registry_token_scopes = [=[[{"id":"pull","label":"Somente leitura (pull)"},{"id":"push","label":"Leitura e escrita (push)"}]]=]
+    ctx.new_registry_token_scopes = {
+        { id = "pull", label = "Somente leitura (pull)" },
+        { id = "push", label = "Leitura e escrita (push)" },
+    }
     ctx.new_registry_token_error = ""
     ctx.new_registry_token_message = ""
     ctx.new_registry_token_busy = ""
     ctx.new_registry_token_login_command = ""
 end
 
--- Órfão desde que a aba virou <tabbar>: a barra grava `new_registry_token_scope` sozinha.
--- function new_registry_token_scope(s: string): ()
+-- Órfão desde que a aba virou <tabbar>: a barra grava
+-- `new_registry_token_scope` sozinha. function new_registry_token_scope(s:
+-- string): ()
 --     ctx.new_registry_token_scope = s
 -- end
 
 -- on_validation_error do form(...) — NOME é `rules="required"`; o motor já
 -- publicou {error_new_registry_token_name} e acendeu o :invalid.
 function new_registry_token_show_validation_errors(_erros_json: string?): ()
-    toast{ message = "Informe o nome do token", kind = "warning" }
+    toast { message = "Informe o nome do token", kind = "warning" }
 end
 
 function new_registry_token_create(): ()
     local api = client()
     if not api then
-        ctx.new_registry_token_error = "sem conexão — reabra a janela pelo app"
+        ctx.new_registry_token_error =
+            "sem conexão — reabra a janela pelo app"
         return
     end
-    -- rules="required" no form(...) garante new_registry_token_name preenchido aqui.
+    -- rules="required" no form(...) garante new_registry_token_name preenchido
+    -- aqui.
     local name = Helpers.trim(ctx.new_registry_token_name)
     ctx.new_registry_token_error = ""
     ctx.new_registry_token_message = "criando…"
     ctx.new_registry_token_busy = "true"
 
-    local registry_token_create_ok, registry_token_create_response = api:rpc_checked{
-        RegistryTokenCreate = {
-            name = name,
-            scope = ctx.new_registry_token_scope
-        },
-    }
+    local registry_token_create_ok, registry_token_create_response =
+        api:rpc_checked {
+            RegistryTokenCreate = {
+                name = name,
+                scope = ctx.new_registry_token_scope,
+            },
+        }
     ctx.new_registry_token_busy = ""
     if not registry_token_create_ok then
         ctx.new_registry_token_message = ""
-        ctx.new_registry_token_error = "erro: " .. tostring(registry_token_create_response)
+        ctx.new_registry_token_error = "erro: "
+            .. tostring(registry_token_create_response)
         return
     end
 
-    local created = (type(registry_token_create_response) == "table" and registry_token_create_response.RegistryTokenCreated) or {}
+    local created = (
+        type(registry_token_create_response) == "table"
+        and registry_token_create_response.RegistryTokenCreated
+    ) or {}
     local secret = created.secret or ""
     ctx.new_registry_token_login_command = string.format(
         "docker login %s -u %s -p %s",
@@ -90,5 +104,6 @@ function new_registry_token_create(): ()
     broadcast("registry_token_created", { name = created.name or name })
 end
 
--- Trava de ação em andamento (ver busy.luau): por último, com todas as funções já definidas.
+-- Trava de ação em andamento (ver busy.luau): por último, com todas as funções
+-- já definidas.
 require("busy").install(require("busy_actions"))

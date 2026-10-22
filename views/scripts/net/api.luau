@@ -10,7 +10,8 @@
 -- Convenção de Command (serde externally-tagged):
 --   • variante unitária  → string:  "DaemonStatus", "StopAllManaged"
 --   • variante com campos → tabela:  { ProjectDelete = { id = "..." } }
--- Convenção de Response (idem): { Projects = {...} }, { DaemonStatus = {...} }.
+-- Convenção de Response (idem): { Projects = {...} }, { DaemonStatus = {...}
+-- }.
 
 local M = {}
 M.__index = M
@@ -48,7 +49,10 @@ end
 --- `(false, mensagem, status)` — a mensagem é a explicação do daemon (formato
 --- errado, chave de outra instalação), e o `status` deixa quem chama tratar o
 --- 404 de um daemon anterior ao login por chave.
-function M.login(base_url: string, access_key: string): (boolean, string, number?)
+function M.login(
+    base_url: string,
+    access_key: string
+): (boolean, string, number?)
     local http_response = fetch(base_url .. "/api/login", {
         method = "POST",
         body = json.encode({ key = access_key }),
@@ -57,18 +61,29 @@ function M.login(base_url: string, access_key: string): (boolean, string, number
     })
 
     local decode_ok, decoded = pcall(json.decode, http_response.body or "")
-    if http_response.ok and decode_ok and type(decoded) == "table" and type(decoded.access_token) == "string" then
+    if
+        http_response.ok
+        and decode_ok
+        and type(decoded) == "table"
+        and type(decoded.access_token) == "string"
+    then
         return true, decoded.access_token, http_response.status
     end
 
-    if decode_ok and type(decoded) == "table" and type(decoded.error) == "table" and decoded.error.message then
+    if
+        decode_ok
+        and type(decoded) == "table"
+        and type(decoded.error) == "table"
+        and decoded.error.message
+    then
         return false, tostring(decoded.error.message), http_response.status
     end
 
-    local error_message =
-        (http_response.error ~= nil and http_response.error ~= "")
+    local error_message = (
+        http_response.error ~= nil and http_response.error ~= ""
+    )
             and http_response.error
-            or ("HTTP " .. tostring(http_response.status))
+        or ("HTTP " .. tostring(http_response.status))
 
     return false, error_message, http_response.status
 end
@@ -84,10 +99,11 @@ function M:rpc(command: any): (boolean, any)
     })
 
     if not http_response.ok then
-        local error_message =
-            (http_response.error ~= nil and http_response.error ~= "")
+        local error_message = (
+            http_response.error ~= nil and http_response.error ~= ""
+        )
                 and http_response.error
-                or ("HTTP " .. tostring(http_response.status))
+            or ("HTTP " .. tostring(http_response.status))
 
         return false, error_message
     end
@@ -113,7 +129,10 @@ function M:rpc_checked(command: any): (boolean, any)
     end
 
     if type(rpc_response) == "table" and rpc_response.Err ~= nil then
-        return false, tostring(rpc_response.Err.code) .. ": " .. tostring(rpc_response.Err.message)
+        return false,
+            tostring(rpc_response.Err.code) .. ": " .. tostring(
+                rpc_response.Err.message
+            )
     end
 
     return true, rpc_response
@@ -128,21 +147,29 @@ function M:upload_archive(
     headers["Content-Type"] = "application/zip"
     headers["X-Rustploy-Filename"] = filename
 
-    local http_response = fetch(tostring(self.base_url) .. "/api/services/" .. service_id .. "/archive", {
+    local url = tostring(self.base_url)
+        .. "/api/services/"
+        .. service_id
+        .. "/archive"
+    local http_response = fetch(url, {
         method = "POST",
         body_base64 = body_base64,
         headers = headers,
         timeout = M.UPLOAD_TIMEOUT_MS,
     })
     if not http_response.ok then
-        return false, (http_response.error ~= nil and http_response.error ~= "") and http_response.error or ("HTTP " .. tostring(http_response.status))
+        return false,
+            (http_response.error ~= nil and http_response.error ~= "")
+                    and http_response.error
+                or ("HTTP " .. tostring(http_response.status))
     end
     local json_decode_ok, decoded = pcall(json.decode, http_response.body)
     if not json_decode_ok then
         return false, "resposta inválida do daemon"
     end
     if type(decoded) == "table" and decoded.Err ~= nil then
-        return false, tostring(decoded.Err.code) .. ": " .. tostring(decoded.Err.message)
+        return false,
+            tostring(decoded.Err.code) .. ": " .. tostring(decoded.Err.message)
     end
     return true, decoded
 end

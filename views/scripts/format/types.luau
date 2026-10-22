@@ -1,7 +1,8 @@
 --!strict
 -- format/types.luau — tipos compartilhados entre os submódulos fmt_*.luau (as
 -- formas dos modelos que chegam via `json.decode` do snapshot da API).
--- `require("types")` (de dentro de format/) + `type X = Types.X` para importar cada tipo.
+-- `require("types")` (de dentro de format/) + `type X = Types.X` para importar
+-- cada tipo.
 
 export type EnvValue = {
     Secret: string?,

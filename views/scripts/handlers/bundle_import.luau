@@ -1,13 +1,13 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/bundle_import.luau — passo "Importar" do wizard "Novo serviço": recria
--- aqui um serviço exportado de outro servidor. O destino é SEMPRE o projeto
--- aberto (ctx.selected_project_id), como numa criação qualquer — não há escolha
--- de projeto. Ver docs/plano-copiar-servico-entre-servidores.md.
+-- handlers/bundle_import.luau — passo "Importar" do wizard "Novo serviço":
+-- recria aqui um serviço exportado de outro servidor. O destino é SEMPRE o
+-- projeto aberto (ctx.selected_project_id), como numa criação qualquer — não
+-- há escolha de projeto. Ver docs/plano-copiar-servico-entre-servidores.md.
 --
--- Duas fases, como no daemon: `import_analyze` (dry_run: nada é gravado; mostra o
--- que não veio e o que precisa de decisão) e `import_create` (analisa de novo com o
--- que foi digitado e só então cria — sem deploy).
+-- Duas fases, como no daemon: `import_analyze` (dry_run: nada é gravado;
+-- mostra o que não veio e o que precisa de decisão) e `import_create` (analisa
+-- de novo com o que foi digitado e só então cria — sem deploy).
 
 local State = require("../state")
 local Helpers = require("../helpers")
@@ -19,12 +19,13 @@ local status: { any } = {}
 local service_values: { [string]: string } = {}
 local project_values: { [string]: string } = {}
 local secret_vals: { [string]: string } = {}
-local providers: { any }? = nil -- Git providers deste servidor (carregados sob demanda)
+-- Git providers deste servidor (carregados sob demanda)
+local providers: { any }? = nil
 
 local STATE_LABEL: { [string]: string } = {
     New = "nova",
     Same = "igual",
-    Conflict = "em conflito"
+    Conflict = "em conflito",
 }
 local CHOICE_LABEL: { [string]: string } = {
     Overwrite = "sobrescrever a do projeto",
@@ -34,7 +35,8 @@ local CHOICE_LABEL: { [string]: string } = {
 
 local function choice_label(status_entry: any, choice: string): string
     if choice == "Keep" then
-        return status_entry.state == "New" and "criar no projeto" or "manter a do projeto"
+        return status_entry.state == "New" and "criar no projeto"
+            or "manter a do projeto"
     end
     return CHOICE_LABEL[choice] or choice
 end
@@ -48,7 +50,10 @@ end
 
 -- "CHAVE=valor" por linha ⇄ tabela. Texto pré-preenchido com as chaves que
 -- faltam, o usuário só completa o valor.
-local function parse_key_value_lines(text: string?, target: { [string]: string }): ()
+local function parse_key_value_lines(
+    text: string?,
+    target: { [string]: string }
+): ()
     for line in string.gmatch((text or "") .. "\n", "([^\n]*)\n") do
         local key, value = line:match("^%s*([^=%s]+)%s*=(.*)$")
         if key then
@@ -57,10 +62,16 @@ local function parse_key_value_lines(text: string?, target: { [string]: string }
     end
 end
 
-local function key_value_text(keys: { any }, values_by_key: { [string]: string }): string
+local function key_value_text(
+    keys: { any },
+    values_by_key: { [string]: string }
+): string
     local out = {}
     for _, key in ipairs(keys) do
-        table.insert(out, tostring(key) .. "=" .. (values_by_key[tostring(key)] or ""))
+        table.insert(
+            out,
+            tostring(key) .. "=" .. (values_by_key[tostring(key)] or "")
+        )
     end
     return table.concat(out, "\n")
 end
@@ -107,18 +118,27 @@ local function build_import_request(dry_run: boolean): any
 end
 
 local function load_providers(api: any): ()
-    local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
-    local provider_options = json.array{}
-    if git_provider_list_ok and type(git_provider_list_response) == "table" and git_provider_list_response.GitProviders then
-        for _, git_provider in ipairs(git_provider_list_response.GitProviders) do
-            table.insert(provider_options, { id = git_provider.id, label = git_provider.name })
+    local git_provider_list_ok, git_provider_list_response =
+        api:rpc("GitProviderList")
+    local provider_options = json.array {}
+    if
+        git_provider_list_ok
+        and type(git_provider_list_response) == "table"
+        and git_provider_list_response.GitProviders
+    then
+        local git_providers = git_provider_list_response.GitProviders
+        for _, git_provider in ipairs(git_providers) do
+            table.insert(
+                provider_options,
+                { id = git_provider.id, label = git_provider.name }
+            )
         end
     end
     providers = provider_options
 end
 
 local function render_providers(): ()
-    local rows = json.array{}
+    local rows = json.array {}
     for _, provider in ipairs(providers or {}) do
         table.insert(rows, {
             id = provider.id,
@@ -136,30 +156,46 @@ local function show_report(report: any): ()
         ctx.import_name = report.service_name
     end
 
-    local warns = json.array{}
+    local warns = json.array {}
     for _, warning in ipairs(report.warnings or {}) do
         table.insert(warns, { text = "• " .. tostring(warning.message) })
     end
     ctx.import_warnings = json.encode(warns)
     ctx.import_has_warnings = #warns > 0 and "true" or "false"
 
-    ctx.import_service_text = key_value_text(report.missing_service_vars or {}, service_values)
-    ctx.import_project_text = key_value_text(report.missing_project_vars or {}, project_values)
-    ctx.import_secret_text = key_value_text(report.missing_secrets or {}, secret_vals)
-    ctx.import_has_service_missing = #(report.missing_service_vars or {}) > 0 and "true" or "false"
-    ctx.import_has_project_missing = #(report.missing_project_vars or {}) > 0 and "true" or "false"
-    ctx.import_has_secret_missing = #(report.missing_secrets or {}) > 0 and "true" or "false"
-    ctx.import_has_missing = (#(report.missing_service_vars or {}) + #(report.missing_project_vars or {}) > 0) and "true" or "false"
+    ctx.import_service_text =
+        key_value_text(report.missing_service_vars or {}, service_values)
+    ctx.import_project_text =
+        key_value_text(report.missing_project_vars or {}, project_values)
+    ctx.import_secret_text =
+        key_value_text(report.missing_secrets or {}, secret_vals)
+    ctx.import_has_service_missing = #(report.missing_service_vars or {}) > 0
+            and "true"
+        or "false"
+    ctx.import_has_project_missing = #(report.missing_project_vars or {}) > 0
+            and "true"
+        or "false"
+    ctx.import_has_secret_missing = #(report.missing_secrets or {}) > 0
+            and "true"
+        or "false"
+    ctx.import_has_missing = (
+        #(report.missing_service_vars or {})
+            + #(report.missing_project_vars or {})
+        > 0
+    )
+            and "true"
+        or "false"
 
     ctx.import_missing_provider = report.missing_git_provider or ""
 
     status = report.project_env or {}
-    local rows = json.array{}
+    local rows = json.array {}
     for _, status_entry in ipairs(status) do
         if not choices[status_entry.key] then
             choices[status_entry.key] = status_entry.choice
         end
-        local info = (status_entry.is_secret and "secret · " or "") .. (STATE_LABEL[status_entry.state] or status_entry.state)
+        local info = (status_entry.is_secret and "secret · " or "")
+            .. (STATE_LABEL[status_entry.state] or status_entry.state)
         table.insert(rows, {
             key = status_entry.key,
             info = info,
@@ -185,11 +221,16 @@ local function analyze_core(): boolean
     ctx.import_error = ""
     ctx.import_message = "analisando…"
     ctx.import_busy = "true"
-    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_import_request(true) }
+    local service_import_ok, service_import_response =
+        api:rpc_checked { ServiceImport = build_import_request(true) }
     ctx.import_busy = ""
     ctx.import_message = ""
 
-    if not service_import_ok or type(service_import_response) ~= "table" or not service_import_response.ServiceImportReport then
+    if
+        not service_import_ok
+        or type(service_import_response) ~= "table"
+        or not service_import_response.ServiceImportReport
+    then
         ctx.import_report = "false"
         ctx.import_error = "erro: " .. tostring(service_import_response)
         return false
@@ -210,7 +251,7 @@ end
 
 -- "Escolher arquivo…": lê o .yml e já analisa.
 function import_pick_file(): ()
-    local path = open_file{
+    local path = open_file {
         title = "Importar serviço (.yml)",
         filters = { { name = "YAML", extensions = { "yml", "yaml" } } },
     }
@@ -273,9 +314,13 @@ function import_choice(key: string): ()
 
     local next_choice = options[(current_index % #options) + 1]
     if next_choice == "Overwrite" then
-        local confirmed = confirm{
+        local confirmed = confirm {
             title = "Sobrescrever no projeto?",
-            message = "Trocar " .. key .. " no projeto altera o valor que os OUTROS serviços do projeto também enxergam.",
+            message = "Trocar "
+                .. key
+                .. "no projeto altera o valor que os OUTROS serviços do "
+                .. "projeto "
+                .. "também enxergam.",
             confirm_label = "Sobrescrever",
             destructive = true,
         }
@@ -289,7 +334,8 @@ function import_choice(key: string): ()
 end
 
 function import_use_provider(provider_id: string): ()
-    ctx.import_provider_id = (ctx.import_provider_id == provider_id) and "" or provider_id
+    ctx.import_provider_id = (ctx.import_provider_id == provider_id) and ""
+        or provider_id
     analyze_core()
 end
 
@@ -303,7 +349,8 @@ function import_create(): ()
         return
     end
     if ctx.import_conflict == "true" then
-        ctx.import_error = "já existe um serviço com esse nome neste projeto — escolha outro"
+        ctx.import_error =
+            "já existe um serviço com esse nome neste projeto — escolha outro"
         return
     end
     if ctx.import_has_missing == "true" then
@@ -314,11 +361,16 @@ function import_create(): ()
     ctx.import_error = ""
     ctx.import_message = "criando…"
     ctx.import_busy = "true"
-    local service_import_ok, service_import_response = api:rpc_checked{ ServiceImport = build_import_request(false) }
+    local service_import_ok, service_import_response =
+        api:rpc_checked { ServiceImport = build_import_request(false) }
     ctx.import_busy = ""
     ctx.import_message = ""
 
-    if not service_import_ok or type(service_import_response) ~= "table" or not service_import_response.ServiceImportReport then
+    if
+        not service_import_ok
+        or type(service_import_response) ~= "table"
+        or not service_import_response.ServiceImportReport
+    then
         ctx.import_error = "erro: " .. tostring(service_import_response)
         return
     end

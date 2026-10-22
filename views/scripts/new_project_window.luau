@@ -1,10 +1,11 @@
 --!strict
 --!nolint FunctionUnused
--- new_project_window.luau — script da JANELA de "Novo projeto", um motor Glacier
--- próprio e ISOLADO do app principal (aberto via open_window). Recebe a conexão
--- (api_url/api_token) semeada no contexto por open_window({ data = ... }); ao
--- criar o projeto emite broadcast("project_created") para a janela principal
--- (recebido por on_broadcast em handlers/projects.luau) e fecha a si mesma.
+-- new_project_window.luau — script da JANELA de "Novo projeto", um motor
+-- Glacier próprio e ISOLADO do app principal (aberto via open_window). Recebe
+-- a conexão (api_url/api_token) semeada no contexto por open_window({ data =
+-- ... }); ao criar o projeto emite broadcast("project_created") para a janela
+-- principal (recebido por on_broadcast em handlers/projects.luau) e fecha a si
+-- mesma.
 --
 -- require resolve relativo a ESTE arquivo (scripts/): "net/api" e "helpers".
 
@@ -37,13 +38,13 @@ end
 -- aqui é só o aviso.
 function new_project_show_validation_errors(_erros_json: string?): ()
     ctx.new_project_message = ""
-    toast{ message = "Corrija os campos destacados", kind = "warning" }
+    toast { message = "Corrija os campos destacados", kind = "warning" }
 end
 
--- on_submit do form(...): só roda quando a validação (rules="required" no campo
--- NOME) passou, então `new_project_name` está garantidamente preenchido. `fetch` (dentro
--- de rpc_checked) SUSPENDE a corrotina; ao voltar, em sucesso avisa a janela
--- principal e se fecha.
+-- on_submit do form(...): só roda quando a validação (rules="required" no
+-- campo NOME) passou, então `new_project_name` está garantidamente preenchido.
+-- `fetch` (dentro de rpc_checked) SUSPENDE a corrotina; ao voltar, em sucesso
+-- avisa a janela principal e se fecha.
 function submit_project(): ()
     local api = client()
     if not api then
@@ -56,7 +57,7 @@ function submit_project(): ()
     ctx.new_project_message = "criando…"
     ctx.new_project_busy = "true"
 
-    local project_create_ok, project_create_response = api:rpc_checked{
+    local project_create_ok, project_create_response = api:rpc_checked {
         ProjectCreate = {
             name = name,
             description = (description ~= "" and description or nil),
@@ -70,7 +71,10 @@ function submit_project(): ()
     end
 
     -- Sucesso: envia os dados do projeto criado à janela inicial e fecha esta.
-    local project = (type(project_create_response) == "table" and project_create_response.Project) or {}
+    local project = (
+        type(project_create_response) == "table"
+        and project_create_response.Project
+    ) or {}
     broadcast("project_created", {
         id = project.id,
         name = project.name or name,
@@ -85,5 +89,6 @@ function cancel(): ()
     close_window()
 end
 
--- Trava de ação em andamento (ver busy.luau): por último, com todas as funções já definidas.
+-- Trava de ação em andamento (ver busy.luau): por último, com todas as funções
+-- já definidas.
 require("busy").install(require("busy_actions"))

@@ -6,7 +6,14 @@ local DockerCleanup = require("format/docker_cleanup")
 --- provedor conectado mostra o @login
 function test_provedor_conectado_mostra_o_login()
     local rows = json.decode(Git.git_providers({
-        { id = "p1", name = "gh", kind = "Github", base_url = "https://github.com", auth_mode = "OAuth", account = { login = "ana" } },
+        {
+            id = "p1",
+            name = "gh",
+            kind = "Github",
+            base_url = "https://github.com",
+            auth_mode = "OAuth",
+            account = { login = "ana" },
+        },
     }))
     assert_eq(#rows, 1)
     assert_eq(rows[1].display, "gh (@ana)")
@@ -30,7 +37,9 @@ end
 
 --- tipo desconhecido aparece como veio, e ausente como Git
 function test_tipo_desconhecido_aparece_como_veio_e_ausente_como_git()
-    local rows = json.decode(Git.git_providers({ { name = "a", kind = "Gitlab" }, { name = "b" } }))
+    local rows = json.decode(
+        Git.git_providers({ { name = "a", kind = "Gitlab" }, { name = "b" } })
+    )
     assert_eq(rows[1].kind, "Gitlab")
     assert_eq(rows[2].kind, "Git")
 end
@@ -43,22 +52,33 @@ function test_listas_vazias_viram_e_nao()
 end
 
 --- repositórios marcam private/public e branches só carregam o nome
-function test_repositorios_marcam_private_public_e_branches_so_carregam_o_nome()
+function test_repositorios_marcam_private_public_e_branches_so_carregam_o()
     local repos = json.decode(Git.git_repos({
-        { full_name = "a/b", clone_url = "u", default_branch = "main", private = true },
+        {
+            full_name = "a/b",
+            clone_url = "u",
+            default_branch = "main",
+            private = true,
+        },
         { full_name = "a/c", clone_url = "v", default_branch = "dev" },
     }))
     assert_eq(repos[1].private, "private")
     assert_eq(repos[2].private, "public")
-    local branches = json.decode(Git.git_branches({ { name = "main", extra = 1 } }))
+    local branches =
+        json.decode(Git.git_branches({ { name = "main", extra = 1 } }))
     assert_eq(branches[1].name, "main")
     assert_nil(branches[1].extra)
 end
 
 --- repos filtra pelo termo e formata contagem e tamanho
-function test_format_registry__repos_filtra_pelo_termo_e_formata_contagem_e_tamanho()
+function test_format_registry__repos_filtra_pelo_termo_e_formata_contagem_e()
     local rows = json.decode(Registry.repos({
-        { name = "api", tag_count = 3, size_bytes = 5 * 1024 * 1024, created_at = "2026-03-01T10:00:00Z" },
+        {
+            name = "api",
+            tag_count = 3,
+            size_bytes = 5 * 1024 * 1024,
+            created_at = "2026-03-01T10:00:00Z",
+        },
         { name = "web" },
     }, "ap"))
     assert_eq(#rows, 1)
@@ -68,7 +88,7 @@ function test_format_registry__repos_filtra_pelo_termo_e_formata_contagem_e_tama
 end
 
 --- repos sem termo traz todos, com defaults seguros
-function test_format_registry__repos_sem_termo_traz_todos_com_defaults_seguros()
+function test_format_registry__repos_sem_termo_traz_todos_com_defaults()
     local rows = json.decode(Registry.repos({ { name = "web" } }, ""))
     assert_eq(rows[1].tag_count, "0")
     assert_eq(rows[1].size, "—")
@@ -77,9 +97,15 @@ function test_format_registry__repos_sem_termo_traz_todos_com_defaults_seguros()
 end
 
 --- tags encurtam o digest para 12 e guardam o completo
-function test_format_registry__tags_encurtam_o_digest_para_12_e_guardam_o_completo()
+function test_format_registry__tags_encurtam_o_digest_para_12_e_guardam_o()
     local rows = json.decode(Registry.tags({
-        { tag = "v1", digest = "sha256:0123456789abcdef", media_type = "m", size_bytes = 2048, updated_at = "2026-03-01T10:00:00Z" },
+        {
+            tag = "v1",
+            digest = "sha256:0123456789abcdef",
+            media_type = "m",
+            size_bytes = 2048,
+            updated_at = "2026-03-01T10:00:00Z",
+        },
     }))
     assert_eq(rows[1].digest, "sha256:01234")
     assert_eq(rows[1].digest_full, "sha256:0123456789abcdef")
@@ -90,14 +116,19 @@ end
 function test_format_registry__tokens_que_nunca_foram_usados_dizem_nunca()
     local rows = json.decode(Registry.tokens({
         { name = "ci", scope = "push", created_at = "2026-03-01T10:00:00Z" },
-        { name = "dev", scope = "pull", created_at = "2026-03-01T10:00:00Z", last_used_at = "2026-03-02T10:00:00Z" },
+        {
+            name = "dev",
+            scope = "pull",
+            created_at = "2026-03-01T10:00:00Z",
+            last_used_at = "2026-03-02T10:00:00Z",
+        },
     }))
     assert_eq(rows[1].last_used, "nunca")
     assert_match(rows[2].last_used, "^%d%d/%d%d %d%d:%d%d$")
 end
 
 --- resource_label traduz os conhecidos e devolve o resto
-function test_format_docker_cleanup__resource_label_traduz_os_conhecidos_e_devolve_o_resto()
+function test_format_docker_cleanup__resource_label_traduz_os_conhecidos_e()
     assert_eq(DockerCleanup.resource_label("images"), "imagens")
     assert_eq(DockerCleanup.resource_label("build_cache"), "cache de build")
     assert_eq(DockerCleanup.resource_label("outro"), "outro")
@@ -109,11 +140,15 @@ function test_format_docker_cleanup__sem_execucao_anterior()
 end
 
 --- resumo soma os bytes e lista cada recurso
-function test_format_docker_cleanup__resumo_soma_os_bytes_e_lista_cada_recurso()
+function test_format_docker_cleanup__resumo_soma_os_bytes_e_lista_cada()
     local texto = DockerCleanup.last_run_summary({
         at = "2026-03-01T10:00:00Z",
         results = {
-            { resource = "images", count = 3, reclaimed_bytes = 2 * 1024 * 1024 },
+            {
+                resource = "images",
+                count = 3,
+                reclaimed_bytes = 2 * 1024 * 1024,
+            },
             { resource = "volumes", count = 1, reclaimed_bytes = 1024 * 1024 },
         },
     })
@@ -123,7 +158,7 @@ function test_format_docker_cleanup__resumo_soma_os_bytes_e_lista_cada_recurso()
 end
 
 --- um recurso com erro avisa e não soma contagem
-function test_format_docker_cleanup__um_recurso_com_erro_avisa_e_nao_soma_contagem()
+function test_format_docker_cleanup__um_recurso_com_erro_avisa_e_nao_soma()
     local texto = DockerCleanup.last_run_summary({
         at = "2026-03-01T10:00:00Z",
         results = { { resource = "networks", error = "boom" } },
@@ -133,8 +168,11 @@ function test_format_docker_cleanup__um_recurso_com_erro_avisa_e_nao_soma_contag
 end
 
 --- execução sem resultados mostra só o cabeçalho
-function test_format_docker_cleanup__execucao_sem_resultados_mostra_so_o_cabecalho()
-    local texto = DockerCleanup.last_run_summary({ at = "2026-03-01T10:00:00Z", results = {} })
+function test_format_docker_cleanup__execucao_sem_resultados_mostra_so_o()
+    local texto = DockerCleanup.last_run_summary({
+        at = "2026-03-01T10:00:00Z",
+        results = {},
+    })
     assert_has(texto, "liberados")
     assert_eq(string.find(texto, "(", 1, true), nil)
 end

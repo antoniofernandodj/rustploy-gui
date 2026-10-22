@@ -1,6 +1,7 @@
 --!strict
--- format.luau — fachada: reexporta os builders de views/scripts/fmt_*.luau sob um
--- único módulo, para os handlers seguirem fazendo `local format = require("format")`
+-- format.luau — fachada: reexporta os builders de views/scripts/fmt_*.luau sob
+-- um único módulo, para os handlers seguirem fazendo `local format =
+-- require("format")`
 -- + `format.foo(...)` sem precisar saber em qual submódulo cada builder mora.
 -- Reimplementação Luau de `src/app/net/view.rs` (Rust pré-migração).
 
@@ -25,7 +26,7 @@ M.format_uptime = Time.format_uptime
 M.format_bytes = Time.format_bytes
 M.hour_minute_join = Time.hour_minute_join
 M.hour_minute_split = Time.hour_minute_split
-M.WEEKDAYS_JSON = Time.WEEKDAYS_JSON
+M.WEEKDAYS = Time.WEEKDAYS
 
 -- Busca / codificação / estado (format/util.luau)
 M.matches = Util.matches

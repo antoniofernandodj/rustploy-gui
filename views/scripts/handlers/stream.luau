@@ -22,23 +22,40 @@ local function rebuild_lists(): ()
     local term = State.search_term
     ctx.deployments = format.deployments(snap.deployments, term)
     ctx.projects = format.projects(snap.projects, State.last_pairs, term)
-    ctx.project_rows = format.project_rows(snap.projects, State.last_pairs, term)
+    ctx.project_rows =
+        format.project_rows(snap.projects, State.last_pairs, term)
     ctx.services = format.services(State.last_pairs, State.metrics_by_id, term)
-    ctx.service_rows = format.service_rows(State.last_pairs, State.metrics_by_id, term)
-    local running, running_count = format.running(snap.dashboard, State.metrics_by_id, term, State.running_revealed)
+    ctx.service_rows =
+        format.service_rows(State.last_pairs, State.metrics_by_id, term)
+    local running, running_count = format.running(
+        snap.dashboard,
+        State.metrics_by_id,
+        term,
+        State.running_revealed
+    )
     ctx.running = running
     ctx.running_count = tostring(running_count)
     -- ctx.docker_rows: a antiga sub-aba Containers (só serviços rustploy) foi
-    -- substituída pela lista host-wide (docker_containers). format.docker_rows fica
-    -- disponível para reuso; não recalculamos aqui à toa.
-    -- ctx.docker_rows = format.docker_rows(State.last_pairs, term)
-    ctx.docker_containers = format.docker_containers(snap.docker_containers, term)
+    -- substituída pela lista host-wide (docker_containers). format.docker_rows
+    -- fica disponível para reuso; não recalculamos aqui à toa. ctx.docker_rows
+    -- = format.docker_rows(State.last_pairs, term)
+    ctx.docker_containers =
+        format.docker_containers(snap.docker_containers, term)
     ctx.docker_images = format.docker_images(
-        snap.docker_images, term, ctx.docker_images_only_used == "true")
+        snap.docker_images,
+        term,
+        ctx.docker_images_only_used == "true"
+    )
     ctx.docker_volumes = format.docker_volumes(
-        snap.docker_volumes, term, ctx.docker_volumes_only_used == "true")
+        snap.docker_volumes,
+        term,
+        ctx.docker_volumes_only_used == "true"
+    )
     ctx.docker_networks = format.docker_networks(
-        snap.docker_networks, term, ctx.docker_networks_only_used == "true")
+        snap.docker_networks,
+        term,
+        ctx.docker_networks_only_used == "true"
+    )
     ctx.registry_repos = format.registry_repos(snap.registry_repos, term)
 end
 M.rebuild_lists = rebuild_lists
@@ -56,7 +73,7 @@ local function update_open_project(): ()
     local found_project
     for _, project in ipairs(snap.projects or {}) do
         if project.id == project_id then
-            found_project = project;
+            found_project = project
             break
         end
     end
@@ -82,13 +99,15 @@ local function update_open_project(): ()
     -- nasce "Variáveis ()" até a primeira edição.
     local project_env_vars = found_project.env_vars or {}
     local project_comments = found_project.env_comments or {}
-    ctx.project_env = format.env_json_with_comments(project_env_vars, project_comments)
+    ctx.project_env =
+        format.env_json_with_comments(project_env_vars, project_comments)
     ctx.project_env_count = tostring(#project_env_vars)
     -- O snapshot chega ~1x/s; se reescrevêssemos project_env_text (o value do
     -- textarea) toda vez, o que o usuário digita seria resetado. Só
     -- ressincroniza o editor .env quando ele está fechado.
     if ctx.project_env_text_open ~= "true" then
-        local project_dotenv = format.env_dotenv_with_comments(project_env_vars, project_comments)
+        local project_dotenv =
+            format.env_dotenv_with_comments(project_env_vars, project_comments)
         ctx.project_env_text = project_dotenv
         ctx.project_env_text_original = project_dotenv
     end
@@ -108,7 +127,8 @@ local function update_open_project(): ()
             table.insert(project_jobs, job)
         end
     end
-    local jobs_json, jobs_count = format.job_summaries(project_jobs, State.jobs_inflight)
+    local jobs_json, jobs_count =
+        format.job_summaries(project_jobs, State.jobs_inflight)
     ctx.project_jobs = jobs_json
     ctx.project_jobs_count = tostring(jobs_count)
 end
@@ -125,13 +145,14 @@ local function refresh_jobs_summary_local(): ()
     if not snap then
         return
     end
-    local jobs_summary, jobs_count = format.job_summaries(snap.jobs, State.jobs_inflight)
+    local jobs_summary, jobs_count =
+        format.job_summaries(snap.jobs, State.jobs_inflight)
     ctx.jobs_summary = jobs_summary
     ctx.jobs_count = tostring(jobs_count)
 end
 M.refresh_jobs_summary_local = refresh_jobs_summary_local
 
-local function refresh_deploy_engine_detail(active: {any}?): ()
+local function refresh_deploy_engine_detail(active: { any }?): ()
     local detail_deployment_id = (ctx :: any).deploy_engine_detail_id
     if detail_deployment_id == nil or detail_deployment_id == "" then
         return
@@ -139,7 +160,8 @@ local function refresh_deploy_engine_detail(active: {any}?): ()
     for _, info in ipairs(active or {}) do
         if info.service_id == detail_deployment_id then
             ctx.deploy_engine_detail_title = info.service_name
-            ctx.deploy_engine_detail_steps = format.deploy_engine_detail_steps(info)
+            ctx.deploy_engine_detail_steps =
+                format.deploy_engine_detail_steps(info)
             ctx.deploy_engine_detail_rows = format.deploy_engine_detail(info)
             return
         end
@@ -152,7 +174,8 @@ M.refresh_deploy_engine_detail = refresh_deploy_engine_detail
 local function apply_snapshot(snapshot: any): ()
     State.snap = snapshot
     State.last_pairs = format.service_pair_list(snapshot.services)
-    -- Selo "aquecido/frio": o daemon decide (ServiceWarmStatus), aqui só se anexa.
+    -- Selo "aquecido/frio": o daemon decide (ServiceWarmStatus), aqui só se
+    -- anexa.
     local warm_by_id = {}
     for _, warm in ipairs(snapshot.service_warm or {}) do
         warm_by_id[warm.service_id] = warm
@@ -163,7 +186,8 @@ local function apply_snapshot(snapshot: any): ()
     end
     -- Detalhe do serviço aberto: o selo acompanha o snapshot.
     local open_warm = warm_by_id[ctx.service_id]
-    local open_warm_label, open_warm_color = format.service_warm_status(open_warm)
+    local open_warm_label, open_warm_color =
+        format.service_warm_status(open_warm)
     ctx.service_warm_visible = open_warm ~= nil and "true" or "false"
     ctx.service_warm_label = open_warm_label
     ctx.service_warm_color = open_warm_color
@@ -176,7 +200,9 @@ local function apply_snapshot(snapshot: any): ()
         ctx.services_running = tostring(daemon_status.services_running or 0)
         ctx.services_total = tostring(daemon_status.services_total or 0)
         ctx.services_label = (
-            tostring(daemon_status.services_running or 0) .. "/" .. tostring(daemon_status.services_total or 0)
+            tostring(daemon_status.services_running or 0)
+            .. "/"
+            .. tostring(daemon_status.services_total or 0)
         )
     end
 
@@ -199,15 +225,20 @@ local function apply_snapshot(snapshot: any): ()
 
         -- Timer decorrido do deploy em voo do serviço aberto (granularidade de
         -- 2s — sem timer no Luau, vem do próprio snapshot; ver o plano de
-        -- migração). O desfecho terminal vem por DeployStateChanged (apply_bus_event).
+        -- migração). O desfecho terminal vem por DeployStateChanged
+        -- (apply_bus_event).
         if
-            State.deploy_track.running and
-            ctx.selected_service == State.deploy_track.service_id
+            State.deploy_track.running
+            and ctx.selected_service == State.deploy_track.service_id
         then
             for _, active_deployment in ipairs(engine.active or {}) do
-                if active_deployment.service_id == State.deploy_track.service_id then
+                if
+                    active_deployment.service_id
+                    == State.deploy_track.service_id
+                then
                     ctx.service_deploy_running = "true"
-                    ctx.service_deploy_elapsed = format.format_seconds(active_deployment.elapsed_secs)
+                    ctx.service_deploy_elapsed =
+                        format.format_seconds(active_deployment.elapsed_secs)
                     break
                 end
             end
@@ -229,9 +260,16 @@ local function apply_snapshot(snapshot: any): ()
     local registry_status = snapshot.registry_status
     if registry_status then
         ctx.registry_status_enabled = tostring(registry_status.enabled)
-        ctx.registry_host = (registry_status.domain and registry_status.domain ~= "") and registry_status.domain or ("127.0.0.1:" .. tostring(registry_status.port))
-        ctx.registry_status_label = registry_status.enabled and ("ativo em " .. ctx.registry_host) or "desabilitado"
-        ctx.registry_storage_human = format.format_bytes(registry_status.storage_bytes or 0)
+        ctx.registry_host = (
+            registry_status.domain and registry_status.domain ~= ""
+        )
+                and registry_status.domain
+            or ("127.0.0.1:" .. tostring(registry_status.port))
+        ctx.registry_status_label = registry_status.enabled
+                and ("ativo em " .. ctx.registry_host)
+            or "desabilitado"
+        ctx.registry_storage_human =
+            format.format_bytes(registry_status.storage_bytes or 0)
     end
     ctx.registry_repos_count = tostring(#(snapshot.registry_repos or {}))
 
@@ -252,7 +290,8 @@ local function apply_snapshot(snapshot: any): ()
         jobs_by_id[job.job.id] = job.job
     end
     State.jobs_by_id = jobs_by_id
-    local jobs_summary, jobs_count = format.job_summaries(snapshot.jobs, State.jobs_inflight)
+    local jobs_summary, jobs_count =
+        format.job_summaries(snapshot.jobs, State.jobs_inflight)
     ctx.jobs_summary = jobs_summary
     ctx.jobs_count = tostring(jobs_count)
 
@@ -271,7 +310,8 @@ local function refresh_now(): ()
     end
     local snapshot_ok, snapshot_response = api:rpc("Snapshot")
     if snapshot_ok and snapshot_response.Snapshot then
-        local json_decode_ok, decoded = pcall(json.decode, snapshot_response.Snapshot)
+        local json_decode_ok, decoded =
+            pcall(json.decode, snapshot_response.Snapshot)
         if json_decode_ok and type(decoded) == "table" then
             apply_snapshot(decoded)
         end
@@ -285,9 +325,11 @@ M.refresh_now = refresh_now
 -- handler do daemon recusa apagar um deployment não-terminal como segunda
 -- trava.
 function deployments_clear_finished(): ()
-    local confirmed = confirm{
+    local confirmed = confirm {
         title = "Limpar deployments parados/falhos?",
-        message = "Remove do histórico todo deployment em estado Stopped ou Failed, e seus build logs. Deployments em andamento não são afetados. Ação irreversível.",
+        message = "Remove do histórico todo deployment em estado Stopped ou "
+            .. "Failed, e seus build logs. Deployments em andamento não são "
+            .. "afetados. Ação irreversível.",
         confirm_label = "Limpar",
         destructive = true,
     }
@@ -304,7 +346,13 @@ function deployments_clear_finished(): ()
     local deployment_ids = {}
     for _, deployment in ipairs(snap.deployments or {}) do
         local deployment_info = deployment.deployment
-        if deployment_info and (deployment_info.state == "Stopped" or deployment_info.state == "Failed") then
+        if
+            deployment_info
+            and (
+                deployment_info.state == "Stopped"
+                or deployment_info.state == "Failed"
+            )
+        then
             table.insert(deployment_ids, deployment_info.id)
         end
     end
@@ -312,11 +360,14 @@ function deployments_clear_finished(): ()
         ctx.deployments_message = "nada para limpar"
         return
     end
-    ctx.deployments_message = string.format("removendo %d deployment(s)…", #deployment_ids)
+    ctx.deployments_message =
+        string.format("removendo %d deployment(s)…", #deployment_ids)
     local removed = 0
     local failed = 0
     for _, deployment_id in ipairs(deployment_ids) do
-        local deleted = api:rpc_checked{ DeployDelete = { deployment_id = deployment_id } }
+        local deleted = api:rpc_checked {
+            DeployDelete = { deployment_id = deployment_id },
+        }
         if deleted then
             removed = removed + 1
         else
@@ -326,26 +377,31 @@ function deployments_clear_finished(): ()
     if failed == 0 then
         ctx.deployments_message = string.format("%d removido(s)", removed)
     else
-        ctx.deployments_message = string.format("%d removido(s), %d falharam", removed, failed)
-        toast{
+        ctx.deployments_message =
+            string.format("%d removido(s), %d falharam", removed, failed)
+        toast {
             message = tostring(
-                string.format("%d deployment(s) não puderam ser removidos", failed)
+                string.format(
+                    "%d deployment(s) não puderam ser removidos",
+                    failed
+                )
             ),
-            kind = "error"
+            kind = "error",
         }
     end
     refresh_now()
 end
 
-
 -- Eventos vivos do bus: métricas e transições de deploy. Logs (runtime/build)
--- NÃO passam mais aqui — o daemon os tirou do firehose `/api/events` e os serve
--- por endpoints dedicados, consumidos só pelas janelas de log isoladas (ver
--- log_window.luau; open_logs_window / deployment_logs em handlers/services.luau). Assim
--- a janela principal não reprocessa (reavalia) sua árvore inteira por linha.
+-- NÃO passam mais aqui — o daemon os tirou do firehose `/api/events` e os
+-- serve por endpoints dedicados, consumidos só pelas janelas de log isoladas
+-- (ver log_window.luau; open_logs_window / deployment_logs em
+-- handlers/services.luau). Assim a janela principal não reprocessa (reavalia)
+-- sua árvore inteira por linha.
 local function apply_bus_event(bus_event: any): ()
-    -- Eventos unit-variant chegam como string JSON (ex.: "DeployQueueChanged"),
-    -- não table — tratados antes do guard de table abaixo.
+    -- Eventos unit-variant chegam como string JSON (ex.:
+    -- "DeployQueueChanged"), não table — tratados antes do guard de table
+    -- abaixo.
     if bus_event == "DeployQueueChanged" then
         -- A fila global mudou: busca um snapshot fresco na hora, sem esperar o
         -- tick de 2s.
@@ -357,9 +413,17 @@ local function apply_bus_event(bus_event: any): ()
     end
     if bus_event.ServiceWarmChanged then
         local service_warm_event = bus_event.ServiceWarmChanged
-        if not service_warm_event.warming and service_warm_event.success == false then
-            local failure = service_warm_event.error and (" — " .. tostring(service_warm_event.error)) or ""
-            toast{ message = tostring("falha ao aquecer o serviço" .. failure), kind = "error" }
+        if
+            not service_warm_event.warming
+            and service_warm_event.success == false
+        then
+            local failure = service_warm_event.error
+                    and (" — " .. tostring(service_warm_event.error))
+                or ""
+            toast {
+                message = tostring("falha ao aquecer o serviço" .. failure),
+                kind = "error",
+            }
         end
         refresh_now()
     elseif bus_event.JobWarmChanged then
@@ -368,12 +432,19 @@ local function apply_bus_event(bus_event: any): ()
             local warmed_job = State.jobs_by_id[warm_event.job_id]
             local warmed_job_name = warmed_job and warmed_job.name or "job"
             if warm_event.success then
-                toast{ message = tostring(warmed_job_name .. " aquecido"), kind = "success" }
+                toast {
+                    message = tostring(warmed_job_name .. " aquecido"),
+                    kind = "success",
+                }
             else
-                local failure = warm_event.error and (" — " .. tostring(warm_event.error)) or ""
-                toast{
-                    message = tostring(warmed_job_name .. ": falha ao aquecer" .. failure),
-                    kind = "error"
+                local failure = warm_event.error
+                        and (" — " .. tostring(warm_event.error))
+                    or ""
+                toast {
+                    message = tostring(
+                        warmed_job_name .. ": falha ao aquecer" .. failure
+                    ),
+                    kind = "error",
                 }
             end
         end
@@ -384,23 +455,30 @@ local function apply_bus_event(bus_event: any): ()
         -- devolveria um módulo incompleto. Atualiza os 3 campos direto.
         local cleanup_event = bus_event.DockerCleanupCompleted
         ctx.docker_cleanup_running = "false"
-        ctx.docker_cleanup_last_run_text = format.docker_cleanup_last_run_summary({
-            at = cleanup_event.at, results = cleanup_event.results
-        })
+        ctx.docker_cleanup_last_run_text =
+            format.docker_cleanup_last_run_summary({
+                at = cleanup_event.at,
+                results = cleanup_event.results,
+            })
         State.docker_cleanup_last_run_at_raw = cleanup_event.at
     elseif bus_event.ContainerMetrics then
         local container_metrics = bus_event.ContainerMetrics
         if container_metrics.service_id then
-            State.metrics_by_id[container_metrics.service_id] = container_metrics
+            State.metrics_by_id[container_metrics.service_id] =
+                container_metrics
         end
     elseif bus_event.SystemMetrics then
         local system_metrics = bus_event.SystemMetrics
         ctx.host_cpu = string.format("%.0f%%", system_metrics.cpu_percent or 0)
         ctx.host_memory = (
-            format.format_bytes(system_metrics.mem_used_bytes) .. " / " .. format.format_bytes(system_metrics.mem_total_bytes)
+            format.format_bytes(system_metrics.mem_used_bytes)
+            .. " / "
+            .. format.format_bytes(system_metrics.mem_total_bytes)
         )
         ctx.host_disk = (
-            format.format_bytes(system_metrics.disk_used_bytes) .. " / " .. format.format_bytes(system_metrics.disk_total_bytes)
+            format.format_bytes(system_metrics.disk_used_bytes)
+            .. " / "
+            .. format.format_bytes(system_metrics.disk_total_bytes)
         )
         ctx.host_load = string.format(
             "%.2f %.2f %.2f",
@@ -411,42 +489,52 @@ local function apply_bus_event(bus_event: any): ()
     elseif bus_event.DeployStateChanged then
         local deploy_event = bus_event.DeployStateChanged
         if deploy_event.service_id == State.deploy_track.service_id then
-            local terminal = deploy_event.state == "Live" or deploy_event.state == "Failed" or deploy_event.state == "Stopped"
+            local terminal = deploy_event.state == "Live"
+                or deploy_event.state == "Failed"
+                or deploy_event.state == "Stopped"
             if terminal then
                 State.deploy_track.running = false
                 local live = deploy_event.state == "Live"
-                -- Notificação NATIVA DO SO no desfecho: o usuário disparou o deploy
-                -- e provavelmente foi fazer outra coisa — o toast (dentro da janela)
-                -- não seria visto. Emitida sempre, independente da tela/serviço
-                -- selecionado (por isso fora do gate de selected_service abaixo).
-                -- app_name = "Rustploy" (não o nome do binário "rustploy-gui"): há
-                -- desktops (ex.: certos GNOME/extensões) que descartam a notificação
-                -- quando o app_name casa com um .desktop instalado — o nome de
-                -- exibição evita isso. Ver glacier-ui 0.43 e docs/notificacao-so.md.
+                -- Notificação NATIVA DO SO no desfecho: o usuário disparou o
+                -- deploy e provavelmente foi fazer outra coisa — o toast
+                -- (dentro da janela) não seria visto. Emitida sempre,
+                -- independente da tela/serviço selecionado (por isso fora do
+                -- gate de selected_service abaixo). app_name = "Rustploy" (não
+                -- o nome do binário "rustploy-gui"): há desktops (ex.: certos
+                -- GNOME/extensões) que descartam a notificação quando o
+                -- app_name casa com um .desktop instalado — o nome de exibição
+                -- evita isso. Ver glacier-ui 0.43 e docs/notificacao-so.md.
                 local service_name = State.deploy_track.name
                 if service_name == "" then
                     service_name = "serviço"
                 end
                 -- `d.message` é o MOTIVO da falha (o texto do Docker, o
-                -- healthcheck que não passou…). O evento sempre o carregou; era
-                -- este consumidor que o descartava, e a notificação dizia só
-                -- "Failed" — o usuário ficava sem hipótese nenhuma. Ver
+                -- healthcheck que não passou…). O evento sempre o carregou;
+                -- era este consumidor que o descartava, e a notificação dizia
+                -- só "Failed" — o usuário ficava sem hipótese nenhuma. Ver
                 -- docs/plano-erro-de-deploy-invisivel.md.
-                local failure_reason = format.short_reason(deploy_event.message)
+                local failure_reason =
+                    format.short_reason(deploy_event.message)
                 if live then
-                    notify{
+                    notify {
                         title = "Deploy concluído",
-                        body = service_name .. " está no ar e recebendo tráfego.",
+                        body = service_name
+                            .. " está no ar e recebendo tráfego.",
                         app_name = "Rustploy",
                         icon = "rustploy-gui",
                     }
                 else
-                    notify{
+                    notify {
                         title = "Deploy falhou",
                         body = (
                             failure_reason ~= ""
                                 and (service_name .. ": " .. failure_reason)
-                                or (service_name .. ": " .. tostring(deploy_event.state) .. ".")
+                            or (
+                                service_name
+                                .. ": "
+                                .. tostring(deploy_event.state)
+                                .. "."
+                            )
                         ),
                         app_name = "Rustploy",
                         icon = "rustploy-gui",
@@ -454,10 +542,13 @@ local function apply_bus_event(bus_event: any): ()
                     -- Toast além da notificação do SO: quem está com a janela
                     -- aberta olhando o deploy não recebe notificação em alguns
                     -- desktops, e é justamente quem mais quer ver o motivo.
-                    toast{
-                        message = service_name .. ": " .. (
-                            failure_reason ~= "" and failure_reason or ("deploy " .. tostring(deploy_event.state))
-                        ),
+                    toast {
+                        message = service_name
+                            .. ": "
+                            .. (
+                                failure_reason ~= "" and failure_reason
+                                or ("deploy " .. tostring(deploy_event.state))
+                            ),
                         kind = "error",
                     }
                 end
@@ -465,28 +556,30 @@ local function apply_bus_event(bus_event: any): ()
                     ctx.service_deploy_running = "false"
                     ctx.service_action_message = (
                         live and "deploy concluído"
-                            or (
-                                failure_reason ~= ""
-                                    and ("deploy falhou: " .. failure_reason)
-                                    or ("deploy: " .. tostring(deploy_event.state))
-                            )
+                        or (
+                            failure_reason ~= ""
+                                and ("deploy falhou: " .. failure_reason)
+                            or ("deploy: " .. tostring(deploy_event.state))
+                        )
                     )
                     ctx.service_action_color = live and "#3FB950" or "#F85149"
                     Services.fetch_service_detail(deploy_event.service_id)
                 end
             elseif deploy_event.service_id == ctx.selected_service then
                 ctx.service_deploy_running = "true"
-                ctx.service_action_message = "deploy · " .. tostring(deploy_event.state)
+                ctx.service_action_message = "deploy · "
+                    .. tostring(deploy_event.state)
                 ctx.service_action_color = "#58A6FF"
             end
         end
     end
 end
 
--- Abre a conexão SSE (chamado por connect(), em handlers/connection.luau,
--- após a autenticação inicial dar certo). Os callbacks vão inline: cada um é
--- usado num lugar só, e a assinatura dos três continua conferida contra o que o
--- motor entrega sem precisar anotar variável nenhuma — `glacier.d.luau` declara
+-- Abre a conexão SSE (chamado por connect(), em handlers/connection.luau, após
+-- a autenticação inicial dar certo). Os callbacks vão inline: cada um é usado
+-- num lugar só, e a assinatura dos três continua conferida contra o que o
+-- motor entrega sem precisar anotar variável nenhuma — `glacier.d.luau`
+-- declara
 -- `sse(url, opts: StreamOptions?)`, então é a própria chamada que checa a
 -- tabela literal contra `StreamOptions`.
 
@@ -500,8 +593,9 @@ function M.open_stream(): ()
     State.state_conn = sse(sse_url, {
         -- Cada evento SSE traz um `data:` JSON auto-descritivo com `kind`.
         -- Nota: o firehose /api/events não manda mais `bus_batch` (era só p/
-        -- logs, que saíram daqui — ver apply_bus_event). Os lotes de log vivem no
-        -- endpoint dedicado consumido pela janela isolada (log_window.luau).
+        -- logs, que saíram daqui — ver apply_bus_event). Os lotes de log vivem
+        -- no endpoint dedicado consumido pela janela isolada
+        -- (log_window.luau).
         headers = Api.auth_headers(ctx.api_token),
 
         on_message = function(data: string): ()

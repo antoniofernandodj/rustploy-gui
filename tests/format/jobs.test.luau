@@ -10,15 +10,38 @@ end
 --- intervalo, diária e semanal
 function test_recorrencia__intervalo_diaria_e_semanal()
     assert_eq(Jobs.recurrence_label({ IntervalHours = 6 }), "a cada 6h")
-    assert_eq(Jobs.recurrence_label({ Daily = { hour = 3, minute = 5 } }), "diariamente às 03:05")
-    assert_eq(Jobs.recurrence_label({ Weekly = { weekday = 0, hour = 9, minute = 30 } }), "semanalmente seg às 09:30")
-    assert_eq(Jobs.recurrence_label({ Weekly = { weekday = 6, hour = 23, minute = 0 } }), "semanalmente dom às 23:00")
+    assert_eq(
+        Jobs.recurrence_label({ Daily = { hour = 3, minute = 5 } }),
+        "diariamente às 03:05"
+    )
+    assert_eq(
+        Jobs.recurrence_label({
+            Weekly = { weekday = 0, hour = 9, minute = 30 },
+        }),
+        "semanalmente seg às 09:30"
+    )
+    assert_eq(
+        Jobs.recurrence_label({
+            Weekly = { weekday = 6, hour = 23, minute = 0 },
+        }),
+        "semanalmente dom às 23:00"
+    )
 end
 
 --- o dia da semana dá a volta (módulo 7)
 function test_recorrencia__o_dia_da_semana_da_a_volta_modulo_7()
-    assert_has(Jobs.recurrence_label({ Weekly = { weekday = 7, hour = 0, minute = 0 } }), "seg")
-    assert_has(Jobs.recurrence_label({ Weekly = { weekday = 9, hour = 0, minute = 0 } }), "qua")
+    assert_has(
+        Jobs.recurrence_label({
+            Weekly = { weekday = 7, hour = 0, minute = 0 },
+        }),
+        "seg"
+    )
+    assert_has(
+        Jobs.recurrence_label({
+            Weekly = { weekday = 9, hour = 0, minute = 0 },
+        }),
+        "qua"
+    )
 end
 
 --- forma desconhecida vira traço
@@ -43,8 +66,11 @@ function test_estado__ultima_execucao_nunca_rodando_ok_falhou()
 end
 
 --- aquecimento: aquecendo vence quente, e nil conta como frio
-function test_estado__aquecimento_aquecendo_vence_quente_e_nil_conta_como_frio()
-    assert_eq(Jobs.warm_status({ warming = true, warm = true }), "aquecendo…")
+function test_estado__aquecimento_aquecendo_vence_quente_e_nil_conta_como()
+    assert_eq(
+        Jobs.warm_status({ warming = true, warm = true }),
+        "aquecendo…"
+    )
     assert_eq(Jobs.warm_status({ warm = true }), "quente")
     assert_eq(Jobs.warm_status({}), "frio")
     assert_eq(Jobs.warm_status(nil), "frio")
@@ -62,7 +88,12 @@ end
 
 local function resumo(sobrescrita)
     local base = {
-        job = { id = "j1", name = "migrate", recurrence = { IntervalHours = 2 }, enabled = true },
+        job = {
+            id = "j1",
+            name = "migrate",
+            recurrence = { IntervalHours = 2 },
+            enabled = true,
+        },
         project_name = "loja",
         trigger_service_name = "api",
         last_run = { id = "r1", success = true },
@@ -75,7 +106,10 @@ end
 
 --- uma linha por job, com o total
 function test_tela_schedules__uma_linha_por_job_com_o_total()
-    local json_texto, total = Jobs.summaries({ resumo(), resumo({ job = { id = "j2", name = "x", enabled = false } }) }, nil)
+    local json_texto, total = Jobs.summaries({
+        resumo(),
+        resumo({ job = { id = "j2", name = "x", enabled = false } }),
+    }, nil)
     assert_eq(total, 2)
     local linhas = json.decode(json_texto)
     assert_eq(#linhas, 2)
@@ -88,7 +122,7 @@ function test_tela_schedules__uma_linha_por_job_com_o_total()
 end
 
 --- o dono mostra projeto / serviço gatilho, ou só o projeto quando autônomo
-function test_tela_schedules__o_dono_mostra_projeto_servico_gatilho_ou_so_o_projeto_quando_autonomo()
+function test_tela_schedules__o_dono_mostra_projeto_servico_gatilho_ou_so_o()
     local autonomo = resumo()
     autonomo.trigger_service_name = nil
     local linhas = json.decode((Jobs.summaries({ resumo(), autonomo }, nil)))
@@ -101,9 +135,11 @@ function test_tela_schedules__o_dono_mostra_projeto_servico_gatilho_ou_so_o_proj
 end
 
 --- o nome comprido é truncado na exibição e guardado inteiro
-function test_tela_schedules__o_nome_comprido_e_truncado_na_exibicao_e_guardado_inteiro()
+function test_tela_schedules__o_nome_comprido_e_truncado_na_exibicao_e()
     local longo = string.rep("n", 80)
-    local linha = json.decode((Jobs.summaries({ resumo({ job = { id = "j", name = longo } }) }, nil)))[1]
+    local linha = json.decode(
+        (Jobs.summaries({ resumo({ job = { id = "j", name = longo } }) }, nil))
+    )[1]
     assert_eq(linha.name_full, longo)
     assert_eq(utf8.len(linha.name) < 80, true)
 end
@@ -126,8 +162,16 @@ end
 function test_tela_schedules__proxima_execucao_e_aquecimento()
     local linha = json.decode((Jobs.summaries({
         resumo({
-            job = { id = "j", name = "n", next_run_at = "2026-03-01T10:00:00Z" },
-            warm = { warm = true, warmed_at = "2026-03-01T09:00:00Z", reason = "build ok" },
+            job = {
+                id = "j",
+                name = "n",
+                next_run_at = "2026-03-01T10:00:00Z",
+            },
+            warm = {
+                warm = true,
+                warmed_at = "2026-03-01T09:00:00Z",
+                reason = "build ok",
+            },
         }),
     }, nil)))[1]
     assert_match(linha.next_run_at, "^%d%d/%d%d %d%d:%d%d$")
@@ -139,7 +183,7 @@ function test_tela_schedules__proxima_execucao_e_aquecimento()
 end
 
 --- sem next_run_at nem aquecimento, os campos têm padrão seguro
-function test_tela_schedules__sem_next_run_at_nem_aquecimento_os_campos_tem_padrao_seguro()
+function test_tela_schedules__sem_next_run_at_nem_aquecimento_os_campos_tem()
     local linha = json.decode((Jobs.summaries({ resumo() }, nil)))[1]
     assert_eq(linha.next_run_at, "—")
     assert_eq(linha.is_warm, false)
@@ -165,11 +209,17 @@ function test_tela_schedules__sem_jobs_da_e_zero()
     assert_eq(total, 0)
 end
 
-local jobs = { { id = "a", name = "migrar" }, { id = "b", name = "seed" }, { id = "c", name = "limpar" } }
+local jobs = {
+    { id = "a", name = "migrar" },
+    { id = "b", name = "seed" },
+    { id = "c", name = "limpar" },
+}
 
 --- a fila respeita a ordem configurada e resolve o nome
-function test_fila_de_pre_deploy__a_fila_respeita_a_ordem_configurada_e_resolve_o_nome()
-    local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "c", "a" } }, jobs))
+function test_fila_de_pre_deploy__a_fila_respeita_a_ordem_configurada_e()
+    local fila = json.decode(
+        Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "c", "a" } }, jobs)
+    )
     assert_eq(#fila, 2)
     assert_eq(fila[1].name, "limpar")
     assert_eq(fila[1].index, "1")
@@ -177,29 +227,35 @@ function test_fila_de_pre_deploy__a_fila_respeita_a_ordem_configurada_e_resolve_
     assert_eq(fila[2].index, "2")
 end
 
---- um job apagado por fora aparece como removido, para dar para tirá-lo da fila
-function test_fila_de_pre_deploy__um_job_apagado_por_fora_aparece_como_removido_para_dar_para_tira_lo_da_fila()
-    local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "zzz" } }, jobs))
+--- um job apagado por fora aparece como removido, para dar para tirá-lo da
+--- fila
+function test_fila_de_pre_deploy__um_job_apagado_por_fora_aparece_como()
+    local fila = json.decode(
+        Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "zzz" } }, jobs)
+    )
     assert_eq(fila[1].id, "zzz")
     assert_eq(fila[1].name, "(job removido: zzz)")
 end
 
 --- o id legado vale quando a fila nova está vazia
-function test_fila_de_pre_deploy__o_id_legado_vale_quando_a_fila_nova_esta_vazia()
-    local fila = json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_id = "b" }, jobs))
+function test_fila_de_pre_deploy__o_id_legado_vale_quando_a_fila_nova_esta()
+    local fila =
+        json.decode(Jobs.pre_deploy_queue({ pre_deploy_job_id = "b" }, jobs))
     assert_eq(fila[1].name, "seed")
 end
 
 --- os disponíveis são os que ainda não estão na fila
-function test_fila_de_pre_deploy__os_disponiveis_sao_os_que_ainda_nao_estao_na_fila()
-    local livres = json.decode(Jobs.pre_deploy_available({ pre_deploy_job_ids = { "a" } }, jobs))
+function test_fila_de_pre_deploy__os_disponiveis_sao_os_que_ainda_nao_estao()
+    local livres = json.decode(
+        Jobs.pre_deploy_available({ pre_deploy_job_ids = { "a" } }, jobs)
+    )
     assert_eq(#livres, 2)
     assert_eq(livres[1].id, "b")
     assert_eq(livres[2].id, "c")
 end
 
 --- fila e disponíveis juntos cobrem todos os jobs, sem repetir
-function test_fila_de_pre_deploy__fila_e_disponiveis_juntos_cobrem_todos_os_jobs_sem_repetir()
+function test_fila_de_pre_deploy__fila_e_disponiveis_juntos_cobrem_todos_os()
     local spec = { pre_deploy_job_ids = { "b" } }
     local na_fila = json.decode(Jobs.pre_deploy_queue(spec, jobs))
     local livres = json.decode(Jobs.pre_deploy_available(spec, jobs))
@@ -213,10 +269,21 @@ function test_fila_de_pre_deploy__sem_jobs_da()
 end
 
 --- cada execução com seu estado, código de saída e horários
-function test_historico__cada_execucao_com_seu_estado_codigo_de_saida_e_horarios()
+function test_historico__cada_execucao_com_seu_estado_codigo_de_saida_e()
     local linhas = json.decode(Jobs.runs({
-        { id = "r1", started_at = "2026-03-01T10:00:00Z", finished_at = "2026-03-01T10:00:09Z", exit_code = 0, success = true },
-        { id = "r2", started_at = "2026-03-01T10:00:00Z", exit_code = 1, success = false },
+        {
+            id = "r1",
+            started_at = "2026-03-01T10:00:00Z",
+            finished_at = "2026-03-01T10:00:09Z",
+            exit_code = 0,
+            success = true,
+        },
+        {
+            id = "r2",
+            started_at = "2026-03-01T10:00:00Z",
+            exit_code = 1,
+            success = false,
+        },
         { id = "r3", started_at = "2026-03-01T10:00:00Z" },
     }))
     assert_eq(linhas[1].status_label, "ok")

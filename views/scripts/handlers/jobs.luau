@@ -39,17 +39,17 @@ function job_run_now(job_id: string): ()
     Stream.update_open_project()
     Stream.refresh_jobs_summary_local()
 
-    local job_run_now_ok, job_run_now_response = api:rpc_checked{
-        JobRunNow = { id = job_id }
+    local job_run_now_ok, job_run_now_response = api:rpc_checked {
+        JobRunNow = { id = job_id },
     }
     if not job_run_now_ok then
-        toast{ message = tostring(job_run_now_response), kind = "error" }
+        toast { message = tostring(job_run_now_response), kind = "error" }
         State.jobs_inflight[job_id] = nil
         Stream.update_open_project()
         Stream.refresh_jobs_summary_local()
         return
     end
-    toast{ message = tostring("Job disparado"), kind = "success" }
+    toast { message = tostring("Job disparado"), kind = "success" }
     Stream.refresh_now()
     State.jobs_inflight[job_id] = nil
 end
@@ -66,13 +66,16 @@ function job_run_cancel(job_run_id: string): ()
     if not api or not job_run_id or job_run_id == "" then
         return
     end
-    local job_run_cancel_ok, job_run_cancel_response = api:rpc_checked{
-        JobRunCancel = { job_run_id = job_run_id }
+    local job_run_cancel_ok, job_run_cancel_response = api:rpc_checked {
+        JobRunCancel = { job_run_id = job_run_id },
     }
     if job_run_cancel_ok then
-        toast{ message = tostring("Cancelamento solicitado"), kind = "success" }
+        toast {
+            message = tostring("Cancelamento solicitado"),
+            kind = "success",
+        }
     else
-        toast{ message = tostring(job_run_cancel_response), kind = "error" }
+        toast { message = tostring(job_run_cancel_response), kind = "error" }
     end
     Stream.refresh_now()
 end
@@ -88,13 +91,15 @@ function job_toggle(job_id: string): ()
     end
     local job = State.jobs_by_id[job_id]
     if not job then
-        toast{
-            message = tostring("job não encontrado (tela desatualizada — tenta de novo)"),
-            kind = "error"
+        toast {
+            message = tostring(
+                "job não encontrado (tela desatualizada — tenta de novo)"
+            ),
+            kind = "error",
         }
         return
     end
-    local job_update_ok, job_update_response = api:rpc_checked{
+    local job_update_ok, job_update_response = api:rpc_checked {
         JobUpdate = {
             id = job_id,
             name = job.name,
@@ -108,14 +113,14 @@ function job_toggle(job_id: string): ()
         },
     }
     if job_update_ok then
-        toast{
+        toast {
             message = tostring(job.enabled and "Job pausado" or "Job ativado"),
-            kind = "success"
+            kind = "success",
         }
     else
-        toast{
+        toast {
             message = tostring(job_update_response),
-            kind = "error"
+            kind = "error",
         }
     end
     Stream.refresh_now()
@@ -139,12 +144,14 @@ function open_new_job_window(): ()
             table.insert(services, {
                 id = service_record.id,
                 name = service_record.spec.name,
-                project_id = service_record.spec.project_id
+                project_id = service_record.spec.project_id,
             })
         end
     end
-    open_window{
-        component = "new_job", size = "560 700", decorations = false,
+    open_window {
+        component = "new_job",
+        size = "560 700",
+        decorations = false,
         resizable = false,
         data = {
             api_url = ctx.api_url or "",
@@ -165,9 +172,11 @@ function open_edit_job_window(job_id: string): ()
     close_job_actions()
     local job = State.jobs_by_id[job_id]
     if not job then
-        toast{
-            message = tostring("job não encontrado (tela desatualizada — tenta de novo)"),
-            kind = "error"
+        toast {
+            message = tostring(
+                "job não encontrado (tela desatualizada — tenta de novo)"
+            ),
+            kind = "error",
         }
         return
     end
@@ -185,23 +194,28 @@ function open_edit_job_window(job_id: string): ()
             -- init (mesma restrição de `open_new_job_window`), então até ela
             -- abrir o clique em "Editar" fica sem NENHUM feedback visual.
             -- Só o toast avisa que algo está acontecendo nesse intervalo.
-            toast{
+            toast {
                 message = tostring("Carregando dados do repositório…"),
-                kind = "info"
+                kind = "info",
             }
-            local git_provider_list_ok, git_provider_list_response = api:rpc("GitProviderList")
-            if git_provider_list_ok and git_provider_list_response.GitProviders then
+            local git_provider_list_ok, git_provider_list_response =
+                api:rpc("GitProviderList")
+            if
+                git_provider_list_ok
+                and git_provider_list_response.GitProviders
+            then
                 new_job_git_providers = format.git_providers(
                     git_provider_list_response.GitProviders
                 )
             end
-            local git_repo_list_ok, git_repo_list_response = api:rpc{
+            local git_repo_list_ok, git_repo_list_response = api:rpc {
                 GitRepoList = {
-                    provider_id = provider_id
-                }
+                    provider_id = provider_id,
+                },
             }
             if git_repo_list_ok and git_repo_list_response.GitRepos then
-                new_job_git_repos = format.git_repos(git_repo_list_response.GitRepos)
+                new_job_git_repos =
+                    format.git_repos(git_repo_list_response.GitRepos)
                 for _, git_repo in ipairs(git_repo_list_response.GitRepos) do
                     if git_repo.clone_url == job.git_source.url then
                         new_job_git_repo = git_repo.full_name
@@ -209,13 +223,17 @@ function open_edit_job_window(job_id: string): ()
                     end
                 end
                 if new_job_git_repo ~= "" then
-                    local git_branch_list_ok, git_branch_list_response = api:rpc{
-                        GitBranchList = {
-                            provider_id = provider_id,
-                            repo_full_name = new_job_git_repo
-                        },
-                    }
-                    if git_branch_list_ok and git_branch_list_response.GitBranches then
+                    local git_branch_list_ok, git_branch_list_response =
+                        api:rpc {
+                            GitBranchList = {
+                                provider_id = provider_id,
+                                repo_full_name = new_job_git_repo,
+                            },
+                        }
+                    if
+                        git_branch_list_ok
+                        and git_branch_list_response.GitBranches
+                    then
                         new_job_git_branches = format.git_branches(
                             git_branch_list_response.GitBranches
                         )
@@ -225,8 +243,10 @@ function open_edit_job_window(job_id: string): ()
         end
     end
 
-    open_window{
-        component = "new_job", size = "560 700", decorations = false,
+    open_window {
+        component = "new_job",
+        size = "560 700",
+        decorations = false,
         -- Sobrepõe o `title` do <screen> ("Novo job"): só quem abre sabe que
         -- desta vez é edição.
         title = "Editar job — Rustploy",
@@ -254,17 +274,19 @@ function open_job_logs_window(job_run_id: string): ()
     local seed = "[]"
     local api = State.api
     if api then
-        local get_job_logs_ok, get_job_logs_response = api:rpc{
+        local get_job_logs_ok, get_job_logs_response = api:rpc {
             GetJobLogs = {
-                job_run_id = job_run_id
-            }
+                job_run_id = job_run_id,
+            },
         }
         if get_job_logs_ok and get_job_logs_response.JobLogs then
             seed = json.encode(get_job_logs_response.JobLogs)
         end
     end
-    open_window{
-        component = "log", size = "900 560", decorations = false,
+    open_window {
+        component = "log",
+        size = "900 560",
+        decorations = false,
         title = "Job — " .. string.sub(job_run_id, 1, 12),
         resizable = true,
         data = {
@@ -282,13 +304,16 @@ function job_delete(job_id: string): ()
     if not api then
         return
     end
-    -- Confirma antes de apagar, como a webui ("Remover este job? Ação irreversível.") e
-    -- como os demais botões destrutivos do app. Cancelar deixa o painel aberto.
+    -- Confirma antes de apagar, como a webui ("Remover este job? Ação
+    -- irreversível.") e como os demais botões destrutivos do app. Cancelar
+    -- deixa o painel aberto.
     local job = State.jobs_by_id[job_id]
     local job_name = job and job.name or job_id
-    local confirmed = confirm{
+    local confirmed = confirm {
         title = "Remover job?",
-        message = "O job \"" .. tostring(job_name) .. "\" será removido e não poderá ser recuperado.",
+        message = 'O job "'
+            .. tostring(job_name)
+            .. '" será removido e não poderá ser recuperado.',
         confirm_label = "Remover",
         destructive = true,
     }
@@ -296,22 +321,23 @@ function job_delete(job_id: string): ()
         return
     end
     close_job_actions()
-    local job_delete_ok, job_delete_response = api:rpc_checked{
+    local job_delete_ok, job_delete_response = api:rpc_checked {
         JobDelete = {
-            id = job_id
-        }
+            id = job_id,
+        },
     }
     if job_delete_ok then
-        toast{ message = tostring("Job removido"), kind = "success" }
+        toast { message = tostring("Job removido"), kind = "success" }
     else
-        toast{ message = tostring(job_delete_response), kind = "error" }
+        toast { message = tostring(job_delete_response), kind = "error" }
     end
     Stream.refresh_now()
 end
 
--- Reconstrói o job do zero (`JobWarm` com `force`): rebaixa as imagens e refaz o
--- build sem cache, mesmo com o job quente. Leva minutos e segura a vaga única da
--- fila de jobs, então pede confirmação antes. O fim chega em `Event::JobWarmChanged`.
+-- Reconstrói o job do zero (`JobWarm` com `force`): rebaixa as imagens e refaz
+-- o build sem cache, mesmo com o job quente. Leva minutos e segura a vaga
+-- única da fila de jobs, então pede confirmação antes. O fim chega em
+-- `Event::JobWarmChanged`.
 function job_rebuild(job_id: string): ()
     local api = State.api
     if not api then
@@ -319,22 +345,26 @@ function job_rebuild(job_id: string): ()
     end
     local job = State.jobs_by_id[job_id]
     local job_name = job and job.name or job_id
-    local confirmed = confirm{
+    local confirmed = confirm {
         title = "Reconstruir sem cache?",
-        message = "O job \"" .. tostring(job_name) .. "\" será reconstruído do zero (sem cache e com as imagens base rebaixadas). Isso pode levar vários minutos e ocupa a fila de jobs enquanto roda.",
+        message = 'O job "'
+            .. tostring(job_name)
+            .. '" será reconstruído do zero (sem cache e com as imagens base '
+            .. "rebaixadas). Isso pode levar vários minutos e ocupa a fila "
+            .. "de jobs enquanto roda.",
         confirm_label = "Reconstruir",
     }
     if not confirmed then
         return
     end
-    local job_rebuild_ok, job_rebuild_response = api:rpc_checked{
-        JobWarm = { job_id = job_id, force = true }
+    local job_rebuild_ok, job_rebuild_response = api:rpc_checked {
+        JobWarm = { job_id = job_id, force = true },
     }
     if not job_rebuild_ok then
-        toast{ message = tostring(job_rebuild_response), kind = "error" }
+        toast { message = tostring(job_rebuild_response), kind = "error" }
         return
     end
-    toast{ message = tostring("Reconstrução iniciada"), kind = "success" }
+    toast { message = tostring("Reconstrução iniciada"), kind = "success" }
     Stream.refresh_now()
 end
 
@@ -347,17 +377,17 @@ function job_warm(job_id: string): ()
     if not api then
         return
     end
-    local job_warm_ok, job_warm_response = api:rpc_checked{
-        JobWarm = { job_id = job_id }
+    local job_warm_ok, job_warm_response = api:rpc_checked {
+        JobWarm = { job_id = job_id },
     }
     if not job_warm_ok then
-        toast{ message = tostring(job_warm_response), kind = "error" }
+        toast { message = tostring(job_warm_response), kind = "error" }
         return
     end
     if job_warm_response.JobWarmRequested.already_warm then
-        toast{ message = tostring("Job já está aquecido"), kind = "success" }
+        toast { message = tostring("Job já está aquecido"), kind = "success" }
     else
-        toast{ message = tostring("Aquecimento iniciado"), kind = "success" }
+        toast { message = tostring("Aquecimento iniciado"), kind = "success" }
     end
     Stream.refresh_now()
 end

@@ -1,9 +1,11 @@
 --!strict
 
--- busy.luau — trava de "ação em andamento" para os handlers de on_click/on_submit.
+-- busy.luau — trava de "ação em andamento" para os handlers de
+-- on_click/on_submit.
 --
--- `install(names)` troca cada função global listada por uma versão que, enquanto
--- roda (inclusive suspensa num `fetch`), mantém `ctx.busy_<nome> = "true"`:
+-- `install(names)` troca cada função global listada por uma versão que,
+-- enquanto roda (inclusive suspensa num `fetch`), mantém `ctx.busy_<nome> =
+-- "true"`:
 --   • um novo disparo da MESMA ação nesse intervalo é ignorado (duplo clique);
 --   • o template liga `disabled = @busy_<nome>` no botão, então ele fica
 --     bloqueado na hora e volta assim que a ação termina — com sucesso, erro
@@ -27,7 +29,8 @@ end
 -- Semeia `busy_<nome> = "false"` para toda ação instalada. O template liga
 -- `disabled = @busy_<nome>`, e uma chave ausente não resolve. Roda dentro do
 -- `init()` (ver `install`): o logout (`disconnect`) apaga o `ctx` inteiro e
--- chama `init()` de novo, então os flags renascem junto com os demais defaults.
+-- chama `init()` de novo, então os flags renascem junto com os demais
+-- defaults.
 local function seed(names: { string }): ()
     for _, name in names do
         ctx[M.key(name)] = "false"
@@ -37,7 +40,8 @@ end
 -- Quem está rodando: `running[nome] = corrotina dona`; `held[corrotina]` =
 -- chaves que ela segura (uma ação pode chamar outra, também embrulhada).
 -- Código Lua que chama um handler direto (sem corrotina própria) roda na
--- principal, onde `coroutine.running()` é nil: `MAIN` é o dono dessas chamadas.
+-- principal, onde `coroutine.running()` é nil: `MAIN` é o dono dessas
+-- chamadas.
 local MAIN = {}
 local running: { [string]: any } = {}
 local held: { [any]: { string } } = {}
@@ -83,7 +87,8 @@ function M.install(names: { string }): ()
 
                 local call_results = table.pack(pcall(handler_function, ...))
 
-                -- Larga só a chave DESTA ação (a externa, se houver, segue presa).
+                -- Larga só a chave DESTA ação (a externa, se houver, segue
+                -- presa).
                 if running[key] == thread then
                     running[key] = nil
                     ctx[key] = "false"
