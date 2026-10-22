@@ -35,6 +35,15 @@
         "assert_has",
         "assert_nil",
         "assert_not_nil",
-        "assert_fails"
+        "assert_fails",
+        "assert_true",
+        "assert_false",
+        "assert_complete",
+        "assert_renders",
+        "assert_has_text",
+        "assert_no_text",
+        "assert_has_button",
+        "assert_no_button",
+        "each"
     ]
 }

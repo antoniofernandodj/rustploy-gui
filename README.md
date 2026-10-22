@@ -313,7 +313,30 @@ precisa de uma raiz extra, adicionada por variável de ambiente dentro de um blo
   subtração; `hora_deslocada` soma o offset descartando a virada de dia (só as
   horas importam).
 
-### 5.3 A validação *headless* das telas (`tests/templates_render.rs`)
+### 5.3 A validação *headless* das telas (`tests/tela/render.test.luau` e `tests/app_manifest.rs`)
+
+**Onde cada coisa mora.** O que antes era um único `templates_render.rs` se dividiu
+conforme o que cada runner enxerga:
+
+- **`tests/tela/render.test.luau`** (`glacier test`, sem compilar testes Rust): as
+  telas sobem, mostram o texto e o botão certos, escondem o que deve esconder, e o
+  estilo resolvido na largura da janela. Usa a árvore avaliada (`tela:render()`,
+  `texts()`, `buttons()`, `find`, `set_viewport`, `style`; `assert_renders`,
+  `assert_has_text`, `assert_has_button`, glacier-ui 0.133). Cobre as visões do
+  shell, as abas, as janelas auxiliares, os jobs agendados, a sidebar, as ações do
+  serviço por largura, o item "Projects" aceso e a trava de ação em andamento.
+  Uma view quebrada, mesmo uma que nenhum outro teste carrega, falha em
+  `test_o_app_todo_carrega`. O logout zerando a sessão é de
+  `tests/handlers/connection.test.luau`.
+- **`tests/app_manifest.rs`** (`cargo test --test app_manifest`): o que o Luau não
+  alcança — título e tamanho das janelas e as fontes (`app(...)`), a casca de cada
+  `.gvb`, a avaliação escopada, as regras do `<form>` de "Novo projeto", o `open` do
+  `<Reveal>` da gaveta e a **construção dos widgets do iced** de cada visão e janela.
+  O Luau avalia o markup mas não desenha: um widget que o iced recusa só aparece aqui
+  ou no `make run`.
+
+O resto desta seção descreve **o que** é conferido; os nomes de teste citados são os
+do arquivo antigo, hoje distribuídos como acima.
 
 Todo template parseia, toda tela/aba avalia e monta uma árvore de elementos `iced`
 sem erro. Pega KDL malformado e propriedade `.gss` desconhecida — que derrubaria
