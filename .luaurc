@@ -44,6 +44,7 @@
         "assert_no_text",
         "assert_has_button",
         "assert_no_button",
-        "each"
+        "each",
+        "copy"
     ]
 }
