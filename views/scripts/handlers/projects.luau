@@ -274,7 +274,7 @@ local function with_project_env(mutate: (project_env_record: any) -> ()): ()
         ctx.project_env_count = tostring(#project_env_record.env_vars)
         -- Não sobrescrever o textarea enquanto o usuário edita (ver
         -- stream.luau).
-        if ctx.project_env_text_open ~= "true" then
+        if not Helpers.is_true(ctx.project_env_text_open) then
             local dotenv = format.env_dotenv_with_comments(
                 project_env_record.env_vars,
                 project_env_record.env_comments
@@ -400,7 +400,7 @@ function project_env_add(): ()
     --   • `<secret:NOME>`/`secret:NOME` digitado no valor, como no editor
     --     .env.
     local secret_name: string? = Helpers.parse_secret_ref(raw_value)
-    if ctx.project_env_new_is_secret == "true" and secret_name == nil then
+    if Helpers.is_true(ctx.project_env_new_is_secret) and secret_name == nil then
         -- Modo secret: o valor JÁ é o nome (o chip preenche assim).
         local name = Helpers.trim(raw_value)
         if name == "" then
@@ -467,7 +467,7 @@ end
 -- ── Editor .env do projeto (mesmo fluxo do serviço) ─────────────────────
 
 function project_env_text_toggle(): ()
-    ctx.project_env_text_open = (ctx.project_env_text_open == "true")
+    ctx.project_env_text_open = (Helpers.is_true(ctx.project_env_text_open))
             and "false"
         or "true"
 end

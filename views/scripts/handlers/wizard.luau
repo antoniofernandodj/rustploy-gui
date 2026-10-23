@@ -284,11 +284,11 @@ function new_service_create(): ()
         password = Helpers.trim(ctx.new_service_database_password),
         root_password = Helpers.trim(ctx.new_service_database_root_password),
         image = Helpers.trim(ctx.new_service_image),
-        use_replica = (ctx.new_service_use_replica == "true"),
+        use_replica = (Helpers.is_true(ctx.new_service_use_replica)),
         template_values = tvals,
         -- Porta externa automática + liberação no firewall (daemon aloca da
         -- faixa [external_ports]; sentinela host_port=0 no build_spec).
-        expose_external = (ctx.new_service_expose_external == "true"),
+        expose_external = (Helpers.is_true(ctx.new_service_expose_external)),
     }
     ctx.new_service_message = "criando…"
     ctx.new_service_busy = "true"

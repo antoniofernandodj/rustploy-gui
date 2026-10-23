@@ -10,6 +10,7 @@
 -- daemon gera o pacote (YAML) — aqui só se escolhe e se grava.
 
 local Api = require("net/api")
+local Helpers = require("helpers")
 
 local plan: any = {}
 local picked: { [string]: boolean } = {}
@@ -150,7 +151,7 @@ local function generate(): (string?, string?)
     local service_export_ok, service_export_response = api:rpc_checked {
         ServiceExport = {
             service_id = ctx.export_service_id,
-            include_values = ctx.export_values == "true",
+            include_values = Helpers.is_true(ctx.export_values),
             project_env_keys = keys,
         },
     }

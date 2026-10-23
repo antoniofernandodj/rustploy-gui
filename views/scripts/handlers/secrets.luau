@@ -112,7 +112,7 @@ function secret_use(name: string): ()
 end
 
 function project_env_secret_toggle(): ()
-    local on = ctx.project_env_new_is_secret == "true"
+    local on = Helpers.is_true(ctx.project_env_new_is_secret)
     ctx.project_env_new_is_secret = on and "false" or "true"
     ctx.project_env_new_value = ""
 end

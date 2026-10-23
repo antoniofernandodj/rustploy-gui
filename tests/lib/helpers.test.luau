@@ -138,3 +138,22 @@ function test_urls__normalize_url_recusa_vazio_e_esquema_que_nao_e_http_s()
     assert_nil(H.normalize_url("ftp://a.com"))
     assert_nil(H.normalize_url("https://"))
 end
+
+--- is_true aceita o boolean (checkbox/toggle) e o texto "true"; o resto é falso
+function test_booleanos__is_true_aceita_boolean_e_texto()
+    assert_true(H.is_true(true))
+    assert_true(H.is_true("true"))
+    assert_false(H.is_true(false))
+    assert_false(H.is_true("false"))
+    assert_false(H.is_true(nil))
+    assert_false(H.is_true("1"))
+end
+
+--- is_false só é verdadeiro para o false explícito; ausente não é falso (padrão ligado)
+function test_booleanos__is_false_nao_confunde_ausente_com_falso()
+    assert_true(H.is_false(false))
+    assert_true(H.is_false("false"))
+    assert_false(H.is_false(nil))
+    assert_false(H.is_false(true))
+    assert_false(H.is_false("true"))
+end

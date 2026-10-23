@@ -139,6 +139,19 @@ function M.decode_list(value: any): (boolean, any)
     return pcall(json.decode, value)
 end
 
+-- Um booleano do `ctx` chega como o `boolean` (um checkbox/toggle que o motor
+-- grava direto, ou `ctx.x = true`) ou como o TEXTO `"true"` (o que o markup, um
+-- `open_window` `data` ou `ctx.x = "true"` escreveram). Comparar só com o texto
+-- erra o primeiro caso desde a glacier-ui 0.137; estas duas aceitam os dois.
+function M.is_true(value: any): boolean
+    return value == true or value == "true"
+end
+
+-- O par de `is_true`. Ausente não é falso: `not is_false(v)` é o "ligado por padrão".
+function M.is_false(value: any): boolean
+    return value == false or value == "false"
+end
+
 -- `true` se a chave JSON do `ctx` é uma lista vazia (ou não é uma lista legível).
 function M.list_is_empty(value: any): boolean
     local ok, list = M.decode_list(value)

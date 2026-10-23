@@ -426,7 +426,7 @@ function new_job_create(): ()
                 main_service = main_service,
                 env_vars = env_vars,
                 env_comments = env_comments,
-                enabled = ctx.new_job_enabled == "true",
+                enabled = Helpers.is_true(ctx.new_job_enabled),
                 recurrence = recurrence,
             },
         }

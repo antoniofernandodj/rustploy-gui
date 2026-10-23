@@ -6,6 +6,7 @@
 -- refresh vem do snapshot (o daemon publica DeployQueueChanged → refresh_now).
 
 local State = require("../state")
+local Helpers = require("../helpers")
 local Stream = require("stream")
 
 -- Cancela um deploy que ainda está esperando na fila (não começou).
@@ -75,7 +76,7 @@ function queue_toggle_pause(): ()
     if not api then
         return
     end
-    local paused = ctx.deploy_engine_paused ~= "true"
+    local paused = not Helpers.is_true(ctx.deploy_engine_paused)
     local deploy_queue_pause_ok, deploy_queue_pause_response =
         api:rpc_checked { DeployQueuePause = { paused = paused } }
     if deploy_queue_pause_ok then

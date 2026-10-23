@@ -597,8 +597,8 @@ function shared_database_create(): ()
         project_id = ctx.service_form_shared_database_project,
         name = name,
         env_var = Helpers.trim(ctx.service_form_shared_database_env),
-        overwrite_env = ctx.service_form_shared_database_overwrite == "true",
-        skip_env = ctx.service_form_shared_database_skip_env == "true",
+        overwrite_env = Helpers.is_true(ctx.service_form_shared_database_overwrite),
+        skip_env = Helpers.is_true(ctx.service_form_shared_database_skip_env),
         connection_limit = tonumber(
             Helpers.trim(ctx.service_form_shared_database_limit)
         ),
@@ -923,7 +923,7 @@ function domain_add(): ()
         local route = {
             domain = domain,
             port = tonumber(Helpers.trim(ctx.service_form_port)),
-            tls = ctx.service_form_tls == "true",
+            tls = Helpers.is_true(ctx.service_form_tls),
         }
         local found = false
         for index, existing_route in ipairs(spec.domains) do
@@ -1139,7 +1139,7 @@ function general_save(): ()
                     "."
                 ),
                 watch_paths = watch,
-                submodules = ctx.service_form_submodules == "true",
+                submodules = Helpers.is_true(ctx.service_form_submodules),
                 dockerfile_path = non_empty_or_default(
                     ctx.service_form_dockerfile,
                     "Dockerfile"
@@ -1325,7 +1325,7 @@ function env_export(): ()
 end
 
 function env_text_toggle(): ()
-    ctx.env_text_open = (ctx.env_text_open == "true") and "false" or "true"
+    ctx.env_text_open = (Helpers.is_true(ctx.env_text_open)) and "false" or "true"
 end
 
 function env_text_cancel(): ()

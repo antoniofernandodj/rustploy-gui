@@ -4,6 +4,7 @@
 -- redes). A aba se atualiza no próximo snapshot (2s).
 
 local State = require("../state")
+local Helpers = require("../helpers")
 local format = require("../format")
 local Stream = require("stream")
 
@@ -56,7 +57,7 @@ function docker_prune_images(): ()
         return
     end
 
-    local all = ctx.docker_prune_all_images == "true"
+    local all = Helpers.is_true(ctx.docker_prune_all_images)
     prune(
         { PruneImages = { all = all } },
         all and "removendo TODAS as imagens sem uso…"
@@ -77,7 +78,7 @@ function docker_prune_volumes(): ()
         return
     end
 
-    local all = ctx.docker_prune_all_volumes == "true"
+    local all = Helpers.is_true(ctx.docker_prune_all_volumes)
     prune({ PruneVolumes = { all = all } }, "removendo volumes sem uso…")
 end
 

@@ -106,13 +106,13 @@ local function build_import_request(dry_run: boolean): any
         yaml = ctx.import_text or "",
         project_id = ctx.selected_project_id or "",
         name = name ~= "" and name or nil,
-        drop_domains = ctx.import_drop_domains == "true",
+        drop_domains = Helpers.is_true(ctx.import_drop_domains),
         git_provider_id = provider ~= "" and provider or nil,
         vars = nonempty(service_values),
         project_vars = nonempty(project_values),
         secrets = nonempty(secret_vals),
         project_env = next(project_env) ~= nil and project_env or nil,
-        deploy = ctx.import_deploy == "true",
+        deploy = Helpers.is_true(ctx.import_deploy),
         dry_run = dry_run,
     }
 end
@@ -348,12 +348,12 @@ function import_create(): ()
     if not analyze_core() then
         return
     end
-    if ctx.import_conflict == "true" then
+    if Helpers.is_true(ctx.import_conflict) then
         ctx.import_error =
             "já existe um serviço com esse nome neste projeto — escolha outro"
         return
     end
-    if ctx.import_has_missing == "true" then
+    if Helpers.is_true(ctx.import_has_missing) then
         ctx.import_error = "preencha os valores obrigatórios acima"
         return
     end

@@ -430,8 +430,8 @@ function manifest_import(): ()
 
     -- Lê os dois checkboxes AQUI e confirma o que vai acontecer — prune remove
     -- serviços, então o usuário vê exatamente o que marcou antes de aplicar.
-    local prune = ctx.manifest_prune == "true"
-    local deploy = ctx.manifest_deploy == "true"
+    local prune = Helpers.is_true(ctx.manifest_prune)
+    local deploy = Helpers.is_true(ctx.manifest_deploy)
     local confirmed = confirm {
         title = "Aplicar este manifesto?",
         message = "Do zip: "
@@ -627,19 +627,18 @@ function docker_cleanup_save(): ()
         api:rpc_checked {
             DockerCleanupConfigSet = {
                 config = {
-                    enabled = ctx.docker_cleanup_enabled == "true",
+                    enabled = Helpers.is_true(ctx.docker_cleanup_enabled),
                     recurrence = docker_cleanup_build_recurrence(),
-                    containers = ctx.docker_cleanup_containers == "true",
-                    images = ctx.docker_cleanup_images == "true",
-                    images_all = ctx.docker_cleanup_images_all == "true",
-                    volumes = ctx.docker_cleanup_volumes == "true",
-                    volumes_all = ctx.docker_cleanup_volumes_all == "true",
-                    networks = ctx.docker_cleanup_networks == "true",
-                    build_cache = ctx.docker_cleanup_build_cache == "true",
+                    containers = Helpers.is_true(ctx.docker_cleanup_containers),
+                    images = Helpers.is_true(ctx.docker_cleanup_images),
+                    images_all = Helpers.is_true(ctx.docker_cleanup_images_all),
+                    volumes = Helpers.is_true(ctx.docker_cleanup_volumes),
+                    volumes_all = Helpers.is_true(ctx.docker_cleanup_volumes_all),
+                    networks = Helpers.is_true(ctx.docker_cleanup_networks),
+                    build_cache = Helpers.is_true(ctx.docker_cleanup_build_cache),
                     build_cache_older_than_hours = cache_hours,
                     images_older_than_hours = images_hours,
-                    warm_after_cleanup = ctx.docker_cleanup_warm_after
-                        ~= "false",
+                    warm_after_cleanup = not Helpers.is_false(ctx.docker_cleanup_warm_after),
                     last_run_at = State.docker_cleanup_last_run_at_raw,
                 },
             },
@@ -680,11 +679,11 @@ function docker_cleanup_run_now(): ()
     if not api then
         return
     end
-    local any_selected = ctx.docker_cleanup_containers == "true"
-        or ctx.docker_cleanup_images == "true"
-        or ctx.docker_cleanup_volumes == "true"
-        or ctx.docker_cleanup_networks == "true"
-        or ctx.docker_cleanup_build_cache == "true"
+    local any_selected = Helpers.is_true(ctx.docker_cleanup_containers)
+        or Helpers.is_true(ctx.docker_cleanup_images)
+        or Helpers.is_true(ctx.docker_cleanup_volumes)
+        or Helpers.is_true(ctx.docker_cleanup_networks)
+        or Helpers.is_true(ctx.docker_cleanup_build_cache)
     if not any_selected then
         ctx.docker_cleanup_message = "marque pelo menos um recurso"
         return

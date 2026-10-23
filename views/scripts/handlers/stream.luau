@@ -6,6 +6,7 @@
 -- handlers (login, busca, abrir projeto, mutações que refletem na hora).
 
 local State = require("../state")
+local Helpers = require("../helpers")
 local format = require("../format")
 local Api = require("../net/api")
 local Services = require("services")
@@ -44,17 +45,17 @@ local function rebuild_lists(): ()
     ctx.docker_images = format.docker_images(
         snap.docker_images,
         term,
-        ctx.docker_images_only_used == "true"
+        Helpers.is_true(ctx.docker_images_only_used)
     )
     ctx.docker_volumes = format.docker_volumes(
         snap.docker_volumes,
         term,
-        ctx.docker_volumes_only_used == "true"
+        Helpers.is_true(ctx.docker_volumes_only_used)
     )
     ctx.docker_networks = format.docker_networks(
         snap.docker_networks,
         term,
-        ctx.docker_networks_only_used == "true"
+        Helpers.is_true(ctx.docker_networks_only_used)
     )
     ctx.registry_repos = format.registry_repos(snap.registry_repos, term)
 end
@@ -105,7 +106,7 @@ local function update_open_project(): ()
     -- O snapshot chega ~1x/s; se reescrevêssemos project_env_text (o value do
     -- textarea) toda vez, o que o usuário digita seria resetado. Só
     -- ressincroniza o editor .env quando ele está fechado.
-    if ctx.project_env_text_open ~= "true" then
+    if not Helpers.is_true(ctx.project_env_text_open) then
         local project_dotenv =
             format.env_dotenv_with_comments(project_env_vars, project_comments)
         ctx.project_env_text = project_dotenv
@@ -616,7 +617,7 @@ function M.open_stream(): ()
 
         on_close = function(): ()
             State.state_conn = nil
-            if ctx.connected == "true" then
+            if Helpers.is_true(ctx.connected) then
                 ctx.status_line = "conexão encerrada"
                 ctx.connected = "false"
                 ctx.screen = "login"
