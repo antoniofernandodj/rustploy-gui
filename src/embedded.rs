@@ -34,14 +34,18 @@ mod tests {
             "views/styles/theme.json",
             "views/scripts/app.luau",
             "views/scripts/handlers/connection.luau",
-        ] { assert!(a.exists(p), "faltou embutir (texto): {p}");
-            assert!(a.read_to_string(p).is_ok(), "não leu (texto): {p}"); }
+        ] {
+            assert!(a.exists(p), "faltou embutir (texto): {p}");
+            assert!(a.read_to_string(p).is_ok(), "não leu (texto): {p}");
+        }
         for p in [
             "assets/icons/terminal.svg",
             "assets/fonts/JetBrainsMono-Regular.ttf",
             "assets/blueprint-logos/ackee/logo.png",
-        ] { assert!(a.exists(p), "faltou embutir (binário): {p}");
-            assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}"); }
+        ] {
+            assert!(a.exists(p), "faltou embutir (binário): {p}");
+            assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}");
+        }
         assert!(!a.exists("views/nao_existe.gvb"));
         assert!(a.read_to_string("views/nao_existe.gvb").is_err());
     }

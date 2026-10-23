@@ -35,7 +35,8 @@ fn new_project_form_window_renders() {
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.register_app_screen("views/app.gvb", "new_project").expect("new_project_form.gvb must register");
+    m.register_app_screen("views/app.gvb", "new_project")
+        .expect("new_project_form.gvb must register");
     m.set_initial_screen("new_project");
     m.reevaluate_all().expect("eval new_project_form");
     assert!(m.render("new_project").is_ok(), "render new_project_form");
@@ -44,19 +45,26 @@ fn new_project_form_window_renders() {
         node: &'a glacier_ui::parser::UiNode,
         name: &str,
     ) -> Option<&'a glacier_ui::parser::UiNode> {
-        if node.form_control() == Some(name) { return Some(node); }
+        if node.form_control() == Some(name) {
+            return Some(node);
+        }
         node.children.iter().find_map(|c| find_control(c, name))
     }
     let ast = m.evaluated("new_project").expect("evaluated");
     let new_project_name = find_control(ast, "new_project_name")
         .expect("o form_control \"new_project_name\" deve existir na árvore avaliada");
     assert!(
-        new_project_name.rules().is_some_and(|r| r.contains("required")),
+        new_project_name
+            .rules()
+            .is_some_and(|r| r.contains("required")),
         "new_project_name deve carregar rules=\"required\", achei {:?}",
         new_project_name.rules()
     );
     assert_eq!(
-        new_project_name.form.as_ref().and_then(|f| f.form_error_action.as_deref()),
+        new_project_name
+            .form
+            .as_ref()
+            .and_then(|f| f.form_error_action.as_deref()),
         Some("new_project_show_validation_errors"),
         "o on_validation_error do <form> deve chegar no campo (form_error_action)"
     );
@@ -71,7 +79,12 @@ fn sidebar_drawer_reveal_follows_the_menu_key() {
     use glacier_ui::parser::{NodeType, UiNode};
     use glacier_ui::widget::EngineMessage;
     fn reveal_open(node: &UiNode) -> Option<String> {
-        if let NodeType::Reveal { horizontal: true, open, .. } = &node.kind {
+        if let NodeType::Reveal {
+            horizontal: true,
+            open,
+            ..
+        } = &node.kind
+        {
             return Some(open.clone());
         }
         node.children.iter().find_map(reveal_open)
@@ -81,16 +94,21 @@ fn sidebar_drawer_reveal_follows_the_menu_key() {
     m.define_data("view", "deployments");
     m.define_data("menu", "true");
     m.reevaluate_all().expect("eval shell");
-    let _ = m.dispatch(&EngineMessage::Viewport { width: 731.0, height: 680.0 });
+    let _ = m.dispatch(&EngineMessage::Viewport {
+        width: 731.0,
+        height: 680.0,
+    });
     assert_eq!(
-        reveal_open(m.evaluated("app").expect("app evaluated")).as_deref(), Some("true"),
+        reveal_open(m.evaluated("app").expect("app evaluated")).as_deref(),
+        Some("true"),
         "esperava o <Reveal axis=\"x\"> da <drawer> com open=\"true\" quando menu=true"
     );
 
     m.define_data("menu", "");
     m.reevaluate_all().expect("eval shell menu fechado");
     assert_eq!(
-        reveal_open(m.evaluated("app").expect("app evaluated")).as_deref(), Some(""),
+        reveal_open(m.evaluated("app").expect("app evaluated")).as_deref(),
+        Some(""),
         "esperava o <Reveal axis=\"x\"> da <drawer> com open vazio quando menu=\"\""
     );
 }
@@ -103,24 +121,41 @@ fn every_screen_builds_iced_elements() {
     let mut m = boot();
     m.reevaluate_all().expect("eval login");
     assert!(m.render("app").is_ok(), "login render");
-    for view in ["deployments", "projects", "service", "monitoring",
-                "ingress", "docker", "settings", "schedules", "support"] {
+    for view in [
+        "deployments",
+        "projects",
+        "service",
+        "monitoring",
+        "ingress",
+        "docker",
+        "settings",
+        "schedules",
+        "support",
+    ] {
         m.define_data("screen", "shell");
         m.define_data("view", view);
-        m.reevaluate_all().unwrap_or_else(|e| panic!("eval view {view}: {e}"));
+        m.reevaluate_all()
+            .unwrap_or_else(|e| panic!("eval view {view}: {e}"));
         assert!(m.render("app").is_ok(), "render view {view}");
     }
 
     cd_ws_root();
-    for tela in ["new_project", "new_job", "log",
-                "new_service", "new_registry_token", "service_export"] {
+    for tela in [
+        "new_project",
+        "new_job",
+        "log",
+        "new_service",
+        "new_registry_token",
+        "service_export",
+    ] {
         let mut c = GlacierUI::new();
         c.define_data("api_url", "http://localhost");
         c.define_data("api_token", "t");
         c.register_app_screen("views/app.gvb", tela)
             .unwrap_or_else(|e| panic!("a tela {tela} deve registrar: {e}"));
         c.set_initial_screen(tela);
-        c.reevaluate_all().unwrap_or_else(|e| panic!("eval {tela}: {e}"));
+        c.reevaluate_all()
+            .unwrap_or_else(|e| panic!("eval {tela}: {e}"));
         assert!(c.render(tela).is_ok(), "render {tela}");
     }
 }
@@ -131,11 +166,17 @@ fn every_screen_builds_iced_elements() {
 fn only_the_active_screen_is_evaluated() {
     let m = boot();
     for importado in ["Login", "Shell"] {
-        assert!(m.is_registered(importado), "{importado} deveria ter sido importado por app.gvb");
+        assert!(
+            m.is_registered(importado),
+            "{importado} deveria ter sido importado por app.gvb"
+        );
     }
     assert!(m.render("app").is_ok(), "a tela ativa renderiza");
     assert!(
-        matches!(m.render("Login"), Err(glacier_ui::GlacierError::NotEvaluated(_))),
+        matches!(
+            m.render("Login"),
+            Err(glacier_ui::GlacierError::NotEvaluated(_))
+        ),
         "uma view importada não deve ficar avaliada como raiz por conta própria"
     );
 }
@@ -149,19 +190,55 @@ fn only_the_active_screen_is_evaluated() {
 fn windows_declare_title_and_size() {
     cd_ws_root();
     let mut m = GlacierUI::new();
-    m.register_app("views/app.gvb").expect("app.gvb deve registrar");
-    let janela = m.main_window_meta().expect("o app declara a janela principal");
-    assert_eq!(janela.title.as_deref(), Some("Rustploy"), "título da principal");
+    m.register_app("views/app.gvb")
+        .expect("app.gvb deve registrar");
+    let janela = m
+        .main_window_meta()
+        .expect("o app declara a janela principal");
+    assert_eq!(
+        janela.title.as_deref(),
+        Some("Rustploy"),
+        "título da principal"
+    );
     assert_eq!(janela.size, Some((1280.0, 820.0)), "tamanho da principal");
-    assert_eq!(janela.min_size, Some((640.0, 680.0)), "o min_size da principal");
+    assert_eq!(
+        janela.min_size,
+        Some((640.0, 680.0)),
+        "o min_size da principal"
+    );
     assert_eq!(janela.decorations, Some(false), "a principal é borderless");
     assert!(janela.icon.is_some(), "o app declara o ícone");
     let filhas = [
-        ("new_project", Some("Novo projeto — Rustploy"), "460 340", "handlers/projects.luau"),
-        ("new_job", Some("Novo job — Rustploy"), "560 700", "handlers/jobs.luau"),
-        ("new_service", Some("Novo serviço — Rustploy"), "560 700", "handlers/wizard.luau"),
-        ("new_registry_token", Some("Novo token — Rustploy"), "480 420", "handlers/registry.luau"),
-        ("service_export", Some("Exportar serviço — Rustploy"), "620 720", "handlers/bundle.luau"),
+        (
+            "new_project",
+            Some("Novo projeto — Rustploy"),
+            "460 340",
+            "handlers/projects.luau",
+        ),
+        (
+            "new_job",
+            Some("Novo job — Rustploy"),
+            "560 700",
+            "handlers/jobs.luau",
+        ),
+        (
+            "new_service",
+            Some("Novo serviço — Rustploy"),
+            "560 700",
+            "handlers/wizard.luau",
+        ),
+        (
+            "new_registry_token",
+            Some("Novo token — Rustploy"),
+            "480 420",
+            "handlers/registry.luau",
+        ),
+        (
+            "service_export",
+            Some("Exportar serviço — Rustploy"),
+            "620 720",
+            "handlers/bundle.luau",
+        ),
         ("log", None, "900 560", "handlers/services.luau"),
     ];
     for (tela, titulo, tamanho, handler) in filhas {
@@ -173,8 +250,14 @@ fn windows_declare_title_and_size() {
         assert!(meta.size.is_none(), "{tela}: o tamanho não mora na screen");
         let src = std::fs::read_to_string(format!("views/scripts/{handler}"))
             .unwrap_or_else(|e| panic!("ler {handler}: {e}"));
+        // Espaços e quebras de linha colapsados: com 79 colunas o `open_window {
+        // ... }` vem um campo por linha.
+        let src = src.split_whitespace().collect::<Vec<_>>().join(" ");
         let chamada = format!("component = \"{tela}\", size = \"{tamanho}\", decorations = false");
-        assert!(src.contains(&chamada), "{handler} deve abrir `{tela}` com `{chamada}`");
+        assert!(
+            src.contains(&chamada),
+            "{handler} deve abrir `{tela}` com `{chamada}`"
+        );
     }
 }
 
@@ -195,7 +278,11 @@ fn app_declares_fonts_and_daemon_settings() {
     assert_eq!(m.app.application_id.as_deref(), Some("rustploy-gui"));
     assert_eq!(m.app.fonts.len(), 2, "regular + bold");
     for f in &m.app.fonts {
-        assert!(std::path::Path::new(&f.src).is_file(), "a fonte {} deve existir", f.src);
+        assert!(
+            std::path::Path::new(&f.src).is_file(),
+            "a fonte {} deve existir",
+            f.src
+        );
     }
 }
 
@@ -207,10 +294,16 @@ fn comments_outside(src: &str) -> String {
     let mut resto = src;
     while let Some(i) = resto.find("/*") {
         out.push_str(&resto[..i]);
-        resto = match resto[i..].find("*/") { Some(j) => &resto[i + j + 2..], None => "" };
+        resto = match resto[i..].find("*/") {
+            Some(j) => &resto[i + j + 2..],
+            None => "",
+        };
     }
     out.push_str(resto);
-    out.lines().filter(|l| !l.trim_start().starts_with("//")).collect::<Vec<_>>().join("\n")
+    out.lines()
+        .filter(|l| !l.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// Todo `.gvb` abre com a casca certa: `app` no manifesto (`views/app.gvb`),
@@ -232,7 +325,10 @@ fn every_template_starts_with_a_header() {
                 .unwrap_or_else(|e| panic!("ler {}: {e}", caminho.display()));
             let without_comments = comments_outside(&src);
             let primeira: String = without_comments
-                .trim_start().chars().take_while(|c| c.is_alphanumeric() || *c == '_').collect();
+                .trim_start()
+                .chars()
+                .take_while(|c| c.is_alphanumeric() || *c == '_')
+                .collect();
             let e_app = primeira == "app";
             let e_screen = primeira == "screen";
             let e_component = primeira == "component";
@@ -257,6 +353,8 @@ fn every_template_starts_with_a_header() {
         }
     }
 
-    assert!(vistos >= 21, "o teste não achou os templates: {vistos} arquivos varridos");
+    assert!(
+        vistos >= 21,
+        "o teste não achou os templates: {vistos} arquivos varridos"
+    );
 }
-
