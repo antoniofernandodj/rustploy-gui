@@ -192,6 +192,10 @@ local function apply_snapshot(snapshot: any): ()
     ctx.service_warm_visible = open_warm ~= nil and "true" or "false"
     ctx.service_warm_label = open_warm_label
     ctx.service_warm_color = open_warm_color
+    ctx.service_warm_reason = open_warm ~= nil
+            and not open_warm.warming
+            and open_warm.reason
+        or ""
 
     -- Status do daemon.
     local daemon_status = snapshot.status

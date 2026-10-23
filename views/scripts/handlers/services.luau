@@ -1593,6 +1593,34 @@ function service_stop(): ()
     }, "parando…")
 end
 
+-- Aquece o serviço (constrói a imagem para popular o cache de build) sem
+-- fazer deploy: o container no ar não muda. Já quente: o daemon não dispara
+-- nada e só avisa. O fim chega em `Event::ServiceWarmChanged`
+-- (handlers/stream.luau); o selo acompanha o snapshot. Sem `refresh_now`
+-- aqui: o começo também vira `ServiceWarmChanged`, que já atualiza a tela (e
+-- `stream` requer este arquivo, então o contrário seria um ciclo).
+function service_warm(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local service_warm_ok, service_warm_response = api:rpc_checked {
+        ServiceWarm = { service_id = ctx.selected_service },
+    }
+    if not service_warm_ok then
+        toast { message = tostring(service_warm_response), kind = "error" }
+        return
+    end
+    if service_warm_response.ServiceWarmRequested.already_warm then
+        toast {
+            message = tostring("Serviço já está aquecido"),
+            kind = "success",
+        }
+    else
+        toast { message = tostring("Aquecimento iniciado"), kind = "success" }
+    end
+end
+
 -- ── Picker Gitea (conta → repos → branches) ─────────────────────────────────
 
 function gitea_provider_pick(provider_id: string): ()

@@ -123,6 +123,7 @@ return {
     "service_reload",
     "service_stop",
     "service_stop_id",
+    "service_warm",
     "settings_save",
     "shared_database_create",
     "shared_database_delete",

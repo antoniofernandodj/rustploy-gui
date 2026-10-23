@@ -89,6 +89,13 @@ component {
         }
 
         text(
+          if = @service_warm_reason,
+          not_equals = "",
+          class = u-muted,
+          content = "frio: @service_warm_reason",
+        )
+
+        text(
           if = @service_action_message,
           not_equals = "",
           class = u-muted,
@@ -130,6 +137,16 @@ component {
           )
 
           button(
+            if = @service_warm_visible,
+            equals = true,
+            class = "btn btn--ghost",
+            on_click = service_warm,
+            disabled = @busy_service_warm,
+            text = "◐",
+            tooltip = "Aquecer: constrói a imagem para o próximo deploy achar o cache, sem mexer no container no ar",
+          )
+
+          button(
             class = "btn btn--ghost",
             on_click = open_export_window,
             disabled = @busy_open_export_window,
@@ -144,6 +161,14 @@ component {
         button(class = "btn btn--blue btn--wide", on_click = service_reload, disabled = @busy_service_reload, text = Reload)
         button(class = "btn btn--blue btn--wide", on_click = service_rebuild, disabled = @busy_service_rebuild, text = Rebuild)
         button(class = "btn btn--danger", on_click = service_stop, disabled = @busy_service_stop, text = Stop)
+        button(
+          if = @service_warm_visible,
+          equals = true,
+          class = "btn btn--ghost",
+          on_click = service_warm,
+          disabled = @busy_service_warm,
+          text = Aquecer,
+        )
         button(
           class = "btn btn--ghost",
           on_click = open_export_window,

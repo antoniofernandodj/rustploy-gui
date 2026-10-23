@@ -114,6 +114,7 @@ function test_shell_cada_visao__service()
         "service_shared",
         "service_status_color",
         "service_status_label",
+        "service_warm_reason",
         "service_warm_visible",
         "tab",
     })
