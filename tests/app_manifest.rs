@@ -35,8 +35,7 @@ fn new_project_form_window_renders() {
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.register_app_screen("views/app.gvb", "new_project")
-        .expect("new_project_form.gvb must register");
+    m.register_app_screen("views/app.gvb", "new_project").expect("new_project_form.gvb must register");
     m.set_initial_screen("new_project");
     m.reevaluate_all().expect("eval new_project_form");
     assert!(m.render("new_project").is_ok(), "render new_project_form");
@@ -108,8 +107,7 @@ fn every_screen_builds_iced_elements() {
                 "ingress", "docker", "settings", "schedules", "support"] {
         m.define_data("screen", "shell");
         m.define_data("view", view);
-        m.reevaluate_all()
-            .unwrap_or_else(|e| panic!("eval view {view}: {e}"));
+        m.reevaluate_all().unwrap_or_else(|e| panic!("eval view {view}: {e}"));
         assert!(m.render("app").is_ok(), "render view {view}");
     }
 
@@ -122,8 +120,7 @@ fn every_screen_builds_iced_elements() {
         c.register_app_screen("views/app.gvb", tela)
             .unwrap_or_else(|e| panic!("a tela {tela} deve registrar: {e}"));
         c.set_initial_screen(tela);
-        c.reevaluate_all()
-            .unwrap_or_else(|e| panic!("eval {tela}: {e}"));
+        c.reevaluate_all().unwrap_or_else(|e| panic!("eval {tela}: {e}"));
         assert!(c.render(tela).is_ok(), "render {tela}");
     }
 }
