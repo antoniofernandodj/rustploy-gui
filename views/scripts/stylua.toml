@@ -1,0 +1,9 @@
+# Formatação dos .luau (https://github.com/JohnnyMorganz/StyLua).
+# Largura da PEP 8: 79 colunas para código e comentários.
+syntax = "Luau"
+column_width = 79
+indent_type = "Spaces"
+indent_width = 4
+quote_style = "AutoPreferDouble"
+# Mantém `ipairs{ ... }` e `f"texto"` como foram escritos.
+call_parentheses = "Input"
