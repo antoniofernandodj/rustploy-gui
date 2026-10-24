@@ -400,7 +400,10 @@ function project_env_add(): ()
     --   • `<secret:NOME>`/`secret:NOME` digitado no valor, como no editor
     --     .env.
     local secret_name: string? = Helpers.parse_secret_ref(raw_value)
-    if Helpers.is_true(ctx.project_env_new_is_secret) and secret_name == nil then
+    if
+        Helpers.is_true(ctx.project_env_new_is_secret)
+        and secret_name == nil
+    then
         -- Modo secret: o valor JÁ é o nome (o chip preenche assim).
         local name = Helpers.trim(raw_value)
         if name == "" then

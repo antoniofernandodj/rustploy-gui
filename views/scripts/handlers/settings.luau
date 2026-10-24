@@ -629,16 +629,26 @@ function docker_cleanup_save(): ()
                 config = {
                     enabled = Helpers.is_true(ctx.docker_cleanup_enabled),
                     recurrence = docker_cleanup_build_recurrence(),
-                    containers = Helpers.is_true(ctx.docker_cleanup_containers),
+                    containers = Helpers.is_true(
+                        ctx.docker_cleanup_containers
+                    ),
                     images = Helpers.is_true(ctx.docker_cleanup_images),
-                    images_all = Helpers.is_true(ctx.docker_cleanup_images_all),
+                    images_all = Helpers.is_true(
+                        ctx.docker_cleanup_images_all
+                    ),
                     volumes = Helpers.is_true(ctx.docker_cleanup_volumes),
-                    volumes_all = Helpers.is_true(ctx.docker_cleanup_volumes_all),
+                    volumes_all = Helpers.is_true(
+                        ctx.docker_cleanup_volumes_all
+                    ),
                     networks = Helpers.is_true(ctx.docker_cleanup_networks),
-                    build_cache = Helpers.is_true(ctx.docker_cleanup_build_cache),
+                    build_cache = Helpers.is_true(
+                        ctx.docker_cleanup_build_cache
+                    ),
                     build_cache_older_than_hours = cache_hours,
                     images_older_than_hours = images_hours,
-                    warm_after_cleanup = not Helpers.is_false(ctx.docker_cleanup_warm_after),
+                    warm_after_cleanup = not Helpers.is_false(
+                        ctx.docker_cleanup_warm_after
+                    ),
                     last_run_at = State.docker_cleanup_last_run_at_raw,
                 },
             },

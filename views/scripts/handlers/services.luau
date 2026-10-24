@@ -597,7 +597,9 @@ function shared_database_create(): ()
         project_id = ctx.service_form_shared_database_project,
         name = name,
         env_var = Helpers.trim(ctx.service_form_shared_database_env),
-        overwrite_env = Helpers.is_true(ctx.service_form_shared_database_overwrite),
+        overwrite_env = Helpers.is_true(
+            ctx.service_form_shared_database_overwrite
+        ),
         skip_env = Helpers.is_true(ctx.service_form_shared_database_skip_env),
         connection_limit = tonumber(
             Helpers.trim(ctx.service_form_shared_database_limit)
@@ -1325,7 +1327,8 @@ function env_export(): ()
 end
 
 function env_text_toggle(): ()
-    ctx.env_text_open = (Helpers.is_true(ctx.env_text_open)) and "false" or "true"
+    ctx.env_text_open = (Helpers.is_true(ctx.env_text_open)) and "false"
+        or "true"
 end
 
 function env_text_cancel(): ()
