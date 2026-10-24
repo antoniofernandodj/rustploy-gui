@@ -42,13 +42,17 @@ function open_new_service_window(start: string?): ()
     if project_id == "" or not api then
         return
     end
-    local databases_json, brokers, templates = "[]", "[]", "[]"
+    local databases_json, brokers, templates =
+        json.array({}), json.array({}), json.array({})
     local wizard_catalog_ok, wizard_catalog_response =
         api:rpc { WizardCatalog = { search = "" } }
     if wizard_catalog_ok and wizard_catalog_response.WizardCatalog then
-        databases_json = wizard_catalog_response.WizardCatalog.dbs or "[]"
-        brokers = wizard_catalog_response.WizardCatalog.brokers or "[]"
-        templates = wizard_catalog_response.WizardCatalog.templates or "[]"
+        databases_json = wizard_catalog_response.WizardCatalog.dbs
+            or json.array({})
+        brokers = wizard_catalog_response.WizardCatalog.brokers
+            or json.array({})
+        templates = wizard_catalog_response.WizardCatalog.templates
+            or json.array({})
     end
     open_window {
         component = "new_service",

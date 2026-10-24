@@ -182,10 +182,10 @@ function open_edit_job_window(job_id: string): ()
     end
     local api = State.api
 
-    local new_job_git_providers = "[]"
-    local new_job_git_repos = "[]"
+    local new_job_git_providers = json.array({})
+    local new_job_git_repos = json.array({})
     local new_job_git_repo = ""
-    local new_job_git_branches = "[]"
+    local new_job_git_branches = json.array({})
     if job.git_source and api then
         local provider_id = job.git_source.provider_id
         if provider_id and provider_id ~= "" then
@@ -271,7 +271,7 @@ function open_job_logs_window(job_run_id: string): ()
     if not job_run_id or job_run_id == "" then
         return
     end
-    local seed = "[]"
+    local seed = json.array({})
     local api = State.api
     if api then
         local get_job_logs_ok, get_job_logs_response = api:rpc {
@@ -280,7 +280,7 @@ function open_job_logs_window(job_run_id: string): ()
             },
         }
         if get_job_logs_ok and get_job_logs_response.JobLogs then
-            seed = json.encode(get_job_logs_response.JobLogs)
+            seed = json.array(get_job_logs_response.JobLogs)
         end
     end
     open_window {

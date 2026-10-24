@@ -31,6 +31,7 @@
 
 local format = require("format")
 local Api = require("net/api")
+local Helpers = require("helpers")
 
 -- Buffer de eventos {stream?,line,timestamp} p/ reconstrução em corte (trim).
 -- O <textarea> cresce por append; para não crescer sem limite numa sessão
@@ -97,8 +98,7 @@ function init(): ()
     -- Histórico inicial semeado pelo pai (SET completo — append_textarea de
     -- init seria descartado). Daí em diante, só appends vivos no on_message
     -- abaixo.
-    local json_decode_ok, seed =
-        pcall(json.decode, ctx.log_window_seed or "[]")
+    local json_decode_ok, seed = Helpers.decode_list(ctx.log_window_seed)
     log_rows = (json_decode_ok and type(seed) == "table") and seed or {}
     set_full()
 

@@ -1362,13 +1362,13 @@ function deployment_logs(deployment_id: string): ()
     if not deployment_id or deployment_id == "" then
         return
     end
-    local seed = "[]"
+    local seed = json.array({})
     local api = State.api
     if api then
         local get_build_logs_ok, get_build_logs_response =
             api:rpc { GetBuildLogs = { deployment_id = deployment_id } }
         if get_build_logs_ok and get_build_logs_response.BuildLogs then
-            seed = json.encode(get_build_logs_response.BuildLogs)
+            seed = json.array(get_build_logs_response.BuildLogs)
         end
     end
     open_window {
@@ -1703,7 +1703,7 @@ function open_logs_window(): ()
     if service_id == "" then
         return
     end
-    local seed = "[]"
+    local seed = json.array({})
     local api = State.api
     if api then
         local logs_get_ok, logs_get_response = api:rpc {
@@ -1713,7 +1713,7 @@ function open_logs_window(): ()
             },
         }
         if logs_get_ok and logs_get_response.Logs then
-            seed = json.encode(logs_get_response.Logs)
+            seed = json.array(logs_get_response.Logs)
         end
     end
     open_window {
