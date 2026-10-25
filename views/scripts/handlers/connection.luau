@@ -156,6 +156,18 @@ function init(): ()
     ctx.update_release_url = ctx.update_release_url or ""
     ctx.update_message = ctx.update_message or ""
     ctx.update_progress_message = ctx.update_progress_message or ""
+    -- Atualização do APP (esta janela), ver handlers/settings.luau::update_app_check.
+    ctx.update_app_current_version = ctx.update_app_current_version or ""
+    ctx.update_app_latest_version = ctx.update_app_latest_version or ""
+    ctx.update_app_is_available = ctx.update_app_is_available or "false"
+    ctx.update_app_can_update = ctx.update_app_can_update or "false"
+    ctx.update_app_release_url = ctx.update_app_release_url or ""
+    ctx.update_app_message = ctx.update_app_message or ""
+    ctx.update_app_deb_url = ctx.update_app_deb_url or ""
+    ctx.update_app_deb_name = ctx.update_app_deb_name or ""
+    ctx.update_app_signature_url = ctx.update_app_signature_url or ""
+    ctx.update_app_manual_command =
+        "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
     ctx.update_is_helper_available = ctx.update_is_helper_available or "false"
     ctx.update_install_command =
         "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh"
@@ -433,6 +445,7 @@ function connect(): ()
     -- Depois do stream: se o daemon não alcançar o GitHub, a consulta leva até
     -- ~15 s, e o painel ao vivo não pode esperar por isso.
     Settings.update_check(false)
+    Settings.update_app_check()
 end
 
 -- Logout: nada da sessão anterior pode sobreviver em RAM — nem no `ctx` (o

@@ -145,6 +145,10 @@ function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
     assert_eq(tela:get("update_message"), "")
     assert_eq(tela:get("update_progress_message"), "")
     assert_eq(tela:get("update_is_helper_available"), "false")
+    assert_eq(tela:get("update_app_current_version"), "")
+    assert_eq(tela:get("update_app_is_available"), "false")
+    assert_eq(tela:get("update_app_can_update"), "false")
+    assert_eq(tela:get("update_app_deb_url"), "")
     assert_true(
         string.find(tela:get("update_install_command"), "install.sh", 1, true)
             ~= nil
@@ -184,4 +188,13 @@ function test_atualizacoes__atualizar_e_reverter_sem_conexao_nao_fazem_nada()
     tela:call("update_rollback")
     assert_eq(#tela:toasts(), 0)
     assert_eq(tela:get("update_progress_message"), "")
+end
+
+--- atualizar o app sem a ponte nativa (como nos testes) não faz nada
+function test_atualizacoes__atualizar_o_app_sem_ponte_nativa_nao_faz_nada()
+    local tela = nova()
+    tela:call("update_app_apply")
+    tela:call("update_check_now")
+    assert_eq(#tela:toasts(), 0)
+    assert_eq(tela:get("update_app_message"), "")
 end

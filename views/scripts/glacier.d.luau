@@ -162,3 +162,33 @@ declare date: {
     to_local: (iso: string) -> string?,
     to_utc: (iso: string) -> string?,
 }
+
+-- Ponte nativa do "Atualizar app" (src/app/updater.rs, registrada por `GlacierDaemon::lua_extension`).
+-- Nenhuma destas funções instala algo sozinha: quem instala é o helper root, via pkexec, e só
+-- aceita um pacote assinado pela chave do projeto. Em testes (`glacier test`) o global é nil.
+export type AppUpdateInfo = {
+    version: string,
+    install_kind: string,
+    can_update: boolean,
+}
+
+export type AppUpdatePlan = {
+    tag: string,
+    latest_version: string,
+    html_url: string,
+    is_update_available: boolean,
+    deb_url: string?,
+    deb_name: string?,
+    signature_url: string?,
+}
+
+declare app_update: {
+    info: () -> AppUpdateInfo,
+    plan: (release_json: string) -> (AppUpdatePlan?, string?),
+    install: (
+        deb_url: string,
+        signature_url: string,
+        deb_name: string
+    ) -> (boolean, string),
+    restart: () -> string?,
+}?

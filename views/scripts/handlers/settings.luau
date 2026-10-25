@@ -765,6 +765,98 @@ end
 
 function update_check_now(): ()
     M.update_check(true)
+    M.update_app_check()
+end
+
+-- ── Atualizar o APP (esta janela), não o daemon ─────────────────────────────
+
+local APP_RELEASE_URL =
+    "https://api.github.com/repos/antoniofernandodj/rustploy/releases/latest"
+
+-- Pergunta ao GitHub se há versão nova do app. Ao contrário do daemon, a consulta é daqui
+-- (o app roda na máquina da pessoa); a comparação de versões e a escolha do pacote são da
+-- ponte nativa `app_update`, para existirem num lugar só (update-core). Em testes o global
+-- `app_update` não existe e nada acontece.
+function M.update_app_check(): ()
+    local native = app_update
+    if not native then
+        return
+    end
+    local info = native.info()
+    ctx.update_app_current_version = info.version
+    ctx.update_app_can_update = info.can_update and "true" or "false"
+
+    local http_response = fetch(APP_RELEASE_URL, {
+        headers = {
+            ["User-Agent"] = "rustploy-gui/" .. info.version,
+            ["Accept"] = "application/vnd.github+json",
+        },
+        timeout = 15000,
+    })
+    if not http_response.ok then
+        ctx.update_app_message = "Não consegui consultar o GitHub: "
+            .. tostring(
+                http_response.error ~= "" and http_response.error
+                    or http_response.status
+            )
+        return
+    end
+    local plan, plan_error = native.plan(http_response.body)
+    if not plan then
+        ctx.update_app_message = tostring(plan_error)
+        return
+    end
+    ctx.update_app_latest_version = plan.latest_version
+    ctx.update_app_release_url = plan.html_url
+    ctx.update_app_is_available = plan.is_update_available and "true"
+        or "false"
+    ctx.update_app_deb_url = plan.deb_url or ""
+    ctx.update_app_deb_name = plan.deb_name or ""
+    ctx.update_app_signature_url = plan.signature_url or ""
+    ctx.update_app_message = plan.is_update_available
+            and ("Há uma versão nova do app: " .. plan.latest_version)
+        or "O app está na versão mais recente."
+end
+
+-- Baixa o pacote, pede a senha (pkexec) e instala; ao fim reabre o app. A janela fica sem
+-- responder enquanto isso (download + senha + instalação): a confirmação avisa.
+function update_app_apply(): ()
+    local native = app_update
+    if not native or ctx.update_app_deb_url == "" then
+        return
+    end
+    local confirmed = confirm {
+        title = "Atualizar o app?",
+        message = "O app baixa a versão "
+            .. ctx.update_app_latest_version
+            .. ", pede a senha de administrador e a instala; depois reabre. "
+            .. "Esta janela pode ficar sem responder por alguns instantes. "
+            .. "Só um pacote assinado pelo projeto é instalado.",
+        confirm_label = "Atualizar",
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    ctx.update_app_message = "atualizando…"
+    local install_ok, install_message = native.install(
+        ctx.update_app_deb_url,
+        ctx.update_app_signature_url,
+        ctx.update_app_deb_name
+    )
+    if not install_ok then
+        ctx.update_app_message = "A atualização do app falhou: "
+            .. tostring(install_message)
+        toast { message = tostring(install_message), kind = "error" }
+        return
+    end
+    ctx.update_app_message = "Atualizado. Reabrindo o app…"
+    local restart_error = native.restart()
+    if restart_error then
+        ctx.update_app_message = "Atualizado, mas não consegui reabrir: "
+            .. tostring(restart_error)
+            .. ". Abra o Rustploy de novo."
+    end
 end
 
 -- Texto do que o daemon sabe sobre a atualização em curso ou a última tentativa

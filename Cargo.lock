@@ -2560,9 +2560,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.189"
+version = "0.2.191"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
 
 [[package]]
 name = "libfuzzer-sys"
@@ -2845,6 +2845,12 @@ dependencies = [
  "objc",
  "paste",
 ]
+
+[[package]]
+name = "minisign-verify"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "871285dc19d8d0ebe0eef3d0e99a205f2a71363b122632cbbfa4a6c370a960ce"
 
 [[package]]
 name = "miniz_oxide"
@@ -4350,18 +4356,33 @@ dependencies = [
 
 [[package]]
 name = "rustploy-gui"
-version = "0.1.21"
+version = "0.1.22"
 dependencies = [
  "anyhow",
  "chrono",
  "glacier-build",
  "glacier-ui",
  "iced",
+ "libc",
  "rustls",
+ "rustploy-update-core",
  "serde",
  "serde_json",
  "tokio",
  "tokio-rustls",
+]
+
+[[package]]
+name = "rustploy-update-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5e11461f23aa07f4bf5b3a374548585a24a59434e1488c86d88cf0d860957fd"
+dependencies = [
+ "libc",
+ "minisign-verify",
+ "semver",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -4476,9 +4497,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.151"
+version = "1.0.154"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14"
+checksum = "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
 dependencies = [
  "itoa",
  "memchr",

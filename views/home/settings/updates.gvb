@@ -63,6 +63,60 @@ component {
 
       text(class = u-muted, content = "@update_progress_message")
 
+      if @update_app_current_version != "" {
+        text(class = u-label-cap, content = "APP DESKTOP")
+
+        row(class = kv-list__row) {
+          text(class = kv-list__key, content = "Versão instalada")
+          text(class = "kv-list__val kv-list__val--compact", content = "@update_app_current_version")
+        }
+
+        row(class = kv-list__row) {
+          text(class = kv-list__key, content = "Última versão")
+          text(class = "kv-list__val kv-list__val--compact", content = "@update_app_latest_version")
+        }
+
+        text(class = u-muted, content = "@update_app_message")
+
+        if @update_app_is_available == "true" {
+          if @update_app_can_update == "true" {
+            row(class = healthcheck__grid) {
+              button(
+                class = "btn btn--primary btn--sm",
+                on_click = update_app_apply,
+                text = "Atualizar app",
+              )
+            }
+
+            text(
+              class = u-muted,
+              content = """
+                O app baixa a versão nova, pede a senha de administrador do
+                sistema e a instala; só um pacote assinado pelo projeto é
+                aceito. Depois ele reabre sozinho.
+              """,
+            )
+          }
+
+          if @update_app_can_update == "false" {
+            text(
+              class = u-muted,
+              content = "Este app não foi instalado por .deb (ou falta o pkexec). Atualize com o comando abaixo.",
+            )
+
+            row(class = kv-list__row) {
+              text(class = "kv-list__val kv-list__val--compact", content = "@update_app_manual_command")
+
+              button(
+                class = "btn btn--ghost btn--xs",
+                on_click = copy_ctx:update_app_manual_command,
+                text = Copiar,
+              )
+            }
+          }
+        }
+      }
+
       if @update_is_available == "true" {
         text(class = u-label-cap, content = "COMO ATUALIZAR À MÃO")
 

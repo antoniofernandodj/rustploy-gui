@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD polkit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
+<!--
+  Autoriza o app desktop do Rustploy a instalar o próprio pacote atualizado, pedindo a senha do
+  administrador (o mesmo diálogo de "Instalar software"). O programa que ganha root é
+  /usr/libexec/rustploy-gui-update: ele só instala o pacote `rustploy-gui`, só se assinado pela
+  chave do projeto e nunca uma versão que não seja mais nova que a instalada.
+-->
+<policyconfig>
+  <vendor>Rustploy</vendor>
+  <vendor_url>https://github.com/antoniofernandodj/rustploy</vendor_url>
+
+  <action id="br.com.rustploy.gui-update">
+    <description>Update the Rustploy desktop app</description>
+    <description xml:lang="pt-BR">Atualizar o app desktop do Rustploy</description>
+    <message>Authentication is required to install a signed Rustploy update</message>
+    <message xml:lang="pt-BR">É necessário autenticar para instalar uma atualização assinada do Rustploy</message>
+    <icon_name>rustploy-gui</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <!-- Uma senha cobre alguns minutos: a pessoa não digita duas vezes se reabrir a janela. -->
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/rustploy-gui-update</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">false</annotate>
+  </action>
+</policyconfig>

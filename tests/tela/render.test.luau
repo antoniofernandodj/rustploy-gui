@@ -718,6 +718,24 @@ function test_configuracoes_atualizacoes()
     rende(tela)
     seta(tela, { update_is_available = "false", update_progress_message = "" })
     rende(tela)
+
+    -- Atualização do app: sem consulta, com versão nova instalável (.deb + pkexec) e com versão
+    -- nova num app que não veio de .deb (só o comando manual).
+    seta(tela, {
+        update_app_current_version = "0.1.21",
+        update_app_latest_version = "0.1.21",
+        update_app_message = "O app está na versão mais recente.",
+    })
+    rende(tela)
+    seta(tela, {
+        update_app_latest_version = "0.1.22",
+        update_app_is_available = "true",
+        update_app_can_update = "true",
+        update_app_message = "Há uma versão nova do app: 0.1.22",
+    })
+    rende(tela)
+    seta(tela, { update_app_can_update = "false" })
+    rende(tela)
 end
 
 -- ── serviço ─────────────────────────────────────────────────────────────────

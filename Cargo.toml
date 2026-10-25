@@ -1,6 +1,6 @@
 [package]
 name = "rustploy-gui"
-version = "0.1.21"
+version = "0.1.22"
 edition = "2024"
 default-run = "rustploy-gui"
 description = "Rustploy — desktop client (glacier-ui) for the Rustploy PaaS daemon"
@@ -13,6 +13,12 @@ categories = ["gui"]
 [[bin]]
 name = "rustploy-gui"
 path = "src/main.rs"
+
+# Helper root do "Atualizar app" (via pkexec): instala o .deb assinado do próprio app.
+# Ver src/bin/rustploy-gui-update.rs e docs/plano-updaters-daemon-e-gui.md.
+[[bin]]
+name = "rustploy-gui-update"
+path = "src/bin/rustploy-gui-update/main.rs"
 
 [dependencies]
 # Declarative UI engine (published; XML templates + async bridge + widgets).
@@ -46,6 +52,11 @@ tokio-rustls = "0.26"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Atualização do app: comparar versões, escolher o pacote da release e (no helper root)
+# conferir a assinatura e instalar. A lógica de segurança mora toda neste crate.
+update-core = { package = "rustploy-update-core", version = "0.3.0" }
+libc = "0.2"
+
 # Errors / Time
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -70,6 +81,8 @@ priority             = "optional"
 # libappindicator+GTK em runtime (ver src/tray.rs na glacier), então garantimos
 # as libs de sistema para o tray subir no desktop do usuário.
 depends              = "$auto, libgtk-3-0, libayatana-appindicator3-1"
+# `pkexec` abre o diálogo de senha do "Atualizar app". Sem ele o botão some e fica o comando manual.
+recommends           = "pkexec | policykit-1"
 maintainer-scripts   = "packaging"
 assets = [
     ["target/release/rustploy-gui", "usr/bin/rustploy-gui", "755"],
@@ -81,6 +94,10 @@ assets = [
     # Desktop integration.
     ["packaging/rustploy-gui.desktop", "usr/share/applications/", "644"],
     ["packaging/icons/hicolor/**/*",         "usr/share/icons/hicolor/", "644"],
+
+    # "Atualizar app": o helper que ganha root (só via pkexec) e a política do polkit que o autoriza.
+    ["target/release/rustploy-gui-update", "usr/libexec/rustploy-gui-update", "755"],
+    ["packaging/br.com.rustploy.gui-update.policy", "usr/share/polkit-1/actions/", "644"],
 ]
 
 # Perfil de release. NÃO use `panic = "abort"`: o `mlua` EXIGE `panic = "unwind"`

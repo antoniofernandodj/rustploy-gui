@@ -1,0 +1,21 @@
+# Uma "máquina de desktop" mínima para o teste de ponta a ponta do helper do app (run.sh): systemd de
+# verdade e o polkit (pkexec), para exercitar a política de packaging/br.com.rustploy.gui-update.policy.
+FROM docker.io/library/ubuntu:26.04
+ENV container=podman DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends systemd systemd-sysv dbus polkitd pkexec ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd -m -s /bin/sh pessoa && useradd -m -s /bin/sh outro && useradd -m -s /bin/sh intruso
+# Regra SÓ DE TESTE: autoriza a ação do app para o usuário `pessoa`, sem pedir senha (não há
+# agente de autenticação num contêiner). Os outros usuários seguem a política padrão (auth_admin).
+RUN mkdir -p /etc/polkit-1/rules.d \
+ && printf '%s\n' \
+  'polkit.addRule(function(action, subject) {' \
+  '  if (action.id == "br.com.rustploy.gui-update" && subject.user == "pessoa") { return polkit.Result.YES; }' \
+  '});' > /etc/polkit-1/rules.d/50-e2e-rustploy.rules
+# O hardening da unit do polkit (namespaces, filtros de syscall) exige capacidades que um contêiner
+# sem privilégios não tem. SÓ NA IMAGEM DE TESTE a unit é mascarada e o run.sh sobe o `polkitd` à mão,
+# como root. Nada disto existe no pacote real.
+RUN ln -sf /dev/null /etc/systemd/system/polkit.service
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]
