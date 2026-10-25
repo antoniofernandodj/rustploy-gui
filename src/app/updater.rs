@@ -12,8 +12,8 @@ use std::{
     process::Command,
 };
 use update_core::{
-    is_newer, parse_version,
-    release::{debian_architecture, parse_release, select_package_assets},
+    is_newer,
+    release::{debian_architecture, package_version, parse_release, select_package_assets},
 };
 
 /// Repositório das releases do app. Fixo no binário: a UI não escolhe de onde vem uma atualização.
@@ -229,15 +229,25 @@ pub(crate) fn install_lua(lua: &Lua) -> LuaResult<()> {
         lua.create_function(|lua, json: String| {
             let plan = (|| -> Result<Table, String> {
                 let release = parse_release(&json)?;
-                let latest = parse_version(&release.tag).map_err(|error| error.to_string())?;
-                let is_update_available = is_newer(&release.tag, env!("CARGO_PKG_VERSION"))
+                let architecture = debian_architecture()?;
+                // A versão do PACOTE que a release traz, não a tag: a tag (`v0.1.18`) e a versão do
+                // app (`0.1.23`) são numerações independentes.
+                let package =
+                    package_version(&release.assets, REPOSITORY, "rustploy-gui", architecture)
+                        .ok_or_else(|| {
+                            format!(
+                                "a release {} não traz um pacote do app para {architecture}",
+                                release.tag
+                            )
+                        })?;
+                let is_update_available = is_newer(&package.upstream, env!("CARGO_PKG_VERSION"))
                     .map_err(|error| error.to_string())?;
                 let result = lua.create_table().map_err(|error| error.to_string())?;
                 let set = |key: &str, value: String| {
                     result.set(key, value).map_err(|error| error.to_string())
                 };
                 set("tag", release.tag.clone())?;
-                set("latest_version", latest.to_string())?;
+                set("latest_version", package.upstream.clone())?;
                 set("html_url", release.html_url.clone())?;
                 result
                     .set("is_update_available", is_update_available)
@@ -371,13 +381,18 @@ mod tests {
     }
 
     fn release_json(tag: &str) -> String {
+        release_json_with(tag, tag.trim_start_matches('v'))
+    }
+
+    /// `tag` e a versão do app que a release traz são numerações independentes.
+    fn release_json_with(tag: &str, app_version: &str) -> String {
         let base = format!("https://github.com/{REPOSITORY}/releases/download/{tag}");
         format!(
             r#"{{"tag_name":"{tag}","html_url":"https://github.com/{REPOSITORY}/releases/tag/{tag}","assets":[
-              {{"name":"rustploy-gui_9.9.9-1_amd64.deb","browser_download_url":"{base}/rustploy-gui_9.9.9-1_amd64.deb"}},
-              {{"name":"rustploy-gui_9.9.9-1_amd64.deb.minisig","browser_download_url":"{base}/rustploy-gui_9.9.9-1_amd64.deb.minisig"}},
-              {{"name":"rustploy-gui_9.9.9-1_arm64.deb","browser_download_url":"{base}/rustploy-gui_9.9.9-1_arm64.deb"}},
-              {{"name":"rustploy-gui_9.9.9-1_arm64.deb.minisig","browser_download_url":"{base}/rustploy-gui_9.9.9-1_arm64.deb.minisig"}}
+              {{"name":"rustploy-gui_{app_version}-1_amd64.deb","browser_download_url":"{base}/rustploy-gui_{app_version}-1_amd64.deb"}},
+              {{"name":"rustploy-gui_{app_version}-1_amd64.deb.minisig","browser_download_url":"{base}/rustploy-gui_{app_version}-1_amd64.deb.minisig"}},
+              {{"name":"rustploy-gui_{app_version}-1_arm64.deb","browser_download_url":"{base}/rustploy-gui_{app_version}-1_arm64.deb"}},
+              {{"name":"rustploy-gui_{app_version}-1_arm64.deb.minisig","browser_download_url":"{base}/rustploy-gui_{app_version}-1_arm64.deb.minisig"}}
             ]}}"#
         )
     }
@@ -406,11 +421,34 @@ mod tests {
 
     #[test]
     fn plan_for_an_older_or_equal_release_has_no_files() {
-        let (_lua, plan, error) = run_plan(&release_json("v0.0.1"));
+        let (_lua, plan, error) =
+            run_plan(&release_json(&format!("v{}", env!("CARGO_PKG_VERSION"))));
         assert_eq!(error, None);
         let plan = plan.unwrap();
         assert!(!plan.get::<bool>("is_update_available").unwrap());
         assert!(matches!(plan.get::<Value>("deb_url").unwrap(), Value::Nil));
+    }
+
+    #[test]
+    fn the_release_tag_does_not_decide_only_the_app_package_does() {
+        // Tag nova (v9.9.9) com o MESMO app que já roda: em dia. Tag velha com app mais novo: há versão.
+        let running = env!("CARGO_PKG_VERSION");
+        let (_lua, plan, error) = run_plan(&release_json_with("v9.9.9", running));
+        assert_eq!(error, None);
+        let plan = plan.unwrap();
+        assert!(!plan.get::<bool>("is_update_available").unwrap());
+        assert_eq!(plan.get::<String>("latest_version").unwrap(), running);
+
+        let (_lua, plan, _) = run_plan(&release_json_with("v0.0.1", "9.9.9"));
+        assert!(plan.unwrap().get::<bool>("is_update_available").unwrap());
+    }
+
+    #[test]
+    fn a_release_without_an_app_package_is_an_error() {
+        let json = release_json("v9.9.9").replace("rustploy-gui_", "outro-produto_");
+        let (_lua, plan, error) = run_plan(&json);
+        assert!(plan.is_none());
+        assert!(error.unwrap().contains("não traz um pacote do app"));
     }
 
     #[test]
