@@ -133,4 +133,5 @@ return {
     "stop_all",
     "stop_delete_service",
     "submit_project",
+    "update_check_now",
 }

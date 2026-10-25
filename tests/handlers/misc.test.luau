@@ -131,3 +131,46 @@ function test_bundle_exportar_servico__sem_conexao_ou_sem_servico_escolhido()
     tela:call("open_export_window", "svc-2")
     assert_eq(#tela:toasts(), 0)
 end
+
+-- Aba Atualizações (Command::CheckUpdate). Sem conexão o botão é inerte, como o
+-- resto: nem toast, nem mensagem "verificando…" presa na tela.
+--- o init semeia as chaves da aba e a lista de abas a inclui
+function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
+    local tela = nova()
+    assert_eq(tela:get("update_current_version"), "")
+    assert_eq(tela:get("update_latest_version"), "")
+    assert_eq(tela:get("update_checked_at_label"), "")
+    assert_eq(tela:get("update_is_available"), "false")
+    assert_eq(tela:get("update_release_url"), "")
+    assert_eq(tela:get("update_message"), "")
+    assert_true(
+        string.find(tela:get("update_install_command"), "install.sh", 1, true)
+            ~= nil
+    )
+    -- Listas chegam no ctx como JSON: confere a aba e que ela é a última.
+    local abas = tela:get("settings_tabs")
+    local ids = {}
+    for id in string.gmatch(abas, '"id":"([a-z]+)"') do
+        table.insert(ids, id)
+    end
+    assert_eq(ids, { "web", "git", "iac", "maintenance", "updates" })
+end
+
+--- verificar sem conexão não faz nada
+function test_atualizacoes__verificar_sem_conexao_nao_faz_nada()
+    local tela = nova()
+    tela:call("update_check_now")
+    assert_eq(#tela:toasts(), 0)
+    assert_eq(tela:get("update_message"), "")
+    assert_eq(tela:get("update_is_available"), "false")
+end
+
+--- o init não pisa numa consulta que já estava no contexto
+function test_atualizacoes__o_init_nao_pisa_no_resultado_anterior()
+    local tela = nova({
+        update_latest_version = "0.2.0",
+        update_is_available = "true",
+    })
+    assert_eq(tela:get("update_latest_version"), "0.2.0")
+    assert_eq(tela:get("update_is_available"), "true")
+end

@@ -145,7 +145,18 @@ function init(): ()
         { id = "git", label = "Git" },
         { id = "iac", label = "Infra as Code" },
         { id = "maintenance", label = "Manutenção" },
+        { id = "updates", label = "Atualizações" },
     }
+    -- Aba Atualizações (Command::CheckUpdate). Semeadas aqui para o markup
+    -- nunca ler `nil`; `update_check` as preenche.
+    ctx.update_current_version = ctx.update_current_version or ""
+    ctx.update_latest_version = ctx.update_latest_version or ""
+    ctx.update_checked_at_label = ctx.update_checked_at_label or ""
+    ctx.update_is_available = ctx.update_is_available or "false"
+    ctx.update_release_url = ctx.update_release_url or ""
+    ctx.update_message = ctx.update_message or ""
+    ctx.update_install_command =
+        "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh"
     ctx.docker_cleanup_kinds = {
         { id = "interval", label = "A cada N horas" },
         { id = "daily", label = "Todo dia" },
@@ -417,6 +428,9 @@ function connect(): ()
 
     load_settings()
     Stream.open_stream()
+    -- Depois do stream: se o daemon não alcançar o GitHub, a consulta leva até
+    -- ~15 s, e o painel ao vivo não pode esperar por isso.
+    Settings.update_check(false)
 end
 
 -- Logout: nada da sessão anterior pode sobreviver em RAM — nem no `ctx` (o

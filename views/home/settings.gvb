@@ -5,6 +5,7 @@ component {
     link(rel = import, href = "settings/git.gvb", as = SettingsGitTab)
     link(rel = import, href = "settings/iac.gvb", as = SettingsIacTab)
     link(rel = import, href = "settings/maintenance.gvb", as = SettingsMaintenanceTab)
+    link(rel = import, href = "settings/updates.gvb", as = SettingsUpdatesTab)
   }
 
   row(class = page-head) {
@@ -41,5 +42,9 @@ component {
 
   if @settings_tab == "maintenance" {
     SettingsMaintenanceTab
+  }
+
+  if @settings_tab == "updates" {
+    SettingsUpdatesTab
   }
 }

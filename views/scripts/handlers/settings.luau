@@ -724,4 +724,46 @@ function docker_cleanup_run_now(): ()
     end
 end
 
+-- ── Settings → Atualizações ──────────────────────────────────────────────
+
+-- Pergunta ao daemon se há release mais nova (Command::CheckUpdate: só leitura,
+-- com cache de horas no daemon por causa do limite de 60 req/h do GitHub).
+-- `force` ignora o cache — o daemon ainda espaça consultas forçadas em ~1 min.
+-- Chamada sem `force` na conexão (handlers/connection.luau), para a aba já abrir
+-- preenchida; o botão chama com `force`.
+function M.update_check(force: boolean): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    ctx.update_message = "verificando…"
+    local update_check_ok, update_check_response =
+        api:rpc_checked { CheckUpdate = { force = force } }
+    if not update_check_ok then
+        -- Sem GitHub, limite de consultas, `enabled = false`: o texto do daemon
+        -- já diz a causa. Mantém a última resposta boa na tela.
+        ctx.update_message = tostring(update_check_response)
+        return
+    end
+    local update_info = update_check_response.UpdateInfo
+    if not update_info then
+        ctx.update_message = "resposta inesperada do daemon"
+        return
+    end
+    ctx.update_current_version = update_info.current_version
+    ctx.update_latest_version = update_info.latest_version
+    ctx.update_is_available = update_info.is_update_available and "true"
+        or "false"
+    ctx.update_release_url = update_info.release_url
+    ctx.update_checked_at_label =
+        format.date_day_month_hour_minute(update_info.checked_at)
+    ctx.update_message = update_info.is_update_available
+            and ("Há uma versão nova: " .. update_info.latest_version)
+        or "Você está na versão mais recente."
+end
+
+function update_check_now(): ()
+    M.update_check(true)
+end
+
 return M

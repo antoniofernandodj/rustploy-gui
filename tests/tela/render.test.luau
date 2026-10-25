@@ -687,6 +687,28 @@ function test_configuracoes_manutencao()
     end
 end
 
+--- Atualizações: sem consulta ainda, com versão nova e com erro do daemon
+function test_configuracoes_atualizacoes()
+    local tela = app("settings", { settings_tab = "updates" })
+    rende(tela)
+
+    seta(tela, {
+        update_current_version = "0.1.7",
+        update_latest_version = "0.1.8",
+        update_checked_at_label = "25/10 14:03",
+        update_is_available = "true",
+        update_release_url = "https://github.com/o/r/releases/tag/v0.1.8",
+        update_message = "Há uma versão nova: 0.1.8",
+    })
+    rende(tela)
+
+    seta(tela, {
+        update_is_available = "false",
+        update_message = "UpdateCheckFailed: não consegui consultar o GitHub",
+    })
+    rende(tela)
+end
+
 -- ── serviço ─────────────────────────────────────────────────────────────────
 
 local function servico(aba)

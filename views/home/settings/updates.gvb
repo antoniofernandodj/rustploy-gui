@@ -1,0 +1,68 @@
+// Atualizações: pergunta ao daemon se há release mais nova (Command::CheckUpdate).
+// Só consulta — instalar é manual por enquanto (docs/plano-updaters-daemon-e-gui.md).
+component {
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-panel) {
+      text(class = u-label-cap, content = "DAEMON")
+
+      row(class = kv-list__row) {
+        text(class = kv-list__key, content = "Versão instalada")
+        text(class = "kv-list__val kv-list__val--compact", content = "@update_current_version")
+      }
+
+      row(class = kv-list__row) {
+        text(class = kv-list__key, content = "Última versão")
+        text(class = "kv-list__val kv-list__val--compact", content = "@update_latest_version")
+      }
+
+      row(class = kv-list__row) {
+        text(class = kv-list__key, content = "Verificado em")
+        text(class = "kv-list__val kv-list__val--compact", content = "@update_checked_at_label")
+      }
+
+      row(class = healthcheck__grid) {
+        button(
+          class = "btn btn--ghost btn--sm",
+          on_click = update_check_now,
+          text = "Verificar atualizações",
+        )
+      }
+
+      text(class = u-muted, content = "@update_message")
+
+      if @update_is_available == "true" {
+        text(class = u-label-cap, content = "COMO ATUALIZAR")
+
+        text(
+          class = u-muted,
+          content = """
+            Há uma versão nova. Por enquanto a atualização é manual: rode o
+            comando abaixo na VPS. Seus dados, o config.toml e a master.key são
+            preservados, e os containers dos serviços continuam rodando.
+          """,
+        )
+
+        row(class = kv-list__row) {
+          text(class = "kv-list__val kv-list__val--compact", content = "@update_install_command")
+
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:update_install_command,
+            text = Copiar,
+          )
+        }
+
+        row(class = kv-list__row) {
+          text(class = kv-list__key, content = "Notas da release")
+          text(class = "kv-list__val kv-list__val--compact", content = "@update_release_url")
+
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = copy_ctx:update_release_url,
+            text = Copiar,
+          )
+        }
+      }
+    }
+  }
+}
