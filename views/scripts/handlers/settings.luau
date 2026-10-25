@@ -760,10 +760,136 @@ function M.update_check(force: boolean): ()
     ctx.update_message = update_info.is_update_available
             and ("Há uma versão nova: " .. update_info.latest_version)
         or "Você está na versão mais recente."
+    M.update_load_progress()
 end
 
 function update_check_now(): ()
     M.update_check(true)
+end
+
+-- Texto do que o daemon sabe sobre a atualização em curso ou a última tentativa
+-- (Command::UpdateStatus). Existe porque a GUI não vê o fim: o dpkg reinicia o daemon
+-- no meio, o stream cai e esta janela volta ao login. Ao reconectar, `update_check`
+-- chama isto e a pessoa descobre se deu certo e, se não, por quê.
+local function update_progress_text(update_progress: any): string
+    local stage = update_progress.stage
+    local target = update_progress.target_version
+    local message = update_progress.message or ""
+    if stage == "Downloading" then
+        return "Atualizando… " .. message
+    elseif stage == "Installing" then
+        return "Instalando"
+            .. (target and (" " .. target) or "")
+            .. "… o daemon vai reiniciar e esta janela volta ao login."
+    elseif stage == "RollingBack" then
+        return "Revertendo… o daemon vai reiniciar e esta janela volta ao login."
+    elseif stage == "Succeeded" then
+        return "Atualizado" .. (target and (" para " .. target) or "") .. "."
+    elseif stage == "Failed" then
+        return "A atualização falhou: " .. message
+    elseif stage == "RolledBack" then
+        return "A atualização foi revertida: " .. message
+    end
+    return ""
+end
+
+function M.update_load_progress(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local update_status_ok, update_status_response = api:rpc("UpdateStatus")
+    local update_progress = update_status_ok
+            and update_status_response.UpdateProgress
+        or nil
+    if not update_progress then
+        return
+    end
+    ctx.update_is_helper_available = update_progress.is_helper_available
+            and "true"
+        or "false"
+    ctx.update_progress_message = update_progress_text(update_progress)
+end
+
+-- Atualiza o daemon pelo app (Command::ApplyUpdate). A confirmação diz o que vai
+-- acontecer; se há deploy em andamento o daemon recusa e a pessoa decide de novo.
+function update_apply(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local confirmed = confirm {
+        title = "Atualizar o daemon?",
+        message = "O daemon baixa a versão "
+            .. ctx.update_latest_version
+            .. ", confere a assinatura e a instala. Ele reinicia (os "
+            .. "containers dos serviços continuam rodando) e esta janela "
+            .. "volta ao login. Um snapshot do banco é guardado antes.",
+        confirm_label = "Atualizar",
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    ctx.update_progress_message = "pedindo a atualização…"
+    local apply_ok, apply_response =
+        api:rpc_checked { ApplyUpdate = { allow_active_deploys = false } }
+    if
+        not apply_ok
+        and string.find(tostring(apply_response), "DeploysInProgress", 1, true)
+    then
+        local confirmed_anyway = confirm {
+            title = "Há deploy em andamento",
+            message = "Atualizar agora interrompe o deploy que está rodando "
+                .. "ou na fila. Atualizar mesmo assim?",
+            confirm_label = "Atualizar mesmo assim",
+            destructive = true,
+        }
+        if not confirmed_anyway then
+            ctx.update_progress_message = ""
+            return
+        end
+        apply_ok, apply_response =
+            api:rpc_checked { ApplyUpdate = { allow_active_deploys = true } }
+    end
+    if not apply_ok then
+        ctx.update_progress_message = tostring(apply_response)
+        toast { message = tostring(apply_response), kind = "error" }
+        return
+    end
+    ctx.update_progress_message =
+        "Atualizando… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto."
+    toast { message = "Atualização iniciada", kind = "success" }
+end
+
+-- Volta os binários para os do backup da última atualização (Command::UpdateRollback).
+function update_rollback(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local confirmed = confirm {
+        title = "Reverter para a versão anterior?",
+        message = "Restaura os binários do backup da última atualização e "
+            .. "reinicia o daemon. O banco não é revertido: se a versão nova "
+            .. "migrou o esquema, o snapshot guardado antes da atualização "
+            .. "fica no diretório do banco.",
+        confirm_label = "Reverter",
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    ctx.update_progress_message = "revertendo…"
+    local rollback_ok, rollback_response = api:rpc_checked("UpdateRollback")
+    if not rollback_ok then
+        ctx.update_progress_message = tostring(rollback_response)
+        toast { message = tostring(rollback_response), kind = "error" }
+        return
+    end
+    ctx.update_progress_message =
+        "Revertendo… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto."
+    toast { message = "Reversão iniciada", kind = "success" }
 end
 
 return M

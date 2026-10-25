@@ -143,6 +143,8 @@ function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
     assert_eq(tela:get("update_is_available"), "false")
     assert_eq(tela:get("update_release_url"), "")
     assert_eq(tela:get("update_message"), "")
+    assert_eq(tela:get("update_progress_message"), "")
+    assert_eq(tela:get("update_is_helper_available"), "false")
     assert_true(
         string.find(tela:get("update_install_command"), "install.sh", 1, true)
             ~= nil
@@ -173,4 +175,13 @@ function test_atualizacoes__o_init_nao_pisa_no_resultado_anterior()
     })
     assert_eq(tela:get("update_latest_version"), "0.2.0")
     assert_eq(tela:get("update_is_available"), "true")
+end
+
+--- atualizar e reverter sem conexão não fazem nada (nem pedem confirmação)
+function test_atualizacoes__atualizar_e_reverter_sem_conexao_nao_fazem_nada()
+    local tela = nova()
+    tela:call("update_apply")
+    tela:call("update_rollback")
+    assert_eq(#tela:toasts(), 0)
+    assert_eq(tela:get("update_progress_message"), "")
 end

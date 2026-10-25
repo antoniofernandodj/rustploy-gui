@@ -30,8 +30,41 @@ component {
 
       text(class = u-muted, content = "@update_message")
 
+      if @update_is_helper_available == "true" {
+        text(class = u-label-cap, content = "ATUALIZAR PELO APP")
+
+        text(
+          class = u-muted,
+          content = """
+            O daemon baixa a versão nova, confere a assinatura e a instala por um
+            helper root do próprio pacote. O daemon reinicia (os containers dos
+            serviços continuam rodando) e esta janela volta à tela de login:
+            entre de novo em cerca de um minuto. Antes, o daemon guarda um
+            snapshot do banco.
+          """,
+        )
+
+        row(class = healthcheck__grid) {
+          if @update_is_available == "true" {
+            button(
+              class = "btn btn--primary btn--sm",
+              on_click = update_apply,
+              text = "Atualizar daemon",
+            )
+          }
+
+          button(
+            class = "btn btn--ghost btn--sm",
+            on_click = update_rollback,
+            text = "Reverter para a versão anterior",
+          )
+        }
+      }
+
+      text(class = u-muted, content = "@update_progress_message")
+
       if @update_is_available == "true" {
-        text(class = u-label-cap, content = "COMO ATUALIZAR")
+        text(class = u-label-cap, content = "COMO ATUALIZAR À MÃO")
 
         text(
           class = u-muted,

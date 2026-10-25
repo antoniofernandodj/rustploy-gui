@@ -155,6 +155,8 @@ function init(): ()
     ctx.update_is_available = ctx.update_is_available or "false"
     ctx.update_release_url = ctx.update_release_url or ""
     ctx.update_message = ctx.update_message or ""
+    ctx.update_progress_message = ctx.update_progress_message or ""
+    ctx.update_is_helper_available = ctx.update_is_helper_available or "false"
     ctx.update_install_command =
         "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh"
     ctx.docker_cleanup_kinds = {

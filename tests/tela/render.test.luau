@@ -707,6 +707,17 @@ function test_configuracoes_atualizacoes()
         update_message = "UpdateCheckFailed: não consegui consultar o GitHub",
     })
     rende(tela)
+
+    -- Com o helper de instalação: botões de atualizar e reverter, e o resultado
+    -- da última tentativa (lido do daemon depois que a janela volta ao login).
+    seta(tela, {
+        update_is_helper_available = "true",
+        update_is_available = "true",
+        update_progress_message = "A atualização falhou: assinatura inválida",
+    })
+    rende(tela)
+    seta(tela, { update_is_available = "false", update_progress_message = "" })
+    rende(tela)
 end
 
 -- ── serviço ─────────────────────────────────────────────────────────────────
