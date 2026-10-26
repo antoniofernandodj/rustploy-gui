@@ -997,6 +997,23 @@ function test_nav_projects_fica_aceso_nas_subtelas()
     end)
 end
 
+--- Settings mostra um ponto quando há versão nova do daemon, e só então
+function test_nav_settings_mostra_ponto_com_versao_nova()
+    local function pontos(tela)
+        local total = 0
+        for _, t in tela:texts() do
+            if t == "●" then
+                total += 1
+            end
+        end
+        return total
+    end
+    local tela = app("projects", { update_is_available = "false" })
+    local antes = pontos(tela)
+    tela:set("update_is_available", "true")
+    assert_eq(pontos(tela), antes + 1, "versão nova acende um ponto a mais")
+end
+
 --- o item aceso recolore ícone e rótulo pelo combinador `.nav-item--active >
 --- …`
 -- Se a regra composta não casasse, o item aceso ficaria com as cores base

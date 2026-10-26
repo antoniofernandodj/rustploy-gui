@@ -7,6 +7,8 @@ component {
     prop(name = icon)
     prop(name = target)
     prop(name = action)
+    // "true" mostra um ponto ao lado do rótulo (ex.: há versão nova em Settings).
+    prop(name = badge, default = "false")
   }
 
   resources {
@@ -17,6 +19,7 @@ component {
     .nav-item--active { color: var(--blue); }
     .nav-item__icon   { size: 14; color: var(--faint); }
     .nav-item__label  { color: var(--muted); }
+    .nav-item__badge  { size: 10; color: var(--green); }
     .nav-item--active > .nav-item__icon  { color: var(--text); }
     .nav-item--active > .nav-item__label { color: var(--text); }
     """
@@ -31,10 +34,16 @@ component {
   ) {
     text(class = nav-item__icon, content = "@icon")
     text(class = nav-item__label, content = "@label")
+    if @badge == "true" {
+      text(class = nav-item__badge, content = "●")
+    }
   }
 
   button(class = nav-item, else, on_click = @action, tooltip = @label) {
     text(class = nav-item__icon, content = "@icon")
     text(class = nav-item__label, content = "@label")
+    if @badge == "true" {
+      text(class = nav-item__badge, content = "●")
+    }
   }
 }

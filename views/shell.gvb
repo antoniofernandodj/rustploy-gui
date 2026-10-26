@@ -136,6 +136,7 @@ component {
         icon = "⌥",
         target = settings,
         action = nav_settings,
+        badge = @update_is_available,
       )
 
       NavItem(
