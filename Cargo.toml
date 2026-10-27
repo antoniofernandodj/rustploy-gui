@@ -1,6 +1,6 @@
 [package]
 name = "rustploy-gui"
-version = "0.1.26"
+version = "0.1.27"
 edition = "2024"
 default-run = "rustploy-gui"
 description = "Rustploy — desktop client (glacier-ui) for the Rustploy PaaS daemon"
@@ -60,6 +60,12 @@ libc = "0.2"
 # Errors / Time
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
+
+# O helper do Windows (`rustploy-gui-update.exe`) extrai o zip da release.
+zip = { version = "8.6", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+
+[dev-dependencies]
+tempfile = "3"
 
 [build-dependencies]
 # Helpers de build.rs (logos reduzidos, .desktop no cargo install, recursos do .exe).

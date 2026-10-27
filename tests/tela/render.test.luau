@@ -734,7 +734,16 @@ function test_configuracoes_atualizacoes()
         update_app_message = "Há uma versão nova do app: 0.1.22",
     })
     rende(tela)
-    seta(tela, { update_app_can_update = "false" })
+    -- Windows (zip do install.ps1): a mesma tela, com o texto da troca de arquivos.
+    seta(tela, {
+        update_app_install_kind = "zip",
+        update_app_apply_hint = "O app baixa a versão nova e confere a assinatura; depois fecha, troca os arquivos e reabre sozinho.",
+    })
+    rende(tela)
+    seta(tela, {
+        update_app_can_update = "false",
+        update_app_manual_command = "irm https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.ps1 | iex",
+    })
     rende(tela)
 end
 

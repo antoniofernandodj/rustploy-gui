@@ -764,6 +764,15 @@ end
 local APP_RELEASE_URL =
     "https://api.github.com/repos/antoniofernandodj/rustploy/releases/latest"
 
+local APP_MANUAL_COMMAND_LINUX =
+    "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
+local APP_MANUAL_COMMAND_WINDOWS =
+    "irm https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.ps1 | iex"
+local APP_APPLY_HINT_DEB =
+    "O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho."
+local APP_APPLY_HINT_ZIP =
+    "O app baixa a versão nova e confere a assinatura; depois fecha, troca os arquivos e reabre sozinho. Só um pacote assinado pelo projeto é aceito."
+
 -- Pergunta ao GitHub se há versão nova do app. Ao contrário do daemon, a consulta é daqui
 -- (o app roda na máquina da pessoa); a comparação de versões e a escolha do pacote são da
 -- ponte nativa `app_update`, para existirem num lugar só (update-core). Em testes o global
@@ -776,6 +785,22 @@ function M.update_app_check(): ()
     local info = native.info()
     ctx.update_app_current_version = info.version
     ctx.update_app_can_update = info.can_update and "true" or "false"
+    ctx.update_app_install_kind = info.install_kind
+    ctx.update_app_manual_command = info.os == "windows"
+            and APP_MANUAL_COMMAND_WINDOWS
+        or APP_MANUAL_COMMAND_LINUX
+    ctx.update_app_apply_hint = info.install_kind == "zip"
+            and APP_APPLY_HINT_ZIP
+        or APP_APPLY_HINT_DEB
+
+    -- Windows: a troca acontece com esta janela fechada; o helper deixa o resultado para cá.
+    local last_ok, last_message = native.last_result()
+    if last_message then
+        toast {
+            message = tostring(last_message),
+            kind = last_ok and "success" or "error",
+        }
+    end
 
     local http_response = fetch(APP_RELEASE_URL, {
         headers = {
@@ -816,11 +841,16 @@ function update_app_apply(): ()
     if not native or ctx.update_app_deb_url == "" then
         return
     end
+    local is_zip = ctx.update_app_install_kind == "zip"
     local confirmed = confirm {
         title = "Atualizar o app?",
         message = "O app baixa a versão "
             .. ctx.update_app_latest_version
-            .. ", pede a senha de administrador e a instala; depois reabre. "
+            .. (
+                is_zip
+                    and ", confere a assinatura e fecha para trocar os arquivos; depois reabre. "
+                or ", pede a senha de administrador e a instala; depois reabre. "
+            )
             .. "Esta janela pode ficar sem responder por alguns instantes. "
             .. "Só um pacote assinado pelo projeto é instalado.",
         confirm_label = "Atualizar",
@@ -841,12 +871,18 @@ function update_app_apply(): ()
         toast { message = tostring(install_message), kind = "error" }
         return
     end
-    ctx.update_app_message = "Atualizado. Reabrindo o app…"
+    ctx.update_app_message = is_zip
+            and "Conferido. Fechando para trocar os arquivos…"
+        or "Atualizado. Reabrindo o app…"
     local restart_error = native.restart()
     if restart_error then
-        ctx.update_app_message = "Atualizado, mas não consegui reabrir: "
-            .. tostring(restart_error)
-            .. ". Abra o Rustploy de novo."
+        ctx.update_app_message = is_zip
+                and ("Nada foi trocado: " .. tostring(restart_error))
+            or (
+                "Atualizado, mas não consegui reabrir: "
+                .. tostring(restart_error)
+                .. ". Abra o Rustploy de novo."
+            )
     end
 end
 

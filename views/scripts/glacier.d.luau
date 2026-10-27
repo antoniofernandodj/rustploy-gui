@@ -168,8 +168,11 @@ declare date: {
 -- aceita um pacote assinado pela chave do projeto. Em testes (`glacier test`) o global é nil.
 export type AppUpdateInfo = {
     version: string,
+    -- "deb", "zip" (Windows, instalado pelo install.ps1) ou "other".
     install_kind: string,
     can_update: boolean,
+    -- `std::env::consts::OS`: "linux", "windows"…
+    os: string,
 }
 
 export type AppUpdatePlan = {
@@ -177,6 +180,7 @@ export type AppUpdatePlan = {
     latest_version: string,
     html_url: string,
     is_update_available: boolean,
+    -- O pacote deste jeito de instalar: o `.deb` ou, no Windows, o zip.
     deb_url: string?,
     deb_name: string?,
     signature_url: string?,
@@ -191,4 +195,6 @@ declare app_update: {
         deb_name: string
     ) -> (boolean, string),
     restart: () -> string?,
+    -- Windows: o resultado da troca feita antes desta janela abrir (`nil` se não houve).
+    last_result: () -> (boolean?, string?),
 }?

@@ -22,18 +22,26 @@
 //! Saída: uma linha JSON com o resultado em `stdout` e código `0` se instalou, `1` se recusou ou
 //! falhou (a causa em `stderr`), `2` se foi chamado errado.
 
-// O pacote é compilado também para Windows (`cargo xwin`), que compila todos os binários do
-// pacote. O helper só existe onde existe `pkexec` e `.deb`: fora do Unix o binário é um aviso.
+//!
+//! **No Windows** o mesmo binário é outro programa, sem privilégio nenhum: troca a pasta do app
+//! portátil pelo zip assinado da release e reabre o app (`portable.rs`).
+
+// Sem janela de console no Windows: o app o roda em segundo plano.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 #[cfg(unix)]
 mod helper;
+// Compilado também nos testes do Linux: a troca da pasta é só `std::fs` e dá para testar aqui.
+#[cfg(any(windows, test))]
+#[cfg_attr(not(windows), allow(dead_code))]
+mod portable;
 
 #[cfg(unix)]
 fn main() -> std::process::ExitCode {
     helper::run()
 }
 
-#[cfg(not(unix))]
-fn main() {
-    eprintln!("rustploy-gui-update só existe no Linux (instalação por .deb)");
-    std::process::exit(2);
+#[cfg(windows)]
+fn main() -> std::process::ExitCode {
+    portable::run()
 }

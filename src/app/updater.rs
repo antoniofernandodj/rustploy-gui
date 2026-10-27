@@ -5,15 +5,23 @@
 //! Exposto ao Luau como o global `app_update` (ver `views/scripts/glacier.d.luau`). Nada aqui
 //! instala algo: quem instala é `/usr/libexec/rustploy-gui-update`, que roda como root via
 //! `pkexec` e só aceita um pacote assinado pela chave do projeto.
+//!
+//! No Windows (zip portátil em `%LOCALAPPDATA%\Rustploy`, o que o `install.ps1` instala) não há
+//! privilégio: o app baixa o zip e a assinatura, o `rustploy-gui-update.exe` confere (`check`) e,
+//! ao reabrir, espera esta janela fechar, troca a pasta e reabre o app (`swap`). Ver
+//! `src/bin/rustploy-gui-update/portable.rs`.
 
 use glacier_ui::mlua::{Lua, Result as LuaResult, Table};
 use std::{
     path::{Path, PathBuf},
     process::Command,
+    sync::Mutex,
 };
 use update_core::{
     is_newer,
-    release::{debian_architecture, package_version, parse_release, select_package_assets},
+    release::{
+        ReleaseAsset, debian_architecture, package_version, parse_release, select_package_assets,
+    },
 };
 
 /// Repositório das releases do app. Fixo no binário: a UI não escolhe de onde vem uma atualização.
@@ -24,13 +32,19 @@ const INSTALLED_BINARY: &str = "/usr/bin/rustploy-gui";
 /// Relativo ao cache do usuário. Tem de ser o mesmo que o helper lê (`USER_CACHE_SUBDIR`).
 const CACHE_SUBDIR: &str = "rustploy-gui/updates";
 const MAX_DEB_BYTES: u64 = 200 * 1024 * 1024;
+/// Windows: a pasta que o `install.ps1` cria em `%LOCALAPPDATA%` e o helper que vem no zip.
+const PORTABLE_DIR_NAME: &str = "Rustploy";
+const PORTABLE_HELPER: &str = "rustploy-gui-update.exe";
+const WINDOWS_PACKAGE: &str = "rustploy-gui-windows";
 
-/// Como este executável foi instalado: só a instalação por `.deb` tem helper root.
+/// Como este executável foi instalado: só `.deb` e o zip do `install.ps1` se atualizam pelo app.
 #[derive(Debug, PartialEq, Eq)]
 enum InstallKind {
-    /// `/usr/bin/rustploy-gui`, instalado por `.deb`: dá para atualizar pelo app.
+    /// `/usr/bin/rustploy-gui`, instalado por `.deb`: atualiza pelo helper root.
     Deb,
-    /// `cargo install`, zip portátil, compilado do código: o app só avisa.
+    /// `%LOCALAPPDATA%\Rustploy\rustploy-gui.exe`, o zip do `install.ps1`: atualiza trocando a pasta.
+    Zip,
+    /// `cargo install`, zip descompactado em outro lugar, compilado do código: o app só avisa.
     Other,
 }
 
@@ -38,38 +52,83 @@ impl InstallKind {
     fn label(&self) -> &'static str {
         match self {
             Self::Deb => "deb",
+            Self::Zip => "zip",
             Self::Other => "other",
         }
     }
 }
 
-fn install_kind_of(executable: &Path) -> InstallKind {
+fn install_kind_of(executable: &Path, portable_dir: Option<&Path>) -> InstallKind {
     // Compara o caminho resolvido: um link para fora de /usr/bin não conta como instalado por .deb.
-    match std::fs::canonicalize(executable) {
-        Ok(resolved) if resolved == Path::new(INSTALLED_BINARY) => InstallKind::Deb,
-        _ => InstallKind::Other,
+    let Ok(resolved) = std::fs::canonicalize(executable) else {
+        return InstallKind::Other;
+    };
+    if resolved == Path::new(INSTALLED_BINARY) {
+        return InstallKind::Deb;
     }
+    let in_portable_dir = portable_dir
+        .and_then(|directory| std::fs::canonicalize(directory).ok())
+        .is_some_and(|directory| resolved.parent() == Some(directory.as_path()));
+    if in_portable_dir {
+        InstallKind::Zip
+    } else {
+        InstallKind::Other
+    }
+}
+
+/// `%LOCALAPPDATA%\Rustploy`, só no Windows.
+fn portable_dir() -> Option<PathBuf> {
+    if !cfg!(windows) {
+        return None;
+    }
+    std::env::var_os("LOCALAPPDATA")
+        .filter(|value| !value.is_empty())
+        .map(|local| PathBuf::from(local).join(PORTABLE_DIR_NAME))
+}
+
+/// `<pasta-do-app>-update`. Tem de ser o mesmo do helper (`staging_dir` em `portable.rs`).
+fn staging_dir(install_dir: &Path) -> PathBuf {
+    let mut name = install_dir.file_name().unwrap_or_default().to_os_string();
+    name.push("-update");
+    install_dir.with_file_name(name)
 }
 
 fn install_kind() -> InstallKind {
     std::env::current_exe()
-        .map(|executable| install_kind_of(&executable))
+        .map(|executable| install_kind_of(&executable, portable_dir().as_deref()))
         .unwrap_or(InstallKind::Other)
 }
 
-/// O app pode se atualizar sozinho? `.deb` + helper instalado + `pkexec` no PATH.
+/// O app pode se atualizar sozinho? `.deb` + helper + `pkexec`, ou zip + helper + `curl`.
 fn can_update() -> bool {
-    install_kind() == InstallKind::Deb
-        && Path::new(HELPER).exists()
-        && find_in_path("pkexec").is_some()
+    match install_kind() {
+        InstallKind::Deb => Path::new(HELPER).exists() && find_in_path("pkexec").is_some(),
+        InstallKind::Zip => {
+            portable_dir().is_some_and(|directory| directory.join(PORTABLE_HELPER).is_file())
+                && find_in_path("curl").is_some()
+        }
+        InstallKind::Other => false,
+    }
 }
 
 fn find_in_path(program: &str) -> Option<PathBuf> {
+    let file_name = format!("{program}{}", std::env::consts::EXE_SUFFIX);
     std::env::var_os("PATH").and_then(|paths| {
         std::env::split_paths(&paths)
-            .map(|directory| directory.join(program))
+            .map(|directory| directory.join(&file_name))
             .find(|candidate| candidate.is_file())
     })
+}
+
+/// Sem janela de console piscando quando o app roda um programa no Windows.
+fn without_console(command: &mut Command) -> &mut Command {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+    command
 }
 
 /// `$XDG_CACHE_HOME` ou `~/.cache`, resolvido como o helper espera.
@@ -102,7 +161,7 @@ fn download(url: &str, destination: &Path, max_bytes: u64) -> Result<(), String>
         return Err(format!("recusei baixar de fora do GitHub: {url}"));
     }
     let partial = destination.with_extension("partial");
-    let status = Command::new("curl")
+    let status = without_console(&mut Command::new("curl"))
         .args([
             "--fail",
             "--silent",
@@ -136,28 +195,148 @@ fn download(url: &str, destination: &Path, max_bytes: u64) -> Result<(), String>
     std::fs::rename(&partial, destination).map_err(|error| format!("gravando o download: {error}"))
 }
 
-/// O nome vira parte de um caminho: só o que um `.deb` do rustploy-gui teria.
-fn validate_deb_name(deb_name: &str) -> Result<(), String> {
-    let plain = deb_name
+/// O nome vira parte de um caminho: só letras, dígitos e `._+-~`, com o começo e o fim dados.
+fn validate_package_name(name: &str, start: &str, end: &str) -> Result<(), String> {
+    let plain = name
         .chars()
         .all(|character| character.is_ascii_alphanumeric() || "._+-~".contains(character));
-    if plain
-        && deb_name.starts_with("rustploy-gui_")
-        && deb_name.ends_with(".deb")
-        && !deb_name.contains("..")
-    {
+    if plain && name.starts_with(start) && name.ends_with(end) && !name.contains("..") {
         Ok(())
     } else {
-        Err(format!("nome de pacote inesperado: {deb_name}"))
+        Err(format!("nome de pacote inesperado: {name}"))
+    }
+}
+
+fn validate_deb_name(deb_name: &str) -> Result<(), String> {
+    validate_package_name(deb_name, "rustploy-gui_", ".deb")
+}
+
+fn validate_zip_name(zip_name: &str) -> Result<(), String> {
+    validate_package_name(zip_name, &format!("{WINDOWS_PACKAGE}-v"), ".zip")
+}
+
+/// O zip do Windows da release (`rustploy-gui-windows-<tag>.zip`) e a `.minisig` dele, só entre os
+/// arquivos do repositório. O nome leva a **tag**, não a versão do app: a versão vem do `.deb`.
+fn select_windows_zip(
+    assets: &[ReleaseAsset],
+    tag: &str,
+) -> Result<(ReleaseAsset, ReleaseAsset), String> {
+    let allowed_prefix = format!("https://github.com/{REPOSITORY}/releases/download/");
+    let find = |name: &str| {
+        assets
+            .iter()
+            .find(|asset| asset.name == name && asset.url.starts_with(&allowed_prefix))
+            .cloned()
+    };
+    let zip_name = format!("{WINDOWS_PACKAGE}-{tag}.zip");
+    let zip = find(&zip_name)
+        .ok_or_else(|| format!("a release {tag} não tem o zip do Windows ({zip_name})"))?;
+    let signature = find(&format!("{zip_name}.minisig")).ok_or_else(|| {
+        format!(
+            "a release {tag} não tem a assinatura ({zip_name}.minisig); só instalo pacote assinado"
+        )
+    })?;
+    Ok((zip, signature))
+}
+
+/// A troca já conferida, esperando o `restart` (que fecha esta janela para o helper agir).
+struct PendingSwap {
+    helper: PathBuf,
+    install_dir: PathBuf,
+    zip: PathBuf,
+    signature: PathBuf,
+}
+
+static PENDING_SWAP: Mutex<Option<PendingSwap>> = Mutex::new(None);
+
+/// Baixa o pacote certo para este jeito de instalar. `.deb`: instala já (pede a senha). Zip:
+/// baixa, confere com o helper e deixa a troca para o `restart`.
+fn install(package_url: &str, signature_url: &str, package_name: &str) -> Result<String, String> {
+    if !can_update() {
+        return Err("este app não foi instalado por .deb nem pelo install.ps1 (ou falta o pkexec ou o curl): atualize pelo comando de instalação".into());
+    }
+    match install_kind() {
+        InstallKind::Zip => prepare_portable(package_url, signature_url, package_name),
+        _ => install_deb(package_url, signature_url, package_name),
+    }
+}
+
+fn prepare_portable(zip_url: &str, signature_url: &str, zip_name: &str) -> Result<String, String> {
+    validate_zip_name(zip_name)?;
+    let install_dir = portable_dir().ok_or_else(|| "sem LOCALAPPDATA".to_string())?;
+    let staging = staging_dir(&install_dir);
+    // Resto de uma tentativa anterior não pode ser confundido com o pacote novo.
+    if staging.exists() {
+        std::fs::remove_dir_all(&staging)
+            .map_err(|error| format!("apagando {}: {error}", staging.display()))?;
+    }
+    std::fs::create_dir_all(&staging)
+        .map_err(|error| format!("criando {}: {error}", staging.display()))?;
+    let zip = staging.join(zip_name);
+    let signature = staging.join(format!("{zip_name}.minisig"));
+    download(zip_url, &zip, MAX_DEB_BYTES)?;
+    download(signature_url, &signature, 8 * 1024)?;
+
+    // O helper roda de fora da pasta que vai trocar.
+    let helper = staging.join(PORTABLE_HELPER);
+    std::fs::copy(install_dir.join(PORTABLE_HELPER), &helper)
+        .map_err(|error| format!("copiando o {PORTABLE_HELPER}: {error}"))?;
+    // Confere antes de fechar a janela, com o código do próprio helper: um download ruim não
+    // fecha o app à toa.
+    let output = without_console(&mut Command::new(&helper))
+        .arg("check")
+        .arg(&install_dir)
+        .arg(&zip)
+        .arg(&signature)
+        .output()
+        .map_err(|error| format!("não consegui rodar o {PORTABLE_HELPER}: {error}"))?;
+    if !output.status.success() {
+        return Err(last_line(&output.stderr));
+    }
+    *PENDING_SWAP
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(PendingSwap {
+        helper,
+        install_dir,
+        zip,
+        signature,
+    });
+    Ok("conferido".to_string())
+}
+
+fn last_line(stderr: &[u8]) -> String {
+    let detail = String::from_utf8_lossy(stderr);
+    detail
+        .lines()
+        .rev()
+        .find(|line| !line.trim().is_empty())
+        .unwrap_or("falhou")
+        .trim()
+        .to_string()
+}
+
+/// O resultado da última troca no Windows (`result.json` do helper), lido uma vez só.
+fn take_last_result() -> Option<(bool, String)> {
+    let path = staging_dir(&portable_dir()?).join("result.json");
+    let text = std::fs::read_to_string(&path).ok()?;
+    let _ = std::fs::remove_file(&path);
+    parse_last_result(&text)
+}
+
+fn parse_last_result(text: &str) -> Option<(bool, String)> {
+    let json: serde_json::Value = serde_json::from_str(text).ok()?;
+    if json["ok"].as_bool()? {
+        let version = json["version"].as_str().unwrap_or("?");
+        Some((true, format!("App atualizado (release v{version}).")))
+    } else {
+        let message = json["message"].as_str().unwrap_or("falhou");
+        Some((false, format!("A atualização do app falhou: {message}")))
     }
 }
 
 /// Baixa o pacote e a assinatura para o cache do usuário e chama o helper por `pkexec`.
 /// Devolve a mensagem do resultado; bloqueia até o fim (download + senha + instalação).
-fn install(deb_url: &str, signature_url: &str, deb_name: &str) -> Result<String, String> {
-    if !can_update() {
-        return Err("este app não foi instalado por .deb (ou falta o pkexec): atualize pelo comando de instalação".into());
-    }
+fn install_deb(deb_url: &str, signature_url: &str, deb_name: &str) -> Result<String, String> {
     validate_deb_name(deb_name)?;
     let directory = updates_dir()?;
     std::fs::create_dir_all(&directory)
@@ -186,20 +365,27 @@ fn install(deb_url: &str, signature_url: &str, deb_name: &str) -> Result<String,
         Some(0) => Ok("instalado".to_string()),
         // 126/127 do pkexec: o usuário cancelou o diálogo ou não está autorizado.
         Some(126) | Some(127) => Err("a autenticação foi cancelada ou negada".into()),
-        _ => {
-            let detail = String::from_utf8_lossy(&output.stderr);
-            let detail = detail
-                .lines()
-                .rev()
-                .find(|line| !line.trim().is_empty())
-                .unwrap_or("falhou");
-            Err(detail.trim().to_string())
-        }
+        _ => Err(last_line(&output.stderr)),
     }
 }
 
-/// Abre uma nova instância do app e encerra esta.
+/// Abre uma nova instância do app e encerra esta. No Windows, com uma troca conferida, quem
+/// reabre é o helper, depois de trocar a pasta.
 fn restart() -> Result<(), String> {
+    let pending = PENDING_SWAP
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .take();
+    if let Some(pending) = pending {
+        without_console(&mut Command::new(&pending.helper))
+            .arg("swap")
+            .arg(&pending.install_dir)
+            .arg(&pending.zip)
+            .arg(&pending.signature)
+            .spawn()
+            .map_err(|error| format!("não consegui rodar o {PORTABLE_HELPER}: {error}"))?;
+        std::process::exit(0);
+    }
     Command::new(INSTALLED_BINARY)
         .spawn()
         .map_err(|error| format!("não consegui reabrir o app: {error}"))?;
@@ -216,6 +402,7 @@ pub(crate) fn install_lua(lua: &Lua) -> LuaResult<()> {
         lua.create_function(|lua, ()| {
             let info = lua.create_table()?;
             info.set("version", env!("CARGO_PKG_VERSION"))?;
+            info.set("os", std::env::consts::OS)?;
             info.set("install_kind", install_kind().label())?;
             info.set("can_update", can_update())?;
             Ok(info)
@@ -253,15 +440,21 @@ pub(crate) fn install_lua(lua: &Lua) -> LuaResult<()> {
                     .set("is_update_available", is_update_available)
                     .map_err(|error| error.to_string())?;
                 if is_update_available {
-                    let (deb, signature) = select_package_assets(
-                        &release.assets,
-                        REPOSITORY,
-                        "rustploy-gui",
-                        debian_architecture()?,
-                        &release.tag,
-                    )?;
-                    set("deb_url", deb.url)?;
-                    set("deb_name", deb.name)?;
+                    // `deb_*` é "o pacote deste jeito de instalar": no Windows, o zip. O zip sai do
+                    // mesmo commit que o `.deb`, então a versão do app é a que o `.deb` anuncia.
+                    let (package, signature) = if cfg!(windows) {
+                        select_windows_zip(&release.assets, &release.tag)?
+                    } else {
+                        select_package_assets(
+                            &release.assets,
+                            REPOSITORY,
+                            "rustploy-gui",
+                            debian_architecture()?,
+                            &release.tag,
+                        )?
+                    };
+                    set("deb_url", package.url)?;
+                    set("deb_name", package.name)?;
                     set("signature_url", signature.url)?;
                 }
                 Ok(result)
@@ -288,6 +481,18 @@ pub(crate) fn install_lua(lua: &Lua) -> LuaResult<()> {
 
     table.set("restart", lua.create_function(|_, ()| Ok(restart().err()))?)?;
 
+    // Windows: o resultado da troca feita pelo helper antes desta janela abrir. `ok, mensagem` ou
+    // `nil` (nada a contar); só a primeira chamada vê.
+    table.set(
+        "last_result",
+        lua.create_function(|_, ()| {
+            Ok(match take_last_result() {
+                Some((ok, message)) => (Some(ok), Some(message)),
+                None => (None, None),
+            })
+        })?,
+    )?;
+
     lua.globals().set("app_update", table)
 }
 
@@ -300,15 +505,118 @@ mod tests {
     fn only_the_installed_path_counts_as_deb() {
         // Um caminho que não existe, ou que não é /usr/bin/rustploy-gui, nunca é "deb".
         assert_eq!(
-            install_kind_of(Path::new("/nao/existe/rustploy-gui")),
+            install_kind_of(Path::new("/nao/existe/rustploy-gui"), None),
             InstallKind::Other
         );
         assert_eq!(
-            install_kind_of(Path::new("/usr/bin/true")),
+            install_kind_of(Path::new("/usr/bin/true"), None),
             InstallKind::Other
         );
         assert_eq!(InstallKind::Deb.label(), "deb");
+        assert_eq!(InstallKind::Zip.label(), "zip");
         assert_eq!(InstallKind::Other.label(), "other");
+    }
+
+    #[test]
+    fn only_an_executable_directly_in_the_portable_dir_counts_as_zip() {
+        let temp = std::env::temp_dir().join(format!("rustploy-gui-kind-{}", std::process::id()));
+        let portable = temp.join("Rustploy");
+        std::fs::create_dir_all(portable.join("sub")).unwrap();
+        for file in [
+            portable.join("rustploy-gui.exe"),
+            portable.join("sub/rustploy-gui.exe"),
+        ] {
+            std::fs::write(&file, "").unwrap();
+        }
+        let elsewhere = temp.join("rustploy-gui.exe");
+        std::fs::write(&elsewhere, "").unwrap();
+
+        let kind = |executable: &Path| install_kind_of(executable, Some(&portable));
+        assert_eq!(kind(&portable.join("rustploy-gui.exe")), InstallKind::Zip);
+        assert_eq!(
+            kind(&portable.join("sub/rustploy-gui.exe")),
+            InstallKind::Other
+        );
+        assert_eq!(kind(&elsewhere), InstallKind::Other);
+        assert_eq!(
+            install_kind_of(&portable.join("rustploy-gui.exe"), None),
+            InstallKind::Other
+        );
+        let _ = std::fs::remove_dir_all(&temp);
+    }
+
+    #[test]
+    fn staging_is_next_to_the_portable_dir() {
+        assert_eq!(
+            staging_dir(Path::new("/x/Local/Rustploy")),
+            PathBuf::from("/x/Local/Rustploy-update")
+        );
+    }
+
+    #[test]
+    fn zip_names_are_validated_before_becoming_paths() {
+        assert!(validate_zip_name("rustploy-gui-windows-v0.1.22.zip").is_ok());
+        for bad in [
+            "rustploy-gui-windows-v0.1.22.zip/../x.zip",
+            "rustploy-gui-windows-v..zip",
+            "rustploy-gui_0.1.22-1_amd64.deb",
+            "outro-v0.1.22.zip",
+            "rustploy-gui-windows-v0.1.22.zip.minisig",
+        ] {
+            assert!(
+                validate_zip_name(bad).is_err(),
+                "{bad:?} deveria ser recusado"
+            );
+        }
+    }
+
+    #[test]
+    fn the_windows_zip_is_picked_by_tag_and_only_from_the_repository() {
+        let json = release_json("v9.9.9").replace(
+            "\n            ]}",
+            &format!(
+                r#",
+              {{"name":"rustploy-gui-windows-v9.9.9.zip","browser_download_url":"https://github.com/{REPOSITORY}/releases/download/v9.9.9/rustploy-gui-windows-v9.9.9.zip"}},
+              {{"name":"rustploy-gui-windows-v9.9.9.zip.minisig","browser_download_url":"https://github.com/{REPOSITORY}/releases/download/v9.9.9/rustploy-gui-windows-v9.9.9.zip.minisig"}}
+            ]}}"#
+            ),
+        );
+        let release = parse_release(&json).unwrap();
+        let (zip, signature) = select_windows_zip(&release.assets, "v9.9.9").unwrap();
+        assert_eq!(zip.name, "rustploy-gui-windows-v9.9.9.zip");
+        assert_eq!(signature.name, "rustploy-gui-windows-v9.9.9.zip.minisig");
+
+        // Sem a assinatura, ou com o zip vindo de fora do repositório: recusa.
+        let unsigned: Vec<_> = release
+            .assets
+            .iter()
+            .filter(|asset| !asset.name.ends_with(".zip.minisig"))
+            .cloned()
+            .collect();
+        let error = select_windows_zip(&unsigned, "v9.9.9").unwrap_err();
+        assert!(error.contains("só instalo pacote assinado"), "{error}");
+        let foreign: Vec<_> = release
+            .assets
+            .iter()
+            .map(|asset| ReleaseAsset {
+                name: asset.name.clone(),
+                url: asset.url.replace("github.com/", "github.com/outro/"),
+            })
+            .collect();
+        assert!(select_windows_zip(&foreign, "v9.9.9").is_err());
+    }
+
+    #[test]
+    fn the_last_windows_result_becomes_a_message() {
+        assert_eq!(
+            parse_last_result(r#"{"ok":true,"version":"0.1.22"}"#),
+            Some((true, "App atualizado (release v0.1.22).".to_string()))
+        );
+        let (ok, message) =
+            parse_last_result(r#"{"ok":false,"message":"o app não fechou"}"#).unwrap();
+        assert!(!ok);
+        assert!(message.contains("o app não fechou"));
+        assert_eq!(parse_last_result("lixo"), None);
     }
 
     #[test]

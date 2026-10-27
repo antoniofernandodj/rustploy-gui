@@ -166,8 +166,11 @@ function init(): ()
     ctx.update_app_deb_url = ctx.update_app_deb_url or ""
     ctx.update_app_deb_name = ctx.update_app_deb_name or ""
     ctx.update_app_signature_url = ctx.update_app_signature_url or ""
-    ctx.update_app_manual_command =
-        "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
+    ctx.update_app_install_kind = ctx.update_app_install_kind or ""
+    ctx.update_app_manual_command = ctx.update_app_manual_command
+        or "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
+    ctx.update_app_apply_hint = ctx.update_app_apply_hint
+        or "O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho."
     ctx.update_is_helper_available = ctx.update_is_helper_available or "false"
     ctx.update_install_command =
         "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh"

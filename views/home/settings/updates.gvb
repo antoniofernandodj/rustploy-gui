@@ -88,20 +88,13 @@ component {
               )
             }
 
-            text(
-              class = u-muted,
-              content = """
-                O app baixa a versão nova, pede a senha de administrador do
-                sistema e a instala; só um pacote assinado pelo projeto é
-                aceito. Depois ele reabre sozinho.
-              """,
-            )
+            text(class = u-muted, content = "@update_app_apply_hint")
           }
 
           if @update_app_can_update == "false" {
             text(
               class = u-muted,
-              content = "Este app não foi instalado por .deb (ou falta o pkexec). Atualize com o comando abaixo.",
+              content = "Este app não foi instalado por .deb nem pelo instalador do Windows (ou falta o pkexec). Atualize com o comando abaixo.",
             )
 
             row(class = kv-list__row) {

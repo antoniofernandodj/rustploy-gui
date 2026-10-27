@@ -4356,7 +4356,7 @@ dependencies = [
 
 [[package]]
 name = "rustploy-gui"
-version = "0.1.26"
+version = "0.1.27"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4368,8 +4368,10 @@ dependencies = [
  "rustploy-update-core",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
  "tokio-rustls",
+ "zip",
 ]
 
 [[package]]
