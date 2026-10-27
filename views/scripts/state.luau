@@ -64,6 +64,10 @@ export type State = {
     -- agendamento IntervalHours não reiniciar a contagem a cada "Save" — ver
     -- handlers/settings.luau.
     docker_cleanup_last_run_at_raw: any,
+    -- `checked_at` do último UpdateInfo mostrado na aba Atualizações: o
+    -- snapshot só reescreve a aba quando há consulta nova (ver
+    -- handlers/stream.luau::apply_update_info).
+    update_checked_at: string,
 }
 
 local shared_state: State = {
@@ -85,6 +89,7 @@ local shared_state: State = {
     jobs_by_id = {},
     jobs_inflight = {},
     docker_cleanup_last_run_at_raw = nil,
+    update_checked_at = "",
 }
 
 return shared_state

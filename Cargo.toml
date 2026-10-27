@@ -1,6 +1,6 @@
 [package]
 name = "rustploy-gui"
-version = "0.1.25"
+version = "0.1.26"
 edition = "2024"
 default-run = "rustploy-gui"
 description = "Rustploy — desktop client (glacier-ui) for the Rustploy PaaS daemon"
@@ -54,7 +54,7 @@ serde_json = "1"
 
 # Atualização do app: comparar versões, escolher o pacote da release e (no helper root)
 # conferir a assinatura e instalar. A lógica de segurança mora toda neste crate.
-update-core = { package = "rustploy-update-core", version = "0.3.2" }
+update-core = { package = "rustploy-update-core", version = "0.3.3" }
 libc = "0.2"
 
 # Errors / Time

@@ -750,16 +750,7 @@ function M.update_check(force: boolean): ()
         ctx.update_message = "resposta inesperada do daemon"
         return
     end
-    ctx.update_current_version = update_info.current_version
-    ctx.update_latest_version = update_info.latest_version
-    ctx.update_is_available = update_info.is_update_available and "true"
-        or "false"
-    ctx.update_release_url = update_info.release_url
-    ctx.update_checked_at_label =
-        format.date_day_month_hour_minute(update_info.checked_at)
-    ctx.update_message = update_info.is_update_available
-            and ("Há uma versão nova: " .. update_info.latest_version)
-        or "Você está na versão mais recente."
+    Stream.apply_update_info(update_info)
     M.update_load_progress()
 end
 

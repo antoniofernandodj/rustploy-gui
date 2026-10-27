@@ -172,6 +172,25 @@ local function refresh_deploy_engine_detail(active: { any }?): ()
 end
 M.refresh_deploy_engine_detail = refresh_deploy_engine_detail
 
+-- Preenche a aba Atualizações e o selo do Settings com um UpdateInfo. Vem do
+-- CheckUpdate (handlers/settings.luau::update_check) ou do campo `update` do
+-- snapshot, que traz a última consulta do daemon, inclusive a periódica
+-- (`[update] check_interval_hours`). Mora aqui, e não em settings, porque
+-- settings já requer este módulo.
+function M.apply_update_info(update_info: any): ()
+    State.update_checked_at = update_info.checked_at
+    ctx.update_current_version = update_info.current_version
+    ctx.update_latest_version = update_info.latest_version
+    ctx.update_is_available = update_info.is_update_available and "true"
+        or "false"
+    ctx.update_release_url = update_info.release_url
+    ctx.update_checked_at_label =
+        format.date_day_month_hour_minute(update_info.checked_at)
+    ctx.update_message = update_info.is_update_available
+            and ("Há uma versão nova: " .. update_info.latest_version)
+        or "Você está na versão mais recente."
+end
+
 local function apply_snapshot(snapshot: any): ()
     State.snap = snapshot
     State.last_pairs = format.service_pair_list(snapshot.services)
@@ -299,6 +318,15 @@ local function apply_snapshot(snapshot: any): ()
         format.job_summaries(snapshot.jobs, State.jobs_inflight)
     ctx.jobs_summary = jobs_summary
     ctx.jobs_count = tostring(jobs_count)
+
+    -- Só reescreve a aba quando o daemon consultou de novo (checked_at mudou).
+    local update_info = snapshot.update
+    if
+        type(update_info) == "table"
+        and update_info.checked_at ~= State.update_checked_at
+    then
+        M.apply_update_info(update_info)
+    end
 
     rebuild_lists()
     update_open_project()
