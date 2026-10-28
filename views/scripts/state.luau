@@ -68,6 +68,10 @@ export type State = {
     -- snapshot só reescreve a aba quando há consulta nova (ver
     -- handlers/stream.luau::apply_update_info).
     update_checked_at: string,
+    -- Aviso deixado por "Atualizar daemon"/"Reverter" para a tela de login: o
+    -- daemon reinicia, o stream cai e a janela volta ao login antes de dar tempo
+    -- de ler a mensagem da aba (ver handlers/stream.luau::on_close). Vazio = nada.
+    restart_notice: string,
 }
 
 local shared_state: State = {
@@ -90,6 +94,7 @@ local shared_state: State = {
     jobs_inflight = {},
     docker_cleanup_last_run_at_raw = nil,
     update_checked_at = "",
+    restart_notice = "",
 }
 
 return shared_state

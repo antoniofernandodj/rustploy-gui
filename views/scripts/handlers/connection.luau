@@ -478,6 +478,7 @@ function disconnect(): ()
     State.jobs_by_id = {}
     State.new_service_templates_all = {}
     State.search_term = ""
+    State.restart_notice = ""
     State.deploy_track =
         { service_id = "", deployment_id = "", running = false, name = "" }
 

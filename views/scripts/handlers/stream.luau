@@ -650,7 +650,12 @@ function M.open_stream(): ()
         on_close = function(): ()
             State.state_conn = nil
             if Helpers.is_true(ctx.connected) then
-                ctx.status_line = "conexão encerrada"
+                if State.restart_notice ~= "" then
+                    ctx.status_line = State.restart_notice
+                    State.restart_notice = ""
+                else
+                    ctx.status_line = "conexão encerrada"
+                end
                 ctx.connected = "false"
                 ctx.screen = "login"
             end

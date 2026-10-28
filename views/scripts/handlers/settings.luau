@@ -978,6 +978,9 @@ function update_apply(): ()
     end
     ctx.update_progress_message =
         "Atualizando… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto."
+    State.restart_notice = "Atualizando o daemon para a "
+        .. ctx.update_latest_version
+        .. ": ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto."
     toast { message = "Atualização iniciada", kind = "success" }
 end
 
@@ -1008,6 +1011,8 @@ function update_rollback(): ()
     end
     ctx.update_progress_message =
         "Revertendo… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto."
+    State.restart_notice =
+        "Revertendo o daemon para a versão anterior: ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto."
     toast { message = "Reversão iniciada", kind = "success" }
 end
 
