@@ -1,0 +1,26 @@
+// Hiperlink de célula de tabela: o nome de um serviço ou de um projeto que
+// abre a tela dele (os mesmos handlers dos cards).
+component {
+  props {
+    prop(name = kind)
+    prop(name = id)
+    prop(name = label)
+  }
+
+  resources {
+    style """
+    .table-link       { color: var(--surface); text-color: var(--accent); size: 13; padding: 0; cursor: pointer; }
+    .table-link:hover { text-color: #A5D6FF; }
+    """
+  }
+
+  button(
+    if = @kind,
+    equals = service,
+    class = table-link,
+    on_click = open_service:@id,
+    text = "@label",
+  )
+
+  button(else, class = table-link, on_click = open_project:@id, text = "@label")
+}

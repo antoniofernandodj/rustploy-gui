@@ -78,8 +78,17 @@ local FILLER: GridCard = {
 -- Deployments (aba Deployments). `list` = Vec<DeploymentSummary>. Nomes
 -- truncados por Util.column_budgets (o filtro `matches` roda antes, sobre o
 -- valor completo — a busca continua casando com o que foi cortado).
-function M.deployments(deployments: { any }?, term: string?): string
+function M.deployments(
+    deployments: { any }?,
+    term: string?,
+    service_pairs: { ServicePair }?
+): string
     local column_budgets = Util.column_budgets()
+    -- O resumo traz só o id do serviço; o do projeto sai dos pares.
+    local project_by_service = {}
+    for _, pair in ipairs(service_pairs or {}) do
+        project_by_service[pair.svc.id] = pair.svc.spec.project_id
+    end
     local rows = {}
     for _, deployment_entry in ipairs(deployments or {}) do
         if
@@ -99,6 +108,8 @@ function M.deployments(deployments: { any }?, term: string?): string
                     deployment_entry.project_name,
                     column_budgets.proj
                 ),
+                service_id = deployment.service_id,
+                project_id = project_by_service[deployment.service_id] or "",
                 state_label = label,
                 state_kind = Util.state_kind(deployment.state),
                 duration = Time.format_duration(deployment),
@@ -554,6 +565,7 @@ function M.ingress(service_pairs: { ServicePair }): (string, number)
                     domain = Util.ellipsis(route.domain, column_budgets.svc),
                     url = scheme .. "://" .. route.domain,
                     service = Util.ellipsis(spec.name, column_budgets.proj),
+                    service_id = pair.svc.id,
                     project = pair.proj,
                     upstream = ":" .. tostring(route_port),
                     tls = route.tls and "TLS" or "—",
@@ -576,7 +588,9 @@ function M.host_ports(service_pairs: { ServicePair }): (string, number)
         if spec.host_port ~= nil then
             table.insert(rows, {
                 service = Util.ellipsis(spec.name, column_budgets.svc),
+                service_id = pair.svc.id,
                 project = Util.ellipsis(pair.proj, column_budgets.proj),
+                project_id = spec.project_id,
                 host_port = tostring(spec.host_port),
                 host_port_n = spec.host_port,
                 container_port = tostring(spec.port),
@@ -601,7 +615,9 @@ function M.monitoring(
         if metrics_point then
             table.insert(rows, {
                 name = Util.ellipsis(pair.svc.spec.name, column_budgets.svc),
+                service_id = pair.svc.id,
                 project = Util.ellipsis(pair.proj, column_budgets.proj),
+                project_id = pair.svc.spec.project_id,
                 cpu = string.format("%.1f%%", metrics_point.cpu_percent or 0),
                 mem = Time.format_bytes(metrics_point.mem_used_bytes),
                 rx = Time.format_bytes(metrics_point.net_rx_bytes),

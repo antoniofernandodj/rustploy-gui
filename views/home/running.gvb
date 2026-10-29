@@ -16,10 +16,10 @@ component {
         content = "Projetos e serviços rodando agora — projetos sem serviço no ar não aparecem.",
       )
     }
-  }
 
-  row(class = "page-head__stats page-head__stats--hide-md") {
-    StatCard(label = "SERVIÇOS NO AR", value = @running_count)
+    row(class = "page-head__stats page-head__stats--hide-md") {
+      StatCard(label = "SERVIÇOS NO AR", value = @running_count)
+    }
   }
 
   scrollable(direction = vertical, class = u-fill-all) {

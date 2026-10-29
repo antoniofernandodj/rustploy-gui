@@ -57,10 +57,12 @@ component {
         class = u-fill-all,
       ) {
         tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
-          text(class = "table__cell table__cell--key", content = "@d.service")
+          TableLink(kind = service, id = @d.service_id, label = @d.service)
         }
 
-        tablecolumn(key = project, label = PROJETO, class = table__col-proj)
+        tablecolumn(key = project, label = PROJETO, class = table__col-proj) {
+          TableLink(kind = project, id = @d.project_id, label = @d.project)
+        }
 
         tablecolumn(key = state_label, label = ESTADO, class = table__col-state) {
           StateCell(kind = @d.state_kind, label = @d.state_label)

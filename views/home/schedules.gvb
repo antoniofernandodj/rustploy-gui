@@ -1,6 +1,10 @@
 // Seção `schedules` (view = schedules) das telas globais; importada por home.gvb.
 component {
   resources {
+    style """
+    .schedules__next-run { padding: 0 14 0 0; }
+    """
+
     component(name = SemJobs) {
       text(class = u-muted, content = "Nenhum job cadastrado ainda.")
     }
@@ -63,7 +67,7 @@ component {
         label = "PRÓXIMA EXECUÇÃO",
         class = table__col-dur,
       ) {
-        text(class = u-muted, content = "@j.next_run_at")
+        text(class = "u-muted schedules__next-run", content = "@j.next_run_at")
       }
 
       tablecolumn(label = AQUECIMENTO, class = table__col-state) {

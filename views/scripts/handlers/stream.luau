@@ -21,7 +21,7 @@ local function rebuild_lists(): ()
         return
     end
     local term = State.search_term
-    ctx.deployments = format.deployments(snap.deployments, term)
+    ctx.deployments = format.deployments(snap.deployments, term, State.last_pairs)
     ctx.projects = format.projects(snap.projects, State.last_pairs, term)
     ctx.project_rows =
         format.project_rows(snap.projects, State.last_pairs, term)

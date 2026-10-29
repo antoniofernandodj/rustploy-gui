@@ -22,6 +22,7 @@ component {
 
   resources {
     style """
+    .card__badges    { spacing: 12; }
     .card__stats     { width: fill; spacing: 12; }
     .card__stat      { width: fill; spacing: 4; }
     .card__stat-num  { size: 18; bold: true; color: var(--text-2); }
@@ -42,7 +43,7 @@ component {
         text(class = card__port, content = ":@port")
       }
 
-      row(class = "u-align-y-end") {
+      row(class = "card__badges u-align-y-end") {
         rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
         rp-badge(color = @status_color, label = @status_label)
       }

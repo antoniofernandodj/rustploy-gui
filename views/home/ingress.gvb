@@ -38,7 +38,10 @@ component {
         text(class = "table__cell table__cell--key", content = "@i.domain")
       }
 
-      tablecolumn(key = service, label = "SERVIÇO", class = table__col-proj)
+      tablecolumn(key = service, label = "SERVIÇO", class = table__col-proj) {
+        TableLink(kind = service, id = @i.service_id, label = @i.service)
+      }
+
       tablecolumn(key = upstream, label = UPSTREAM, class = table__col-dur)
 
       tablecolumn(key = tls, label = TLS, class = table__col-start) {
@@ -65,10 +68,12 @@ component {
       width = fill,
     ) {
       tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@hp.service")
+        TableLink(kind = service, id = @hp.service_id, label = @hp.service)
       }
 
-      tablecolumn(key = project, label = PROJETO, class = table__col-proj)
+      tablecolumn(key = project, label = PROJETO, class = table__col-proj) {
+        TableLink(kind = project, id = @hp.project_id, label = @hp.project)
+      }
       tablecolumn(key = host_port, label = "PORTA HOST", class = table__col-dur)
 
       tablecolumn(

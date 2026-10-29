@@ -40,10 +40,12 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = name, label = CONTAINER, class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@m.name")
+        TableLink(kind = service, id = @m.service_id, label = @m.name)
       }
 
-      tablecolumn(key = project, label = PROJETO, class = table__col-proj)
+      tablecolumn(key = project, label = PROJETO, class = table__col-proj) {
+        TableLink(kind = project, id = @m.project_id, label = @m.project)
+      }
       tablecolumn(key = cpu, sort_key = cpu_n, label = CPU, class = table__col-dur)
       tablecolumn(key = mem, sort_key = mem_n, label = MEM, class = table__col-dur)
 
