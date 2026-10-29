@@ -39,7 +39,7 @@ component {
           }
 
           tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
-            text(class = "table__cell table__cell--key", content = "@r.service")
+            TableLink(kind = service, id = @r.service_id, label = @r.service)
           }
 
           tablecolumn(key = project, label = PROJETO, class = table__col-proj)

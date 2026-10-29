@@ -33,7 +33,9 @@ component {
           each @deploy_engine_active as a (fallback = SemDeployAtivo) {
             column(class = u-fill) {
               row(class = table__row) {
-                text(class = "table__cell table__cell--key table__col-svc", content = "@a.service")
+                row(class = table__col-svc) {
+                  TableLink(kind = service, id = @a.service_id, label = @a.service)
+                }
                 text(class = "table__cell table__col-proj", content = "@a.project")
                 StateCell(kind = @a.state_kind, label = @a.state_label)
 

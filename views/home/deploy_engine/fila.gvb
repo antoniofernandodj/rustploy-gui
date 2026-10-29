@@ -49,7 +49,10 @@ component {
         ) {
           row(class = table__row) {
             text(class = env__drag-handle, drag_handle = true, content = "⋮")
-            text(class = "table__cell table__cell--key table__col-svc", content = "@q.pos. @q.service")
+            row(class = table__col-svc, spacing = 6) {
+              text(class = "table__cell table__cell--key", content = "@q.pos.")
+              TableLink(kind = service, id = @q.service_id, label = @q.service)
+            }
             text(class = "table__cell table__col-start", content = "@q.project")
 
             button(

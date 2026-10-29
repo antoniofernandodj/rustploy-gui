@@ -790,6 +790,7 @@ function M.deploy_engine_queued(queued: { any }?): string
         table.insert(rows, {
             deployment_id = info.deployment_id,
             pos = tostring(index),
+            service_id = info.service_id,
             service = Util.ellipsis(info.service_name, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
         })
@@ -811,6 +812,7 @@ function M.deploy_engine_recent(recent: { any }?): string
         end
         table.insert(rows, {
             icon = icon,
+            service_id = info.service_id,
             service = Util.ellipsis(info.service_name, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
             state_label = label,
