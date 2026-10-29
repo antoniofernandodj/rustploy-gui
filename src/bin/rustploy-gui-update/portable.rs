@@ -14,7 +14,14 @@
 //! dentro da pasta que vai ser trocada. O zip e a assinatura têm de estar direto nesse diretório.
 //! O resultado do `swap` vai para `<pasta-do-app>-update\result.json`, que o app reaberto lê.
 
-use std::{fs, io::Read, path::{Path, PathBuf}, process::ExitCode, thread, time::{Duration, Instant}};
+use std::{
+    fs,
+    io::Read,
+    path::{Path, PathBuf},
+    process::ExitCode,
+    thread,
+    time::{Duration, Instant},
+};
 use update_core::signature::{TRUSTED_PUBLIC_KEYS, verify};
 
 /// O que o comentário assinado do zip tem de dizer (`tools/sign-release.sh`).
@@ -39,7 +46,10 @@ pub fn staging_dir(install_dir: &Path) -> PathBuf {
 
 /// Confere a assinatura do zip e o que ela afirma; devolve a versão (a da tag, `0.1.22`).
 pub fn check(
-    install_dir: &Path, zip: &Path, signature: &Path, keys: &[&str]
+    install_dir: &Path,
+    zip: &Path,
+    signature: &Path,
+    keys: &[&str],
 ) -> Result<String, String> {
     let staging = staging_dir(install_dir);
     for file in [zip, signature] {

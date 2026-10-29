@@ -410,7 +410,12 @@ function new_job_create(): ()
         }
     end
 
-    local env_vars, env_comments = Helpers.parse_dotenv(ctx.new_job_env_text)
+    local env_vars, env_comments, env_errors =
+        Helpers.parse_dotenv(ctx.new_job_env_text)
+    if #env_errors > 0 then
+        ctx.new_job_error = Helpers.dotenv_errors_message(env_errors)
+        return
+    end
     local editing = ctx.new_job_edit_id ~= ""
 
     ctx.new_job_message = editing and "salvando…" or "criando…"

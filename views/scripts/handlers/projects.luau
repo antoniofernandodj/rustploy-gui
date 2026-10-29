@@ -288,46 +288,6 @@ local function with_project_env(mutate: (project_env_record: any) -> ()): ()
     end
 end
 
--- Parser .env (KEY=VALUE, # comentário, <secret:nome>) → (env_vars, comments).
--- Comentários pendentes ancoram na próxima var real (before_key); os do fim
--- ficam sem âncora (before_key = nil).
-local function parse_project_dotenv(text: string?): ({ any }, { any })
-    local vars = json.array {}
-    local comments = json.array {}
-    local pending = {}
-    for line in string.gmatch((text or "") .. "\n", "([^\n]*)\n") do
-        local trimmed_line = Helpers.trim(line)
-        if trimmed_line == "" then
-            -- ignora
-        elseif trimmed_line:sub(1, 1) == "#" then
-            table.insert(pending, trimmed_line)
-        else
-            local raw_key, raw_value = trimmed_line:match("^([^=]+)=(.*)$")
-            if raw_key and raw_value then
-                local key = Helpers.trim(raw_key)
-                if key ~= "" then
-                    for _, comment_text in ipairs(pending) do
-                        table.insert(
-                            comments,
-                            { text = comment_text, before_key = key }
-                        )
-                    end
-                    pending = {}
-                    raw_value = Helpers.trim(raw_value)
-                    local secret = Helpers.parse_secret_ref(raw_value)
-                    local value = secret and { Secret = secret }
-                        or { Plain = raw_value }
-                    table.insert(vars, { key = key, value = value })
-                end
-            end
-        end
-    end
-    for _, comment_text in ipairs(pending) do
-        table.insert(comments, { text = comment_text, before_key = nil })
-    end
-    return vars, comments
-end
-
 -- Reordena vars/comments a partir de uma ordem de keys (vars + linhas
 -- `__c<idx>`): cada comentário reancora na primeira var real que o segue.
 local function reorder_project_env(
@@ -399,6 +359,9 @@ function project_env_add(): ()
     --     valor carrega o NOME puro do secret, não o conteúdo;
     --   • `<secret:NOME>`/`secret:NOME` digitado no valor, como no editor
     --     .env.
+    if not Helpers.confirm_env_key(key, ctx.project_env) then
+        return
+    end
     local secret_name: string? = Helpers.parse_secret_ref(raw_value)
     if
         Helpers.is_true(ctx.project_env_new_is_secret)
@@ -487,7 +450,11 @@ function project_env_text_cancel(): ()
 end
 
 function project_env_import(): ()
-    local vars, comments = parse_project_dotenv(ctx.project_env_text)
+    local vars, comments, errors = Helpers.parse_dotenv(ctx.project_env_text)
+    if #errors > 0 then
+        toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        return
+    end
     with_project_env(function(project_env_record: any): ()
         project_env_record.env_vars = vars
         project_env_record.env_comments = comments

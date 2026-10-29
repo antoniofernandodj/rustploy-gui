@@ -30,15 +30,58 @@ function M.parse_secret_ref(text: string?): string?
     return name ~= "" and name or nil
 end
 
--- Parseia um blob .env em (vars, comments). Comentários ancoram na var
+-- Nome de env var aceito: começa com letra ou `_`; o resto são letras,
+-- dígitos, `_`, `.` e `-`. Espelha platform/env_validation.rs no daemon, que é
+-- quem garante de fato; aqui é só para avisar antes de enviar.
+function M.valid_env_key(key: string?): boolean
+    return (key or ""):match("^[%a_][%w_.%-]*$") ~= nil
+end
+
+-- Valida a chave nova antes de gravar: nome inválido avisa e aborta; chave que
+-- já existe pede confirmação (gravar substitui o valor e manda a var pro fim).
+-- `true` = pode seguir.
+function M.confirm_env_key(key: string, existing_json: string?): boolean
+    if not M.valid_env_key(key) then
+        toast {
+            message = 'Nome inválido: "'
+                .. key
+                .. '" — use letras, dígitos e _, sem começar por dígito',
+            kind = "error",
+        }
+        return false
+    end
+    -- `existing_json` é a lista que a tela já exibe (ctx.service_env/project_env).
+    local decode_ok, existing = pcall(json.decode, existing_json or "[]")
+    for _, env_var in
+        ipairs(decode_ok and type(existing) == "table" and existing or {})
+    do
+        if env_var.key == key then
+            return confirm {
+                title = "Sobrescrever variável?",
+                message = key
+                    .. " já existe; o valor atual será substituído.",
+                confirm_label = "Sobrescrever",
+                destructive = false,
+            }
+        end
+    end
+    return true
+end
+
+-- Parseia um blob .env em (vars, comments, errors). Comentários ancoram na var
 -- seguinte (before_key), ou nil no fim. `<secret:NAME>` volta a ser referência
--- de secret. Extraído de handlers/services.luau pra reuso em
--- new_job_window.luau (env vars próprias do job).
-function M.parse_dotenv(text: string?): ({ any }, { any })
+-- de secret. `errors` lista, com o número da linha, o que NÃO pôde ser lido:
+-- linha sem `=`, nome inválido ou chave repetida. Quem chama decide se grava
+-- mesmo assim — hoje nenhum grava com erro, senão a variável sumiria calada.
+function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
     local vars = json.array {}
     local comments = json.array {}
+    local errors = {}
+    local first_line_of = {}
     local pending = {}
+    local line_number = 0
     for line in string.gmatch((text or "") .. "\n", "([^\n]*)\n") do
+        line_number += 1
         local trimmed_line = M.trim(line)
         if trimmed_line == "" then
             -- ignora
@@ -46,29 +89,77 @@ function M.parse_dotenv(text: string?): ({ any }, { any })
             table.insert(pending, trimmed_line)
         else
             local raw_key, raw_value = trimmed_line:match("^([^=]+)=(.*)$")
-            if raw_key and raw_value then
-                local key = M.trim(raw_key)
-                if key ~= "" then
-                    for _, comment_text in ipairs(pending) do
-                        table.insert(
-                            comments,
-                            { text = comment_text, before_key = key }
-                        )
-                    end
-                    pending = {}
-                    raw_value = M.trim(raw_value)
-                    local secret = M.parse_secret_ref(raw_value)
-                    local value = secret and { Secret = secret }
-                        or { Plain = raw_value }
-                    table.insert(vars, { key = key, value = value })
+            local key = raw_key and M.trim(raw_key) or ""
+            if raw_key == nil or raw_value == nil then
+                table.insert(
+                    errors,
+                    string.format(
+                        "linha %d: falta o '=' (%s)",
+                        line_number,
+                        trimmed_line
+                    )
+                )
+            elseif key == "" then
+                table.insert(
+                    errors,
+                    string.format(
+                        "linha %d: falta o nome antes do '='",
+                        line_number
+                    )
+                )
+            elseif not M.valid_env_key(key) then
+                table.insert(
+                    errors,
+                    string.format(
+                        'linha %d: nome inválido "%s"',
+                        line_number,
+                        key
+                    )
+                )
+            elseif first_line_of[key] then
+                table.insert(
+                    errors,
+                    string.format(
+                        "linha %d: %s repetida (já definida na linha %d)",
+                        line_number,
+                        key,
+                        first_line_of[key]
+                    )
+                )
+            else
+                first_line_of[key] = line_number
+                for _, comment_text in ipairs(pending) do
+                    table.insert(
+                        comments,
+                        { text = comment_text, before_key = key }
+                    )
                 end
+                pending = {}
+                raw_value = M.trim(raw_value)
+                local secret = M.parse_secret_ref(raw_value)
+                local value = secret and { Secret = secret }
+                    or { Plain = raw_value }
+                table.insert(vars, { key = key, value = value })
             end
         end
     end
     for _, comment_text in ipairs(pending) do
         table.insert(comments, { text = comment_text, before_key = nil })
     end
-    return vars, comments
+    return vars, comments, errors
+end
+
+-- Resumo de `errors` para um toast: as 3 primeiras e "+N".
+function M.dotenv_errors_message(errors: { string }): string
+    local shown = {}
+    for index = 1, math.min(#errors, 3) do
+        table.insert(shown, errors[index])
+    end
+    local message = table.concat(shown, "\n")
+    if #errors > 3 then
+        message ..= string.format("\n… e mais %d", #errors - 3)
+    end
+    return message
 end
 
 -- URI de callback OAuth que o usuário registra no app do provedor. `base` é a

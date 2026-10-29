@@ -37,7 +37,11 @@ mod helper;
 mod portable;
 
 #[cfg(unix)]
-fn main() -> std::process::ExitCode { helper::run() }
+fn main() -> std::process::ExitCode {
+    helper::run()
+}
 
 #[cfg(windows)]
-fn main() -> std::process::ExitCode { portable::run() }
+fn main() -> std::process::ExitCode {
+    portable::run()
+}

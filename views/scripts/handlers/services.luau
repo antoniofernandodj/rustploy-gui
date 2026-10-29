@@ -1276,6 +1276,9 @@ function env_add(): ()
     -- sensíveis aqui, já que a aba do serviço não tem o toggle "usar secret"
     -- do projeto. O daemon decifra no deploy (deploy/env_resolve.rs).
     local secret = Helpers.parse_secret_ref(raw_value)
+    if not Helpers.confirm_env_key(key, ctx.service_env) then
+        return
+    end
     with_spec(function(spec: any): ()
         local kept = json.array {}
         for _, env_var in ipairs(spec.env_vars or {}) do
@@ -1312,6 +1315,11 @@ end
 
 function env_import(): ()
     local text = ctx.service_env_text or ""
+    local _, _, errors = Helpers.parse_dotenv(text)
+    if #errors > 0 then
+        toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        return
+    end
     with_spec(function(spec: any): ()
         local vars, comments = Helpers.parse_dotenv(text)
         spec.env_vars = vars

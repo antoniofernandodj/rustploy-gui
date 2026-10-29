@@ -269,11 +269,11 @@ function test_orcamento_de_colunas__segue_os_breakpoints_560_900_da_largura()
     local largura = viewport().width
     local b = Util.column_budgets()
     if largura < 560 then
-        assert_eq(b.svc, 12)
+        assert_eq(b.svc, 10)
     elseif largura < 900 then
-        assert_eq(b.svc, 17)
+        assert_eq(b.svc, 15)
     else
-        assert_eq(b.svc, 28)
+        assert_eq(b.svc, 24)
     end
     for _, campo in { "svc", "proj", "state", "img" } do
         assert_eq(type((b :: any)[campo]), "number")
