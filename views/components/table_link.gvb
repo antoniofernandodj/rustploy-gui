@@ -1,5 +1,7 @@
 // Hiperlink de célula de tabela: o nome de um serviço ou de um projeto que
-// abre a tela dele (os mesmos handlers dos cards).
+// abre a tela dele (os mesmos handlers dos cards). O rótulo é um `text`
+// filho porque o `size` do GSS não chega ao texto de um `button` (ficava em
+// 16px e vazava da coluna, que conta caracteres a 13px).
 component {
   props {
     prop(name = kind)
@@ -9,8 +11,8 @@ component {
 
   resources {
     style """
-    .table-link       { color: var(--surface); text-color: var(--accent); size: 13; padding: 0; cursor: pointer; }
-    .table-link:hover { text-color: #A5D6FF; }
+    .table-link       { color: var(--surface); padding: 0; cursor: pointer; }
+    .table-link__label { size: 13; color: var(--accent); }
     """
   }
 
@@ -19,8 +21,11 @@ component {
     equals = service,
     class = table-link,
     on_click = open_service:@id,
-    text = "@label",
-  )
+  ) {
+    text(class = table-link__label, content = "@label")
+  }
 
-  button(else, class = table-link, on_click = open_project:@id, text = "@label")
+  button(else, class = table-link, on_click = open_project:@id) {
+    text(class = table-link__label, content = "@label")
+  }
 }
