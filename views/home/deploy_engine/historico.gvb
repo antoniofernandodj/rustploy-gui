@@ -42,7 +42,9 @@ component {
             TableLink(kind = service, id = @r.service_id, label = @r.service)
           }
 
-          tablecolumn(key = project, label = PROJETO, class = table__col-proj)
+          tablecolumn(key = project, label = PROJETO, class = table__col-proj) {
+            TableLink(kind = project, id = @r.project_id, label = @r.project)
+          }
 
           tablecolumn(key = state_label, label = ESTADO, class = table__col-state) {
             StateCell(kind = @r.state_kind, label = @r.state_label)

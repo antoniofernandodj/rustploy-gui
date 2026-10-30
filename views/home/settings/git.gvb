@@ -131,7 +131,7 @@ component {
         scroll(class = tabs__scroll, direction = horizontal) {
           tabbar(
             :value = git_provider_mode, active = @git_provider_mode, :items = git_provider_modes,
-            tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+            tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14, active_bold = false,
           )
         }
 

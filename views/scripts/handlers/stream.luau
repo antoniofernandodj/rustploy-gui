@@ -240,7 +240,7 @@ local function apply_snapshot(snapshot: any): ()
         ctx.deploy_engine_uptime = format.format_uptime(engine.uptime_secs)
         ctx.deploy_engine_active = format.deploy_engine_active(engine.active)
         M.refresh_deploy_engine_detail(engine.active)
-        ctx.deploy_engine_recent = format.deploy_engine_recent(engine.recent)
+        ctx.deploy_engine_recent = format.deploy_engine_recent(engine.recent, State.last_pairs)
         ctx.deploy_engine_recent_count = tostring(#(engine.recent or {}))
         -- Fila global (um por vez): itens esperando + estado pausado.
         ctx.deploy_engine_queued = format.deploy_engine_queued(engine.queued)

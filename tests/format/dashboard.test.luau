@@ -740,3 +740,15 @@ function test_motor_de_deploy__o_historico_escolhe_o_icone_pelo_resultado()
     assert_eq(linhas[2].start_iso, "")
     assert_eq(linhas[1].elapsed_secs, 75)
 end
+
+--- o histórico leva o id do projeto, achado pelo serviço
+function test_motor_de_deploy__o_historico_leva_o_id_do_projeto()
+    local linhas = json.decode(Dashboard.deploy_engine_recent({
+        info("Live", { service_id = "svc_1" }),
+        info("Live", { service_id = "svc_x" }),
+    }, {
+        { svc = { id = "svc_1", spec = { project_id = "prj_9" } }, proj = "p" },
+    }))
+    assert_eq(linhas[1].project_id, "prj_9")
+    assert_eq(linhas[2].project_id, "")
+end

@@ -799,8 +799,17 @@ function M.deploy_engine_queued(queued: { any }?): string
 end
 
 -- Deploy Engine: "Histórico 24h".
-function M.deploy_engine_recent(recent: { any }?): string
+-- O resumo traz só o id do serviço; o do projeto (link da coluna PROJETO) sai
+-- dos pares.
+function M.deploy_engine_recent(
+    recent: { any }?,
+    service_pairs: { ServicePair }?
+): string
     local column_budgets = Util.column_budgets()
+    local project_by_service = {}
+    for _, pair in ipairs(service_pairs or {}) do
+        project_by_service[pair.svc.id] = pair.svc.spec.project_id
+    end
     local rows = {}
     for _, info in ipairs(recent or {}) do
         local label, _ = Util.state_label_color(info.state)
@@ -815,6 +824,7 @@ function M.deploy_engine_recent(recent: { any }?): string
             service_id = info.service_id,
             service = Util.ellipsis(info.service_name, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
+            project_id = project_by_service[info.service_id] or "",
             state_label = label,
             state_kind = Util.state_kind(info.state),
             duration = Time.format_seconds(info.elapsed_secs),
