@@ -59,6 +59,10 @@
     --green:   #238636;   /* botão primário */
     --ok:      #3FB950;   /* estado ok / sucesso */
     --danger:  #DA3633;   /* botão de perigo */
+    /* Paradas do gradiente leve dos botões preenchidos (topo → base, ~8%). */
+    --green-a:  #2A9142;  --green-b:  #1E7A30;
+    --blue-a:   #2A7BF0;  --blue-b:   #1A60CC;
+    --danger-a: #E5413E;  --danger-b: #C42E2B;
     --error:   #F85149;   /* texto de erro */
     --warn:    #D29922;   /* estado de alerta */
 }
@@ -126,10 +130,11 @@
    --blue) e o tamanho de outro (--sm/--xs/--wide). Os de tamanho vêm DEPOIS
    dos de cor porque o `--ghost` fixa o padding. */
 .btn           { color: var(--border); padding: 11 20; border-radius: 5 }
-.btn--primary  { color: var(--green); }
-.btn--danger   { color: var(--danger); }
+/* `gradient` pinta o fundo do botão (glacier-ui 0.141+); `color` fica de base. */
+.btn--primary  { color: var(--green); gradient: var(--green-a) var(--green-b); }
+.btn--danger   { color: var(--danger); gradient: var(--danger-a) var(--danger-b); }
 .btn--ghost    { color: var(--border); padding: 11 18; }
-.btn--blue     { color: var(--blue); }
+.btn--blue     { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
 .btn--wide     { padding: 11 22; }
 .btn--sm       { padding: 7 13; border-radius: 4; size: 12 }
 .btn--xs       { padding: 5 12; border-radius: 4 }
