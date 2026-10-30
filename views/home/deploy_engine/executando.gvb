@@ -36,7 +36,9 @@ component {
                 row(class = table__col-svc) {
                   TableLink(kind = service, id = @a.service_id, label = @a.service)
                 }
-                text(class = "table__cell table__col-proj", content = "@a.project")
+                row(class = table__col-proj) {
+                  TableLink(kind = project, id = @a.project_id, label = @a.project)
+                }
                 StateCell(kind = @a.state_kind, label = @a.state_label)
 
                 text(class = "u-muted table__col-dur", content = "@a.total")

@@ -760,15 +760,30 @@ function M.deploy_engine_detail_steps(info: any): string
     return Util.encode_array(deploy_stepper(info))
 end
 
+-- O resumo do Deploy Engine traz só o id do serviço; o do projeto (link da
+-- coluna PROJETO) sai dos pares.
+local function project_by_service_id(service_pairs: { ServicePair }?): { [string]: string }
+    local map = {}
+    for _, pair in ipairs(service_pairs or {}) do
+        map[pair.svc.id] = pair.svc.spec.project_id
+    end
+    return map
+end
+
 -- Deploy Engine: "Executando agora".
-function M.deploy_engine_active(active: { any }?): string
+function M.deploy_engine_active(
+    active: { any }?,
+    service_pairs: { ServicePair }?
+): string
     local column_budgets = Util.column_budgets()
+    local project_by_service = project_by_service_id(service_pairs)
     local rows = {}
     for _, info in ipairs(active or {}) do
         local label, _ = Util.state_label_color(info.state)
         table.insert(rows, {
             service = Util.ellipsis(info.service_name, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
+            project_id = project_by_service[info.service_id] or "",
             state_label = label,
             state_kind = Util.state_kind(info.state),
             steps = deploy_stepper(info),
@@ -783,8 +798,12 @@ end
 
 -- Deploy Engine: "Na fila" (deploys esperando; o primeiro é o próximo a
 -- rodar). Inclui deployment_id (para cancelar/promover) e uma posição 1-based.
-function M.deploy_engine_queued(queued: { any }?): string
+function M.deploy_engine_queued(
+    queued: { any }?,
+    service_pairs: { ServicePair }?
+): string
     local column_budgets = Util.column_budgets()
+    local project_by_service = project_by_service_id(service_pairs)
     local rows = {}
     for index, info in ipairs(queued or {}) do
         table.insert(rows, {
@@ -793,23 +812,19 @@ function M.deploy_engine_queued(queued: { any }?): string
             service_id = info.service_id,
             service = Util.ellipsis(info.service_name, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
+            project_id = project_by_service[info.service_id] or "",
         })
     end
     return Util.encode_array(rows)
 end
 
 -- Deploy Engine: "Histórico 24h".
--- O resumo traz só o id do serviço; o do projeto (link da coluna PROJETO) sai
--- dos pares.
 function M.deploy_engine_recent(
     recent: { any }?,
     service_pairs: { ServicePair }?
 ): string
     local column_budgets = Util.column_budgets()
-    local project_by_service = {}
-    for _, pair in ipairs(service_pairs or {}) do
-        project_by_service[pair.svc.id] = pair.svc.spec.project_id
-    end
+    local project_by_service = project_by_service_id(service_pairs)
     local rows = {}
     for _, info in ipairs(recent or {}) do
         local label, _ = Util.state_label_color(info.state)

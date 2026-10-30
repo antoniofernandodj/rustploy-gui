@@ -752,3 +752,24 @@ function test_motor_de_deploy__o_historico_leva_o_id_do_projeto()
     assert_eq(linhas[1].project_id, "prj_9")
     assert_eq(linhas[2].project_id, "")
 end
+
+--- ativos e fila levam o id do projeto, achado pelo serviço
+function test_motor_de_deploy__ativos_e_fila_levam_o_id_do_projeto()
+    local pares = {
+        { svc = { id = "svc_1", spec = { project_id = "prj_9" } }, proj = "p" },
+    }
+    local ativos = json.decode(
+        Dashboard.deploy_engine_active(
+            { info("BuildingImage", { service_id = "svc_1" }) },
+            pares
+        )
+    )
+    local fila = json.decode(
+        Dashboard.deploy_engine_queued(
+            { info("Queued", { service_id = "svc_1" }) },
+            pares
+        )
+    )
+    assert_eq(ativos[1].project_id, "prj_9")
+    assert_eq(fila[1].project_id, "prj_9")
+end

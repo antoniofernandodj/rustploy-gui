@@ -53,7 +53,9 @@ component {
               text(class = "table__cell table__cell--key", content = "@q.pos.")
               TableLink(kind = service, id = @q.service_id, label = @q.service)
             }
-            text(class = "table__cell table__col-start", content = "@q.project")
+            row(class = table__col-start) {
+              TableLink(kind = project, id = @q.project_id, label = @q.project)
+            }
 
             button(
               class = "btn btn--ghost btn--xs",
