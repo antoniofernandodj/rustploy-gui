@@ -20,8 +20,8 @@ screen(title = "Novo token — Rustploy") {
   column(class = dialog__screen) {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
-        text(class = titlebar__dot, content = "●")
-        text(class = titlebar__title, content = "Novo token — Rustploy")
+        text("●", class = titlebar__dot)
+        text("Novo token — Rustploy", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -32,11 +32,11 @@ screen(title = "Novo token — Rustploy") {
       column(class = form-panel) {
         // Passo 1: formulário
         if @new_registry_token_step == "form" {
-          text(class = u-label-cap, content = "NOVO TOKEN DE ACESSO (BASIC AUTH)")
+          text("NOVO TOKEN DE ACESSO (BASIC AUTH)", class = u-label-cap)
 
           text(
+            "Usado em `docker login`/push/pull contra o registry embutido.",
             class = u-muted,
-            content = "Usado em `docker login`/push/pull contra o registry embutido.",
           )
 
           form(
@@ -46,7 +46,7 @@ screen(title = "Novo token — Rustploy") {
             width = fill,
             spacing = 10,
           ) {
-            text(class = field__label, content = "NOME")
+            text("NOME", class = field__label)
 
             input(
               class = dialog__input,
@@ -57,13 +57,13 @@ screen(title = "Novo token — Rustploy") {
             )
 
             text(
+              "@error_new_registry_token_name",
               class = u-error,
               if = @error_new_registry_token_name,
               not_empty,
-              content = "@error_new_registry_token_name",
             )
 
-            text(class = u-label-cap, content = "ESCOPO")
+            text("ESCOPO", class = u-label-cap)
 
             scroll(class = tabs__scroll, direction = horizontal) {
               tabbar(
@@ -73,15 +73,15 @@ screen(title = "Novo token — Rustploy") {
             }
 
             text(
+              "@new_registry_token_error",
               if = @new_registry_token_error,
               not_equals = "",
               class = u-error,
-              content = "@new_registry_token_error",
             )
 
             row(class = busy-row, if = @new_registry_token_message, not_equals = "") {
               spinner(class = busy-row__spin, if = @new_registry_token_busy)
-              text(class = u-muted, content = "@new_registry_token_message")
+              text("@new_registry_token_message", class = u-muted)
             }
 
             row(class = dialog__actions) {
@@ -100,18 +100,18 @@ screen(title = "Novo token — Rustploy") {
 
         // Passo 2: segredo exibido uma única vez
         if @new_registry_token_step == "reveal" {
-          text(class = u-label-cap, content = "TOKEN CRIADO — COPIE AGORA")
+          text("TOKEN CRIADO — COPIE AGORA", class = u-label-cap)
 
           text(
-            class = u-error,
-            content = """
+            """
               O segredo não pode ser recuperado depois de fechar esta janela.
             """,
+            class = u-error,
           )
 
           column(class = dialog__secret) {
-            text(class = field__label, content = "COMANDO DOCKER LOGIN")
-            text(class = "kv-list__val kv-list__val--compact", content = "@new_registry_token_login_command")
+            text("COMANDO DOCKER LOGIN", class = field__label)
+            text("@new_registry_token_login_command", class = "kv-list__val kv-list__val--compact")
 
             row(class = dialog__actions) {
               column(class = u-fill)

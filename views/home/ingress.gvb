@@ -3,19 +3,19 @@ component {
   resources {
     component(name = SemPortasDeHost) {
       text(
+        "Nenhum serviço com porta de host configurada.",
         class = u-muted,
-        content = "Nenhum serviço com porta de host configurada.",
       )
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Ingress")
+      text("Ingress", class = page-head__title)
 
       text(
+        "Active routes in the reverse proxy.",
         class = page-head__subtitle,
-        content = "Active routes in the reverse proxy.",
       )
     }
 
@@ -35,7 +35,7 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = domain, label = "DOMÍNIO", class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@i.domain")
+        text("@i.domain", class = "table__cell table__cell--key")
       }
 
       tablecolumn(key = service, label = "SERVIÇO", class = table__col-proj) {
@@ -45,7 +45,7 @@ component {
       tablecolumn(key = upstream, label = UPSTREAM, class = table__col-dur)
 
       tablecolumn(key = tls, label = TLS, class = table__col-start) {
-        text(class = u-muted, content = "@i.tls")
+        text("@i.tls", class = u-muted)
       }
 
       if @data_loading == "true" {
@@ -54,8 +54,8 @@ component {
     }
 
     text(
+      "PORTAS TCP DE HOST (@host_ports_count)",
       class = u-label-cap,
-      content = "PORTAS TCP DE HOST (@host_ports_count)",
     )
 
     // Sem `height`: a lista é curta e cresce com a página, sem rolagem própria.
@@ -81,7 +81,7 @@ component {
         label = "PORTA CONTAINER",
         class = table__col-start,
       ) {
-        text(class = u-muted, content = "@hp.container_port")
+        text("@hp.container_port", class = u-muted)
       }
 
       SemPortasDeHost

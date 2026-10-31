@@ -2,15 +2,15 @@
 component {
   resources {
     component(name = SemContasGit) {
-      text(class = u-muted, content = "Nenhuma conta Git conectada ainda.")
+      text("Nenhuma conta Git conectada ainda.", class = u-muted)
     }
   }
 
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
       text(
+        "CONTAS CONECTADAS (@gitea_count)",
         class = u-label-cap,
-        content = "CONTAS CONECTADAS (@gitea_count)",
       )
 
       column(class = kv-list) {
@@ -21,11 +21,11 @@ component {
         ) {
           row(class = kv-list__row) {
             column(class = page-head__titles) {
-              text(class = env__key, content = "@p.name")
+              text("@p.name", class = env__key)
 
               text(
+                "@p.kind · @p.base_url · @p.auth_mode · @p.account",
                 class = u-muted,
-                content = "@p.kind · @p.base_url · @p.auth_mode · @p.account",
               )
             }
 
@@ -40,7 +40,7 @@ component {
       }
 
       hr
-      text(class = u-label-cap, content = "CONECTAR CONTA GIT")
+      text("CONECTAR CONTA GIT", class = u-label-cap)
 
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
@@ -63,10 +63,10 @@ component {
       }
 
       text(
+        "@git_provider_message",
         if = @git_provider_message,
         not_equals = "",
         class = u-muted,
-        content = "@git_provider_message",
       )
 
       button(
@@ -85,7 +85,7 @@ component {
       ) {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
-            text(class = u-label-cap, content = "NOME")
+            text("NOME", class = u-label-cap)
 
             input(
               placeholder = "Meu Gitea",
@@ -96,15 +96,15 @@ component {
             )
 
             text(
+              "@error_git_provider_name",
               if = @error_git_provider_name,
               not_equals = "",
               class = u-error,
-              content = "@error_git_provider_name",
             )
           }
 
           column(class = healthcheck__field) {
-            text(class = u-label-cap, content = "BASE URL")
+            text("BASE URL", class = u-label-cap)
 
             input(
               placeholder = "https://gitea.exemplo.com",
@@ -115,18 +115,18 @@ component {
             )
 
             text(
-              if = @git_provider_kind,
-              equals = github,
-              class = u-muted,
-              content = """
+              """
                 Deixe vazio para github.com. Só preencha para GitHub
                 Enterprise Server (ex.: https://ghe.suaempresa.com).
               """,
+              if = @git_provider_kind,
+              equals = github,
+              class = u-muted,
             )
           }
         }
 
-        text(class = u-label-cap, content = "MÉTODO")
+        text("MÉTODO", class = u-label-cap)
 
         scroll(class = tabs__scroll, direction = horizontal) {
           tabbar(
@@ -137,7 +137,7 @@ component {
 
         // OAuth2
         if @git_provider_mode != "pat" {
-          text(class = u-label-cap, content = "CLIENT ID")
+          text("CLIENT ID", class = u-label-cap)
 
           input(
             placeholder = "",
@@ -147,7 +147,7 @@ component {
             on_change = field:git_provider_client_id,
           )
 
-          text(class = u-label-cap, content = "CLIENT SECRET")
+          text("CLIENT SECRET", class = u-label-cap)
 
           input(
             placeholder = "",
@@ -159,12 +159,12 @@ component {
           )
 
           text(
+            "REDIRECT URI (cole no app OAuth do provedor)",
             class = u-label-cap,
-            content = "REDIRECT URI (cole no app OAuth do provedor)",
           )
 
           row(class = kv-list__row) {
-            text(class = "kv-list__val kv-list__val--compact", content = "@git_provider_redirect")
+            text("@git_provider_redirect", class = "kv-list__val kv-list__val--compact")
 
             button(
               class = "btn btn--ghost btn--xs",
@@ -174,30 +174,30 @@ component {
           }
 
           text(
-            if = @git_provider_kind,
-            not_equals = github,
-            class = u-muted,
-            content = """
+            """
               No Gitea: Settings → Applications → crie um OAuth2 app e
               cole a Redirect URI acima.
             """,
+            if = @git_provider_kind,
+            not_equals = github,
+            class = u-muted,
           )
 
           text(
-            if = @git_provider_kind,
-            equals = github,
-            class = u-muted,
-            content = """
+            """
               No GitHub: Settings → Developer settings → OAuth Apps → New
               OAuth App e cole a Redirect URI acima em "Authorization
               callback URL".
             """,
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
           )
         }
 
         // PAT
         if @git_provider_mode == "pat" {
-          text(class = u-label-cap, content = "PERSONAL ACCESS TOKEN")
+          text("PERSONAL ACCESS TOKEN", class = u-label-cap)
 
           input(
             placeholder = "",
@@ -209,23 +209,23 @@ component {
           )
 
           text(
-            if = @git_provider_kind,
-            not_equals = github,
-            class = u-muted,
-            content = """
+            """
               No Gitea: Settings → Applications → Generate New Token
               (escopo: repo).
             """,
+            if = @git_provider_kind,
+            not_equals = github,
+            class = u-muted,
           )
 
           text(
-            if = @git_provider_kind,
-            equals = github,
-            class = u-muted,
-            content = """
+            """
               No GitHub: Settings → Developer settings → Personal access
               tokens → gere um token com escopo "repo".
             """,
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
           )
         }
 

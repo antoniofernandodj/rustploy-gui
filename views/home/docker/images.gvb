@@ -3,13 +3,13 @@
 component {
   resources {
     component(name = SemImagens) {
-      text(class = u-muted, content = "Nenhuma imagem.")
+      text("Nenhuma imagem.", class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
-      text(class = "u-muted u-fill", content = "@docker_images_count imagem(ns)")
+      text("@docker_images_count imagem(ns)", class = "u-muted u-fill")
 
       // O filtro mora em format.docker_images (a tableview desenha toda linha
       // que recebe): o toggle grava a chave e remonta a lista.
@@ -34,10 +34,10 @@ component {
     }
 
     text(
+      "@docker_message",
       if = @docker_message,
       not_equals = "",
       class = u-muted,
-      content = "@docker_message",
     )
 
     tableview(
@@ -49,7 +49,7 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = tags, label = TAGS, class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@i.tags")
+        text("@i.tags", class = "table__cell table__cell--key")
       }
 
       tablecolumn(key = owner, label = "PROJETO / SERVIÇO", class = table__col-proj)
@@ -60,7 +60,7 @@ component {
         label = TAMANHO,
         class = table__col-dur,
       ) {
-        text(class = u-muted, content = "@i.size")
+        text("@i.size", class = u-muted)
       }
 
       tablecolumn(
@@ -69,7 +69,7 @@ component {
         label = CRIADA,
         class = table__col-dur,
       ) {
-        text(class = u-muted, content = "@i.created")
+        text("@i.created", class = u-muted)
       }
 
       tablecolumn(key = in_use_label, label = USO, class = table__col-state) {

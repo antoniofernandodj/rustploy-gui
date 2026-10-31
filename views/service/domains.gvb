@@ -3,18 +3,18 @@
 component {
   resources {
     component(name = SemDominios) {
-      text(class = u-muted, content = "Nenhum domínio configurado.")
+      text("Nenhum domínio configurado.", class = u-muted)
     }
   }
 
   column(class = form-panel) {
-    text(class = u-label-cap, content = "DOMÍNIOS (@service_domains_count)")
+    text("DOMÍNIOS (@service_domains_count)", class = u-label-cap)
 
     text(
-      class = u-muted,
-      content = """
+      """
         Cada domínio pode apontar para uma porta de container diferente.
       """,
+      class = u-muted,
     )
 
     scrollable(direction = vertical, class = u-fill-all) {
@@ -29,15 +29,15 @@ component {
             )
 
             text(class = env__sep)
-            text(class = env__key, content = "@d.domain")
-            text(class = "kv-list__val kv-list__val--compact", content = "→ @d.port")
-            text(class = u-muted, content = "@d.tls_label")
+            text("@d.domain", class = env__key)
+            text("→ @d.port", class = "kv-list__val kv-list__val--compact")
+            text("@d.tls_label", class = u-muted)
           }
         }
       }
     }
 
-    text(class = u-label-cap, content = "ADICIONAR DOMÍNIO")
+    text("ADICIONAR DOMÍNIO", class = u-label-cap)
 
     input(
       class = field__input,
@@ -48,13 +48,13 @@ component {
     )
 
     text(
+      "@error_service_form_domain",
       if = @error_service_form_domain,
       not_equals = "",
       class = u-error,
-      content = "@error_service_form_domain",
     )
 
-    text(class = u-label-cap, content = "PORTA DO CONTAINER (opcional)")
+    text("PORTA DO CONTAINER (opcional)", class = u-label-cap)
 
     input(
       class = field__input,
@@ -65,10 +65,10 @@ component {
     )
 
     text(
+      "@error_service_form_port",
       if = @error_service_form_port,
       not_equals = "",
       class = u-error,
-      content = "@error_service_form_port",
     )
 
     toggle(
@@ -85,12 +85,12 @@ component {
         text = "Adicionar domínio",
       )
 
-      text(class = u-muted, content = "@service_action_message")
+      text("@service_action_message", class = u-muted)
     }
 
     text(
+      "PORTA TCP DO HOST (passthrough, opcional)",
       class = u-label-cap,
-      content = "PORTA TCP DO HOST (passthrough, opcional)",
     )
 
     input(
@@ -102,10 +102,10 @@ component {
     )
 
     text(
+      "@error_service_form_host_port",
       if = @error_service_form_host_port,
       not_equals = "",
       class = u-error,
-      content = "@error_service_form_host_port",
     )
 
     row(class = env__add) {
@@ -125,10 +125,10 @@ component {
     }
 
     text(
-      class = u-muted,
-      content = """
+      """
         "Automática" aloca uma porta livre e a libera no firewall do host.
       """,
+      class = u-muted,
     )
   }
 }

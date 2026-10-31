@@ -15,8 +15,8 @@ screen(title = "Novo projeto — Rustploy") {
   column(class = dialog__screen) {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
-        text(class = titlebar__dot, content = "●")
-        text(class = titlebar__title, content = "Novo projeto — Rustploy")
+        text("●", class = titlebar__dot)
+        text("Novo projeto — Rustploy", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -25,11 +25,11 @@ screen(title = "Novo projeto — Rustploy") {
 
     column(class = dialog__wrap) {
       column(class = dialog__head) {
-        text(class = dialog__title, content = "Novo projeto")
+        text("Novo projeto", class = dialog__title)
 
         text(
+          "Cadastre um projeto no cluster conectado.",
           class = u-muted,
-          content = "Cadastre um projeto no cluster conectado.",
         )
       }
 
@@ -41,7 +41,7 @@ screen(title = "Novo projeto — Rustploy") {
         spacing = 14,
       ) {
         column(class = field) {
-          text(class = field__label, content = "NOME")
+          text("NOME", class = field__label)
 
           input(
             class = dialog__input,
@@ -52,15 +52,15 @@ screen(title = "Novo projeto — Rustploy") {
           )
 
           text(
+            "@error_new_project_name",
             class = u-error,
             if = @error_new_project_name,
             not_empty,
-            content = "@error_new_project_name",
           )
         }
 
         column(class = field) {
-          text(class = field__label, content = "DESCRIÇÃO (OPCIONAL)")
+          text("DESCRIÇÃO (OPCIONAL)", class = field__label)
 
           input(
             class = dialog__input,
@@ -71,11 +71,11 @@ screen(title = "Novo projeto — Rustploy") {
 
         // Erros de rede/RPC (não de campo) e o status "criando…" — spinner
         // enquanto o RPC está no ar ({new_project_busy}).
-        text(if = @new_project_error, not_equals = "", class = u-error, content = "@new_project_error")
+        text("@new_project_error", if = @new_project_error, not_equals = "", class = u-error)
 
         row(class = busy-row, if = @new_project_message, not_equals = "") {
           spinner(class = busy-row__spin, if = @new_project_busy)
-          text(class = u-muted, content = "@new_project_message")
+          text("@new_project_message", class = u-muted)
         }
 
         row(class = dialog__actions) {

@@ -3,8 +3,8 @@ component {
   resources {
     component(name = SemDeployRecente) {
       text(
+        "Nenhum deploy concluído nas últimas 24h.",
         class = empty-state,
-        content = "Nenhum deploy concluído nas últimas 24h.",
       )
     }
   }
@@ -14,8 +14,8 @@ component {
   column(class = "section section--fill") {
     row(class = section__head) {
       text(
+        "HISTÓRICO 24H (@deploy_engine_recent_count)",
         class = section__title,
-        content = "HISTÓRICO 24H (@deploy_engine_recent_count)",
       )
     }
 
@@ -35,7 +35,7 @@ component {
           class = u-fill-all,
         ) {
           tablecolumn(label = " ", class = table__col-icon) {
-            text(class = table__cell, content = "@r.icon")
+            text("@r.icon", class = table__cell)
           }
 
           tablecolumn(key = service, label = "SERVIÇO", class = table__col-svc) {
@@ -56,7 +56,7 @@ component {
             label = "DURAÇÃO",
             class = table__col-dur,
           ) {
-            text(class = u-muted, content = "@r.duration")
+            text("@r.duration", class = u-muted)
           }
 
           tablecolumn(
@@ -65,7 +65,7 @@ component {
             label = "INÍCIO",
             class = table__col-start,
           ) {
-            text(class = u-muted, content = "@r.start")
+            text("@r.start", class = u-muted)
           }
         }
       }

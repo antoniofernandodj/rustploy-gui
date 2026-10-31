@@ -2,18 +2,18 @@
 component {
   resources {
     component(name = SemVariaveis) {
-      text(class = u-muted, content = "Nenhuma variável.")
+      text("Nenhuma variável.", class = u-muted)
     }
   }
 
   column(class = env, if = @project_loading, not_equals = true) {
     row(class = env__head) {
       text(
-        class = "u-muted u-fill",
-        content = """
+        """
           Herdadas por todos os serviços deste projeto no deploy — as
           do serviço têm precedência.
         """,
+        class = "u-muted u-fill",
       )
 
       button(
@@ -23,7 +23,7 @@ component {
         text = Exportar,
       )
 
-      text(content = " ")
+      text(" ")
 
       if @project_env_text_open == "true" {
         button(
@@ -71,14 +71,14 @@ component {
         }
 
         text(
+          "Nenhum secret cadastrado — crie um na aba Secrets.",
           if = @project_secrets,
           empty = "",
           class = u-muted,
-          content = "Nenhum secret cadastrado — crie um na aba Secrets.",
         )
 
         row(class = env__add, if = @project_secrets, not_empty) {
-          text(class = u-muted, content = "Secrets do projeto: ")
+          text("Secrets do projeto: ", class = u-muted)
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -112,10 +112,10 @@ component {
     }
 
     text(
+      "@error_project_env_new_key",
       class = u-error,
       if = @error_project_env_new_key,
       not_empty,
-      content = "@error_project_env_new_key",
     )
 
     scrollable(direction = vertical, class = u-fill-all) {
@@ -131,19 +131,19 @@ component {
             if @e.kind == "comment" {
               row(class = "kv-list__row kv-list__row--dragging") {
                 text(
+                  "⋮ ",
                   class = "env__drag-handle env__drag-handle--dragging",
                   drag_handle = true,
-                  content = "⋮ ",
                 )
 
-                text(class = u-muted, content = "@e.value")
+                text("@e.value", class = u-muted)
               }
             } else {
               row(class = "kv-list__row kv-list__row--dragging") {
                 text(
+                  "⋮ ",
                   class = "env__drag-handle env__drag-handle--dragging",
                   drag_handle = true,
-                  content = "⋮ ",
                 )
 
                 button(
@@ -154,27 +154,27 @@ component {
                 )
 
                 text(class = env__sep)
-                text(class = env__key, content = "@e.key_display")
-                text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
+                text("@e.key_display", class = env__key)
+                text("@e.value", class = "kv-list__val kv-list__val--compact")
               }
             }
           } else {
             if @e.kind == "comment" {
               row(class = kv-list__row) {
                 text(
+                  "⋮ ",
                   class = env__drag-handle,
                   drag_handle = true,
-                  content = "⋮ ",
                 )
 
-                text(class = u-muted, content = "@e.value")
+                text("@e.value", class = u-muted)
               }
             } else {
               row(class = kv-list__row) {
                 text(
+                  "⋮ ",
                   class = env__drag-handle,
                   drag_handle = true,
-                  content = "⋮ ",
                 )
 
                 button(
@@ -185,8 +185,8 @@ component {
                 )
 
                 text(class = env__sep)
-                text(class = env__key, content = "@e.key_display")
-                text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
+                text("@e.key_display", class = env__key)
+                text("@e.value", class = "kv-list__val kv-list__val--compact")
               }
             }
           }
@@ -194,8 +194,8 @@ component {
 
         if @project_env_text_open == "true" {
           text(
+            "Cole/edite no formato KEY=VALUE (# comentário).",
             class = u-muted,
-            content = "Cole/edite no formato KEY=VALUE (# comentário).",
           )
 
           textarea(

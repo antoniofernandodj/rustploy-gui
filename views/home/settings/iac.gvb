@@ -4,15 +4,15 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      text(class = u-label-cap, content = "EXPORTAR")
+      text("EXPORTAR", class = u-label-cap)
 
       text(
-        class = u-muted,
-        content = """
+        """
           Gera um `.zip` com rustploy.yml + rustploy.vars.toml no lugar
           que você escolher. Os valores das env vars ficam só no TOML;
           secrets nunca saem do daemon.
         """,
+        class = u-muted,
       )
 
       row(class = busy-row) {
@@ -24,15 +24,14 @@ component {
         )
 
         spinner(class = busy-row__spin, if = @manifest_busy)
-        text(class = u-muted, content = "@manifest_export_message")
+        text("@manifest_export_message", class = u-muted)
       }
 
       hr
-      text(class = u-label-cap, content = "IMPORTAR")
+      text("IMPORTAR", class = u-label-cap)
 
       text(
-        class = u-muted,
-        content = """
+        """
           Escolha o `.zip` do manifesto (o mesmo que o Exportar gera). Ele
           precisa ter exatamente um .yml e um .toml na raiz — nada mais,
           ou o import é recusado. Falta o valor de alguma variável usada
@@ -40,6 +39,7 @@ component {
           faltante vem rotulada com o escopo, ex. "Chiquitos/api:
           APP_PORT").
         """,
+        class = u-muted,
       )
 
       row(class = env__add) {
@@ -67,22 +67,22 @@ component {
         )
 
         spinner(class = busy-row__spin, if = @manifest_busy)
-        text(class = u-muted, content = "@manifest_import_message")
+        text("@manifest_import_message", class = u-muted)
       }
 
       if @manifest_has_missing == "true" {
         text(
+          "Variáveis sem valor no TOML: @manifest_missing_vars",
           class = u-error,
-          content = "Variáveis sem valor no TOML: @manifest_missing_vars",
         )
       }
 
       if @manifest_has_report == "true" {
-        text(class = u-label-cap, content = "RESULTADO")
+        text("RESULTADO", class = u-label-cap)
 
         column(class = kv-list) {
           row(class = kv-list__row, :for-each = manifest_report_lines, var = l) {
-            text(class = u-muted, content = "@l")
+            text("@l", class = u-muted)
           }
         }
       }

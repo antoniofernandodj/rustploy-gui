@@ -4,21 +4,21 @@ component {
     // Vazio das listas Docker/Monitoring e dos repositórios do registry.
     component(name = SemMetricas) {
       text(
-        class = u-muted,
-        content = """
+        """
           Nenhuma métrica ainda — aguardando o primeiro container em execução.
         """,
+        class = u-muted,
       )
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Monitoring")
+      text("Monitoring", class = page-head__title)
 
       text(
+        "Host and per-container resource usage.",
         class = page-head__subtitle,
-        content = "Host and per-container resource usage.",
       )
     }
   }
@@ -50,11 +50,11 @@ component {
       tablecolumn(key = mem, sort_key = mem_n, label = MEM, class = table__col-dur)
 
       tablecolumn(key = rx, sort_key = rx_n, label = RX, class = table__col-dur) {
-        text(class = u-muted, content = "@m.rx")
+        text("@m.rx", class = u-muted)
       }
 
       tablecolumn(key = tx, sort_key = tx_n, label = TX, class = table__col-start) {
-        text(class = u-muted, content = "@m.tx")
+        text("@m.tx", class = u-muted)
       }
 
       if @data_loading == "true" {

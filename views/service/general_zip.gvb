@@ -1,6 +1,6 @@
 // Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.gvb.
 component {
-  text(class = u-label-cap, content = "ZIP DOCKERFILE")
+  text("ZIP DOCKERFILE", class = u-label-cap)
 
   input(
     class = field__input,
@@ -11,17 +11,17 @@ component {
   )
 
   text(
-    class = u-muted,
-    content = """
+    """
       O zip deve conter um Dockerfile na raiz. Depois do envio,
       o deploy normal usa os arquivos descompactados pelo
       daemon.
     """,
+    class = u-muted,
   )
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "PORT")
+      text("PORT", class = u-label-cap)
 
       input(
         class = field__input,
@@ -33,8 +33,8 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "STATUS")
-      text(class = u-muted, content = "@service_action_message")
+      text("STATUS", class = u-label-cap)
+      text("@service_action_message", class = u-muted)
     }
   }
 

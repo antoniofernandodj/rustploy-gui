@@ -3,15 +3,15 @@ component {
   resources {
     // Estado vazio da lista de containers (`fallback` do <foreach>).
     component(name = SemContainers) {
-      text(class = u-muted, content = "Nenhum container em execução.")
+      text("Nenhum container em execução.", class = u-muted)
     }
   }
 
   column(class = kv-list) {
     row(class = kv-list__row) {
-      text(class = kv-list__key, content = "Container port")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_port")
-      text(content = " ")
+      text("Container port", class = kv-list__key)
+      text("@service_port", class = "kv-list__val kv-list__val--compact")
+      text(" ")
 
       button(
         class = "btn btn--ghost btn--xs",
@@ -21,9 +21,9 @@ component {
     }
 
     row(class = kv-list__row) {
-      text(class = kv-list__key, content = "Host port")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_host_port")
-      text(content = " ")
+      text("Host port", class = kv-list__key)
+      text("@service_host_port", class = "kv-list__val kv-list__val--compact")
+      text(" ")
 
       button(
         class = "btn btn--ghost btn--xs",
@@ -33,9 +33,9 @@ component {
     }
 
     row(class = kv-list__row) {
-      text(class = kv-list__key, content = "Domain")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_domain")
-      text(content = " ")
+      text("Domain", class = kv-list__key)
+      text("@service_domain", class = "kv-list__val kv-list__val--compact")
+      text(" ")
 
       button(
         class = "btn btn--ghost btn--xs",
@@ -45,14 +45,14 @@ component {
     }
 
     row(class = kv-list__row) {
-      text(class = kv-list__key, content = "TLS")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_tls")
+      text("TLS", class = kv-list__key)
+      text("@service_tls", class = "kv-list__val kv-list__val--compact")
     }
 
     row(class = kv-list__row) {
-      text(class = kv-list__key, content = "External URL")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_external_url_short")
-      text(content = " ")
+      text("External URL", class = kv-list__key)
+      text("@service_external_url_short", class = "kv-list__val kv-list__val--compact")
+      text(" ")
 
       button(
         class = "btn btn--ghost btn--xs",
@@ -62,9 +62,9 @@ component {
     }
 
     row(class = kv-list__row) {
-      text(class = kv-list__key, content = "Internal URL")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_internal_url_short")
-      text(content = " ")
+      text("Internal URL", class = kv-list__key)
+      text("@service_internal_url_short", class = "kv-list__val kv-list__val--compact")
+      text(" ")
 
       button(
         class = "btn btn--ghost btn--xs",
@@ -74,8 +74,8 @@ component {
     }
 
     row(class = kv-list__row, if = @service_can_share, equals = true) {
-      text(class = kv-list__key, content = "Compartilhado")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_shared")
+      text("Compartilhado", class = kv-list__key)
+      text("@service_shared", class = "kv-list__val kv-list__val--compact")
 
       if @service_shared == "false" {
         button(
@@ -97,25 +97,25 @@ component {
     }
 
     row(class = kv-list__row, if = @service_database_kind, not_equals = "—") {
-      text(class = kv-list__key, content = "Tipo")
-      text(class = "kv-list__val kv-list__val--compact", content = "@service_database_kind")
+      text("Tipo", class = kv-list__key)
+      text("@service_database_kind", class = "kv-list__val kv-list__val--compact")
     }
 
     // Containers reais em execução para este serviço (id + nome + estado).
     hr
 
     text(
+      "CONTAINERS (@service_containers_count)",
       class = u-label-cap,
-      content = "CONTAINERS (@service_containers_count)",
     )
 
     each @service_containers as c (fallback = SemContainers) {
       row(class = kv-list__row) {
         rp-badge(color = @c.state_color, label = @c.state)
-        text(class = "kv-list__val kv-list__val--compact", content = "  ")
-        text(class = "kv-list__val kv-list__val--compact", content = "@c.name")
-        text(class = "kv-list__val kv-list__val--compact", content = "  ")
-        text(class = u-muted, content = "@c.id_short")
+        text("  ", class = "kv-list__val kv-list__val--compact")
+        text("@c.name", class = "kv-list__val kv-list__val--compact")
+        text("  ", class = "kv-list__val kv-list__val--compact")
+        text("@c.id_short", class = u-muted)
       }
     }
   }

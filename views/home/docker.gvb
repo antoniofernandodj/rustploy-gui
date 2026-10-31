@@ -10,11 +10,11 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Runtime")
+      text("Runtime", class = page-head__title)
 
       text(
+        "Containers, imagens, volumes e networks do host.",
         class = page-head__subtitle,
-        content = "Containers, imagens, volumes e networks do host.",
       )
     }
 

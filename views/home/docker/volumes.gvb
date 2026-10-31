@@ -3,13 +3,13 @@
 component {
   resources {
     component(name = SemVolumes) {
-      text(class = u-muted, content = "Nenhum volume.")
+      text("Nenhum volume.", class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
-      text(class = "u-muted u-fill", content = "@docker_volumes_count volume(s)")
+      text("@docker_volumes_count volume(s)", class = "u-muted u-fill")
 
       // O filtro mora em format.docker_volumes — ver images.gvb.
       checkbox(
@@ -33,10 +33,10 @@ component {
     }
 
     text(
+      "@docker_message",
       if = @docker_message,
       not_equals = "",
       class = u-muted,
-      content = "@docker_message",
     )
 
     tableview(
@@ -48,7 +48,7 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = name, label = NOME, class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@v.name")
+        text("@v.name", class = "table__cell table__cell--key")
       }
 
       tablecolumn(key = driver, label = DRIVER, class = table__col-proj)
@@ -59,7 +59,7 @@ component {
         label = TAMANHO,
         class = table__col-dur,
       ) {
-        text(class = u-muted, content = "@v.size")
+        text("@v.size", class = u-muted)
       }
 
       tablecolumn(key = in_use_label, label = USO, class = table__col-state) {

@@ -42,7 +42,7 @@ component {
   }
 
   row(class = "state-cell state-cell--@kind table__col-state") {
-    text(class = status-dot, content = "●")
-    text(class = state-cell__label, content = "@label")
+    text("●", class = status-dot)
+    text("@label", class = state-cell__label)
   }
 }

@@ -30,8 +30,8 @@ component {
   column(else, class = card) {
     row(class = card__head) {
       row(class = "u-fill u-align-y-end") {
-        text(class = card__title, content = "@name")
-        text(class = card__port, content = ":@port")
+        text("@name", class = card__title)
+        text(":@port", class = card__port)
       }
 
       row(class = "card__badges") {
@@ -40,35 +40,35 @@ component {
       }
     }
 
-    text(class = u-label-cap, content = "@kind_label")
+    text("@kind_label", class = u-label-cap)
 
     row(class = card__container, if = @branch, not_equals = "") {
-      text(class = u-label-cap, content = "BRANCH")
-      text(class = card__title, content = "@branch")
+      text("BRANCH", class = u-label-cap)
+      text("@branch", class = card__title)
     }
 
-    text(class = u-muted, if = @detail, not_equals = "", content = "@detail")
-    text(class = u-muted, if = @domains, not_equals = "", content = "@domains")
+    text("@detail", class = u-muted, if = @detail, not_equals = "")
+    text("@domains", class = u-muted, if = @domains, not_equals = "")
 
     row(class = card__stats) {
       column(class = card__stat) {
-        text(class = u-label-cap, content = "CPU")
-        text(class = card__stat-num, content = "@cpu")
+        text("CPU", class = u-label-cap)
+        text("@cpu", class = card__stat-num)
       }
 
       column(class = card__stat) {
-        text(class = u-label-cap, content = "MEM")
-        text(class = card__stat-num, content = "@mem")
+        text("MEM", class = u-label-cap)
+        text("@mem", class = card__stat-num)
       }
     }
 
     hr
 
-    text(class = u-label-cap, content = "PRÉ-DEPLOY CHECKS")
-    text(class = u-muted, content = "@checks")
+    text("PRÉ-DEPLOY CHECKS", class = u-label-cap)
+    text("@checks", class = u-muted)
 
-    text(class = u-label-cap, content = "WEBHOOK DE DEPLOY")
-    text(class = u-muted, content = "@webhook_shown")
+    text("WEBHOOK DE DEPLOY", class = u-label-cap)
+    text("@webhook_shown", class = u-muted)
 
     row(class = card__actions, if = @has_webhook, equals = true) {
       button(

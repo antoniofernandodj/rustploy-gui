@@ -32,18 +32,18 @@ component {
     on_click = @action,
     tooltip = @label,
   ) {
-    text(class = nav-item__icon, content = "@icon")
-    text(class = nav-item__label, content = "@label")
+    text("@icon", class = nav-item__icon)
+    text("@label", class = nav-item__label)
     if @badge == "true" {
-      text(class = nav-item__badge, content = "●")
+      text("●", class = nav-item__badge)
     }
   }
 
   button(class = nav-item, else, on_click = @action, tooltip = @label) {
-    text(class = nav-item__icon, content = "@icon")
-    text(class = nav-item__label, content = "@label")
+    text("@icon", class = nav-item__icon)
+    text("@label", class = nav-item__label)
     if @badge == "true" {
-      text(class = nav-item__badge, content = "●")
+      text("●", class = nav-item__badge)
     }
   }
 }

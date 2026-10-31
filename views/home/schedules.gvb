@@ -6,20 +6,20 @@ component {
     """
 
     component(name = SemJobs) {
-      text(class = u-muted, content = "Nenhum job cadastrado ainda.")
+      text("Nenhum job cadastrado ainda.", class = u-muted)
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Schedules")
+      text("Schedules", class = page-head__title)
 
       text(
-        class = page-head__subtitle,
-        content = """
+        """
           Tarefas one-shot (docker-compose) agendadas ou manuais, de todos
           os projetos.
         """,
+        class = page-head__subtitle,
       )
     }
 
@@ -45,7 +45,7 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = name, label = NOME, class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@j.name")
+        text("@j.name", class = "table__cell table__cell--key")
       }
 
       tablecolumn(key = owner, label = "PROJETO / GATILHO", class = table__col-proj)
@@ -59,7 +59,7 @@ component {
       }
 
       tablecolumn(key = recurrence, label = "RECORRÊNCIA", class = table__col-dur) {
-        text(class = u-muted, content = "@j.recurrence")
+        text("@j.recurrence", class = u-muted)
       }
 
       tablecolumn(
@@ -67,7 +67,7 @@ component {
         label = "PRÓXIMA EXECUÇÃO",
         class = table__col-dur,
       ) {
-        text(class = "u-muted schedules__next-run", content = "@j.next_run_at")
+        text("@j.next_run_at", class = "u-muted schedules__next-run")
       }
 
       tablecolumn(label = AQUECIMENTO, class = table__col-state) {

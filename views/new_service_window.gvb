@@ -16,8 +16,8 @@ screen(title = "Novo serviço — Rustploy") {
   column(class = dialog__screen) {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
-        text(class = titlebar__dot, content = "●")
-        text(class = titlebar__title, content = "Novo serviço — Rustploy")
+        text("●", class = titlebar__dot)
+        text("Novo serviço — Rustploy", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")

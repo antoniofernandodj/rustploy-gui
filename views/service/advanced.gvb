@@ -5,7 +5,7 @@ component {
   ) {
     column(class = service__main) {
       form(name = advanced, on_submit = advanced_save, class = form-panel) {
-        text(class = u-label-cap, content = "REPLICAS")
+        text("REPLICAS", class = u-label-cap)
 
         spinbox(
           field_class = field__spin,
@@ -17,7 +17,7 @@ component {
           placeholder = 1,
         )
 
-        text(class = u-label-cap, content = "RUN COMMAND")
+        text("RUN COMMAND", class = u-label-cap)
 
         input(
           class = field__input,
@@ -27,29 +27,29 @@ component {
           placeholder = "(padrão da imagem)",
         )
 
-        text(class = u-muted, content = "Run args atuais: @service_run_args")
+        text("Run args atuais: @service_run_args", class = u-muted)
 
         row(class = env__add) {
           button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "Save")
-          text(class = u-muted, content = "@service_action_message")
+          text("@service_action_message", class = u-muted)
         }
       }
 
       column(class = form-panel) {
         text(
+          "FILA DE PRÉ-DEPLOY (@pre_deploy_checks_count)",
           class = u-label-cap,
-          content = "FILA DE PRÉ-DEPLOY (@pre_deploy_checks_count)",
         )
 
         text(
-          class = u-muted,
-          content = """
+          """
             Roda esses Jobs em ORDEM antes do deploy (manual ou webhook),
             um de cada vez. Se o exit code de algum for diferente de 0, a
             fila para e o deploy não acontece — os checks seguintes não
             rodam. Arraste pelo ⋮ para reordenar. Cadastre jobs em
             Schedules.
           """,
+          class = u-muted,
         )
 
         scrollable(direction = vertical, class = u-fill-all) {
@@ -64,9 +64,9 @@ component {
               if @c.__dragging == "true" {
                 row(class = "kv-list__row kv-list__row--dragging") {
                   text(
+                    "⋮",
                     class = "env__drag-handle env__drag-handle--dragging",
                     drag_handle = true,
-                    content = "⋮",
                   )
 
                   button(
@@ -77,15 +77,15 @@ component {
                   )
 
                   text(class = env__sep)
-                  text(class = env__key, content = "@c.index.")
-                  text(class = "kv-list__val kv-list__val--compact", content = "@c.name")
+                  text("@c.index.", class = env__key)
+                  text("@c.name", class = "kv-list__val kv-list__val--compact")
                 }
               } else {
                 row(class = kv-list__row) {
                   text(
+                    "⋮",
                     class = env__drag-handle,
                     drag_handle = true,
-                    content = "⋮",
                   )
 
                   button(
@@ -96,15 +96,15 @@ component {
                   )
 
                   text(class = env__sep)
-                  text(class = env__key, content = "@c.index.")
-                  text(class = "kv-list__val kv-list__val--compact", content = "@c.name")
+                  text("@c.index.", class = env__key)
+                  text("@c.name", class = "kv-list__val kv-list__val--compact")
                 }
               }
             }
           }
         }
 
-        text(class = u-label-cap, content = "ADICIONAR À FILA")
+        text("ADICIONAR À FILA", class = u-label-cap)
 
         select(
           class = form-select,

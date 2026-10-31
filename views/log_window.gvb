@@ -35,8 +35,8 @@ screen {
             on_press = window:drag,
             on_double_click = window:maximize,
           ) {
-            text(class = titlebar__dot, content = "●")
-            text(class = titlebar__title, content = "@log_window_title")
+            text("●", class = titlebar__dot)
+            text("@log_window_title", class = titlebar__title)
           }
 
           button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -60,8 +60,8 @@ screen {
 
         column(class = log-window__body) {
           row(class = log-window__head) {
-            text(class = log-window__title, content = "@log_window_title")
-            text(class = log-window__count, content = "@log_window_count linhas · ao vivo")
+            text("@log_window_title", class = log-window__title)
+            text("@log_window_count linhas · ao vivo", class = log-window__count)
 
             button(
               class = tabs__tab,

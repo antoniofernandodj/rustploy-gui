@@ -1,19 +1,19 @@
 // Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch; corpo do `if @provider_tab == "gitea"` de general.gvb.
 component {
   text(
-    class = u-muted,
-    content = """
+    """
       Selecione a conta conectada, o repositório e a branch a
       implantar.
     """,
+    class = u-muted,
   )
 
   row(class = busy-row, if = @gitea_message, not_equals = "") {
     spinner(class = busy-row__spin, if = @gitea_busy)
-    text(class = u-muted, content = "@gitea_message")
+    text("@gitea_message", class = u-muted)
   }
 
-  text(class = u-label-cap, content = "CONTA CONECTADA")
+  text("CONTA CONECTADA", class = u-label-cap)
 
   select(
     class = form-select,
@@ -26,11 +26,11 @@ component {
   )
 
   text(
+    "Conecte contas em Settings → Git.",
     class = u-muted,
-    content = "Conecte contas em Settings → Git.",
   )
 
-  text(class = u-label-cap, content = "REPOSITÓRIO")
+  text("REPOSITÓRIO", class = u-label-cap)
 
   select(
     class = form-select,
@@ -42,7 +42,7 @@ component {
     valueField = full_name,
   )
 
-  text(class = u-label-cap, content = "BRANCH")
+  text("BRANCH", class = u-label-cap)
 
   select(
     class = form-select,
@@ -54,18 +54,18 @@ component {
     valueField = name,
   )
 
-  text(class = u-label-cap, content = "SELEÇÃO ATUAL")
+  text("SELEÇÃO ATUAL", class = u-label-cap)
 
   row(class = kv-list__row) {
-    text(class = kv-list__key, content = "Repo (clone URL)")
-    text(class = "kv-list__val kv-list__val--compact", content = "@service_form_repo_url")
+    text("Repo (clone URL)", class = kv-list__key)
+    text("@service_form_repo_url", class = "kv-list__val kv-list__val--compact")
   }
 
-  text(class = u-label-cap, content = "BUILD")
+  text("BUILD", class = u-label-cap)
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "BUILD PATH (root)")
+      text("BUILD PATH (root)", class = u-label-cap)
 
       input(
         class = field__input,
@@ -77,7 +77,7 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "PORT")
+      text("PORT", class = u-label-cap)
 
       input(
         class = field__input,
@@ -88,17 +88,17 @@ component {
       )
 
       text(
+        "@error_service_form_general_port",
         if = @error_service_form_general_port,
         not_equals = "",
         class = u-error,
-        content = "@error_service_form_general_port",
       )
     }
   }
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "DOCKERFILE")
+      text("DOCKERFILE", class = u-label-cap)
 
       input(
         class = field__input,
@@ -110,7 +110,7 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "CONTEXT PATH")
+      text("CONTEXT PATH", class = u-label-cap)
 
       input(
         class = field__input,
@@ -123,8 +123,8 @@ component {
   }
 
   text(
+    "WATCH PATHS (separados por vírgula)",
     class = u-label-cap,
-    content = "WATCH PATHS (separados por vírgula)",
   )
 
   input(
@@ -149,6 +149,6 @@ component {
       text = Save,
     )
 
-    text(class = u-muted, content = "@service_action_message")
+    text("@service_action_message", class = u-muted)
   }
 }

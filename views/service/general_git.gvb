@@ -1,8 +1,8 @@
 // Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab == "git"` de general.gvb.
 component {
   text(
+    "SOURCE — REPOSITORY URL / IMAGE",
     class = u-label-cap,
-    content = "SOURCE — REPOSITORY URL / IMAGE",
   )
 
   input(
@@ -14,16 +14,16 @@ component {
   )
 
   text(
-    class = u-muted,
-    content = """
+    """
       URL de repositório vira Git; caso contrário é imagem de
       registry.
     """,
+    class = u-muted,
   )
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "BRANCH")
+      text("BRANCH", class = u-label-cap)
 
       input(
         class = field__input,
@@ -35,7 +35,7 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "PORT")
+      text("PORT", class = u-label-cap)
 
       input(
         class = field__input,
@@ -46,17 +46,17 @@ component {
       )
 
       text(
+        "@error_service_form_general_port",
         if = @error_service_form_general_port,
         not_equals = "",
         class = u-error,
-        content = "@error_service_form_general_port",
       )
     }
   }
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "USERNAME")
+      text("USERNAME", class = u-label-cap)
 
       input(
         class = field__input,
@@ -68,7 +68,7 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "CREDENTIALS (secret)")
+      text("CREDENTIALS (secret)", class = u-label-cap)
 
       input(
         class = field__input,
@@ -79,17 +79,17 @@ component {
       )
 
       text(
-        class = u-muted,
-        content = """
+        """
           Nome de um secret do projeto (aba Secrets), puro — sem
           <secret:>. Usado para clonar repositório Git privado
           via HTTPS; não tem efeito com URL SSH.
         """,
+        class = u-muted,
       )
     }
   }
 
-  text(class = u-label-cap, content = "BUILD PATH (root)")
+  text("BUILD PATH (root)", class = u-label-cap)
 
   input(
     class = field__input,
@@ -100,8 +100,8 @@ component {
   )
 
   text(
+    "WATCH PATHS (separados por vírgula)",
     class = u-label-cap,
-    content = "WATCH PATHS (separados por vírgula)",
   )
 
   input(
@@ -118,11 +118,11 @@ component {
     label = " Enable submodules",
   )
 
-  text(class = u-label-cap, content = "BUILD ENGINE: DOCKERFILE")
+  text("BUILD ENGINE: DOCKERFILE", class = u-label-cap)
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "DOCKERFILE")
+      text("DOCKERFILE", class = u-label-cap)
 
       input(
         class = field__input,
@@ -134,7 +134,7 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text(class = u-label-cap, content = "CONTEXT PATH")
+      text("CONTEXT PATH", class = u-label-cap)
 
       input(
         class = field__input,
@@ -146,7 +146,7 @@ component {
     }
   }
 
-  text(class = u-label-cap, content = "BUILD STAGE (opcional)")
+  text("BUILD STAGE (opcional)", class = u-label-cap)
 
   input(
     class = field__input,
@@ -164,6 +164,6 @@ component {
       text = Save,
     )
 
-    text(class = u-muted, content = "@service_action_message")
+    text("@service_action_message", class = u-muted)
   }
 }

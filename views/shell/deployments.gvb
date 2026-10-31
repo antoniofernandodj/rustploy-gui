@@ -2,18 +2,18 @@
 component {
   resources {
     component(name = SemDeployments) {
-      text(class = u-muted, content = "Nenhum deployment ainda.")
+      text("Nenhum deployment ainda.", class = u-muted)
     }
   }
 
   column(class = content) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text(class = page-head__title, content = "Deployments")
+        text("Deployments", class = page-head__title)
 
         text(
+          "Real-time status of services in the cluster.",
           class = page-head__subtitle,
-          content = "Real-time status of services in the cluster.",
         )
       }
 
@@ -41,10 +41,10 @@ component {
     }
 
     text(
+      "@deployments_message",
       if = @deployments_message,
       not_equals = "",
       class = u-muted,
-      content = "@deployments_message",
     )
 
     column(class = "panel panel--fill") {
@@ -70,7 +70,7 @@ component {
 
         // Sem `key`: "2m 3s" não ordena como texto, e o valor cru não vem.
         tablecolumn(label = "DURAÇÃO", class = table__col-dur) {
-          text(class = table__cell, content = "@d.duration")
+          text("@d.duration", class = table__cell)
         }
 
         tablecolumn(
@@ -79,7 +79,7 @@ component {
           label = "INÍCIO",
           class = table__col-start,
         ) {
-          text(class = u-muted, content = "@d.start")
+          text("@d.start", class = u-muted)
         }
 
         if @data_loading == "true" {

@@ -1,12 +1,12 @@
 // Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @service_source_kind == "Compose"` de general.gvb.
 component {
-  text(class = u-label-cap, content = "DOCKER COMPOSE (YAML)")
+  text("DOCKER COMPOSE (YAML)", class = u-label-cap)
 
   text(
-    class = u-muted,
-    content = """
+    """
       Edite o compose do serviço. Salvar aplica no próximo deploy.
     """,
+    class = u-muted,
   )
 
   textarea(
@@ -35,6 +35,6 @@ component {
       text = Cancelar,
     )
 
-    text(class = u-muted, content = "@service_action_message")
+    text("@service_action_message", class = u-muted)
   }
 }

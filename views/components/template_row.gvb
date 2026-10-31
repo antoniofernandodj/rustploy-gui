@@ -24,13 +24,13 @@ component {
     }
 
     column(class = page-head__titles) {
-      text(class = env__key, content = "@name")
+      text("@name", class = env__key)
 
       text(
+        "@description",
         class = u-muted,
         if = @description,
         not_equals = "",
-        content = "@description",
       )
     }
 

@@ -4,18 +4,18 @@
 component {
   resources {
     component(name = SemTemplates) {
-      text(class = u-muted, content = "Nenhum template encontrado.")
+      text("Nenhum template encontrado.", class = u-muted)
     }
   }
 
   column(class = content) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text(class = page-head__title, content = "Novo Serviço — @project_name")
+        text("Novo Serviço — @project_name", class = page-head__title)
 
         text(
+          "Escolha o tipo e configure o serviço antes de criar.",
           class = page-head__subtitle,
-          content = "Escolha o tipo e configure o serviço antes de criar.",
         )
       }
 
@@ -27,13 +27,13 @@ component {
 
     row(class = busy-row, if = @new_service_message, not_equals = "") {
       spinner(class = busy-row__spin, if = @new_service_busy)
-      text(class = u-warn, content = "@new_service_message")
+      text("@new_service_message", class = u-warn)
     }
 
     // ── Passo 1: tipo de serviço ────────────────────────────────────────
     if @new_service_step == "pick_type" {
       column(class = form-panel) {
-        text(class = u-label-cap, content = "ESCOLHA O TIPO DE SERVIÇO")
+        text("ESCOLHA O TIPO DE SERVIÇO", class = u-label-cap)
 
         column(class = kv-list) {
           PickerRow(
@@ -84,23 +84,23 @@ component {
     // ── Importar serviço exportado (handlers/bundle_import.luau) ────────
     if @new_service_step == "import_form" {
       column(class = form-panel) {
-        text(class = u-label-cap, content = "IMPORTAR SERVIÇO EXPORTADO")
+        text("IMPORTAR SERVIÇO EXPORTADO", class = u-label-cap)
 
         text(
-          class = u-muted,
-          content = """
+          """
             O serviço é criado no projeto @project_name, sem deploy — revise e
             clique em Deploy depois. Só a configuração vem no arquivo; os dados
             (volumes, bancos) não.
           """,
+          class = u-muted,
         )
 
-        text(class = u-error, if = @import_error, not_equals = "", content = "@import_error")
-        text(class = u-warn, if = @import_message, not_equals = "", content = "@import_message")
+        text("@import_error", class = u-error, if = @import_error, not_equals = "")
+        text("@import_message", class = u-warn, if = @import_message, not_equals = "")
 
         if @import_report == "true" {
           row(class = env__add) {
-            text(class = u-muted, content = "Pacote: @import_file")
+            text("Pacote: @import_file", class = u-muted)
             button(
               class = "btn btn--ghost",
               on_click = import_clear,
@@ -109,49 +109,49 @@ component {
             )
           }
 
-          text(class = u-label-cap, content = "NOME DO SERVIÇO NOVO")
+          text("NOME DO SERVIÇO NOVO", class = u-label-cap)
           input(class = field__input, :value = import_name, on_change = field:import_name, placeholder = nome)
 
           text(
+            "Já existe um serviço com esse nome neste projeto — escolha outro e clique em Atualizar análise.",
             class = u-error,
             if = @import_conflict,
             equals = true,
-            content = "Já existe um serviço com esse nome neste projeto — escolha outro e clique em Atualizar análise.",
           )
 
           if @import_has_warnings == "true" {
-            text(class = u-label-cap, content = "ATENÇÃO")
+            text("ATENÇÃO", class = u-label-cap)
             column(class = kv-list) {
               template(:for-each = import_warnings, var = w) {
-                text(class = u-muted, content = "@w.text")
+                text("@w.text", class = u-muted)
               }
             }
           }
 
           if @import_has_service_missing == "true" {
-            text(class = u-label-cap, content = "VARIÁVEIS DO SERVIÇO SEM VALOR (OBRIGATÓRIO)")
-            text(class = u-muted, content = "Complete o valor depois do = (uma por linha).")
+            text("VARIÁVEIS DO SERVIÇO SEM VALOR (OBRIGATÓRIO)", class = u-label-cap)
+            text("Complete o valor depois do = (uma por linha).", class = u-muted)
             textarea(class = env__editor, font = mono, :value = import_service_text)
           }
 
           if @import_has_project_missing == "true" {
-            text(class = u-label-cap, content = "VARIÁVEIS DO PROJETO SEM VALOR (OBRIGATÓRIO)")
-            text(class = u-muted, content = "Complete o valor depois do = (uma por linha).")
+            text("VARIÁVEIS DO PROJETO SEM VALOR (OBRIGATÓRIO)", class = u-label-cap)
+            text("Complete o valor depois do = (uma por linha).", class = u-muted)
             textarea(class = env__editor, font = mono, :value = import_project_text)
           }
 
           if @import_has_secret_missing == "true" {
-            text(class = u-label-cap, content = "SECRETS QUE ESTE PROJETO NÃO TEM")
+            text("SECRETS QUE ESTE PROJETO NÃO TEM", class = u-label-cap)
             text(
+              "Informe o valor para criá-los, ou deixe vazio para seguir sem (a referência fica quebrada até você criar o secret).",
               class = u-muted,
-              content = "Informe o valor para criá-los, ou deixe vazio para seguir sem (a referência fica quebrada até você criar o secret).",
             )
             textarea(class = env__editor, font = mono, :value = import_secret_text)
           }
 
           if @import_missing_provider != "" {
-            text(class = u-label-cap, content = "GIT PROVIDER “@import_missing_provider” NÃO EXISTE AQUI")
-            text(class = u-muted, content = "Escolha um provider deste servidor, ou siga sem.")
+            text("GIT PROVIDER “@import_missing_provider” NÃO EXISTE AQUI", class = u-label-cap)
+            text("Escolha um provider deste servidor, ou siga sem.", class = u-muted)
             column(class = kv-list) {
               template(:for-each = import_providers, var = p) {
                 button(
@@ -165,13 +165,13 @@ component {
           }
 
           if @import_has_project_env == "true" {
-            text(class = u-label-cap, content = "VARIÁVEIS DO PROJETO TRAZIDAS")
-            text(class = u-muted, content = "Nada do projeto é sobrescrito sem você escolher. Clique para trocar a escolha.")
+            text("VARIÁVEIS DO PROJETO TRAZIDAS", class = u-label-cap)
+            text("Nada do projeto é sobrescrito sem você escolher. Clique para trocar a escolha.", class = u-muted)
             column(class = kv-list) {
               template(:for-each = import_project_env, var = v) {
                 row(class = kv-list__row) {
-                  text(class = env__key, content = "@v.key")
-                  text(class = u-muted, content = "@v.info")
+                  text("@v.key", class = env__key)
+                  text("@v.info", class = u-muted)
                   if @v.can_choose == "true" {
                     button(
                       class = "btn btn--ghost",
@@ -180,7 +180,7 @@ component {
                       text = "@v.choice",
                     )
                   } else {
-                    text(class = u-muted, content = "já existe igual — nada a fazer")
+                    text("já existe igual — nada a fazer", class = u-muted)
                   }
                 }
               }
@@ -221,7 +221,7 @@ component {
             text = "Escolher arquivo…",
           )
 
-          text(class = u-label-cap, content = "…OU COLE O TEXTO DO PACOTE")
+          text("…OU COLE O TEXTO DO PACOTE", class = u-label-cap)
           textarea(
             class = env__editor,
             font = mono,
@@ -246,7 +246,7 @@ component {
     // ── Passo 2 (Database): escolha do banco ───────────────────────────
     if @new_service_step == "pick_db" {
       column(class = form-panel) {
-        text(class = u-label-cap, content = "ESCOLHA O BANCO DE DADOS")
+        text("ESCOLHA O BANCO DE DADOS", class = u-label-cap)
 
         column(class = kv-list) {
           PickerRow(
@@ -264,7 +264,7 @@ component {
     // ── Passo 2 (Broker): escolha do broker ────────────────────────────
     if @new_service_step == "pick_broker" {
       column(class = form-panel) {
-        text(class = u-label-cap, content = "ESCOLHA O BROKER")
+        text("ESCOLHA O BROKER", class = u-label-cap)
 
         column(class = kv-list) {
           PickerRow(
@@ -283,8 +283,8 @@ component {
     if @new_service_step == "app_form" {
       form(name = new_service_app, on_submit = new_service_create, width = fill) {
         column(class = form-panel) {
-          text(class = u-label-cap, content = "NOVA APPLICATION")
-          text(class = u-label-cap, content = "NOME")
+          text("NOVA APPLICATION", class = u-label-cap)
+          text("NOME", class = u-label-cap)
 
           input(
             placeholder = minha-app,
@@ -295,15 +295,15 @@ component {
           )
 
           text(
+            "@error_new_service_name",
             if = @error_new_service_name,
             not_equals = "",
             class = u-error,
-            content = "@error_new_service_name",
           )
 
           text(
+            "APP NAME (OPCIONAL — usado no lugar do nome)",
             class = u-label-cap,
-            content = "APP NAME (OPCIONAL — usado no lugar do nome)",
           )
 
           input(
@@ -315,11 +315,11 @@ component {
           )
 
           text(
-            class = u-muted,
-            content = """
+            """
               Configure a origem (Git ou imagem) na aba General do serviço
               depois de criar.
             """,
+            class = u-muted,
           )
 
           row(class = env__add) {
@@ -338,8 +338,8 @@ component {
     if @new_service_step == "compose_form" {
       form(name = new_service_compose, on_submit = new_service_create, width = fill) {
         column(class = form-panel) {
-          text(class = u-label-cap, content = "NOVA COMPOSE STACK")
-          text(class = u-label-cap, content = "NOME")
+          text("NOVA COMPOSE STACK", class = u-label-cap)
+          text("NOME", class = u-label-cap)
 
           input(
             placeholder = minha-stack,
@@ -350,15 +350,15 @@ component {
           )
 
           text(
+            "@error_new_service_name",
             if = @error_new_service_name,
             not_equals = "",
             class = u-error,
-            content = "@error_new_service_name",
           )
 
           text(
+            "APP NAME (OPCIONAL — usado no lugar do nome)",
             class = u-label-cap,
-            content = "APP NAME (OPCIONAL — usado no lugar do nome)",
           )
 
           input(
@@ -370,10 +370,10 @@ component {
           )
 
           text(
-            class = u-muted,
-            content = """
+            """
               Configure o compose file dentro do serviço antes de fazer deploy.
             """,
+            class = u-muted,
           )
 
           row(class = env__add) {
@@ -393,8 +393,8 @@ component {
       scrollable(direction = vertical, class = u-fill-all) {
         form(name = new_service_database, on_submit = new_service_create, width = fill) {
           column(class = form-panel) {
-            text(class = u-label-cap, content = "NOVA @new_service_database_label")
-            text(class = u-label-cap, content = "NOME")
+            text("NOVA @new_service_database_label", class = u-label-cap)
+            text("NOME", class = u-label-cap)
 
             input(
               placeholder = meu-banco,
@@ -405,14 +405,14 @@ component {
             )
 
             text(
+              "@error_new_service_name",
               if = @error_new_service_name,
               not_equals = "",
               class = u-error,
-              content = "@error_new_service_name",
             )
 
             if @new_service_database_has_dbname == "true" {
-              text(class = u-label-cap, content = "DATABASE NAME")
+              text("DATABASE NAME", class = u-label-cap)
 
               input(
                 placeholder = app,
@@ -424,7 +424,7 @@ component {
             }
 
             if @new_service_database_has_user == "true" {
-              text(class = u-label-cap, content = "USER")
+              text("USER", class = u-label-cap)
 
               input(
                 placeholder = user,
@@ -435,7 +435,7 @@ component {
               )
             }
 
-            text(class = u-label-cap, content = "PASSWORD (gerada — pode trocar)")
+            text("PASSWORD (gerada — pode trocar)", class = u-label-cap)
 
             input(
               placeholder = "(vazio = sem senha, só no Redis)",
@@ -447,8 +447,8 @@ component {
 
             if @new_service_database_has_rootpw == "true" {
               text(
+                "ROOT PASSWORD (gerada — pode trocar)",
                 class = u-label-cap,
-                content = "ROOT PASSWORD (gerada — pode trocar)",
               )
 
               input(
@@ -475,19 +475,19 @@ component {
             )
 
             text(
-              if = @new_service_expose_external,
-              equals = true,
-              class = u-muted,
-              content = """
+              """
                 O serviço ficará acessível pela internet numa porta alocada pelo
                 rustploy, protegido pela senha acima.
               """,
+              if = @new_service_expose_external,
+              equals = true,
+              class = u-muted,
             )
 
-            text(class = u-label-cap, content = "DOCKER IMAGE")
+            text("DOCKER IMAGE", class = u-label-cap)
 
             row(class = kv-list__row) {
-              text(class = "kv-list__val kv-list__val--compact", content = "@new_service_image")
+              text("@new_service_image", class = "kv-list__val kv-list__val--compact")
             }
 
             row(class = env__add) {
@@ -507,7 +507,7 @@ component {
     if @new_service_step == "pick_template" {
       column(class = env) {
         column(class = healthcheck__field) {
-          text(class = u-label-cap, content = "BUSCAR")
+          text("BUSCAR", class = u-label-cap)
 
           input(
             placeholder = "buscar templates…",
@@ -532,8 +532,8 @@ component {
       scrollable(direction = vertical, class = u-fill-all) {
         form(name = new_service_template, on_submit = new_service_create, width = fill) {
           column(class = form-panel) {
-            text(class = u-label-cap, content = "@new_service_template_name — CONFIGURAR")
-            text(class = u-label-cap, content = "NOME DO SERVIÇO")
+            text("@new_service_template_name — CONFIGURAR", class = u-label-cap)
+            text("NOME DO SERVIÇO", class = u-label-cap)
 
             input(
               placeholder = @new_service_template_name,
@@ -545,7 +545,7 @@ component {
 
             template(:for-each = new_service_template_vars, var = v) {
               column(class = healthcheck__field) {
-                text(class = u-label-cap, content = "@v.label")
+                text("@v.label", class = u-label-cap)
 
                 input(
                   placeholder = @v.placeholder,

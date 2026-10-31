@@ -10,8 +10,8 @@ component {
 
   row(class = kv-list__row) {
     column(class = page-head__titles) {
-      text(class = env__key, content = "@title")
-      text(class = u-muted, content = "@subtitle")
+      text("@title", class = env__key)
+      text("@subtitle", class = u-muted)
     }
 
     button(class = "btn btn--primary", on_click = @action, text = @button_label)

@@ -39,8 +39,8 @@ component {
   column(else, class = card) {
     row(class = card__head) {
       row(class = "u-fill u-align-y-end") {
-        text(class = card__title, content = "@name")
-        text(class = card__port, content = ":@port")
+        text("@name", class = card__title)
+        text(":@port", class = card__port)
       }
 
       row(class = "card__badges u-align-y-end") {
@@ -59,7 +59,7 @@ component {
         tooltip = "Copiar nome",
       )
 
-      text(class = u-muted, content = "name: @container_name")
+      text("name: @container_name", class = u-muted)
     }
 
     row(class = card__container) {
@@ -72,13 +72,13 @@ component {
         tooltip = "Copiar id",
       )
 
-      text(class = u-muted, content = "id: @container_id")
+      text("id: @container_id", class = u-muted)
 
       text(
+        "extra: @container_extra",
         class = u-muted,
         if = @container_extra,
         not_equals = "",
-        content = "extra: @container_extra",
       )
     }
 
@@ -86,13 +86,13 @@ component {
 
     row(class = card__stats) {
       column(class = card__stat) {
-        text(class = u-label-cap, content = "CPU")
-        text(class = card__stat-num, content = "@cpu")
+        text("CPU", class = u-label-cap)
+        text("@cpu", class = card__stat-num)
       }
 
       column(class = card__stat) {
-        text(class = u-label-cap, content = "MEM")
-        text(class = card__stat-num, content = "@mem")
+        text("MEM", class = u-label-cap)
+        text("@mem", class = card__stat-num)
       }
     }
 

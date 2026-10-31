@@ -23,8 +23,8 @@ component {
   }
 
   column(class = stat-card) {
-    text(class = u-label-cap, content = "@label")
-    text(class = "stat-card__num stat-card__num--ok", if = @accent, equals = 1, content = "@value")
-    text(class = stat-card__num, else, content = "@value")
+    text("@label", class = u-label-cap)
+    text("@value", class = "stat-card__num stat-card__num--ok", if = @accent, equals = 1)
+    text("@value", class = stat-card__num, else)
   }
 }

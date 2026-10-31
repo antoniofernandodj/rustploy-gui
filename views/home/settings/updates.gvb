@@ -3,21 +3,21 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      text(class = u-label-cap, content = "DAEMON")
+      text("DAEMON", class = u-label-cap)
 
       row(class = kv-list__row) {
-        text(class = kv-list__key, content = "Versão instalada")
-        text(class = "kv-list__val kv-list__val--compact", content = "@update_current_version")
+        text("Versão instalada", class = kv-list__key)
+        text("@update_current_version", class = "kv-list__val kv-list__val--compact")
       }
 
       row(class = kv-list__row) {
-        text(class = kv-list__key, content = "Última versão")
-        text(class = "kv-list__val kv-list__val--compact", content = "@update_latest_version")
+        text("Última versão", class = kv-list__key)
+        text("@update_latest_version", class = "kv-list__val kv-list__val--compact")
       }
 
       row(class = kv-list__row) {
-        text(class = kv-list__key, content = "Verificado em")
-        text(class = "kv-list__val kv-list__val--compact", content = "@update_checked_at_label")
+        text("Verificado em", class = kv-list__key)
+        text("@update_checked_at_label", class = "kv-list__val kv-list__val--compact")
       }
 
       row(class = healthcheck__grid) {
@@ -28,20 +28,20 @@ component {
         )
       }
 
-      text(class = u-muted, content = "@update_message")
+      text("@update_message", class = u-muted)
 
       if @update_is_helper_available == "true" {
-        text(class = u-label-cap, content = "ATUALIZAR PELO APP")
+        text("ATUALIZAR PELO APP", class = u-label-cap)
 
         text(
-          class = u-muted,
-          content = """
+          """
             O daemon baixa a versão nova, confere a assinatura e a instala por um
             helper root do próprio pacote. O daemon reinicia (os containers dos
             serviços continuam rodando) e esta janela volta à tela de login:
             entre de novo em cerca de um minuto. Antes, o daemon guarda um
             snapshot do banco.
           """,
+          class = u-muted,
         )
 
         row(class = healthcheck__grid) {
@@ -61,22 +61,22 @@ component {
         }
       }
 
-      text(class = u-muted, content = "@update_progress_message")
+      text("@update_progress_message", class = u-muted)
 
       if @update_app_current_version != "" {
-        text(class = u-label-cap, content = "APP DESKTOP")
+        text("APP DESKTOP", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text(class = kv-list__key, content = "Versão instalada")
-          text(class = "kv-list__val kv-list__val--compact", content = "@update_app_current_version")
+          text("Versão instalada", class = kv-list__key)
+          text("@update_app_current_version", class = "kv-list__val kv-list__val--compact")
         }
 
         row(class = kv-list__row) {
-          text(class = kv-list__key, content = "Última versão")
-          text(class = "kv-list__val kv-list__val--compact", content = "@update_app_latest_version")
+          text("Última versão", class = kv-list__key)
+          text("@update_app_latest_version", class = "kv-list__val kv-list__val--compact")
         }
 
-        text(class = u-muted, content = "@update_app_message")
+        text("@update_app_message", class = u-muted)
 
         if @update_app_is_available == "true" {
           if @update_app_can_update == "true" {
@@ -100,17 +100,17 @@ component {
               )
             }
 
-            text(class = u-muted, content = "@update_app_apply_hint")
+            text("@update_app_apply_hint", class = u-muted)
           }
 
           if @update_app_can_update == "false" {
             text(
+              "Este app não foi instalado por .deb nem pelo instalador do Windows (ou falta o pkexec). Atualize com o comando abaixo.",
               class = u-muted,
-              content = "Este app não foi instalado por .deb nem pelo instalador do Windows (ou falta o pkexec). Atualize com o comando abaixo.",
             )
 
             row(class = kv-list__row) {
-              text(class = "kv-list__val kv-list__val--compact", content = "@update_app_manual_command")
+              text("@update_app_manual_command", class = "kv-list__val kv-list__val--compact")
 
               button(
                 class = "btn btn--ghost btn--xs",
@@ -123,19 +123,19 @@ component {
       }
 
       if @update_is_available == "true" {
-        text(class = u-label-cap, content = "COMO ATUALIZAR À MÃO")
+        text("COMO ATUALIZAR À MÃO", class = u-label-cap)
 
         text(
-          class = u-muted,
-          content = """
+          """
             Há uma versão nova. Por enquanto a atualização é manual: rode o
             comando abaixo na VPS. Seus dados, o config.toml e a master.key são
             preservados, e os containers dos serviços continuam rodando.
           """,
+          class = u-muted,
         )
 
         row(class = kv-list__row) {
-          text(class = "kv-list__val kv-list__val--compact", content = "@update_install_command")
+          text("@update_install_command", class = "kv-list__val kv-list__val--compact")
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -145,8 +145,8 @@ component {
         }
 
         row(class = kv-list__row) {
-          text(class = kv-list__key, content = "Notas da release")
-          text(class = "kv-list__val kv-list__val--compact", content = "@update_release_url")
+          text("Notas da release", class = kv-list__key)
+          text("@update_release_url", class = "kv-list__val kv-list__val--compact")
 
           button(
             class = "btn btn--ghost btn--xs",

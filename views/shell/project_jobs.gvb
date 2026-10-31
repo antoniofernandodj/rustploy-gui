@@ -2,12 +2,12 @@
 component {
   resources {
     component(name = SemJobsNoProjeto) {
-      text(class = u-muted, content = "Nenhum job cadastrado ainda.")
+      text("Nenhum job cadastrado ainda.", class = u-muted)
     }
   }
 
   row(class = env__head) {
-    text(class = "u-muted u-fill", content = "@project_jobs_count job(s)")
+    text("@project_jobs_count job(s)", class = "u-muted u-fill")
 
     button(
       class = "btn btn--primary btn--sm",
@@ -21,8 +21,8 @@ component {
     column(class = kv-list) {
       each @project_jobs as j (fallback = SemJobsNoProjeto) {
         row(class = kv-list__row) {
-          text(class = env__key, content = "@j.name")
-          text(class = "u-muted table__col-dur", content = "@j.recurrence")
+          text("@j.name", class = env__key)
+          text("@j.recurrence", class = "u-muted table__col-dur")
 
           StateCell(
             kind = @j.last_run_kind,
@@ -30,8 +30,8 @@ component {
           )
 
           text(
+            "→ @j.next_run_at",
             class = "u-muted kv-list__val kv-list__val--compact",
-            content = "→ @j.next_run_at",
           )
 
           StateCell(kind = @j.warm_kind, label = @j.warm_label)

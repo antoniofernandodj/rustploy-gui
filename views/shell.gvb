@@ -71,11 +71,11 @@ component {
       panel_class = sidebar,
     ) {
       column(class = brand) {
-        text(class = brand__name, content = "Rustploy")
-        text(class = brand__sub, content = "PRODUCTION CLUSTER")
+        text("Rustploy", class = brand__name)
+        text("PRODUCTION CLUSTER", class = brand__sub)
       }
 
-      text(class = sidebar__section, content = "DEPLOYMENT OPS")
+      text("DEPLOYMENT OPS", class = sidebar__section)
 
       NavItem(
         label = "Em execução",
@@ -120,7 +120,7 @@ component {
       )
 
       NavItem(label = Runtime, icon = "◉", target = docker, action = nav_docker)
-      text(class = sidebar__section, content = "MANAGEMENT")
+      text("MANAGEMENT", class = sidebar__section)
 
       NavItem(
         label = "Projects (@projects_count)",
@@ -167,8 +167,8 @@ component {
         )
 
         text(
+          "● @connected_server · daemon v@daemon_version",
           class = "u-muted topbar__status",
-          content = "● @connected_server · daemon v@daemon_version",
         )
 
         flow(class = topbar__actions) {

@@ -4,7 +4,7 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      text(class = u-label-cap, content = "LIMPEZA AUTOMÁTICA")
+      text("LIMPEZA AUTOMÁTICA", class = u-label-cap)
 
       toggle(
         :checked = docker_cleanup_enabled,
@@ -13,15 +13,15 @@ component {
       )
 
       text(
-        class = u-muted,
-        content = """
+        """
           Roda sozinha, no horário abaixo, os recursos marcados nesta
           tela. Desligada por padrão — nada é removido até você marcar
           pelo menos um recurso e ativar.
         """,
+        class = u-muted,
       )
 
-      text(class = u-label-cap, content = "FREQUÊNCIA")
+      text("FREQUÊNCIA", class = u-label-cap)
 
       scroll(class = tabs__scroll, direction = horizontal) {
         tabbar(
@@ -32,7 +32,7 @@ component {
 
       row(class = healthcheck__grid, if = @docker_cleanup_kind, equals = interval) {
         column(class = healthcheck__field) {
-          text(class = u-label-cap, content = "A CADA (HORAS)")
+          text("A CADA (HORAS)", class = u-label-cap)
 
           // Teto de 168 = uma semana. Acima disso o usuário quer a
           // frequência "semanal", que é a aba ao lado.
@@ -56,18 +56,18 @@ component {
 
       row(class = healthcheck__grid, if = @docker_cleanup_kind, not_equals = interval) {
         column(class = healthcheck__field) {
-          text(class = u-label-cap, content = "HORÁRIO")
+          text("HORÁRIO", class = u-label-cap)
           timeedit(:value = docker_cleanup_time)
         }
       }
 
       text(
+        "Próxima execução agendada: @docker_cleanup_next_run_label",
         class = u-muted,
-        content = "Próxima execução agendada: @docker_cleanup_next_run_label",
       )
 
       hr
-      text(class = u-label-cap, content = "O QUE LIMPAR")
+      text("O QUE LIMPAR", class = u-label-cap)
 
       checkbox(
         :checked = docker_cleanup_containers,
@@ -91,7 +91,7 @@ component {
 
       row(class = healthcheck__grid, if = @docker_cleanup_images, equals = true) {
         column(class = healthcheck__field) {
-          text(class = u-label-cap, content = "SÓ IMAGENS CRIADAS HÁ MAIS DE (HORAS)")
+          text("SÓ IMAGENS CRIADAS HÁ MAIS DE (HORAS)", class = u-label-cap)
 
           spinbox(
             field_class = field__spin,
@@ -104,11 +104,11 @@ component {
           )
 
           text(
-            class = u-muted,
-            content = """
+            """
               0 não filtra por idade. O runtime olha a data de criação da imagem,
               não a do último uso: as imagens base antigas continuam elegíveis.
             """,
+            class = u-muted,
           )
         }
       }
@@ -127,7 +127,7 @@ component {
 
       row(class = healthcheck__grid, if = @docker_cleanup_build_cache, equals = true) {
         column(class = healthcheck__field) {
-          text(class = u-label-cap, content = "MANTER O CACHE USADO NAS ÚLTIMAS (HORAS)")
+          text("MANTER O CACHE USADO NAS ÚLTIMAS (HORAS)", class = u-label-cap)
 
           spinbox(
             field_class = field__spin,
@@ -140,11 +140,11 @@ component {
           )
 
           text(
-            class = u-muted,
-            content = """
+            """
               0 remove todo o cache sem uso. Com um prazo, o cache de um job
               ou deploy recente sobrevive e o próximo build não recomeça do zero.
             """,
+            class = u-muted,
           )
         }
       }
@@ -156,25 +156,25 @@ component {
       )
 
       text(
-        class = u-muted,
-        content = """
+        """
           Depois de limpar, reconstrói a imagem de cada serviço com repositório
           Git ou zip, um de cada vez, na fila de deploy. Sem isso, o primeiro
           deploy depois da limpeza paga o build inteiro.
         """,
+        class = u-muted,
       )
 
       hr
-      text(class = "u-label-cap u-error", content = "VOLUMES — CUIDADO")
+      text("VOLUMES — CUIDADO", class = "u-label-cap u-error")
 
       text(
-        class = u-muted,
-        content = """
+        """
           Volumes sem uso criados por fora do rustploy (não pelos seus
           serviços, que só usam bind mount) podem conter dado que ninguém
           recriaria sozinho. Confirme que sabe o que existe no host antes
           de ativar.
         """,
+        class = u-muted,
       )
 
       checkbox(
@@ -210,12 +210,12 @@ component {
           text = "Executando…",
         )
 
-        text(class = u-muted, content = "@docker_cleanup_message")
+        text("@docker_cleanup_message", class = u-muted)
       }
 
       hr
-      text(class = u-label-cap, content = "ÚLTIMA EXECUÇÃO")
-      text(class = u-muted, content = "@docker_cleanup_last_run_text")
+      text("ÚLTIMA EXECUÇÃO", class = u-label-cap)
+      text("@docker_cleanup_last_run_text", class = u-muted)
     }
   }
 }

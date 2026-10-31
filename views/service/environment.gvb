@@ -2,15 +2,15 @@
 component {
   resources {
     component(name = SemVariaveisDoServico) {
-      text(class = u-muted, content = "Nenhuma variável.")
+      text("Nenhuma variável.", class = u-muted)
     }
   }
 
   column(class = env) {
     row(class = env__head) {
-      text(class = "u-muted u-fill", content = "@service_env_count variável(eis)")
+      text("@service_env_count variável(eis)", class = "u-muted u-fill")
       button(class = "btn btn--ghost btn--wide", on_click = env_export, disabled = @busy_env_export, text = Exportar)
-      text(content = " ")
+      text(" ")
 
       if @env_text_open == "true" {
         button(
@@ -55,20 +55,20 @@ component {
     }
 
     text(
-      class = "u-muted u-fill",
-      content = """
+      """
         Para um valor sensível, use um secret do projeto: escreva
         <secret:NOME> ou secret:NOME como valor aqui ou no editor .env —
         as duas formas valem. O secret é criado na aba Secrets do projeto,
         só é decifrado no deploy, e na lista aparece com 🔒.
       """,
+      class = "u-muted u-fill",
     )
 
     text(
+      "@error_env_new_key",
       if = @error_env_new_key,
       not_equals = "",
       class = u-error,
-      content = "@error_env_new_key",
     )
 
     scrollable(direction = vertical, class = u-fill-all) {
@@ -83,19 +83,19 @@ component {
           if @e.__dragging == "true" {
             row(class = "kv-list__row kv-list__row--dragging", if = @e.kind, equals = comment) {
               text(
+                "⋮ ",
                 class = "env__drag-handle env__drag-handle--dragging",
                 drag_handle = true,
-                content = "⋮ ",
               )
 
-              text(class = u-muted, content = "@e.value")
+              text("@e.value", class = u-muted)
             }
 
             row(class = "kv-list__row kv-list__row--dragging", else) {
               text(
+                "⋮ ",
                 class = "env__drag-handle env__drag-handle--dragging",
                 drag_handle = true,
-                content = "⋮ ",
               )
 
               button(
@@ -106,25 +106,25 @@ component {
               )
 
               text(class = env__sep)
-              text(class = env__key, content = "@e.key_display")
-              text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
+              text("@e.key_display", class = env__key)
+              text("@e.value", class = "kv-list__val kv-list__val--compact")
             }
           } else {
             row(class = kv-list__row, if = @e.kind, equals = comment) {
               text(
+                "⋮ ",
                 class = env__drag-handle,
                 drag_handle = true,
-                content = "⋮ ",
               )
 
-              text(class = u-muted, content = "@e.value")
+              text("@e.value", class = u-muted)
             }
 
             row(class = kv-list__row, else) {
               text(
+                "⋮ ",
                 class = env__drag-handle,
                 drag_handle = true,
-                content = "⋮ ",
               )
 
               button(
@@ -135,16 +135,16 @@ component {
               )
 
               text(class = env__sep)
-              text(class = env__key, content = "@e.key_display")
-              text(class = "kv-list__val kv-list__val--compact", content = "@e.value")
+              text("@e.key_display", class = env__key)
+              text("@e.value", class = "kv-list__val kv-list__val--compact")
             }
           }
         }
 
         if @env_text_open == "true" {
           text(
+            "Cole/edite no formato KEY=VALUE (# comentário).",
             class = u-muted,
-            content = "Cole/edite no formato KEY=VALUE (# comentário).",
           )
 
           textarea(

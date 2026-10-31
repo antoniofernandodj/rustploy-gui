@@ -3,17 +3,17 @@
 component {
   resources {
     component(name = NadaRodando) {
-      text(class = u-muted, content = "Nenhum serviço em execução agora.")
+      text("Nenhum serviço em execução agora.", class = u-muted)
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Em execução")
+      text("Em execução", class = page-head__title)
 
       text(
+        "Projetos e serviços rodando agora — projetos sem serviço no ar não aparecem.",
         class = page-head__subtitle,
-        content = "Projetos e serviços rodando agora — projetos sem serviço no ar não aparecem.",
       )
     }
 
@@ -27,8 +27,8 @@ component {
       each @running as p (fallback = NadaRodando) {
         column(class = grid) {
           row(class = running__head) {
-            text(class = card__title, content = "@p.project_name")
-            text(class = "u-muted u-fill", content = "@p.count_label")
+            text("@p.project_name", class = card__title)
+            text("@p.count_label", class = "u-muted u-fill")
 
             button(
               class = "card__action card__action--auto",

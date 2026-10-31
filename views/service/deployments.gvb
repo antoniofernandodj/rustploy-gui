@@ -2,7 +2,7 @@
 component {
   resources {
     component(name = SemDeploysDoServico) {
-      text(class = u-muted, content = "Nenhum deploy ainda.")
+      text("Nenhum deploy ainda.", class = u-muted)
     }
   }
 
@@ -14,13 +14,13 @@ component {
       equals = true,
       class = form-panel,
     ) {
-      text(class = u-label-cap, content = "WEBHOOK DE DEPLOY")
+      text("WEBHOOK DE DEPLOY", class = u-label-cap)
 
       column(if = @service_webhook_url, not_equals = "", class = webhook) {
         text(
+          "@service_webhook_url_short",
           class = webhook__url,
           tooltip = @service_webhook_url,
-          content = "@service_webhook_url_short",
         )
 
         row(class = webhook__actions) {
@@ -40,36 +40,36 @@ component {
       }
 
       text(
-        if = @service_webhook_url,
-        equals = "",
-        class = u-muted,
-        content = """
+        """
           O token nasce no primeiro deploy deste serviço — rode um deploy
           para a URL aparecer.
         """,
+        if = @service_webhook_url,
+        equals = "",
+        class = u-muted,
       )
 
       text(
-        class = u-muted,
-        content = """
+        """
           Um POST nesta URL dispara um deploy. O corpo é ignorado: o token
           na própria URL é a autenticação. Regenerar invalida a URL
           anterior.
         """,
+        class = u-muted,
       )
     }
 
-    text(class = u-muted, content = "@service_deployments_count deployments")
+    text("@service_deployments_count deployments", class = u-muted)
 
     scrollable(direction = vertical, class = deployments__list-scroll) {
       column(class = u-fill) {
         each @service_deployments as d (fallback = SemDeploysDoServico) {
           column(class = u-fill) {
             row(class = table__row) {
-              text(class = "table__cell table__cell--key table__col-dep-id", content = "@d.id")
+              text("@d.id", class = "table__cell table__cell--key table__col-dep-id")
               StateCell(kind = @d.state_kind, label = @d.state_label)
-              text(class = "table__cell table__col-dur", content = "@d.duration")
-              text(class = "u-muted table__col-dep-start", content = "@d.start")
+              text("@d.duration", class = "table__cell table__col-dur")
+              text("@d.start", class = "u-muted table__col-dep-start")
 
               row(class = deployments__actions) {
                 button(
@@ -92,7 +92,7 @@ component {
               }
             }
 
-            text(class = deployments__image, content = "@d.image")
+            text("@d.image", class = deployments__image)
             hr
           }
         }

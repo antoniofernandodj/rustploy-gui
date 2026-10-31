@@ -69,7 +69,7 @@ component {
             text = "‹ @service_project",
           )
 
-          text(class = "page-head__title service__title", content = "@service_name")
+          text("@service_name", class = "page-head__title service__title")
         }
 
         row(class = service__substatus) {
@@ -78,29 +78,29 @@ component {
           rp-badge(if = @service_warm_visible, equals = true, color = @service_warm_color, label = "◐ @service_warm_label")
 
           row(class = badge, if = @service_deploy_running, equals = true) {
-            text(class = status-dot, color = #58A6FF, content = "⏱")
+            text("⏱", class = status-dot, color = #58A6FF)
 
             text(
+              "@service_deploy_elapsed",
               class = badge__label,
               color = #58A6FF,
-              content = "@service_deploy_elapsed",
             )
           }
         }
 
         text(
+          "frio: @service_warm_reason",
           if = @service_warm_reason,
           not_equals = "",
           class = u-muted,
-          content = "frio: @service_warm_reason",
         )
 
         text(
+          "@service_action_message",
           if = @service_action_message,
           not_equals = "",
           class = u-muted,
           color = @service_action_color,
-          content = "@service_action_message",
         )
 
         row(class = "service__actions service__actions--compact") {
@@ -263,10 +263,10 @@ component {
     row(class = service__body) {
       column(class = service__main) {
         text(
+          "@service_error",
           if = @service_error,
           not_equals = "",
           class = service__err,
-          content = "@service_error",
         )
         ServiceGeneralTab(if = @tab, equals = general)
         ServiceConnectionTab(if = @tab, equals = connection)
@@ -282,20 +282,20 @@ component {
 
       column(class = service__aside) {
         column(class = aside-panel) {
-          text(class = u-label-cap, content = "STATUS")
+          text("STATUS", class = u-label-cap)
           rp-badge(color = @service_status_color, label = @service_status_label)
-          text(class = u-label-cap, content = "UPTIME")
-          text(class = kv-list__val, content = "@daemon_uptime")
-          text(class = u-label-cap, content = "SERVICES")
-          text(class = kv-list__val, content = "@services_label")
+          text("UPTIME", class = u-label-cap)
+          text("@daemon_uptime", class = kv-list__val)
+          text("SERVICES", class = u-label-cap)
+          text("@services_label", class = kv-list__val)
         }
 
         column(class = "aside-panel aside-panel--fill") {
-          text(class = u-label-cap, content = "LOGS")
+          text("LOGS", class = u-label-cap)
 
           text(
+            "Runtime e build logs abrem em janelas próprias (isoladas).",
             class = u-muted,
-            content = "Runtime e build logs abrem em janelas próprias (isoladas).",
           )
 
           row(class = env__add) {

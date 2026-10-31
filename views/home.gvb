@@ -57,8 +57,8 @@ component {
     }
 
     column(class = u-center-fill, if = @view, equals = support) {
-      text(class = page-head__title, content = "Support")
-      text(class = page-head__subtitle, content = "github.com/antoniofernandodj/rustploy")
+      text("Support", class = page-head__title)
+      text("github.com/antoniofernandodj/rustploy", class = page-head__subtitle)
     }
   }
 }

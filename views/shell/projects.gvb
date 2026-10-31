@@ -2,18 +2,18 @@
 component {
   resources {
     component(name = SemProjetos) {
-      text(class = u-muted, content = "Nenhum projeto ainda.")
+      text("Nenhum projeto ainda.", class = u-muted)
     }
   }
 
   column(class = content) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text(class = page-head__title, content = "Projects")
+        text("Projects", class = page-head__title)
 
         text(
+          "Projetos do cluster e a contagem de serviços de cada um.",
           class = page-head__subtitle,
-          content = "Projetos do cluster e a contagem de serviços de cada um.",
         )
       }
 

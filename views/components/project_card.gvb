@@ -17,16 +17,16 @@ component {
   } else {
     column(class = card) {
       row(class = card__head) {
-        text(class = card__name, content = "@name")
+        text("@name", class = card__name)
       }
 
       text(
+        "@service_count serviço(s) · @running_count rodando",
         class = u-muted,
         size = 11,
-        content = "@service_count serviço(s) · @running_count rodando",
       )
 
-      text(class = u-muted, content = "@description")
+      text("@description", class = u-muted)
       hr
 
       // Ações empilhadas: um botão fill disputando a linha com
@@ -43,10 +43,10 @@ component {
       )
 
       text(
+        "Não removível: tem serviços",
         class = u-muted,
         if = @can_delete,
         not_equals = 1,
-        content = "Não removível: tem serviços",
       )
     }
   }

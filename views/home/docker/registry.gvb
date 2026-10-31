@@ -4,29 +4,29 @@ component {
   resources {
     component(name = SemRepositorios) {
       text(
+        """
+          Nenhum repositório ainda. Faça `docker push` para o registry embutido.
+        """,
         if = @registry_repos_count,
         equals = 0,
         class = u-muted,
-        content = """
-          Nenhum repositório ainda. Faça `docker push` para o registry embutido.
-        """,
       )
 
       text(
+        "Nenhum repositório corresponde à busca.",
         if = @registry_repos_count,
         not_equals = 0,
         class = u-muted,
-        content = "Nenhum repositório corresponde à busca.",
       )
     }
 
     component(name = SemTokens) {
       text(
-        class = u-muted,
-        content = """
+        """
           Nenhum token ainda. Sem token nenhum push/pull é autenticado — crie um
           antes de usar o registry.
         """,
+        class = u-muted,
       )
     }
   }
@@ -34,11 +34,11 @@ component {
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
-        class = "u-muted u-fill",
-        content = """
+        """
           Registry @registry_status_label · @registry_repos_count
           repositório(s) · @registry_storage_human
         """,
+        class = "u-muted u-fill",
       )
 
       button(
@@ -52,10 +52,10 @@ component {
     }
 
     text(
+      "@registry_message",
       if = @registry_message,
       not_equals = "",
       class = u-muted,
-      content = "@registry_message",
     )
 
     column(class = "panel panel--fill", if = @registry_selected_repo, equals = "") {
@@ -68,17 +68,17 @@ component {
         class = u-fill-all,
       ) {
         tablecolumn(key = name, label = "REPOSITÓRIO", class = table__col-svc) {
-          text(class = "table__cell table__cell--key", content = "@r.name")
+          text("@r.name", class = "table__cell table__cell--key")
         }
 
         tablecolumn(key = tag_count, label = TAGS, class = table__col-proj)
 
         tablecolumn(key = size, label = TAMANHO, class = table__col-dur) {
-          text(class = u-muted, content = "@r.size")
+          text("@r.size", class = u-muted)
         }
 
         tablecolumn(key = created, label = CRIADO, class = table__col-dur) {
-          text(class = u-muted, content = "@r.created")
+          text("@r.created", class = u-muted)
         }
 
         tablecolumn(label = "AÇÃO", class = table__col-act-2, align = right) {
@@ -109,17 +109,17 @@ component {
       }
 
       text(
+        "TOKENS DE ACESSO (@registry_tokens_count)",
         class = u-label-cap,
-        content = "TOKENS DE ACESSO (@registry_tokens_count)",
       )
 
       row(class = env__head) {
         text(
-          class = "u-muted u-fill",
-          content = """
+          """
             Basic auth (docker login) — o segredo só aparece uma vez, na
             criação.
           """,
+          class = "u-muted u-fill",
         )
 
         button(
@@ -143,17 +143,17 @@ component {
           width = fill,
         ) {
           tablecolumn(key = name, label = NOME, class = table__col-svc) {
-            text(class = "table__cell table__cell--key", content = "@tk.name")
+            text("@tk.name", class = "table__cell table__cell--key")
           }
 
           tablecolumn(key = scope, label = ESCOPO, class = table__col-proj)
 
           tablecolumn(key = created, label = CRIADO, class = table__col-dur) {
-            text(class = u-muted, content = "@tk.created")
+            text("@tk.created", class = u-muted)
           }
 
           tablecolumn(key = last_used, label = "ÚLTIMO USO", class = table__col-dur) {
-            text(class = u-muted, content = "@tk.last_used")
+            text("@tk.last_used", class = u-muted)
           }
 
           tablecolumn(label = "AÇÃO", class = table__col-act) {
@@ -176,8 +176,8 @@ component {
     ) {
       row(class = env__head) {
         text(
+          "@registry_selected_repo — @registry_tags_count tag(s)",
           class = "u-muted u-fill",
-          content = "@registry_selected_repo — @registry_tags_count tag(s)",
         )
 
         button(
@@ -197,19 +197,19 @@ component {
         class = u-fill-all,
       ) {
         tablecolumn(key = tag, label = TAG, class = table__col-svc) {
-          text(class = "table__cell table__cell--key", content = "@t.tag")
+          text("@t.tag", class = "table__cell table__cell--key")
         }
 
         tablecolumn(key = digest, label = DIGEST, class = table__col-proj) {
-          text(class = u-muted, content = "@t.digest")
+          text("@t.digest", class = u-muted)
         }
 
         tablecolumn(key = size, label = TAMANHO, class = table__col-dur) {
-          text(class = u-muted, content = "@t.size")
+          text("@t.size", class = u-muted)
         }
 
         tablecolumn(key = updated, label = ATUALIZADA, class = table__col-dur) {
-          text(class = u-muted, content = "@t.updated")
+          text("@t.updated", class = u-muted)
         }
 
         tablecolumn(label = "AÇÃO", class = table__col-act) {

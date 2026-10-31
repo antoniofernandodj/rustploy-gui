@@ -8,11 +8,11 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Deploy Engine")
+      text("Deploy Engine", class = page-head__title)
 
       text(
+        "Pipeline de deploy: em andamento e histórico recente.",
         class = page-head__subtitle,
-        content = "Pipeline de deploy: em andamento e histórico recente.",
       )
     }
 

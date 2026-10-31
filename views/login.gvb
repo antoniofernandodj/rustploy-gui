@@ -27,11 +27,11 @@ component {
         )
 
         column(class = login__brand) {
-          text(class = login__title, content = "Rustploy")
+          text("Rustploy", class = login__title)
 
           text(
+            "Infrastructure management for professional teams",
             class = page-head__subtitle,
-            content = "Infrastructure management for professional teams",
           )
         }
       }
@@ -39,8 +39,8 @@ component {
       form(name = login, on_submit = connect, spacing = 16, width = fill) {
         column(class = field) {
           row(class = field__row) {
-            text(class = "field__label u-fill", content = "CONNECTION TOKEN")
-            text(class = field__label, content = "SECURE")
+            text("CONNECTION TOKEN", class = "field__label u-fill")
+            text("SECURE", class = field__label)
           }
 
           select(
@@ -64,17 +64,17 @@ component {
           )
 
           text(
+            "→ @access_key_target",
             if = @access_key_target,
             not_equals = "",
             class = u-muted,
-            content = "→ @access_key_target",
           )
 
           text(
+            "@error_access_key",
             if = @error_access_key,
             not_equals = "",
             class = u-error,
-            content = "@error_access_key",
           )
 
           row(class = login__forget-row) {
@@ -90,12 +90,12 @@ component {
         button(class = login__connect, on_click = connect, disabled = @busy_connect, text = Connect)
       }
 
-      text(if = @error, not_equals = "", class = u-error, content = "⚠ @error")
+      text("⚠ @error", if = @error, not_equals = "", class = u-error)
       hr
 
       row(class = login__status) {
-        text(class = u-ok, size = 10, content = "●")
-        text(class = u-muted, content = "@status_line")
+        text("●", class = u-ok, size = 10)
+        text("@status_line", class = u-muted)
       }
     }
   }

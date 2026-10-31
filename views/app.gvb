@@ -61,8 +61,8 @@ app(
               on_press = window:drag,
               on_double_click = window:maximize,
             ) {
-              text(class = titlebar__dot, content = "●")
-              text(class = titlebar__title, content = "Rustploy")
+              text("●", class = titlebar__dot)
+              text("Rustploy", class = titlebar__title)
             }
 
             button(class = titlebar__btn, on_click = window:minimize, text = "—")

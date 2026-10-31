@@ -2,13 +2,13 @@
 component {
   resources {
     component(name = FilaVazia) {
-      text(class = empty-state, content = "Nenhum deploy na fila.")
+      text("Nenhum deploy na fila.", class = empty-state)
     }
   }
 
   column(class = "section section--fill") {
     row(class = section__head) {
-      text(class = section__title, content = "NA FILA (@deploy_engine_queued_count)")
+      text("NA FILA (@deploy_engine_queued_count)", class = section__title)
 
       button(
         if = @deploy_engine_paused,
@@ -31,10 +31,10 @@ component {
 
     column(class = section__body) {
       text(
+        "Fila pausada — deploys esperam até você retomar.",
         if = @deploy_engine_paused,
         equals = true,
         class = "banner banner--warn",
-        content = "Fila pausada — deploys esperam até você retomar.",
       )
     }
 
@@ -48,9 +48,9 @@ component {
           reorder_key = deployment_id,
         ) {
           row(class = table__row) {
-            text(class = env__drag-handle, drag_handle = true, content = "⋮")
+            text("⋮", class = env__drag-handle, drag_handle = true)
             row(class = table__col-svc, spacing = 6) {
-              text(class = "table__cell table__cell--key", content = "@q.pos.")
+              text("@q.pos.", class = "table__cell table__cell--key")
               TableLink(kind = service, id = @q.service_id, label = @q.service)
             }
             row(class = table__col-start) {

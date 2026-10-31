@@ -3,15 +3,15 @@
 component {
   resources {
     component(name = SemContainersDocker) {
-      text(class = u-muted, content = "Nenhum container.")
+      text("Nenhum container.", class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
+        "@docker_containers_count container(s)",
         class = "u-muted u-fill",
-        content = "@docker_containers_count container(s)",
       )
 
       button(
@@ -23,10 +23,10 @@ component {
     }
 
     text(
+      "@docker_message",
       if = @docker_message,
       not_equals = "",
       class = u-muted,
-      content = "@docker_message",
     )
 
     tableview(
@@ -38,13 +38,13 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = name, label = NOME, class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@c.name")
+        text("@c.name", class = "table__cell table__cell--key")
       }
 
       tablecolumn(key = image, label = IMAGEM, class = table__col-img)
 
       tablecolumn(key = owner, label = DONO, class = table__col-state) {
-        text(class = u-muted, content = "@c.owner")
+        text("@c.owner", class = u-muted)
       }
 
       tablecolumn(key = state_label, label = ESTADO, class = table__col-state) {

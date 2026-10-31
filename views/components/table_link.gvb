@@ -22,10 +22,10 @@ component {
     class = table-link,
     on_click = open_service:@id,
   ) {
-    text(class = table-link__label, content = "@label")
+    text("@label", class = table-link__label)
   }
 
   button(else, class = table-link, on_click = open_project:@id) {
-    text(class = table-link__label, content = "@label")
+    text("@label", class = table-link__label)
   }
 }

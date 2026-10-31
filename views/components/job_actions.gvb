@@ -42,23 +42,23 @@ component {
     )
 
     column(class = job-actions__panel) {
-      text(class = job-actions__title, content = "@job_name")
+      text("@job_name", class = job-actions__title)
 
       column(class = job-actions__status) {
         StateCell(kind = @warm_kind, label = @warm_label)
 
         text(
+          "@warm_reason",
           class = u-muted,
           if = @warm_reason,
           not_equals = "",
-          content = "@warm_reason",
         )
 
         text(
+          "aquecido em @warmed_at_label",
           class = u-muted,
           if = @is_warm,
           equals = true,
-          content = "aquecido em @warmed_at_label",
         )
       }
 

@@ -2,7 +2,7 @@
 component {
   resources {
     component(name = SemDeployAtivo) {
-      text(class = empty-state, content = "Nenhum deploy em andamento.")
+      text("Nenhum deploy em andamento.", class = empty-state)
     }
   }
 
@@ -10,18 +10,18 @@ component {
     column(class = section) {
       row(class = section__head) {
         text(
+          "EXECUTANDO AGORA (@deploy_engine_active_count)",
           class = section__title,
-          content = "EXECUTANDO AGORA (@deploy_engine_active_count)",
         )
       }
 
       column(class = section__body) {
         row(class = table__head, if = @deploy_engine_active, not_empty) {
-          text(class = "table__head-cell table__col-svc", content = "SERVIÇO")
-          text(class = "table__head-cell table__col-proj", content = "PROJETO")
-          text(class = "table__head-cell table__col-state", content = "ESTADO")
-          text(class = "table__head-cell table__col-dur", content = "TOTAL")
-          text(class = "table__head-cell table__col-start", content = "FASE")
+          text("SERVIÇO", class = "table__head-cell table__col-svc")
+          text("PROJETO", class = "table__head-cell table__col-proj")
+          text("ESTADO", class = "table__head-cell table__col-state")
+          text("TOTAL", class = "table__head-cell table__col-dur")
+          text("FASE", class = "table__head-cell table__col-start")
           text(class = "table__head-cell table__col-act")
         }
 
@@ -41,8 +41,8 @@ component {
                 }
                 StateCell(kind = @a.state_kind, label = @a.state_label)
 
-                text(class = "u-muted table__col-dur", content = "@a.total")
-                text(class = "u-muted table__col-start", content = "@a.phase")
+                text("@a.total", class = "u-muted table__col-dur")
+                text("@a.phase", class = "u-muted table__col-start")
 
                 button(
                   class = "btn btn--ghost btn--xs",
@@ -64,7 +64,7 @@ component {
 
               row(class = stepper) {
                 each @a.steps as st {
-                  text(class = "stepper__step stepper__step--@st.status", content = "@st.text")
+                  text("@st.text", class = "stepper__step stepper__step--@st.status")
                 }
               }
 
@@ -78,14 +78,14 @@ component {
     popup(value = deploy_engine_detail_open, trigger = none, onClose = deploy_engine_close_detail) {
       column(class = "panel panel--round detail") {
         row(class = detail__head) {
-          text(class = detail__title, content = "Deploy · @deploy_engine_detail_title")
+          text("Deploy · @deploy_engine_detail_title", class = detail__title)
 
           button(class = "btn btn--ghost btn--xs", on_click = deploy_engine_close_detail, disabled = @busy_deploy_engine_close_detail, text = Fechar)
         }
 
         row(class = stepper) {
           each @deploy_engine_detail_steps as st {
-            text(class = "stepper__step stepper__step--@st.status", content = "@st.text")
+            text("@st.text", class = "stepper__step stepper__step--@st.status")
           }
         }
 
@@ -99,16 +99,16 @@ component {
         ) {
           tablecolumn(label = ESTADO, class = table__col-state) {
             row(class = "state-cell state-cell--@d.kind") {
-              text(class = state-cell__label, content = "@d.label")
+              text("@d.label", class = state-cell__label)
             }
           }
 
           tablecolumn(label = "DURAÇÃO", class = table__col-dur) {
-            text(class = u-muted, content = "@d.dur")
+            text("@d.dur", class = u-muted)
           }
 
           tablecolumn(label = MENSAGEM, class = table__col-start) {
-            text(class = u-muted, content = "@d.msg")
+            text("@d.msg", class = u-muted)
           }
         }
       }

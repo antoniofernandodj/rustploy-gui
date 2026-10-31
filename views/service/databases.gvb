@@ -5,14 +5,14 @@ component {
     class = u-fill-all,
   ) {
     column(width = fill, spacing = 8, class = form-panel) {
-      text(class = u-label-cap, content = "DATABASES (@service_shared_databases_count)")
+      text("DATABASES (@service_shared_databases_count)", class = u-label-cap)
 
       text(
-        class = u-muted,
-        content = """
+        """
           Cada database tem usuário próprio, sem acesso aos demais. O
           projeto consumidor recebe a connection string numa env var.
         """,
+        class = u-muted,
       )
 
       scrollable(direction = vertical, class = u-fill-all) {
@@ -27,15 +27,15 @@ component {
 
             text(class = env__sep)
             button(class = tabs__tab, on_click = shared_database_show:@d.id, disabled = @busy_shared_database_show, text = @d.name)
-            text(class = "kv-list__val kv-list__val--compact", content = "→ @d.project")
-            text(class = u-muted, content = "@d.env_var")
+            text("→ @d.project", class = "kv-list__val kv-list__val--compact")
+            text("@d.env_var", class = u-muted)
           }
         }
       }
 
       row(class = kv-list__row, if = @shared_database_url, not_equals = "") {
-        text(class = kv-list__key, content = "URL")
-        text(class = "kv-list__val kv-list__val--compact", content = "@shared_database_url_short")
+        text("URL", class = kv-list__key)
+        text("@shared_database_url_short", class = "kv-list__val kv-list__val--compact")
 
         button(
           class = "btn btn--ghost btn--xs",
@@ -44,7 +44,7 @@ component {
         )
       }
 
-      text(class = u-label-cap, content = "NOVO DATABASE")
+      text("NOVO DATABASE", class = u-label-cap)
 
       input(
         class = field__input,
@@ -108,7 +108,7 @@ component {
           text = "Criar database",
         )
 
-        text(class = u-muted, content = "@service_action_message")
+        text("@service_action_message", class = u-muted)
       }
     }
   }

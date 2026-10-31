@@ -2,15 +2,15 @@
 component {
   resources {
     component(name = SemNetworks) {
-      text(class = u-muted, content = "Nenhuma network.")
+      text("Nenhuma network.", class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
+        "@docker_networks_count network(s)",
         class = "u-muted u-fill",
-        content = "@docker_networks_count network(s)",
       )
 
       // O filtro mora em format.docker_networks — ver images.gvb.
@@ -29,10 +29,10 @@ component {
     }
 
     text(
+      "@docker_message",
       if = @docker_message,
       not_equals = "",
       class = u-muted,
-      content = "@docker_message",
     )
 
     tableview(
@@ -44,17 +44,17 @@ component {
       class = u-fill-all,
     ) {
       tablecolumn(key = name, label = NOME, class = table__col-svc) {
-        text(class = "table__cell table__cell--key", content = "@n.name")
+        text("@n.name", class = "table__cell table__cell--key")
       }
 
       tablecolumn(key = project, label = PROJETO, class = table__col-proj)
 
       tablecolumn(key = driver, label = DRIVER, class = table__col-dur) {
-        text(class = u-muted, content = "@n.driver")
+        text("@n.driver", class = u-muted)
       }
 
       tablecolumn(key = containers, label = CONTAINERS, class = table__col-dur) {
-        text(class = u-muted, content = "@n.containers")
+        text("@n.containers", class = u-muted)
       }
 
       tablecolumn(key = in_use_label, label = USO, class = table__col-state) {

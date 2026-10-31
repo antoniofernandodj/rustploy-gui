@@ -5,21 +5,21 @@ component {
     class = u-fill-all,
   ) {
     column(width = fill, spacing = 8, class = form-panel) {
-      text(class = u-label-cap, content = "MIGRAR PARA BANCO COMPARTILHADO")
+      text("MIGRAR PARA BANCO COMPARTILHADO", class = u-label-cap)
 
       text(
-        class = u-muted,
-        content = """
+        """
           Crie antes o database de destino no servidor compartilhado (aba
           Databases de lá, marcando "Não mexer em env var"). Mesmo motor e
           mesmo projeto. A migração é com parada: os serviços que usam
           este banco ficam fora do ar durante a cópia.
         """,
+        class = u-muted,
       )
 
       text(
+        "DATABASE DE ORIGEM (dentro deste banco)",
         class = u-label-cap,
-        content = "DATABASE DE ORIGEM (dentro deste banco)",
       )
 
       input(
@@ -30,7 +30,7 @@ component {
         placeholder = "nome do database",
       )
 
-      text(class = u-label-cap, content = "DESTINO")
+      text("DESTINO", class = u-label-cap)
 
       select(
         class = form-select,
@@ -42,7 +42,7 @@ component {
         valueField = id,
       )
 
-      text(class = u-label-cap, content = "ENV VAR A TROCAR")
+      text("ENV VAR A TROCAR", class = u-label-cap)
 
       input(
         class = field__input,
@@ -64,23 +64,23 @@ component {
       }
 
       if @migration_has == "true" {
-        text(class = u-label-cap, content = "ANDAMENTO — @migration_status")
+        text("ANDAMENTO — @migration_status", class = u-label-cap)
 
         column(class = kv-list) {
           row(class = kv-list__row, :for-each = migration_steps, var = s) {
-            text(class = env__key, content = "@s.icon")
-            text(class = "kv-list__val kv-list__val--compact", content = "@s.name")
-            text(class = u-muted, content = "@s.detail")
+            text("@s.icon", class = env__key)
+            text("@s.name", class = "kv-list__val kv-list__val--compact")
+            text("@s.detail", class = u-muted)
           }
         }
 
         if @migration_can_finish == "true" {
           text(
-            class = u-muted,
-            content = """
+            """
               Migração concluída — o banco antigo foi mantido (parado)
               para rollback.
             """,
+            class = u-muted,
           )
 
           row(class = env__add) {

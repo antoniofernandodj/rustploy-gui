@@ -12,8 +12,8 @@ screen(title = "Exportar serviço — Rustploy") {
   column(class = dialog__screen) {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
-        text(class = titlebar__dot, content = "●")
-        text(class = titlebar__title, content = "Exportar serviço — Rustploy")
+        text("●", class = titlebar__dot)
+        text("Exportar serviço — Rustploy", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -22,32 +22,32 @@ screen(title = "Exportar serviço — Rustploy") {
 
     scrollable(class = dialog__body, direction = vertical) {
       column(class = form-panel) {
-        text(class = u-label-cap, content = "EXPORTAR · @export_service")
+        text("EXPORTAR · @export_service", class = u-label-cap)
 
         text(
-          class = u-muted,
-          content = """
+          """
             Gera um arquivo para recriar este serviço em outro servidor: abra um
             projeto de lá, Novo serviço → Importar. Só a configuração vai; os
             dados (volumes, bancos) não.
           """,
+          class = u-muted,
         )
 
         if @export_blocked != "" {
-          text(class = u-error, content = "@export_blocked")
+          text("@export_blocked", class = u-error)
         } else {
-          text(class = u-label-cap, content = "VARIÁVEIS DO SERVIÇO (@export_service_count) — TODAS VÃO")
-          text(class = u-muted, content = "@export_service_vars")
+          text("VARIÁVEIS DO SERVIÇO (@export_service_count) — TODAS VÃO", class = u-label-cap)
+          text("@export_service_vars", class = u-muted)
 
-          text(class = u-label-cap, content = "VARIÁVEIS DO PROJETO “@export_project” — MARQUE AS QUE O APP PRECISA")
+          text("VARIÁVEIS DO PROJETO “@export_project” — MARQUE AS QUE O APP PRECISA", class = u-label-cap)
 
           text(
-            class = u-muted,
-            content = """
+            """
               O container recebe TODAS as variáveis do projeto, e o rustploy não
               sabe quais o código lê. As marcadas por padrão são as que o serviço
               cita pelo nome (no env ou no compose); o resto é com você.
             """,
+            class = u-muted,
           )
 
           if @export_has_vars == "true" {
@@ -60,7 +60,7 @@ screen(title = "Exportar serviço — Rustploy") {
               )
               button(class = "btn btn--ghost", on_click = export_all, disabled = @busy_export_all, text = Todas)
               button(class = "btn btn--ghost", on_click = export_none, disabled = @busy_export_none, text = Nenhuma)
-              text(class = u-muted, content = "@export_picked_count marcada(s)")
+              text("@export_picked_count marcada(s)", class = u-muted)
             }
 
             column(class = kv-list) {
@@ -72,12 +72,12 @@ screen(title = "Exportar serviço — Rustploy") {
                     disabled = @busy_export_toggle,
                     text = "@v.mark  @v.key",
                   )
-                  text(class = u-muted, content = "@v.tag")
+                  text("@v.tag", class = u-muted)
                 }
               }
             }
           } else {
-            text(class = u-muted, content = "O projeto não tem variáveis.")
+            text("O projeto não tem variáveis.", class = u-muted)
           }
 
           checkbox(
@@ -87,21 +87,21 @@ screen(title = "Exportar serviço — Rustploy") {
           )
 
           text(
-            if = @export_values,
-            equals = true,
-            class = u-error,
-            content = """
+            """
               O arquivo vai conter segredos em texto, e o disco o grava com a
               permissão padrão: trate-o como uma senha. (Secrets do rustploy,
               “secret:NOME”, nunca são decifrados: só a referência vai.)
             """,
+            if = @export_values,
+            equals = true,
+            class = u-error,
           )
 
           text(
+            "Sem valores: o arquivo leva só os nomes, e quem importar preenche os valores.",
             if = @export_values,
             equals = false,
             class = u-muted,
-            content = "Sem valores: o arquivo leva só os nomes, e quem importar preenche os valores.",
           )
 
           row(class = dialog__actions) {
@@ -119,8 +119,8 @@ screen(title = "Exportar serviço — Rustploy") {
             )
           }
 
-          text(class = u-muted, if = @export_message, not_equals = "", content = "@export_message")
-          text(class = u-error, if = @export_error, not_equals = "", content = "@export_error")
+          text("@export_message", class = u-muted, if = @export_message, not_equals = "")
+          text("@export_error", class = u-error, if = @export_error, not_equals = "")
 
           if @export_yaml != "" {
             textarea(class = dialog__yaml, font = mono, :value = export_yaml)

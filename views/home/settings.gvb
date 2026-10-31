@@ -10,11 +10,11 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text(class = page-head__title, content = "Settings")
+      text("Settings", class = page-head__title)
 
       text(
+        "Daemon web server, HTTPS e contas Git.",
         class = page-head__subtitle,
-        content = "Daemon web server, HTTPS e contas Git.",
       )
     }
   }

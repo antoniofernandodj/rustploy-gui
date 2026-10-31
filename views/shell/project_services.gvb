@@ -7,7 +7,7 @@ component {
     link(rel = import, href = "project_jobs.gvb", as = ProjectJobsTab)
 
     component(name = SemServicosNoProjeto) {
-      text(class = u-muted, content = "Nenhum serviço neste projeto ainda.")
+      text("Nenhum serviço neste projeto ainda.", class = u-muted)
     }
   }
 
@@ -69,10 +69,10 @@ component {
             )
 
             text(
+              "@error_edit_project_name",
               class = u-error,
               if = @error_edit_project_name,
               not_empty,
-              content = "@error_edit_project_name",
             )
 
             input(
@@ -91,18 +91,18 @@ component {
                 text = Cancelar,
               )
 
-              text(class = u-muted, content = "@project_action_message")
+              text("@project_action_message", class = u-muted)
             }
           }
         } else {
-          text(class = page-head__title, content = "@project_name")
-          text(class = page-head__subtitle, content = "@project_description")
+          text("@project_name", class = page-head__title)
+          text("@project_description", class = page-head__subtitle)
 
           text(
+            "@project_action_message",
             if = @project_action_message,
             not_equals = "",
             class = u-muted,
-            content = "@project_action_message",
           )
         }
       }
