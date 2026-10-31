@@ -56,6 +56,7 @@
     --faint:   #6E7681;   /* rótulos apagados */
     --accent:  #58A6FF;   /* azul de destaque */
     --blue:    #1F6FEB;   /* botões/abas azuis */
+    --blue-hover: #4A8CF5; /* o mesmo azul, com o ponteiro em cima */
     --spin:    #2F81F7;   /* ação (connect) / spinner */
     --green:   #238636;   /* botão primário */
     --ok:      #3FB950;   /* estado ok / sucesso */
@@ -155,6 +156,8 @@
 .titlebar__btn--close:hover { background: var(--danger); text-color: var(--text); }
 .tabs__tab             { transition: all 150ms ease-out; }
 .tabs__tab:hover       { background: var(--raised); }
+/* A aba ativa é azul: o hover dela clareia o azul (e não cai no cinza da aba inativa). */
+.tabs__tab--active:hover { background: var(--blue-hover); }
 .btn:disabled          { text-color: var(--faint); }
 .btn--primary:disabled { color: var(--border); }
 .btn--danger:disabled  { color: var(--border); }
