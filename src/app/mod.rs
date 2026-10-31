@@ -8,6 +8,9 @@ mod updater;
 /// Sobe o daemon multi-janela e roda o loop do iced até a última janela fechar.
 pub(crate) fn run() -> iced::Result {
     let daemon = GlacierDaemon::new()
+        .locale_json("en", include_str!("../../locales/en.json"))
+        .locale_json("pt-BR", include_str!("../../locales/pt-BR.json"))
+        .default_locale("en")
         .main_template("views/app.gvb")
         // `app_update`: a ponte nativa do "Atualizar app" (ver updater.rs).
         .lua_extension(updater::install_lua)

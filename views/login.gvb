@@ -12,6 +12,7 @@ component {
       .login__forget-row { width: fill; align-x: end; padding: 2 0; }
       .login__forget-btn { size: 11; color: var(--border); padding: 5 12; border-radius: 4; }
       .login__status   { spacing: 14; align-y: center; }
+      .login__language { spacing: 8; }
       .login__connect  { width: fill; color: var(--spin); padding: 14; text-align: center; border-radius: 3; }
     """
   }
@@ -27,10 +28,10 @@ component {
         )
 
         column(class = login__brand) {
-          text("Rustploy", class = login__title)
+          text("{t('common.rustploy')}", class = login__title)
 
           text(
-            "Infrastructure management for professional teams",
+            "{t('login.infrastructure_management_for_professional_teams')}",
             class = page-head__subtitle,
           )
         }
@@ -39,8 +40,8 @@ component {
       form(name = login, on_submit = connect, class = "form form--gap-16") {
         column(class = field) {
           row(class = field__row) {
-            text("CONNECTION TOKEN", class = "field__label u-fill")
-            text("SECURE", class = field__label)
+            text("{t('login.connection_token')}", class = "field__label u-fill")
+            text("{t('login.secure')}", class = field__label)
           }
 
           select(
@@ -50,7 +51,7 @@ component {
             :options = saved_servers,
             :value = saved_server_choice,
             on_change = choose_saved_server,
-            placeholder = "servidores salvos",
+            placeholder = "{t('login.saved_servers')}",
             width = fill,
           )
 
@@ -59,7 +60,7 @@ component {
             :value = access_key,
             on_change = access_key_input,
             on_submit = connect,
-            placeholder = "cole o token de conexão",
+            placeholder = "{t('login.paste_the_connection_token')}",
             width = fill,
           )
 
@@ -82,12 +83,17 @@ component {
               class = login__forget-btn,
               on_click = forget_server,
               disabled = @busy_forget_server,
-              text = "Esquecer este servidor",
+              text = "{t('login.forget_this_server')}",
             )
           }
         }
 
-        button(class = login__connect, on_click = connect, disabled = @busy_connect, text = Connect)
+        row(class = login__language) {
+          button(class = "{language_english_class}", on_click = language_select_english, text = English)
+          button(class = "{language_portuguese_class}", on_click = language_select_portuguese, text = Português)
+        }
+
+        button(class = login__connect, on_click = connect, disabled = @busy_connect, text = "{t('login.connect')}")
       }
 
       text("⚠ @error", if = @error, not_equals = "", class = u-error)

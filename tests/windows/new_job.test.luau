@@ -243,7 +243,7 @@ function test_novo_job_passos__job_autonomo_sem_servico_gatilho()
     tela:call("new_job_pick_project", "p1")
     tela:call("new_job_pick_no_service")
     assert_eq(tela:get("new_job_service_id"), "")
-    assert_eq(tela:get("new_job_service_name"), "nenhum (autônomo)")
+    assert_eq(tela:get("new_job_service_name"), "none (standalone)")
     assert_eq(tela:get("new_job_step"), "form")
 end
 
@@ -336,14 +336,14 @@ function test_novo_job_criar_so_ate_a_validacao_recusar__sem_conexao_manda()
     tela:call("new_job_create")
     assert_eq(
         tela:get("new_job_error"),
-        "sem conexão — reabra a janela pelo app"
+        "no connection — reopen the window from the app"
     )
 end
 
 --- o nome é obrigatório, mesmo só de espaços
 function test_novo_job_criar_so_ate_a_validacao_recusar__o_nome_e_obrigatorio()
-    assert_eq((erro_ao_criar({ new_job_name = "   " })), "informe um nome")
-    assert_eq((erro_ao_criar({})), "informe um nome")
+    assert_eq((erro_ao_criar({ new_job_name = "   " })), "enter a name")
+    assert_eq((erro_ao_criar({})), "enter a name")
 end
 
 --- o main_service é obrigatório
@@ -360,7 +360,7 @@ function test_novo_job_criar_so_ate_a_validacao_recusar__fonte_compose_pede_o()
         new_job_main_service = "app",
         new_job_compose = "  \n ",
     })
-    assert_eq(erro, "cole o docker-compose.yml do job")
+    assert_eq(erro, "paste the job's docker-compose.yml")
 end
 
 --- fonte git pede repositório e branch
@@ -380,7 +380,7 @@ function test_novo_job_criar_so_ate_a_validacao_recusar__fonte_git_pede()
         end
         assert_eq(
             (erro_ao_criar(campos, "git")),
-            "selecione repositório e branch"
+            "select repository and branch"
         )
     end
 end
@@ -394,7 +394,7 @@ function test_novo_job_criar_so_ate_a_validacao_recusar__git_com_repositorio()
         new_job_git_branch = "main",
         new_job_git_repos = "[]",
     }, "git")
-    assert_has(erro, "não foi possível resolver a URL")
+    assert_has(erro, "could not resolve the repository URL")
 end
 
 --- o erro some quando o formulário passa a validar (limpa antes de ir à rede)
@@ -407,7 +407,7 @@ function test_novo_job_criar_so_ate_a_validacao_recusar__o_erro_some_quando_o()
     tela:set("new_job_error", "velho")
     tela:call("new_job_create") -- passa da validação: o RPC suspende
     assert_eq(tela:get("new_job_error"), "")
-    assert_eq(tela:get("new_job_message"), "criando…")
+    assert_eq(tela:get("new_job_message"), "creating…")
 end
 
 --- o formulário recusado não deixa o botão travado

@@ -31,7 +31,7 @@ function registry_open_repo(name: string): ()
     else
         ctx.registry_tags = json.array({})
         ctx.registry_tags_count = "0"
-        ctx.registry_message = "erro: " .. tostring(registry_tag_list_response)
+        ctx.registry_message = i18n.tr("erro: ") .. tostring(registry_tag_list_response)
     end
     ctx.registry_tags_loading = "false"
 end
@@ -50,15 +50,9 @@ end
 
 function registry_remove_tag(tag_name: string): ()
     local confirmed = confirm {
-        title = "Remover tag?",
-        message = "A tag será removida. Se outra tag apontar pro mesmo "
-            .. "manifest "
-            .. "(mesma imagem), ela também é removida — o delete é por "
-            .. "digest, "
-            .. 'não por tag. O disco é liberado pelo botão "Executar GC". '
-            .. "Ação "
-            .. "irreversível.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover tag?"),
+        message = i18n.tr("A tag será removida. Se outra tag apontar pro mesmo manifest (mesma imagem), ela também é removida — o delete é por digest, não por tag. O disco é liberado pelo botão \"Executar GC\". Ação irreversível."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -71,28 +65,26 @@ function registry_remove_tag(tag_name: string): ()
     if not api or not repo or repo == "" then
         return
     end
-    ctx.registry_message = "removendo tag…"
+    ctx.registry_message = i18n.tr("removendo tag…")
     local registry_tag_delete_ok, registry_tag_delete_response =
         api:rpc_checked {
             RegistryTagDelete = { repo = repo, tag = tag_name },
         }
     if registry_tag_delete_ok then
-        ctx.registry_message = "removida"
+        ctx.registry_message = i18n.tr("removida")
         registry_open_repo(repo)
         Stream.refresh_now()
     else
-        ctx.registry_message = "erro: "
+        ctx.registry_message = i18n.tr("erro: ")
             .. tostring(registry_tag_delete_response)
     end
 end
 
 function registry_remove_repo(name: string): ()
     local confirmed = confirm {
-        title = "Remover repositório?",
-        message = "Todas as tags e manifests do repositório serão removidos. "
-            .. "O "
-            .. 'disco é liberado pelo botão "Executar GC". Ação irreversível.',
-        confirm_label = "Remover",
+        title = i18n.tr("Remover repositório?"),
+        message = i18n.tr("Todas as tags e manifests do repositório serão removidos. O disco é liberado pelo botão \"Executar GC\". Ação irreversível."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -104,17 +96,17 @@ function registry_remove_repo(name: string): ()
     if not api then
         return
     end
-    ctx.registry_message = "removendo repositório…"
+    ctx.registry_message = i18n.tr("removendo repositório…")
     local registry_repo_delete_ok, registry_repo_delete_response =
         api:rpc_checked { RegistryRepoDelete = { repo = name } }
     if registry_repo_delete_ok then
-        ctx.registry_message = "removido"
+        ctx.registry_message = i18n.tr("removido")
         if ctx.registry_selected_repo == name then
             registry_close_repo()
         end
         Stream.refresh_now()
     else
-        ctx.registry_message = "erro: "
+        ctx.registry_message = i18n.tr("erro: ")
             .. tostring(registry_repo_delete_response)
     end
 end
@@ -126,12 +118,9 @@ end
 
 function registry_gc(): ()
     local confirmed = confirm {
-        title = "Executar GC?",
-        message = "Remove do disco blobs e manifests que nenhuma tag "
-            .. "referencia "
-            .. "(sobras de remoções e de tags republicadas) e uploads "
-            .. "abandonados há mais de 24h. Imagens com tag não são afetadas.",
-        confirm_label = "Executar",
+        title = i18n.tr("Executar GC?"),
+        message = i18n.tr("Remove do disco blobs e manifests que nenhuma tag referencia (sobras de remoções e de tags republicadas) e uploads abandonados há mais de 24h. Imagens com tag não são afetadas."),
+        confirm_label = i18n.tr("Executar"),
         destructive = true,
     }
 
@@ -143,11 +132,11 @@ function registry_gc(): ()
     if not api then
         return
     end
-    ctx.registry_message = "executando GC…"
+    ctx.registry_message = i18n.tr("executando GC…")
     local registry_gc_ok, registry_gc_response = api:rpc_checked("RegistryGc")
     if registry_gc_ok and registry_gc_response.RegistryGcResult then
         ctx.registry_message = string.format(
-            "GC: %d arquivo(s) removido(s) · %s liberados",
+            i18n.tr("GC: %d arquivo(s) removido(s) · %s liberados"),
             registry_gc_response.RegistryGcResult.blobs_removed or 0,
             format.format_bytes(
                 registry_gc_response.RegistryGcResult.bytes_freed or 0
@@ -155,7 +144,7 @@ function registry_gc(): ()
         )
         Stream.refresh_now()
     else
-        ctx.registry_message = "erro: " .. tostring(registry_gc_response)
+        ctx.registry_message = i18n.tr("erro: ") .. tostring(registry_gc_response)
     end
 end
 
@@ -199,11 +188,9 @@ end
 
 function registry_remove_token(name: string): ()
     local confirmed = confirm {
-        title = "Revogar token?",
-        message = "Qualquer `docker login`/push/pull usando esse token deixa "
-            .. "de "
-            .. "funcionar imediatamente. Ação irreversível.",
-        confirm_label = "Revogar",
+        title = i18n.tr("Revogar token?"),
+        message = i18n.tr("Qualquer `docker login`/push/pull usando esse token deixa de funcionar imediatamente. Ação irreversível."),
+        confirm_label = i18n.tr("Revogar"),
         destructive = true,
     }
 
@@ -215,7 +202,7 @@ function registry_remove_token(name: string): ()
     if not api then
         return
     end
-    ctx.registry_message = "revogando token…"
+    ctx.registry_message = i18n.tr("revogando token…")
     local registry_token_revoke_ok, registry_token_revoke_response =
         api:rpc_checked {
             RegistryTokenRevoke = {
@@ -223,10 +210,10 @@ function registry_remove_token(name: string): ()
             },
         }
     if registry_token_revoke_ok then
-        ctx.registry_message = "token revogado"
+        ctx.registry_message = i18n.tr("token revogado")
         registry_refresh_tokens()
     else
-        ctx.registry_message = "erro: "
+        ctx.registry_message = i18n.tr("erro: ")
             .. tostring(registry_token_revoke_response)
     end
 end

@@ -50,7 +50,7 @@ local function detail_line(service: any): string
         return "imagem: " .. tostring(service.image or "")
     elseif service.kind == "database" or service.kind == "broker" then
         return string.format(
-            "motor: %s · porta %s",
+            i18n.tr("motor: %s · porta %s"),
             tostring(service.engine or "?"),
             tostring(service.port)
         )
@@ -60,7 +60,7 @@ end
 
 local function checks_text(checks: { any }): string
     if #checks == 0 then
-        return "nenhum"
+        return i18n.tr("nenhum")
     end
     local lines = {}
     for check_index, check in ipairs(checks) do
@@ -114,7 +114,7 @@ function M.running(
                     branch = service.branch or "",
                     detail = detail_line(service),
                     domains = domains == "" and ""
-                        or ("domínio: " .. domains),
+                        or (i18n.tr("domínio: ") .. domains),
                     cpu = metrics_point and string.format(
                         "%.1f%%",
                         metrics_point.cpu_percent or 0
@@ -129,7 +129,7 @@ function M.running(
                             and (is_revealed and webhook or M.mask_webhook(
                                 webhook
                             ))
-                        or "sem webhook",
+                        or i18n.tr("sem webhook"),
                     reveal_label = is_revealed and "Ocultar" or "Mostrar",
                     has_warm = warm ~= nil and "true" or "false",
                     warm_label = warm_label,
@@ -145,7 +145,7 @@ function M.running(
                 count_label = string.format(
                     "%d %s",
                     #services,
-                    #services == 1 and "serviço" or "serviços"
+                    #services == 1 and i18n.tr("serviço") or i18n.tr("serviços")
                 ),
                 rows = in_rows(services),
             })

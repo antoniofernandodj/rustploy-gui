@@ -116,7 +116,7 @@ function M:rpc(command: any): (boolean, any)
 
     local json_decode_ok, decoded = decode_body(http_response.body)
     if not json_decode_ok then
-        return false, "resposta inválida do daemon"
+        return false, i18n.tr("resposta inválida do daemon")
     end
 
     return true, decoded
@@ -170,7 +170,7 @@ function M:upload_archive(
     end
     local json_decode_ok, decoded = decode_body(http_response.body)
     if not json_decode_ok then
-        return false, "resposta inválida do daemon"
+        return false, i18n.tr("resposta inválida do daemon")
     end
     if type(decoded) == "table" and decoded.Err ~= nil then
         return false,

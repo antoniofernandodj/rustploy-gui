@@ -5,20 +5,15 @@ component {
     class = u-fill-all,
   ) {
     column(width = fill, spacing = 8, class = form-panel) {
-      text("MIGRAR PARA BANCO COMPARTILHADO", class = u-label-cap)
+      text("{t('migrar.migrate_to_a_shared_database')}", class = u-label-cap)
 
       text(
-        """
-          Crie antes o database de destino no servidor compartilhado (aba
-          Databases de lá, marcando "Não mexer em env var"). Mesmo motor e
-          mesmo projeto. A migração é com parada: os serviços que usam
-          este banco ficam fora do ar durante a cópia.
-        """,
+        "{t('migrar.first_create_the_destination_database_on')}",
         class = u-muted,
       )
 
       text(
-        "DATABASE DE ORIGEM (dentro deste banco)",
+        "{t('migrar.source_database_inside_this_database')}",
         class = u-label-cap,
       )
 
@@ -27,44 +22,44 @@ component {
         form_control = service_form_migration_database,
         :value = service_form_migration_database,
         on_change = field:service_form_migration_database,
-        placeholder = "nome do database",
+        placeholder = "{t('migrar.database_name')}",
       )
 
-      text("DESTINO", class = u-label-cap)
+      text("{t('migrar.destination')}", class = u-label-cap)
 
       select(
         class = form-select,
         :options = migration_destinations,
         :value = service_form_migration_destination,
         on_change = field:service_form_migration_destination,
-        placeholder = "database de destino...",
+        placeholder = "{t('migrar.destination_database')}",
         labelField = name,
         valueField = id,
       )
 
-      text("ENV VAR A TROCAR", class = u-label-cap)
+      text("{t('migrar.env_var_to_replace')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_migration_env,
         :value = service_form_migration_env,
         on_change = field:service_form_migration_env,
-        placeholder = "padrão DATABASE_URL / MONGODB_URI",
+        placeholder = "{t('migrar.default_database_url_mongodb_uri')}",
       )
 
       row(class = env__add) {
-        button(class = "btn btn--primary", on_click = migration_start, disabled = @busy_migration_start, text = Migrar)
+        button(class = "btn btn--primary", on_click = migration_start, disabled = @busy_migration_start, text = "{t('common.migrate')}")
 
         button(
           class = "btn btn--ghost",
           on_click = migration_refresh,
           disabled = @busy_migration_refresh,
-          text = Atualizar,
+          text = "{t('migrar.refresh')}",
         )
       }
 
       if @migration_has == "true" {
-        text("ANDAMENTO — @migration_status", class = u-label-cap)
+        text("{t('migrar.progress', migration_status=migration_status)}", class = u-label-cap)
 
         column(class = kv-list) {
           row(class = kv-list__row, :for-each = migration_steps, var = s) {
@@ -76,10 +71,7 @@ component {
 
         if @migration_can_finish == "true" {
           text(
-            """
-              Migração concluída — o banco antigo foi mantido (parado)
-              para rollback.
-            """,
+            "{t('migrar.migration_finished_the_old_database_was')}",
             class = u-muted,
           )
 
@@ -88,14 +80,14 @@ component {
               class = "btn btn--ghost",
               on_click = migration_rollback,
               disabled = @busy_migration_rollback,
-              text = Reverter,
+              text = "{t('migrar.roll_back')}",
             )
 
             button(
               class = "btn btn--ghost",
               on_click = migration_discard,
               disabled = @busy_migration_discard,
-              text = "Descartar banco antigo",
+              text = "{t('migrar.discard_the_old_database')}",
             )
           }
         }

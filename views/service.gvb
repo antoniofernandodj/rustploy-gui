@@ -89,7 +89,7 @@ component {
         }
 
         text(
-          "frio: @service_warm_reason",
+          "{t('service.cold', service_warm_reason=service_warm_reason)}",
           if = @service_warm_reason,
           not_equals = "",
           class = u-muted,
@@ -109,7 +109,7 @@ component {
             on_click = service_deploy,
             disabled = @busy_service_deploy,
             text = "▶",
-            tooltip = Deploy,
+            tooltip = "{t('service.deploy')}",
           )
 
           button(
@@ -117,7 +117,7 @@ component {
             on_click = service_reload,
             disabled = @busy_service_reload,
             text = "⟳",
-            tooltip = Reload,
+            tooltip = "{t('service.reload')}",
           )
 
           button(
@@ -125,7 +125,7 @@ component {
             on_click = service_rebuild,
             disabled = @busy_service_rebuild,
             text = "⚙",
-            tooltip = Rebuild,
+            tooltip = "{t('service.rebuild')}",
           )
 
           button(
@@ -133,7 +133,7 @@ component {
             on_click = service_stop,
             disabled = @busy_service_stop,
             text = "■",
-            tooltip = Stop,
+            tooltip = "{t('service.stop')}",
           )
 
           button(
@@ -143,7 +143,7 @@ component {
             on_click = service_warm,
             disabled = @busy_service_warm,
             text = "◐",
-            tooltip = "Aquecer: constrói a imagem para o próximo deploy achar o cache, sem mexer no container no ar",
+            tooltip = "{t('service.warm_builds_the_image_so')}",
           )
 
           button(
@@ -151,29 +151,29 @@ component {
             on_click = open_export_window,
             disabled = @busy_open_export_window,
             text = "⇪",
-            tooltip = "Exportar serviço",
+            tooltip = "{t('service.export_service')}",
           )
         }
       }
 
       row(class = "service__actions service__actions--full") {
-        button(class = "btn btn--primary", on_click = service_deploy, disabled = @busy_service_deploy, text = Deploy)
-        button(class = "btn btn--blue btn--wide", on_click = service_reload, disabled = @busy_service_reload, text = Reload)
-        button(class = "btn btn--blue btn--wide", on_click = service_rebuild, disabled = @busy_service_rebuild, text = Rebuild)
-        button(class = "btn btn--danger", on_click = service_stop, disabled = @busy_service_stop, text = Stop)
+        button(class = "btn btn--primary", on_click = service_deploy, disabled = @busy_service_deploy, text = "{t('service.deploy')}")
+        button(class = "btn btn--blue btn--wide", on_click = service_reload, disabled = @busy_service_reload, text = "{t('service.reload')}")
+        button(class = "btn btn--blue btn--wide", on_click = service_rebuild, disabled = @busy_service_rebuild, text = "{t('service.rebuild')}")
+        button(class = "btn btn--danger", on_click = service_stop, disabled = @busy_service_stop, text = "{t('service.stop')}")
         button(
           if = @service_warm_visible,
           equals = true,
           class = "btn btn--ghost",
           on_click = service_warm,
           disabled = @busy_service_warm,
-          text = Aquecer,
+          text = "{t('service.warm')}",
         )
         button(
           class = "btn btn--ghost",
           on_click = open_export_window,
           disabled = @busy_open_export_window,
-          text = "Exportar serviço",
+          text = "{t('service.export_service')}",
         )
       }
     }
@@ -182,35 +182,35 @@ component {
     scroll(class = tabs__scroll, direction = horizontal) {
       row(class = tabs__main) {
         TabButton(
-          label = General,
+          label = "{t('service.general')}",
           current = @tab,
           target = general,
           action = tab:general,
         )
 
         TabButton(
-          label = Connection,
+          label = "{t('service.connection')}",
           current = @tab,
           target = connection,
           action = tab:connection,
         )
 
         TabButton(
-          label = Environment,
+          label = "{t('service.environment')}",
           current = @tab,
           target = environment,
           action = tab:environment,
         )
 
         TabButton(
-          label = Domains,
+          label = "{t('service.domains')}",
           current = @tab,
           target = domains,
           action = tab:domains,
         )
 
         TabButton(
-          label = Deployments,
+          label = "{t('common.deployments')}",
           current = @tab,
           target = deployments,
           action = tab:deployments,
@@ -218,7 +218,7 @@ component {
 
         if @service_shared == "true" {
           TabButton(
-            label = Databases,
+            label = "{t('service.databases')}",
             current = @tab,
             target = databases,
             action = tab:databases,
@@ -227,7 +227,7 @@ component {
 
         if @service_can_migrate == "true" {
           TabButton(
-            label = Migrar,
+            label = "{t('common.migrate')}",
             current = @tab,
             target = migrar,
             action = tab:migrar,
@@ -235,21 +235,21 @@ component {
         }
 
         TabButton(
-          label = Healthcheck,
+          label = "{t('service.healthcheck')}",
           current = @tab,
           target = healthcheck,
           action = tab:healthcheck,
         )
 
         TabButton(
-          label = Logs,
+          label = "{t('service.logs')}",
           current = @tab,
           target = logs,
           action = tab:logs,
         )
 
         TabButton(
-          label = Advanced,
+          label = "{t('service.advanced')}",
           current = @tab,
           target = advanced,
           action = tab:advanced,
@@ -282,19 +282,19 @@ component {
 
       column(class = service__aside) {
         column(class = aside-panel) {
-          text("STATUS", class = u-label-cap)
+          text("{t('common.status')}", class = u-label-cap)
           rp-badge(color = @service_status_color, label = @service_status_label)
-          text("UPTIME", class = u-label-cap)
+          text("{t('common.uptime')}", class = u-label-cap)
           text("@daemon_uptime", class = kv-list__val)
-          text("SERVICES", class = u-label-cap)
+          text("{t('common.services')}", class = u-label-cap)
           text("@services_label", class = kv-list__val)
         }
 
         column(class = "aside-panel aside-panel--fill") {
-          text("LOGS", class = u-label-cap)
+          text("{t('service.logs_2')}", class = u-label-cap)
 
           text(
-            "Runtime e build logs abrem em janelas próprias (isoladas).",
+            "{t('service.runtime_and_build_logs_open')}",
             class = u-muted,
           )
 
@@ -303,7 +303,7 @@ component {
               class = tabs__tab,
               on_click = open_logs_window,
               disabled = @busy_open_logs_window,
-              text = "Logs de runtime",
+              text = "{t('service.runtime_logs')}",
             )
           }
         }

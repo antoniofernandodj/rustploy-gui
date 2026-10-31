@@ -62,7 +62,7 @@ app(
               on_double_click = window:maximize,
             ) {
               text("●", class = titlebar__dot)
-              text("Rustploy", class = titlebar__title)
+              text("{t('common.rustploy')}", class = titlebar__title)
             }
 
             button(class = titlebar__btn, on_click = window:minimize, text = "—")

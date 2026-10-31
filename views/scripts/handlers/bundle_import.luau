@@ -35,10 +35,10 @@ local CHOICE_LABEL: { [string]: string } = {
 
 local function choice_label(status_entry: any, choice: string): string
     if choice == "Keep" then
-        return status_entry.state == "New" and "criar no projeto"
-            or "manter a do projeto"
+        return status_entry.state == "New" and i18n.tr("criar no projeto")
+            or i18n.tr("manter a do projeto")
     end
-    return CHOICE_LABEL[choice] or choice
+    return i18n.tr(CHOICE_LABEL[choice] or choice)
 end
 
 local function options_for(status_entry: any): { string }
@@ -194,8 +194,8 @@ local function show_report(report: any): ()
         if not choices[status_entry.key] then
             choices[status_entry.key] = status_entry.choice
         end
-        local info = (status_entry.is_secret and "secret · " or "")
-            .. (STATE_LABEL[status_entry.state] or status_entry.state)
+        local info = (status_entry.is_secret and i18n.tr("secret · ") or "")
+            .. i18n.tr(STATE_LABEL[status_entry.state] or status_entry.state)
         table.insert(rows, {
             key = status_entry.key,
             info = info,
@@ -214,12 +214,12 @@ local function analyze_core(): boolean
         return false
     end
     if Helpers.trim(ctx.import_text) == "" then
-        ctx.import_error = "escolha um arquivo ou cole o texto do pacote"
+        ctx.import_error = i18n.tr("escolha um arquivo ou cole o texto do pacote")
         return false
     end
 
     ctx.import_error = ""
-    ctx.import_message = "analisando…"
+    ctx.import_message = i18n.tr("analisando…")
     ctx.import_busy = "true"
     local service_import_ok, service_import_response =
         api:rpc_checked { ServiceImport = build_import_request(true) }
@@ -252,7 +252,7 @@ end
 -- "Escolher arquivo…": lê o .yml e já analisa.
 function import_pick_file(): ()
     local path = open_file {
-        title = "Importar serviço (.yml)",
+        title = i18n.tr("Importar serviço (.yml)"),
         filters = { { name = "YAML", extensions = { "yml", "yaml" } } },
     }
     if not path then
@@ -261,7 +261,7 @@ function import_pick_file(): ()
 
     local read = fetch("file://" .. path)
     if not read.ok then
-        ctx.import_error = "erro ao ler o arquivo: " .. tostring(read.error)
+        ctx.import_error = i18n.tr("erro ao ler o arquivo: ") .. tostring(read.error)
         return
     end
 
@@ -315,13 +315,11 @@ function import_choice(key: string): ()
     local next_choice = options[(current_index % #options) + 1]
     if next_choice == "Overwrite" then
         local confirmed = confirm {
-            title = "Sobrescrever no projeto?",
-            message = "Trocar "
+            title = i18n.tr("Sobrescrever no projeto?"),
+            message = i18n.tr("Trocar ")
                 .. key
-                .. "no projeto altera o valor que os OUTROS serviços do "
-                .. "projeto "
-                .. "também enxergam.",
-            confirm_label = "Sobrescrever",
+                .. i18n.tr("no projeto altera o valor que os OUTROS serviços do projeto também enxergam."),
+            confirm_label = i18n.tr("Sobrescrever"),
             destructive = true,
         }
         if not confirmed then
@@ -350,16 +348,16 @@ function import_create(): ()
     end
     if Helpers.is_true(ctx.import_conflict) then
         ctx.import_error =
-            "já existe um serviço com esse nome neste projeto — escolha outro"
+            i18n.tr("já existe um serviço com esse nome neste projeto — escolha outro")
         return
     end
     if Helpers.is_true(ctx.import_has_missing) then
-        ctx.import_error = "preencha os valores obrigatórios acima"
+        ctx.import_error = i18n.tr("preencha os valores obrigatórios acima")
         return
     end
 
     ctx.import_error = ""
-    ctx.import_message = "criando…"
+    ctx.import_message = i18n.tr("criando…")
     ctx.import_busy = "true"
     local service_import_ok, service_import_response =
         api:rpc_checked { ServiceImport = build_import_request(false) }

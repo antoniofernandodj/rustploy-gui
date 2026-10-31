@@ -6,32 +6,29 @@ component {
     """
 
     component(name = SemJobs) {
-      text("Nenhum job cadastrado ainda.", class = u-muted)
+      text("{t('common.no_jobs_registered_yet')}", class = u-muted)
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("Schedules", class = page-head__title)
+      text("{t('common.schedules')}", class = page-head__title)
 
       text(
-        """
-          Tarefas one-shot (docker-compose) agendadas ou manuais, de todos
-          os projetos.
-        """,
+        "{t('schedules.one_shot_tasks_docker_compose_scheduled')}",
         class = page-head__subtitle,
       )
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
-      StatCard(label = JOBS, value = @jobs_count)
+      StatCard(label = "{t('schedules.jobs')}", value = @jobs_count)
     }
 
     button(
       class = "btn btn--primary",
       on_click = open_new_job_window,
       disabled = @busy_open_new_job_window,
-      text = "+ Novo job",
+      text = "{t('common.new_job')}",
     )
   }
 
@@ -44,37 +41,37 @@ component {
       row_class = "table__row table__cell table__row--divided",
       class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = NOME, class = table__col-svc) {
+      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
         text("@j.name", class = "table__cell table__cell--key")
       }
 
-      tablecolumn(key = owner, label = "PROJETO / GATILHO", class = table__col-proj)
+      tablecolumn(key = owner, label = "{t('schedules.project_trigger')}", class = table__col-proj)
 
       tablecolumn(
         key = last_run_label,
-        label = "ÚLTIMA EXECUÇÃO",
+        label = "{t('common.last_run')}",
         class = table__col-state,
       ) {
         StateCell(kind = @j.last_run_kind, label = @j.last_run_label)
       }
 
-      tablecolumn(key = recurrence, label = "RECORRÊNCIA", class = table__col-dur) {
+      tablecolumn(key = recurrence, label = "{t('common.recurrence')}", class = table__col-dur) {
         text("@j.recurrence", class = u-muted)
       }
 
       tablecolumn(
         key = next_run_at,
-        label = "PRÓXIMA EXECUÇÃO",
+        label = "{t('schedules.next_run')}",
         class = table__col-dur,
       ) {
         text("@j.next_run_at", class = "u-muted schedules__next-run")
       }
 
-      tablecolumn(label = AQUECIMENTO, class = table__col-state) {
+      tablecolumn(label = "{t('schedules.warm_up')}", class = table__col-state) {
         StateCell(kind = @j.warm_kind, label = @j.warm_label)
       }
 
-      tablecolumn(label = "AÇÕES", class = table__col-act-2, align = right) {
+      tablecolumn(label = "{t('schedules.actions')}", class = table__col-act-2, align = right) {
         row(class = table__col-act-2) {
           JobActions(
             job_id = @j.id,

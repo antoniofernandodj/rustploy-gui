@@ -31,7 +31,7 @@ function open_export_window(requested_service_id: string?): ()
         or not service_export_plan_response.ServiceExportPlan
     then
         toast {
-            message = "Falha ao preparar a exportação: "
+            message = i18n.tr("Falha ao preparar a exportação: ")
                 .. tostring(service_export_plan_response),
             kind = "error",
         }

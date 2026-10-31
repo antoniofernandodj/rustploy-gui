@@ -4,14 +4,10 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      text("EXPORTAR", class = u-label-cap)
+      text("{t('settings_iac.export')}", class = u-label-cap)
 
       text(
-        """
-          Gera um `.zip` com rustploy.yml + rustploy.vars.toml no lugar
-          que você escolher. Os valores das env vars ficam só no TOML;
-          secrets nunca saem do daemon.
-        """,
+        "{t('settings_iac.generates_a_zip_with_rustploy_yml')}",
         class = u-muted,
       )
 
@@ -20,7 +16,7 @@ component {
           class = "btn btn--primary",
           on_click = manifest_export,
           disabled = @busy_manifest_export,
-          text = "Exportar para um .zip…",
+          text = "{t('settings_iac.export_to_a_zip')}",
         )
 
         spinner(class = busy-row__spin, if = @manifest_busy)
@@ -28,17 +24,10 @@ component {
       }
 
       hr
-      text("IMPORTAR", class = u-label-cap)
+      text("{t('settings_iac.import')}", class = u-label-cap)
 
       text(
-        """
-          Escolha o `.zip` do manifesto (o mesmo que o Exportar gera). Ele
-          precisa ter exatamente um .yml e um .toml na raiz — nada mais,
-          ou o import é recusado. Falta o valor de alguma variável usada
-          no YAML? Também é cancelado antes de aplicar qualquer coisa (a
-          faltante vem rotulada com o escopo, ex. "Chiquitos/api:
-          APP_PORT").
-        """,
+        "{t('settings_iac.choose_the_manifest_zip_the_same')}",
         class = u-muted,
       )
 
@@ -46,7 +35,7 @@ component {
         checkbox(
           :checked = manifest_prune,
           on_toggle = field:manifest_prune,
-          label = "Remover serviços ausentes do manifesto (prune)",
+          label = "{t('settings_iac.remove_services_missing_from_the')}",
         )
       }
 
@@ -54,7 +43,7 @@ component {
         checkbox(
           :checked = manifest_deploy,
           on_toggle = field:manifest_deploy,
-          label = "Disparar deploy dos serviços criados/alterados",
+          label = "{t('settings_iac.trigger_a_deploy_of_the')}",
         )
       }
 
@@ -63,7 +52,7 @@ component {
           class = "btn btn--primary",
           on_click = manifest_import,
           disabled = @busy_manifest_import,
-          text = "Importar de um .zip…",
+          text = "{t('settings_iac.import_from_a_zip')}",
         )
 
         spinner(class = busy-row__spin, if = @manifest_busy)
@@ -72,13 +61,13 @@ component {
 
       if @manifest_has_missing == "true" {
         text(
-          "Variáveis sem valor no TOML: @manifest_missing_vars",
+          "{t('settings_iac.variables_with_no_value_in', manifest_missing_vars=manifest_missing_vars)}",
           class = u-error,
         )
       }
 
       if @manifest_has_report == "true" {
-        text("RESULTADO", class = u-label-cap)
+        text("{t('settings_iac.result')}", class = u-label-cap)
 
         column(class = kv-list) {
           row(class = kv-list__row, :for-each = manifest_report_lines, var = l) {

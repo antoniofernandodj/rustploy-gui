@@ -151,7 +151,7 @@ function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
     assert_eq(tela:get("update_app_deb_url"), "")
     assert_eq(tela:get("update_app_install_kind"), "")
     assert_true(
-        string.find(tela:get("update_app_apply_hint"), "senha", 1, true) ~= nil
+        string.find(tela:get("update_app_apply_hint"), "password", 1, true) ~= nil
     )
     assert_true(
         string.find(tela:get("update_app_manual_command"), "install.sh", 1, true)

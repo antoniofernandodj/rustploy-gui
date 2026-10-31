@@ -29,8 +29,8 @@ function test_provedor_sem_conta_diz_que_nao_esta_conectado()
         { id = "p2", name = "meu-gitea", kind = "Gitea", auth_mode = "Pat" },
     }))
     assert_eq(rows[1].connected, "false")
-    assert_eq(rows[1].display, "meu-gitea — não conectado")
-    assert_eq(rows[1].account_login, "não conectado")
+    assert_eq(rows[1].display, "meu-gitea — not connected")
+    assert_eq(rows[1].account_login, "not connected")
     assert_eq(rows[1].auth_mode, "PAT")
     assert_eq(rows[1].kind, "Gitea")
 end
@@ -129,14 +129,14 @@ end
 
 --- resource_label traduz os conhecidos e devolve o resto
 function test_format_docker_cleanup__resource_label_traduz_os_conhecidos_e()
-    assert_eq(DockerCleanup.resource_label("images"), "imagens")
-    assert_eq(DockerCleanup.resource_label("build_cache"), "cache de build")
+    assert_eq(DockerCleanup.resource_label("images"), "images")
+    assert_eq(DockerCleanup.resource_label("build_cache"), "build cache")
     assert_eq(DockerCleanup.resource_label("outro"), "outro")
 end
 
 --- sem execução anterior
 function test_format_docker_cleanup__sem_execucao_anterior()
-    assert_eq(DockerCleanup.last_run_summary(nil), "ainda não rodou")
+    assert_eq(DockerCleanup.last_run_summary(nil), "has not run yet")
 end
 
 --- resumo soma os bytes e lista cada recurso
@@ -153,7 +153,7 @@ function test_format_docker_cleanup__resumo_soma_os_bytes_e_lista_cada()
         },
     })
     assert_has(texto, "3 MB liberados")
-    assert_has(texto, "(imagens 3, volumes 1)")
+    assert_has(texto, "(images 3, volumes 1)")
     assert_eq(string.find(texto, "falharam", 1, true), nil)
 end
 
@@ -163,8 +163,8 @@ function test_format_docker_cleanup__um_recurso_com_erro_avisa_e_nao_soma()
         at = "2026-03-01T10:00:00Z",
         results = { { resource = "networks", error = "boom" } },
     })
-    assert_has(texto, "redes: erro")
-    assert_has(texto, "alguns recursos falharam, ver logs do daemon")
+    assert_has(texto, "networks: error")
+    assert_has(texto, "some resources failed, see the daemon logs")
 end
 
 --- execução sem resultados mostra só o cabeçalho

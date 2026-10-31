@@ -1,7 +1,7 @@
 // Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab == "git"` de general.gvb.
 component {
   text(
-    "SOURCE — REPOSITORY URL / IMAGE",
+    "{t('general_git.source_repository_url_image')}",
     class = u-label-cap,
   )
 
@@ -10,32 +10,29 @@ component {
     form_control = service_form_repo_url,
     :value = service_form_repo_url,
     on_change = field:service_form_repo_url,
-    placeholder = "github.com/user/repo  ou  nginx:latest",
+    placeholder = "{t('general_git.github_com_user_repo_or')}",
   )
 
   text(
-    """
-      URL de repositório vira Git; caso contrário é imagem de
-      registry.
-    """,
+    "{t('general_git.a_repository_url_becomes_git_otherwise')}",
     class = u-muted,
   )
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text("BRANCH", class = u-label-cap)
+      text("{t('common.branch')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_branch,
         :value = service_form_branch,
         on_change = field:service_form_branch,
-        placeholder = main,
+        placeholder = "{t('general_git.main')}",
       )
     }
 
     column(class = healthcheck__field) {
-      text("PORT", class = u-label-cap)
+      text("{t('common.port')}", class = u-label-cap)
 
       input(
         class = field__input,
@@ -56,40 +53,36 @@ component {
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text("USERNAME", class = u-label-cap)
+      text("{t('general_git.username')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_username,
         :value = service_form_username,
         on_change = field:service_form_username,
-        placeholder = "(opcional)",
+        placeholder = "{t('common.optional')}",
       )
     }
 
     column(class = healthcheck__field) {
-      text("CREDENTIALS (secret)", class = u-label-cap)
+      text("{t('general_git.credentials_secret')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_credentials,
         :value = service_form_credentials,
         on_change = field:service_form_credentials,
-        placeholder = "(opcional)",
+        placeholder = "{t('common.optional')}",
       )
 
       text(
-        """
-          Nome de um secret do projeto (aba Secrets), puro — sem
-          <secret:>. Usado para clonar repositório Git privado
-          via HTTPS; não tem efeito com URL SSH.
-        """,
+        "{t('general_git.name_of_a_project_secret_secrets')}",
         class = u-muted,
       )
     }
   }
 
-  text("BUILD PATH (root)", class = u-label-cap)
+  text("{t('common.build_path_root')}", class = u-label-cap)
 
   input(
     class = field__input,
@@ -100,7 +93,7 @@ component {
   )
 
   text(
-    "WATCH PATHS (separados por vírgula)",
+    "{t('common.watch_paths_comma_separated')}",
     class = u-label-cap,
   )
 
@@ -109,32 +102,32 @@ component {
     form_control = service_form_watch_paths,
     :value = service_form_watch_paths,
     on_change = field:service_form_watch_paths,
-    placeholder = "src, Cargo.toml",
+    placeholder = "{t('common.src_cargo_toml')}",
   )
 
   toggle(
     :checked = service_form_submodules,
     on_toggle = field:service_form_submodules,
-    label = " Enable submodules",
+    label = "{t('general_git.enable_submodules')}",
   )
 
-  text("BUILD ENGINE: DOCKERFILE", class = u-label-cap)
+  text("{t('general_git.build_engine_dockerfile')}", class = u-label-cap)
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text("DOCKERFILE", class = u-label-cap)
+      text("{t('common.dockerfile')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_dockerfile,
         :value = service_form_dockerfile,
         on_change = field:service_form_dockerfile,
-        placeholder = Dockerfile,
+        placeholder = "{t('common.dockerfile_2')}",
       )
     }
 
     column(class = healthcheck__field) {
-      text("CONTEXT PATH", class = u-label-cap)
+      text("{t('common.context_path')}", class = u-label-cap)
 
       input(
         class = field__input,
@@ -146,14 +139,14 @@ component {
     }
   }
 
-  text("BUILD STAGE (opcional)", class = u-label-cap)
+  text("{t('general_git.build_stage_optional')}", class = u-label-cap)
 
   input(
     class = field__input,
     form_control = service_form_build_stage,
     :value = service_form_build_stage,
     on_change = field:service_form_build_stage,
-    placeholder = "(multi-stage target)",
+    placeholder = "{t('general_git.multi_stage_target')}",
   )
 
   row(class = env__add) {
@@ -161,7 +154,7 @@ component {
       class = "btn btn--primary",
       on_click = general_save,
       disabled = @busy_general_save,
-      text = Save,
+      text = "{t('common.save_2')}",
     )
 
     text("@service_action_message", class = u-muted)

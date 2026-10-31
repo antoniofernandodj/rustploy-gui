@@ -15,7 +15,7 @@ component {
     column(width = fill, spacing = 12) {
       column(class = form-panel, if = @service_loading, equals = true) {
         if @service_loading == "true" {
-          LoadingRow(note = "Carregando dados do serviço…")
+          LoadingRow(note = "{t('general.loading_service_data')}")
         }
       }
 
@@ -27,18 +27,18 @@ component {
         on_validation_error = service_rename_show_validation_errors,
         class = "form-panel form-panel--tight",
       ) {
-        text("NOME DO SERVIÇO", class = u-label-cap)
+        text("{t('common.service_name')}", class = u-label-cap)
 
         row(class = env__add) {
           input(
             class = field__input,
             form_control = edit_service_name,
             rules = required,
-            msg = "informe um nome",
-            placeholder = "Nome do serviço",
+            msg = "{t('common.enter_a_name')}",
+            placeholder = "{t('general.service_name')}",
           )
 
-          button(type = submit, disabled = @busy_save_service_name, class = "btn btn--primary", text = Renomear)
+          button(type = submit, disabled = @busy_save_service_name, class = "btn btn--primary", text = "{t('general.rename')}")
         }
 
         text(
@@ -66,12 +66,12 @@ component {
 
         // Provider Git/conta-conectada/Zip — apenas para serviços não-Compose.
         if @service_source_kind != "Compose" {
-          text("PROVIDER", class = u-label-cap)
+          text("{t('general.provider')}", class = u-label-cap)
 
           scroll(class = tabs__scroll, direction = horizontal) {
             row(class = tabs__main) {
               TabButton(
-                label = Git,
+                label = "{t('common.git')}",
                 current = @provider_tab,
                 target = git,
                 action = select_provider_tab:git,
@@ -79,7 +79,7 @@ component {
 
               template(if = @gitea_providers, not_empty) {
                 TabButton(
-                  label = "Gitea/GitHub",
+                  label = "{t('general.gitea_github')}",
                   current = @provider_tab,
                   target = gitea,
                   action = select_provider_tab:gitea,
@@ -87,7 +87,7 @@ component {
               }
 
               TabButton(
-                label = Zip,
+                label = "{t('general.zip')}",
                 current = @provider_tab,
                 target = zip,
                 action = select_provider_tab:zip,

@@ -15,23 +15,22 @@ local WEEKDAYS = { "seg", "ter", "qua", "qui", "sex", "sáb", "dom" }
 -- manual; `{IntervalHours=6}` / `{Daily={hour=,minute=}}` / `{Weekly={...}}`).
 function M.recurrence_label(recurrence: any): string
     if recurrence == nil then
-        return "manual"
+        return i18n.tr("manual")
     end
     if recurrence.IntervalHours ~= nil then
-        return "a cada " .. tostring(recurrence.IntervalHours) .. "h"
+        return i18n.tr("a cada ") .. tostring(recurrence.IntervalHours) .. "h"
     end
     if recurrence.Daily ~= nil then
         return string.format(
-            "diariamente às %02d:%02d",
+            i18n.tr("diariamente às %02d:%02d"),
             recurrence.Daily.hour,
             recurrence.Daily.minute
         )
     end
     if recurrence.Weekly ~= nil then
-        local weekday_name = WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1]
-            or "?"
+        local weekday_name = i18n.tr(WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1] or "?")
         return string.format(
-            "semanalmente %s às %02d:%02d",
+            i18n.tr("semanalmente %s às %02d:%02d"),
             weekday_name,
             recurrence.Weekly.hour,
             recurrence.Weekly.minute
@@ -45,15 +44,15 @@ end
 -- `true`/`false` (ok/falhou).
 function M.run_status(run: any): (string, string)
     if run == nil then
-        return "nunca rodou", "muted"
+        return i18n.tr("nunca rodou"), "muted"
     end
     if run.success == nil then
-        return "rodando…", "warn"
+        return i18n.tr("rodando…"), "warn"
     end
     if run.success then
         return "ok", "ok"
     end
-    return "falhou", "bad"
+    return i18n.tr("falhou"), "bad"
 end
 
 -- Aquecimento de um serviço com build (`ServiceWarmStatus`); `nil` = sem
@@ -70,12 +69,12 @@ end
 -- nunca se deduz. `nil` (daemon antigo, sem o campo) conta como frio.
 function M.warm_status(warm: any): (string, string)
     if warm ~= nil and warm.warming then
-        return "aquecendo…", "warn"
+        return i18n.tr("aquecendo…"), "warn"
     end
     if warm ~= nil and warm.warm then
-        return "quente", "ok"
+        return i18n.tr("quente"), "ok"
     end
-    return "frio", "muted"
+    return i18n.tr("frio"), "muted"
 end
 
 -- Tela global "Schedules": uma linha por job, de todos os projetos.
@@ -157,7 +156,7 @@ function M.pre_deploy_queue(spec: any, jobs: { any }?): string
     for position, job_id in ipairs(Util.pre_deploy_checks(spec)) do
         table.insert(rows, {
             id = job_id,
-            name = by_id[job_id] or ("(job removido: " .. job_id .. ")"),
+            name = by_id[job_id] or (i18n.tr("(job removido: ") .. job_id .. ")"),
             index = tostring(position),
         })
     end

@@ -1,7 +1,7 @@
 // Janela do wizard "Novo serviço": motor Glacier próprio, aberto por
 // open_window (handlers/wizard.luau → open_new_service_window), que semeia a
 // conexão + o projeto-alvo via open_window({ data = ...
-screen(title = "Novo serviço — Rustploy") {
+screen(title = "{t('new_service_window.new_service_rustploy')}") {
   resources {
     link(rel = import, href = new_service.gvb, as = NewServiceWizard)
 
@@ -17,7 +17,7 @@ screen(title = "Novo serviço — Rustploy") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("Novo serviço — Rustploy", class = titlebar__title)
+        text("{t('new_service_window.new_service_rustploy')}", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")

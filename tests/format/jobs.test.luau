@@ -9,22 +9,22 @@ end
 
 --- intervalo, diária e semanal
 function test_recorrencia__intervalo_diaria_e_semanal()
-    assert_eq(Jobs.recurrence_label({ IntervalHours = 6 }), "a cada 6h")
+    assert_eq(Jobs.recurrence_label({ IntervalHours = 6 }), "every 6h")
     assert_eq(
         Jobs.recurrence_label({ Daily = { hour = 3, minute = 5 } }),
-        "diariamente às 03:05"
+        "daily at 03:05"
     )
     assert_eq(
         Jobs.recurrence_label({
             Weekly = { weekday = 0, hour = 9, minute = 30 },
         }),
-        "semanalmente seg às 09:30"
+        "weekly mon at 09:30"
     )
     assert_eq(
         Jobs.recurrence_label({
             Weekly = { weekday = 6, hour = 23, minute = 0 },
         }),
-        "semanalmente dom às 23:00"
+        "weekly sun at 23:00"
     )
 end
 
@@ -34,13 +34,13 @@ function test_recorrencia__o_dia_da_semana_da_a_volta_modulo_7()
         Jobs.recurrence_label({
             Weekly = { weekday = 7, hour = 0, minute = 0 },
         }),
-        "seg"
+        "mon"
     )
     assert_has(
         Jobs.recurrence_label({
             Weekly = { weekday = 9, hour = 0, minute = 0 },
         }),
-        "qua"
+        "wed"
     )
 end
 
@@ -52,16 +52,16 @@ end
 --- última execução: nunca, rodando, ok, falhou
 function test_estado__ultima_execucao_nunca_rodando_ok_falhou()
     local label, kind = Jobs.run_status(nil)
-    assert_eq(label, "nunca rodou")
+    assert_eq(label, "never ran")
     assert_eq(kind, "muted")
     label, kind = Jobs.run_status({})
-    assert_eq(label, "rodando…")
+    assert_eq(label, "running…")
     assert_eq(kind, "warn")
     label, kind = Jobs.run_status({ success = true })
     assert_eq(label, "ok")
     assert_eq(kind, "ok")
     label, kind = Jobs.run_status({ success = false })
-    assert_eq(label, "falhou")
+    assert_eq(label, "failed")
     assert_eq(kind, "bad")
 end
 
@@ -69,11 +69,11 @@ end
 function test_estado__aquecimento_aquecendo_vence_quente_e_nil_conta_como()
     assert_eq(
         Jobs.warm_status({ warming = true, warm = true }),
-        "aquecendo…"
+        "warming…"
     )
-    assert_eq(Jobs.warm_status({ warm = true }), "quente")
-    assert_eq(Jobs.warm_status({}), "frio")
-    assert_eq(Jobs.warm_status(nil), "frio")
+    assert_eq(Jobs.warm_status({ warm = true }), "warm")
+    assert_eq(Jobs.warm_status({}), "cold")
+    assert_eq(Jobs.warm_status(nil), "cold")
     assert_eq(select(2, Jobs.warm_status({ warm = true })), "ok")
     assert_eq(select(2, Jobs.warm_status({ warming = true })), "warn")
 end
@@ -83,7 +83,7 @@ function test_estado__servico_sem_build_nao_tem_selo()
     local label, kind = Jobs.service_warm_status(nil)
     assert_eq(label, "")
     assert_eq(kind, "muted")
-    assert_eq(Jobs.service_warm_status({ warm = true }), "quente")
+    assert_eq(Jobs.service_warm_status({ warm = true }), "warm")
 end
 
 local function resumo(sobrescrita)
@@ -114,7 +114,7 @@ function test_tela_schedules__uma_linha_por_job_com_o_total()
     local linhas = json.decode(json_texto)
     assert_eq(#linhas, 2)
     assert_eq(linhas[1].id, "j1")
-    assert_eq(linhas[1].recurrence, "a cada 2h")
+    assert_eq(linhas[1].recurrence, "every 2h")
     assert_eq(linhas[1].enabled_label, "Pausar")
     assert_eq(linhas[2].enabled_label, "Ativar")
     assert_eq(linhas[1].last_run_label, "ok")
@@ -177,7 +177,7 @@ function test_tela_schedules__proxima_execucao_e_aquecimento()
     assert_match(linha.next_run_at, "^%d%d/%d%d %d%d:%d%d$")
     assert_eq(linha.is_warm, true)
     assert_eq(linha.is_warming, false)
-    assert_eq(linha.warm_label, "quente")
+    assert_eq(linha.warm_label, "warm")
     assert_eq(linha.warm_reason, "build ok")
     assert_match(linha.warmed_at_label, "^%d%d/%d%d")
 end
@@ -187,7 +187,7 @@ function test_tela_schedules__sem_next_run_at_nem_aquecimento_os_campos_tem()
     local linha = json.decode((Jobs.summaries({ resumo() }, nil)))[1]
     assert_eq(linha.next_run_at, "—")
     assert_eq(linha.is_warm, false)
-    assert_eq(linha.warm_label, "frio")
+    assert_eq(linha.warm_label, "cold")
     assert_eq(linha.warm_reason, "")
     assert_eq(linha.warmed_at_label, "")
 end
@@ -197,7 +197,7 @@ function test_tela_schedules__job_que_nunca_rodou()
     local nunca = resumo()
     nunca.last_run = nil
     local linha = json.decode((Jobs.summaries({ nunca }, nil)))[1]
-    assert_eq(linha.last_run_label, "nunca rodou")
+    assert_eq(linha.last_run_label, "never ran")
     assert_eq(linha.last_run_id, "")
     assert_eq(linha.running, false)
 end
@@ -234,7 +234,7 @@ function test_fila_de_pre_deploy__um_job_apagado_por_fora_aparece_como()
         Jobs.pre_deploy_queue({ pre_deploy_job_ids = { "zzz" } }, jobs)
     )
     assert_eq(fila[1].id, "zzz")
-    assert_eq(fila[1].name, "(job removido: zzz)")
+    assert_eq(fila[1].name, "(job removed: zzz)")
 end
 
 --- o id legado vale quando a fila nova está vazia
@@ -289,10 +289,10 @@ function test_historico__cada_execucao_com_seu_estado_codigo_de_saida_e()
     assert_eq(linhas[1].status_label, "ok")
     assert_eq(linhas[1].exit_code, "0")
     assert_match(linhas[1].finished_at, "^%d%d/%d%d %d%d:%d%d:%d%d$")
-    assert_eq(linhas[2].status_label, "falhou")
+    assert_eq(linhas[2].status_label, "failed")
     assert_eq(linhas[2].status_kind, "bad")
     assert_eq(linhas[2].finished_at, "—")
-    assert_eq(linhas[3].status_label, "rodando…")
+    assert_eq(linhas[3].status_label, "running…")
     assert_eq(linhas[3].exit_code, "—")
 end
 

@@ -4,16 +4,14 @@ component {
   resources {
     component(name = SemRepositorios) {
       text(
-        """
-          Nenhum repositório ainda. Faça `docker push` para o registry embutido.
-        """,
+        "{t('docker_registry.no_repository_yet_run_docker_push')}",
         if = @registry_repos_count,
         equals = 0,
         class = u-muted,
       )
 
       text(
-        "Nenhum repositório corresponde à busca.",
+        "{t('docker_registry.no_repository_matches_the_search')}",
         if = @registry_repos_count,
         not_equals = 0,
         class = u-muted,
@@ -22,10 +20,7 @@ component {
 
     component(name = SemTokens) {
       text(
-        """
-          Nenhum token ainda. Sem token nenhum push/pull é autenticado — crie um
-          antes de usar o registry.
-        """,
+        "{t('docker_registry.no_token_yet_without_a_token')}",
         class = u-muted,
       )
     }
@@ -34,10 +29,7 @@ component {
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
-        """
-          Registry @registry_status_label · @registry_repos_count
-          repositório(s) · @registry_storage_human
-        """,
+        "{t('docker_registry.registry_repository_ies', registry_status_label=registry_status_label, registry_repos_count=registry_repos_count, registry_storage_human=registry_storage_human)}",
         class = "u-muted u-fill",
       )
 
@@ -47,7 +39,7 @@ component {
         equals = true,
         on_click = registry_gc,
         disabled = @busy_registry_gc,
-        text = "Executar GC",
+        text = "{t('docker_registry.run_gc')}",
       )
     }
 
@@ -67,28 +59,28 @@ component {
         row_class = "table__row table__cell table__row--divided",
         class = u-fill-all,
       ) {
-        tablecolumn(key = name, label = "REPOSITÓRIO", class = table__col-svc) {
+        tablecolumn(key = name, label = "{t('common.repository')}", class = table__col-svc) {
           text("@r.name", class = "table__cell table__cell--key")
         }
 
-        tablecolumn(key = tag_count, label = TAGS, class = table__col-proj)
+        tablecolumn(key = tag_count, label = "{t('common.tags')}", class = table__col-proj)
 
-        tablecolumn(key = size, label = TAMANHO, class = table__col-dur) {
+        tablecolumn(key = size, label = "{t('common.size')}", class = table__col-dur) {
           text("@r.size", class = u-muted)
         }
 
-        tablecolumn(key = created, label = CRIADO, class = table__col-dur) {
+        tablecolumn(key = created, label = "{t('docker_registry.created')}", class = table__col-dur) {
           text("@r.created", class = u-muted)
         }
 
-        tablecolumn(label = "AÇÃO", class = table__col-act-2, align = right) {
+        tablecolumn(label = "{t('common.action')}", class = table__col-act-2, align = right) {
           row(class = table__col-act-2) {
             button(
               class = "btn btn--ghost btn--xs",
               on_click = registry_open_repo:@r.name,
               disabled = @busy_registry_open_repo,
               text = "≡",
-              tooltip = "Ver tags",
+              tooltip = "{t('docker_registry.view_tags')}",
             )
 
             button(
@@ -96,7 +88,7 @@ component {
               on_click = registry_remove_repo:@r.name,
               disabled = @busy_registry_remove_repo,
               text = "✕",
-              tooltip = Remover,
+              tooltip = "{t('common.remove')}",
             )
           }
         }
@@ -109,16 +101,13 @@ component {
       }
 
       text(
-        "TOKENS DE ACESSO (@registry_tokens_count)",
+        "{t('docker_registry.access_tokens', registry_tokens_count=registry_tokens_count)}",
         class = u-label-cap,
       )
 
       row(class = env__head) {
         text(
-          """
-            Basic auth (docker login) — o segredo só aparece uma vez, na
-            criação.
-          """,
+          "{t('docker_registry.basic_auth_docker_login_the_secret')}",
           class = "u-muted u-fill",
         )
 
@@ -126,7 +115,7 @@ component {
           class = "btn btn--primary",
           on_click = registry_open_token_window,
           disabled = @busy_registry_open_token_window,
-          text = "+ Novo token",
+          text = "{t('docker_registry.new_token')}",
         )
       }
 
@@ -142,27 +131,27 @@ component {
           row_class = "table__row table__cell table__row--divided",
           width = fill,
         ) {
-          tablecolumn(key = name, label = NOME, class = table__col-svc) {
+          tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
             text("@tk.name", class = "table__cell table__cell--key")
           }
 
-          tablecolumn(key = scope, label = ESCOPO, class = table__col-proj)
+          tablecolumn(key = scope, label = "{t('common.scope')}", class = table__col-proj)
 
-          tablecolumn(key = created, label = CRIADO, class = table__col-dur) {
+          tablecolumn(key = created, label = "{t('docker_registry.created')}", class = table__col-dur) {
             text("@tk.created", class = u-muted)
           }
 
-          tablecolumn(key = last_used, label = "ÚLTIMO USO", class = table__col-dur) {
+          tablecolumn(key = last_used, label = "{t('docker_registry.last_used')}", class = table__col-dur) {
             text("@tk.last_used", class = u-muted)
           }
 
-          tablecolumn(label = "AÇÃO", class = table__col-act) {
+          tablecolumn(label = "{t('common.action')}", class = table__col-act) {
             button(
               class = env__del,
               on_click = registry_remove_token:@tk.name,
               disabled = @busy_registry_remove_token,
               text = "✕",
-              tooltip = Revogar,
+              tooltip = "{t('docker_registry.revoke')}",
             )
           }
         }
@@ -176,7 +165,7 @@ component {
     ) {
       row(class = env__head) {
         text(
-          "@registry_selected_repo — @registry_tags_count tag(s)",
+          "{t('docker_registry.tag_s', registry_selected_repo=registry_selected_repo, registry_tags_count=registry_tags_count)}",
           class = "u-muted u-fill",
         )
 
@@ -184,7 +173,7 @@ component {
           class = "btn btn--ghost",
           on_click = registry_close_repo,
           disabled = @busy_registry_close_repo,
-          text = "← Voltar",
+          text = "{t('docker_registry.back')}",
         )
       }
 
@@ -196,28 +185,28 @@ component {
         row_class = "table__row table__cell table__row--divided",
         class = u-fill-all,
       ) {
-        tablecolumn(key = tag, label = TAG, class = table__col-svc) {
+        tablecolumn(key = tag, label = "{t('docker_registry.tag')}", class = table__col-svc) {
           text("@t.tag", class = "table__cell table__cell--key")
         }
 
-        tablecolumn(key = digest, label = DIGEST, class = table__col-proj) {
+        tablecolumn(key = digest, label = "{t('docker_registry.digest')}", class = table__col-proj) {
           text("@t.digest", class = u-muted)
         }
 
-        tablecolumn(key = size, label = TAMANHO, class = table__col-dur) {
+        tablecolumn(key = size, label = "{t('common.size')}", class = table__col-dur) {
           text("@t.size", class = u-muted)
         }
 
-        tablecolumn(key = updated, label = ATUALIZADA, class = table__col-dur) {
+        tablecolumn(key = updated, label = "{t('docker_registry.updated')}", class = table__col-dur) {
           text("@t.updated", class = u-muted)
         }
 
-        tablecolumn(label = "AÇÃO", class = table__col-act) {
+        tablecolumn(label = "{t('common.action')}", class = table__col-act) {
           button(
             class = "btn btn--danger btn--xs",
             on_click = registry_remove_tag:@t.tag,
             disabled = @busy_registry_remove_tag,
-            text = Remover,
+            text = "{t('common.remove')}",
           )
         }
 

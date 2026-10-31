@@ -1,5 +1,5 @@
 // Janela "Exportar serviço": motor Glacier próprio, aberto por open_window a partir do app principal (handlers/bundle.luau).
-screen(title = "Exportar serviço — Rustploy") {
+screen(title = "{t('service_export_window.export_service_rustploy')}") {
   resources {
     style """
     .dialog__check { color: var(--surface); padding: 5 10; border-radius: 4; }
@@ -13,7 +13,7 @@ screen(title = "Exportar serviço — Rustploy") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("Exportar serviço — Rustploy", class = titlebar__title)
+        text("{t('service_export_window.export_service_rustploy')}", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -22,31 +22,23 @@ screen(title = "Exportar serviço — Rustploy") {
 
     scrollable(class = dialog__body, direction = vertical) {
       column(class = form-panel) {
-        text("EXPORTAR · @export_service", class = u-label-cap)
+        text("{t('service_export_window.export', export_service=export_service)}", class = u-label-cap)
 
         text(
-          """
-            Gera um arquivo para recriar este serviço em outro servidor: abra um
-            projeto de lá, Novo serviço → Importar. Só a configuração vai; os
-            dados (volumes, bancos) não.
-          """,
+          "{t('service_export_window.generates_a_file_to_recreate_this')}",
           class = u-muted,
         )
 
         if @export_blocked != "" {
           text("@export_blocked", class = u-error)
         } else {
-          text("VARIÁVEIS DO SERVIÇO (@export_service_count) — TODAS VÃO", class = u-label-cap)
+          text("{t('service_export_window.service_variables_all_of_them', export_service_count=export_service_count)}", class = u-label-cap)
           text("@export_service_vars", class = u-muted)
 
-          text("VARIÁVEIS DO PROJETO “@export_project” — MARQUE AS QUE O APP PRECISA", class = u-label-cap)
+          text("{t('service_export_window.project_variables_tick_the_ones', export_project=export_project)}", class = u-label-cap)
 
           text(
-            """
-              O container recebe TODAS as variáveis do projeto, e o rustploy não
-              sabe quais o código lê. As marcadas por padrão são as que o serviço
-              cita pelo nome (no env ou no compose); o resto é com você.
-            """,
+            "{t('service_export_window.the_container_receives_all_of_the')}",
             class = u-muted,
           )
 
@@ -56,11 +48,11 @@ screen(title = "Exportar serviço — Rustploy") {
                 class = "btn btn--ghost",
                 on_click = export_suggested,
                 disabled = @busy_export_suggested,
-                text = Sugeridas,
+                text = "{t('service_export_window.suggested')}",
               )
-              button(class = "btn btn--ghost", on_click = export_all, disabled = @busy_export_all, text = Todas)
-              button(class = "btn btn--ghost", on_click = export_none, disabled = @busy_export_none, text = Nenhuma)
-              text("@export_picked_count marcada(s)", class = u-muted)
+              button(class = "btn btn--ghost", on_click = export_all, disabled = @busy_export_all, text = "{t('service_export_window.all')}")
+              button(class = "btn btn--ghost", on_click = export_none, disabled = @busy_export_none, text = "{t('service_export_window.none')}")
+              text("{t('service_export_window.ticked', export_picked_count=export_picked_count)}", class = u-muted)
             }
 
             column(class = kv-list) {
@@ -77,28 +69,24 @@ screen(title = "Exportar serviço — Rustploy") {
               }
             }
           } else {
-            text("O projeto não tem variáveis.", class = u-muted)
+            text("{t('service_export_window.the_project_has_no_variables')}", class = u-muted)
           }
 
           checkbox(
             :checked = export_values,
             on_toggle = field:export_values,
-            label = "Incluir os valores das variáveis",
+            label = "{t('service_export_window.include_the_variable_values')}",
           )
 
           text(
-            """
-              O arquivo vai conter segredos em texto, e o disco o grava com a
-              permissão padrão: trate-o como uma senha. (Secrets do rustploy,
-              “secret:NOME”, nunca são decifrados: só a referência vai.)
-            """,
+            "{t('service_export_window.the_file_will_contain_secrets_in')}",
             if = @export_values,
             equals = true,
             class = u-error,
           )
 
           text(
-            "Sem valores: o arquivo leva só os nomes, e quem importar preenche os valores.",
+            "{t('service_export_window.no_values_the_file_carries')}",
             if = @export_values,
             equals = false,
             class = u-muted,
@@ -109,13 +97,13 @@ screen(title = "Exportar serviço — Rustploy") {
               class = "btn btn--primary",
               on_click = export_save,
               disabled = @busy_export_save,
-              text = "Salvar arquivo…",
+              text = "{t('service_export_window.save_file')}",
             )
             button(
               class = "btn btn--blue btn--wide",
               on_click = export_show,
               disabled = @busy_export_show,
-              text = "Mostrar como texto",
+              text = "{t('service_export_window.show_as_text')}",
             )
           }
 
@@ -127,7 +115,7 @@ screen(title = "Exportar serviço — Rustploy") {
             button(
               class = "btn btn--ghost btn--xs",
               on_click = copy_ctx:export_yaml,
-              text = "Copiar texto",
+              text = "{t('service_export_window.copy_text')}",
             )
           }
         }

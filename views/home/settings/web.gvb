@@ -3,7 +3,7 @@ component {
   form(name = settings, on_submit = settings_save, class = form) {
     scrollable(direction = vertical, class = u-fill-all) {
       column(class = form-panel) {
-        text("URL PÚBLICA DA API", class = u-label-cap)
+        text("{t('settings_web.public_api_url')}", class = u-label-cap)
 
         row(class = kv-list__row) {
           text("@server_settings_public_base", class = "kv-list__val kv-list__val--compact")
@@ -11,20 +11,16 @@ component {
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:server_settings_public_base,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
 
         text(
-          """
-            Derivada de [api] domain/port no daemon — é a base das URLs de
-            webhook dos serviços e do callback OAuth (mesma porta da API).
-            Para mudá-la, configure api.domain e reinicie o daemon.
-          """,
+          "{t('settings_web.derived_from_api_domain_port_in')}",
           class = u-muted,
         )
 
-        text("TOKEN DE CONEXÃO", class = u-label-cap)
+        text("{t('settings_web.connection_token')}", class = u-label-cap)
 
         row(class = kv-list__row) {
           text("@server_access_key_short", class = "kv-list__val kv-list__val--compact")
@@ -32,77 +28,65 @@ component {
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:server_access_key,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
 
         text(
-          """
-            base64 de host:porta::token — endereço do servidor + token numa
-            string só. É o que se cola no login da GUI e da webui, e o que um
-            agente de IA usa em POST /api/login. O daemon também o deixa no
-            config.toml, em [api].connection_token. Vale tanto quanto o token:
-            não compartilhe à toa.
-          """,
+          "{t('settings_web.base64_of_host_port_token_server')}",
           class = u-muted,
         )
 
-        text("CONECTAR UM AGENTE DE IA (MCP)", class = u-label-cap)
+        text("{t('settings_web.connect_an_ai_agent_mcp')}", class = u-label-cap)
 
-        text("CLAUDE CODE", class = u-label-cap)
+        text("{t('settings_web.claude_code')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("claude mcp add … rustploy …/mcp", class = "kv-list__val kv-list__val--compact")
+          text("{t('settings_web.claude_mcp_add_rustploy_mcp')}", class = "kv-list__val kv-list__val--compact")
 
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:server_mcp_command,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
 
-        text("CODEX (~/.codex/config.toml)", class = u-label-cap)
+        text("{t('settings_web.codex_codex_config_toml')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("[mcp_servers.rustploy] url = …/mcp", class = "kv-list__val kv-list__val--compact")
+          text("{t('settings_web.mcp_servers_rustploy_url_mcp')}", class = "kv-list__val kv-list__val--compact")
 
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:server_mcp_command_codex,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
 
-        text("GEMINI CLI", class = u-label-cap)
+        text("{t('settings_web.gemini_cli')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("gemini mcp add … rustploy …/mcp", class = "kv-list__val kv-list__val--compact")
+          text("{t('settings_web.gemini_mcp_add_rustploy_mcp')}", class = "kv-list__val kv-list__val--compact")
 
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:server_mcp_command_gemini,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
 
         text(
-          """
-            Cada botão copia o registro do MCP deste servidor para o agente
-            correspondente, já com o token. Claude Code e Gemini: cole num
-            terminal; Codex: acrescente o bloco ao ~/.codex/config.toml. Abra uma
-            sessão nova do agente e confira com /mcp. Contém o token: não cole em
-            lugar público.
-          """,
+          "{t('settings_web.each_button_copies_this_server_s')}",
           class = u-muted,
         )
 
         text(
-          "E-MAIL LET'S ENCRYPT (HTTPS AUTOMÁTICO)",
+          "{t('settings_web.let_s_encrypt_email_automatic')}",
           class = u-label-cap,
         )
 
         input(
-          placeholder = voce@@exemplo.com,
+          placeholder = "{t('settings_web.you_example_com')}",
           class = field__input,
           form_control = server_settings_email,
         )
@@ -115,35 +99,28 @@ component {
         )
 
         text(
-          """
-            Certificados TLS emitidos automaticamente. Requer restart do
-            daemon.
-          """,
+          "{t('settings_web.tls_certificates_issued_automatically_requires_a')}",
           class = u-muted,
         )
 
         text(
-          "DOMÍNIO DO REGISTRY (EXPOSIÇÃO PÚBLICA)",
+          "{t('settings_web.registry_domain_public_exposure')}",
           class = u-label-cap,
         )
 
         input(
-          placeholder = registry.meusite.com,
+          placeholder = "{t('settings_web.registry_mysite_com')}",
           class = field__input,
           form_control = server_settings_registry_domain,
         )
 
         text(
-          """
-            Expõe o registry Docker embutido via ingress + certificado
-            automático. Requer [registry] enabled = true na config. Vazio =
-            só acessível em 127.0.0.1.
-          """,
+          "{t('settings_web.exposes_the_built_in_docker_registry')}",
           class = u-muted,
         )
 
         row(class = env__add) {
-          button(class = "btn btn--primary", on_click = settings_save, disabled = @busy_settings_save, text = Save)
+          button(class = "btn btn--primary", on_click = settings_save, disabled = @busy_settings_save, text = "{t('common.save_2')}")
           text("@settings_message", class = u-muted)
         }
       }

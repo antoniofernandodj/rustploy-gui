@@ -537,17 +537,17 @@ function test_agenda_job_parado()
     assert_has_text(tela, "nunca aquecido")
     for _, botao in
         {
-            "▶  Rodar agora",
-            "◐  Aquecer",
-            "≡  Ver logs",
+            "▶  Run now",
+            "◐  Warm",
+            "≡  View logs",
             "‖  Pausar",
-            "✎  Editar",
-            "✕  Remover",
+            "✎  Edit",
+            "✕  Remove",
         }
     do
         assert_has_button(tela, botao)
     end
-    assert_no_button(tela, "■  Cancelar execução")
+    assert_no_button(tela, "■  Cancel run")
 end
 
 --- job rodando: quente, cancelável, e não oferece rodar de novo
@@ -555,10 +555,10 @@ function test_agenda_job_rodando()
     local tela =
         app("schedules", { jobs_count = "1", jobs_summary = JOB_RODANDO })
     assert_has_text(tela, "quente")
-    assert_has_text(tela, "aquecido em 12/07 03:00")
-    assert_has_button(tela, "■  Cancelar execução")
+    assert_has_text(tela, "warmed 12/07 03:00")
+    assert_has_button(tela, "■  Cancel run")
     assert_has_button(tela, "‖  Ativar")
-    assert_no_button(tela, "▶  Rodar agora")
+    assert_no_button(tela, "▶  Run now")
 end
 
 -- ── projeto ─────────────────────────────────────────────────────────────────
@@ -599,7 +599,7 @@ function test_projeto_aba_jobs_mostra_estado_e_acoes()
     local tela = projeto()
     tela:set("project_tab", "jobs")
     assert_has_text(tela, "frio")
-    for _, botao in { "◐  Aquecer", "✎  Editar", "✕  Remover" } do
+    for _, botao in { "◐  Warm", "✎  Edit", "✕  Remove" } do
         assert_has_button(tela, botao)
     end
 end

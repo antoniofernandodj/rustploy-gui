@@ -7,7 +7,7 @@ component {
     link(rel = import, href = "project_jobs.gvb", as = ProjectJobsTab)
 
     component(name = SemServicosNoProjeto) {
-      text("Nenhum serviço neste projeto ainda.", class = u-muted)
+      text("{t('project_services.no_service_in_this_project')}", class = u-muted)
     }
   }
 
@@ -19,7 +19,7 @@ component {
             class = "btn btn--ghost",
             on_click = nav_projects,
             disabled = @busy_nav_projects,
-            text = "‹ Projetos",
+            text = "{t('project_services.projects')}",
           )
 
           column(class = u-fill)
@@ -30,14 +30,14 @@ component {
                 class = "btn btn--primary btn--sm",
                 on_click = open_new_service_window,
                 disabled = @busy_open_new_service_window,
-                text = "+ Novo serviço",
+                text = "{t('project_services.new_service')}",
               )
 
               button(
                 class = "btn btn--ghost btn--sm",
                 on_click = edit_project_toggle,
                 disabled = @busy_edit_project_toggle,
-                text = "Editar projeto",
+                text = "{t('project_services.edit_project')}",
               )
 
               if @project_can_delete == "1" {
@@ -45,7 +45,7 @@ component {
                   class = "btn btn--danger btn--sm",
                   on_click = delete_project:@selected_project_id,
                   disabled = @busy_delete_project,
-                  text = "Remover projeto",
+                  text = "{t('project_services.remove_project')}",
                 )
               }
             }
@@ -63,8 +63,8 @@ component {
               class = field__input,
               form_control = edit_project_name,
               rules = required,
-              msg = "informe um nome",
-              placeholder = "Nome do projeto",
+              msg = "{t('common.enter_a_name')}",
+              placeholder = "{t('common.project_name')}",
             )
 
             text(
@@ -77,17 +77,17 @@ component {
             input(
               class = field__input,
               form_control = edit_project_description,
-              placeholder = "Descrição (opcional)",
+              placeholder = "{t('project_services.description_optional')}",
             )
 
             row(class = env__add) {
-              button(type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary", text = Salvar)
+              button(type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary", text = "{t('common.save')}")
 
               button(
                 class = "btn btn--ghost",
                 on_click = cancel_project_edit,
                 disabled = @busy_cancel_project_edit,
-                text = Cancelar,
+                text = "{t('common.cancel')}",
               )
 
               text("@project_action_message", class = u-muted)
@@ -111,28 +111,28 @@ component {
     scroll(class = tabs__scroll, direction = horizontal) {
       row(class = tabs__main) {
         TabButton(
-          label = Serviços,
+          label = "{t('project_services.services')}",
           current = @project_tab,
           target = services,
           action = project_tab:services,
         )
 
         TabButton(
-          label = "Variáveis (@project_env_count)",
+          label = "{t('project_services.variables', project_env_count=project_env_count)}",
           current = @project_tab,
           target = env,
           action = project_tab:env,
         )
 
         TabButton(
-          label = "Secrets (@project_secrets_count)",
+          label = "{t('project_services.secrets', project_secrets_count=project_secrets_count)}",
           current = @project_tab,
           target = secrets,
           action = project_tab:secrets,
         )
 
         TabButton(
-          label = "Jobs (@project_jobs_count)",
+          label = "{t('project_services.jobs', project_jobs_count=project_jobs_count)}",
           current = @project_tab,
           target = jobs,
           action = project_tab:jobs,

@@ -1,7 +1,7 @@
 // Janela "Novo projeto": motor Glacier próprio, aberto por open_window a partir
 // do app principal (handlers/projects.luau → open_new_project_window), que semeia
 // a conexão (api_url/api_token) via open_window({ data = ...
-screen(title = "Novo projeto — Rustploy") {
+screen(title = "{t('new_project_form.new_project_rustploy')}") {
   resources {
     style """
     .dialog__wrap  { width: fill; height: fill; padding: 24; spacing: 18; }
@@ -16,7 +16,7 @@ screen(title = "Novo projeto — Rustploy") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("Novo projeto — Rustploy", class = titlebar__title)
+        text("{t('new_project_form.new_project_rustploy')}", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -25,10 +25,10 @@ screen(title = "Novo projeto — Rustploy") {
 
     column(class = dialog__wrap) {
       column(class = dialog__head) {
-        text("Novo projeto", class = dialog__title)
+        text("{t('new_project_form.new_project')}", class = dialog__title)
 
         text(
-          "Cadastre um projeto no cluster conectado.",
+          "{t('new_project_form.register_a_project_in_the')}",
           class = u-muted,
         )
       }
@@ -40,14 +40,14 @@ screen(title = "Novo projeto — Rustploy") {
         class = "form form--gap-14",
       ) {
         column(class = field) {
-          text("NOME", class = field__label)
+          text("{t('common.name')}", class = field__label)
 
           input(
             class = dialog__input,
             form_control = new_project_name,
             rules = required,
-            msg = "informe um nome",
-            placeholder = "Nome do projeto",
+            msg = "{t('common.enter_a_name')}",
+            placeholder = "{t('common.project_name')}",
           )
 
           text(
@@ -59,12 +59,12 @@ screen(title = "Novo projeto — Rustploy") {
         }
 
         column(class = field) {
-          text("DESCRIÇÃO (OPCIONAL)", class = field__label)
+          text("{t('new_project_form.description_optional')}", class = field__label)
 
           input(
             class = dialog__input,
             form_control = new_project_description,
-            placeholder = Descrição,
+            placeholder = "{t('new_project_form.description')}",
           )
         }
 
@@ -79,8 +79,8 @@ screen(title = "Novo projeto — Rustploy") {
 
         row(class = dialog__actions) {
           column(class = u-fill)
-          button(class = "btn btn--ghost", on_click = cancel, disabled = @busy_cancel, text = Cancelar)
-          button(type = submit, disabled = @busy_submit_project, class = "btn btn--primary", text = "Criar projeto")
+          button(class = "btn btn--ghost", on_click = cancel, disabled = @busy_cancel, text = "{t('common.cancel')}")
+          button(type = submit, disabled = @busy_submit_project, class = "btn btn--primary", text = "{t('new_project_form.create_project')}")
         }
       }
     }

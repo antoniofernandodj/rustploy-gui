@@ -2,18 +2,18 @@
 component {
   resources {
     component(name = SemJobsNoProjeto) {
-      text("Nenhum job cadastrado ainda.", class = u-muted)
+      text("{t('common.no_jobs_registered_yet')}", class = u-muted)
     }
   }
 
   row(class = env__head) {
-    text("@project_jobs_count job(s)", class = "u-muted u-fill")
+    text("{t('project_jobs.job_s', project_jobs_count=project_jobs_count)}", class = "u-muted u-fill")
 
     button(
       class = "btn btn--primary btn--sm",
       on_click = open_new_job_window,
       disabled = @busy_open_new_job_window,
-      text = "+ Novo job",
+      text = "{t('common.new_job')}",
     )
   }
 

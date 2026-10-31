@@ -26,7 +26,7 @@ M.format_uptime = Time.format_uptime
 M.format_bytes = Time.format_bytes
 M.hour_minute_join = Time.hour_minute_join
 M.hour_minute_split = Time.hour_minute_split
-M.WEEKDAYS = Time.WEEKDAYS
+M.weekdays = Time.weekdays
 
 -- Busca / codificação / estado (format/util.luau)
 M.matches = Util.matches

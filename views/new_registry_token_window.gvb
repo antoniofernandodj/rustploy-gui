@@ -1,5 +1,5 @@
 // Janela "Novo token do registry": motor Glacier próprio, aberto por open_window a partir do app principal.
-screen(title = "Novo token — Rustploy") {
+screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
   resources {
 
     style """
@@ -21,7 +21,7 @@ screen(title = "Novo token — Rustploy") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("Novo token — Rustploy", class = titlebar__title)
+        text("{t('new_registry_token_window.new_token_rustploy')}", class = titlebar__title)
       }
 
       button(class = titlebar__btn, on_click = window:minimize, text = "—")
@@ -32,10 +32,10 @@ screen(title = "Novo token — Rustploy") {
       column(class = form-panel) {
         // Passo 1: formulário
         if @new_registry_token_step == "form" {
-          text("NOVO TOKEN DE ACESSO (BASIC AUTH)", class = u-label-cap)
+          text("{t('new_registry_token_window.new_access_token_basic_auth')}", class = u-label-cap)
 
           text(
-            "Usado em `docker login`/push/pull contra o registry embutido.",
+            "{t('new_registry_token_window.used_in_docker_login_push')}",
             class = u-muted,
           )
 
@@ -45,14 +45,14 @@ screen(title = "Novo token — Rustploy") {
             on_validation_error = new_registry_token_show_validation_errors,
             class = "form form--gap-10",
           ) {
-            text("NOME", class = field__label)
+            text("{t('common.name')}", class = field__label)
 
             input(
               class = dialog__input,
               form_control = new_registry_token_name,
               rules = required,
-              msg = "informe um nome",
-              placeholder = "ex.: ci-deploy",
+              msg = "{t('common.enter_a_name')}",
+              placeholder = "{t('new_registry_token_window.e_g_ci_deploy')}",
             )
 
             text(
@@ -62,7 +62,7 @@ screen(title = "Novo token — Rustploy") {
               not_empty,
             )
 
-            text("ESCOPO", class = u-label-cap)
+            text("{t('common.scope')}", class = u-label-cap)
 
             scroll(class = tabs__scroll, direction = horizontal) {
               tabbar(
@@ -89,27 +89,25 @@ screen(title = "Novo token — Rustploy") {
               button(
                 class = "btn btn--ghost",
                 on_click = window:close,
-                text = Cancelar,
+                text = "{t('common.cancel')}",
               )
 
-              button(type = submit, disabled = @busy_new_registry_token_create, class = "btn btn--primary", text = "Criar token")
+              button(type = submit, disabled = @busy_new_registry_token_create, class = "btn btn--primary", text = "{t('new_registry_token_window.create_token')}")
             }
           }
         }
 
         // Passo 2: segredo exibido uma única vez
         if @new_registry_token_step == "reveal" {
-          text("TOKEN CRIADO — COPIE AGORA", class = u-label-cap)
+          text("{t('new_registry_token_window.token_created_copy_it_now')}", class = u-label-cap)
 
           text(
-            """
-              O segredo não pode ser recuperado depois de fechar esta janela.
-            """,
+            "{t('new_registry_token_window.the_secret_cannot_be_recovered_after')}",
             class = u-error,
           )
 
           column(class = dialog__secret) {
-            text("COMANDO DOCKER LOGIN", class = field__label)
+            text("{t('new_registry_token_window.docker_login_command')}", class = field__label)
             text("@new_registry_token_login_command", class = "kv-list__val kv-list__val--compact")
 
             row(class = dialog__actions) {
@@ -118,14 +116,14 @@ screen(title = "Novo token — Rustploy") {
               button(
                 class = "btn btn--ghost btn--xs",
                 on_click = copy_ctx:new_registry_token_login_command,
-                text = Copiar,
+                text = "{t('common.copy')}",
               )
             }
           }
 
           row(class = dialog__actions) {
             column(class = u-fill)
-            button(class = "btn btn--primary", on_click = window:close, text = Fechar)
+            button(class = "btn btn--primary", on_click = window:close, text = "{t('common.close')}")
           }
         }
       }

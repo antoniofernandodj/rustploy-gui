@@ -83,7 +83,7 @@ function test_banco_mostra_o_motor_e_a_porta()
     local encoded = Running.running(dashboard({ db }), {}, "", {})
     assert_eq(
         json.decode(encoded)[1].rows[1].cards[1].detail,
-        "motor: postgres · porta 5432"
+        "engine: postgres · port 5432"
     )
 end
 
@@ -94,7 +94,7 @@ function test_servico_sem_webhook_avisa()
     local encoded = Running.running(dashboard({ without_webhook }), {}, "", {})
     local card = json.decode(encoded)[1].rows[1].cards[1]
     assert_eq(card.has_webhook, "false")
-    assert_eq(card.webhook_shown, "sem webhook")
+    assert_eq(card.webhook_shown, "no webhook")
 end
 
 --- a busca filtra serviços e some com projeto sem resultado

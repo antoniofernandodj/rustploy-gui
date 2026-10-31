@@ -208,34 +208,36 @@ fn windows_declare_title_and_size() {
     );
     assert_eq!(janela.decorations, Some(false), "a principal é borderless");
     assert!(janela.icon.is_some(), "o app declara o ícone");
+    // O título das janelas auxiliares é um modelo `{t('chave')}`: o motor o resolve contra o
+    // idioma a cada leitura (glacier-ui 0.147), então aqui se confere o modelo, não o texto.
     let filhas = [
         (
             "new_project",
-            Some("Novo projeto — Rustploy"),
+            Some("{t('new_project_form.new_project_rustploy')}"),
             "460 340",
             "handlers/projects.luau",
         ),
         (
             "new_job",
-            Some("Novo job — Rustploy"),
+            Some("{t('new_job_window.new_job_rustploy')}"),
             "560 700",
             "handlers/jobs.luau",
         ),
         (
             "new_service",
-            Some("Novo serviço — Rustploy"),
+            Some("{t('new_service_window.new_service_rustploy')}"),
             "560 700",
             "handlers/wizard.luau",
         ),
         (
             "new_registry_token",
-            Some("Novo token — Rustploy"),
+            Some("{t('new_registry_token_window.new_token_rustploy')}"),
             "480 420",
             "handlers/registry.luau",
         ),
         (
             "service_export",
-            Some("Exportar serviço — Rustploy"),
+            Some("{t('service_export_window.export_service_rustploy')}"),
             "620 720",
             "handlers/bundle.luau",
         ),

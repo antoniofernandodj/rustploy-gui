@@ -1,11 +1,9 @@
 // Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @service_source_kind == "Compose"` de general.gvb.
 component {
-  text("DOCKER COMPOSE (YAML)", class = u-label-cap)
+  text("{t('general_compose.docker_compose_yaml')}", class = u-label-cap)
 
   text(
-    """
-      Edite o compose do serviço. Salvar aplica no próximo deploy.
-    """,
+    "{t('general_compose.edit_the_service_s_compose_saving')}",
     class = u-muted,
   )
 
@@ -25,14 +23,14 @@ component {
       class = "btn btn--primary",
       on_click = compose_save,
       disabled = @busy_compose_save,
-      text = "Salvar compose",
+      text = "{t('general_compose.save_compose')}",
     )
 
     button(
       class = "btn btn--ghost",
       on_click = compose_cancel,
       disabled = @busy_compose_cancel,
-      text = Cancelar,
+      text = "{t('common.cancel')}",
     )
 
     text("@service_action_message", class = u-muted)

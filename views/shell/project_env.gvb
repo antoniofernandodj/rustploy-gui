@@ -2,17 +2,14 @@
 component {
   resources {
     component(name = SemVariaveis) {
-      text("Nenhuma variável.", class = u-muted)
+      text("{t('common.no_variables')}", class = u-muted)
     }
   }
 
   column(class = env, if = @project_loading, not_equals = true) {
     row(class = env__head) {
       text(
-        """
-          Herdadas por todos os serviços deste projeto no deploy — as
-          do serviço têm precedência.
-        """,
+        "{t('project_env.inherited_by_all_services_of_this')}",
         class = "u-muted u-fill",
       )
 
@@ -20,7 +17,7 @@ component {
         class = "btn btn--ghost btn--wide",
         on_click = project_env_export,
         disabled = @busy_project_env_export,
-        text = Exportar,
+        text = "{t('common.export')}",
       )
 
       text(" ")
@@ -30,10 +27,10 @@ component {
           class = "btn btn--blue btn--wide",
           on_click = project_env_text_toggle,
           disabled = @busy_project_env_text_toggle,
-          text = Fechar,
+          text = "{t('common.close')}",
         )
       } else {
-        button(class = tabs__tab, on_click = project_env_text_toggle, disabled = @busy_project_env_text_toggle, text = .env)
+        button(class = tabs__tab, on_click = project_env_text_toggle, disabled = @busy_project_env_text_toggle, text = "{t('common.env')}")
       }
     }
 
@@ -48,8 +45,8 @@ component {
           class = env__input,
           form_control = project_env_new_key,
           rules = required,
-          msg = "informe a chave",
-          placeholder = KEY,
+          msg = "{t('common.enter_the_key')}",
+          placeholder = "{t('common.key')}",
         )
       }
 
@@ -58,26 +55,26 @@ component {
           input(
             class = env__input,
             form_control = project_env_new_value,
-            placeholder = "nome do secret",
+            placeholder = "{t('project_env.secret_name')}",
           )
 
           button(
             class = "btn btn--blue btn--wide",
             on_click = project_env_secret_toggle,
             disabled = @busy_project_env_secret_toggle,
-            text = "usar secret",
+            text = "{t('project_env.use_secret')}",
           )
         }
 
         text(
-          "Nenhum secret cadastrado — crie um na aba Secrets.",
+          "{t('project_env.no_secret_registered_create_one')}",
           if = @project_secrets,
           empty = "",
           class = u-muted,
         )
 
         row(class = env__add, if = @project_secrets, not_empty) {
-          text("Secrets do projeto: ", class = u-muted)
+          text("{t('project_env.project_secrets_xa0')}", class = u-muted)
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -93,20 +90,20 @@ component {
           input(
             class = env__input,
             form_control = project_env_new_value,
-            placeholder = value,
+            placeholder = "{t('common.value')}",
           )
 
           button(
             class = tabs__tab,
             on_click = project_env_secret_toggle,
             disabled = @busy_project_env_secret_toggle,
-            text = "usar secret",
+            text = "{t('project_env.use_secret')}",
           )
         }
       }
 
       row {
-        button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = Adicionar)
+        button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = "{t('common.add')}")
       }
     }
 
@@ -193,7 +190,7 @@ component {
 
         if @project_env_text_open == "true" {
           text(
-            "Cole/edite no formato KEY=VALUE (# comentário).",
+            "{t('common.paste_edit_in_the_key')}",
             class = u-muted,
           )
 
@@ -201,7 +198,7 @@ component {
             class = env__editor,
             font = mono,
             :value = project_env_text,
-            placeholder = "KEY=VALUE   (# comentário)",
+            placeholder = "{t('common.key_value_comment')}",
           )
 
           row(class = env__add) {
@@ -209,14 +206,14 @@ component {
               class = "btn btn--primary",
               on_click = project_env_import,
               disabled = @busy_project_env_import,
-              text = Salvar,
+              text = "{t('common.save')}",
             )
 
             button(
               class = "btn btn--ghost",
               on_click = project_env_text_cancel,
               disabled = @busy_project_env_text_cancel,
-              text = Cancelar,
+              text = "{t('common.cancel')}",
             )
           }
         }

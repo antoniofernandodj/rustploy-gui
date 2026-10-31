@@ -120,7 +120,7 @@ function test_cards_de_servico__o_selo_de_aquecimento_so_existe_quando_ha()
     local linhas =
         json.decode(Dashboard.services({ quente, par("b", "p") }, nil, ""))
     assert_eq(linhas[1].has_warm, "true")
-    assert_eq(linhas[1].warm_label, "quente")
+    assert_eq(linhas[1].warm_label, "warm")
     assert_eq(linhas[1].warm_reason, "build ok")
     assert_eq(linhas[2].has_warm, "false")
     assert_eq(linhas[2].warm_label, "")
@@ -314,7 +314,7 @@ end
 function test_docker__imagens_em_uso_dono_e_tamanhos_crus_para_ordenar()
     local linhas = json.decode(Dashboard.docker_images(imagens, "", false))
     local web = linhas[3]
-    assert_eq(web.in_use_label, "EM USO")
+    assert_eq(web.in_use_label, "IN USE")
     assert_eq(web.in_use_kind, "ok")
     assert_eq(
         web.owner,
@@ -323,7 +323,7 @@ function test_docker__imagens_em_uso_dono_e_tamanhos_crus_para_ordenar()
     assert_eq(web.size, "2 KB")
     assert_eq(web.size_bytes, 2048)
     assert_eq(web.created_iso, "2026-03-01T10:00:00Z")
-    assert_eq(linhas[1].in_use_label, "SEM USO")
+    assert_eq(linhas[1].in_use_label, "UNUSED")
     assert_eq(linhas[1].project, "—")
     assert_eq(linhas[2].size_bytes, 0)
 end
@@ -368,7 +368,7 @@ function test_docker__volumes_filtro_de_uso_tamanho_desconhecido_e_dono()
     assert_eq(todos[1].size_bytes, -1)
     assert_eq(todos[2].name, "dados")
     assert_eq(todos[2].size, "5 MB")
-    assert_eq(todos[2].in_use_label, "EM USO")
+    assert_eq(todos[2].in_use_label, "IN USE")
     assert_eq(todos[3].size, "—")
 
     local em_uso = json.decode(Dashboard.docker_volumes(volumes, "", true))
@@ -555,7 +555,7 @@ end
 function test_motor_de_deploy__sao_oito_passos_do_fila_ao_live()
     local _, passos = status_dos_passos(info("Pending"))
     assert_eq(#passos, 8)
-    assert_eq(passos[1].text, "● Fila")
+    assert_eq(passos[1].text, "● Queue")
     assert_eq(passos[8].text, "○ Live")
 end
 

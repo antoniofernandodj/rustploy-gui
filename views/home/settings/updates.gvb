@@ -3,20 +3,20 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      text("DAEMON", class = u-label-cap)
+      text("{t('settings_updates.daemon')}", class = u-label-cap)
 
       row(class = kv-list__row) {
-        text("Versão instalada", class = kv-list__key)
+        text("{t('settings_updates.installed_version')}", class = kv-list__key)
         text("@update_current_version", class = "kv-list__val kv-list__val--compact")
       }
 
       row(class = kv-list__row) {
-        text("Última versão", class = kv-list__key)
+        text("{t('settings_updates.latest_version')}", class = kv-list__key)
         text("@update_latest_version", class = "kv-list__val kv-list__val--compact")
       }
 
       row(class = kv-list__row) {
-        text("Verificado em", class = kv-list__key)
+        text("{t('settings_updates.checked_at')}", class = kv-list__key)
         text("@update_checked_at_label", class = "kv-list__val kv-list__val--compact")
       }
 
@@ -24,23 +24,17 @@ component {
         button(
           class = "btn btn--ghost btn--sm",
           on_click = update_check_now,
-          text = "Verificar atualizações",
+          text = "{t('settings_updates.check_for_updates')}",
         )
       }
 
       text("@update_message", class = u-muted)
 
       if @update_is_helper_available == "true" {
-        text("ATUALIZAR PELO APP", class = u-label-cap)
+        text("{t('settings_updates.update_from_the_app')}", class = u-label-cap)
 
         text(
-          """
-            O daemon baixa a versão nova, confere a assinatura e a instala por um
-            helper root do próprio pacote. O daemon reinicia (os containers dos
-            serviços continuam rodando) e esta janela volta à tela de login:
-            entre de novo em cerca de um minuto. Antes, o daemon guarda um
-            snapshot do banco.
-          """,
+          "{t('settings_updates.the_daemon_downloads_the_new_version')}",
           class = u-muted,
         )
 
@@ -49,14 +43,14 @@ component {
             button(
               class = "btn btn--primary btn--sm",
               on_click = update_apply,
-              text = "Atualizar daemon",
+              text = "{t('settings_updates.update_daemon')}",
             )
           }
 
           button(
             class = "btn btn--ghost btn--sm",
             on_click = update_rollback,
-            text = "Reverter para a versão anterior",
+            text = "{t('settings_updates.roll_back_to_the_previous')}",
           )
         }
       }
@@ -64,15 +58,15 @@ component {
       text("@update_progress_message", class = u-muted)
 
       if @update_app_current_version != "" {
-        text("APP DESKTOP", class = u-label-cap)
+        text("{t('settings_updates.desktop_app')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("Versão instalada", class = kv-list__key)
+          text("{t('settings_updates.installed_version')}", class = kv-list__key)
           text("@update_app_current_version", class = "kv-list__val kv-list__val--compact")
         }
 
         row(class = kv-list__row) {
-          text("Última versão", class = kv-list__key)
+          text("{t('settings_updates.latest_version')}", class = kv-list__key)
           text("@update_app_latest_version", class = "kv-list__val kv-list__val--compact")
         }
 
@@ -84,7 +78,7 @@ component {
               button(
                 class = "btn btn--primary btn--sm",
                 on_click = update_app_apply,
-                text = "Atualizar app",
+                text = "{t('settings_updates.update_app')}",
               )
             }
 
@@ -96,7 +90,7 @@ component {
                 on_click = update_app_cancel,
                 if = @update_app_running,
                 equals = true,
-                text = "Cancelar",
+                text = "{t('common.cancel')}",
               )
             }
 
@@ -105,7 +99,7 @@ component {
 
           if @update_app_can_update == "false" {
             text(
-              "Este app não foi instalado por .deb nem pelo instalador do Windows (ou falta o pkexec). Atualize com o comando abaixo.",
+              "{t('settings_updates.this_app_was_not_installed')}",
               class = u-muted,
             )
 
@@ -115,7 +109,7 @@ component {
               button(
                 class = "btn btn--ghost btn--xs",
                 on_click = copy_ctx:update_app_manual_command,
-                text = Copiar,
+                text = "{t('common.copy')}",
               )
             }
           }
@@ -123,14 +117,10 @@ component {
       }
 
       if @update_is_available == "true" {
-        text("COMO ATUALIZAR À MÃO", class = u-label-cap)
+        text("{t('settings_updates.how_to_update_by_hand')}", class = u-label-cap)
 
         text(
-          """
-            Há uma versão nova. Por enquanto a atualização é manual: rode o
-            comando abaixo na VPS. Seus dados, o config.toml e a master.key são
-            preservados, e os containers dos serviços continuam rodando.
-          """,
+          "{t('settings_updates.there_is_a_new_version_for')}",
           class = u-muted,
         )
 
@@ -140,18 +130,18 @@ component {
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:update_install_command,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
 
         row(class = kv-list__row) {
-          text("Notas da release", class = kv-list__key)
+          text("{t('settings_updates.release_notes')}", class = kv-list__key)
           text("@update_release_url", class = "kv-list__val kv-list__val--compact")
 
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:update_release_url,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
         }
       }

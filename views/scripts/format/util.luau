@@ -124,23 +124,23 @@ end
 function M.status_label_color(status: any): (string, string)
     if type(status) == "table" then
         if status.Error ~= nil then
-            return "Error", "#F85149"
+            return i18n.tr("Error"), "#F85149"
         end
     end
     if status == "Running" then
-        return "Running", "#3FB950"
+        return i18n.tr("Running"), "#3FB950"
     elseif status == "Deploying" then
-        return "Deploying", "#58A6FF"
+        return i18n.tr("Deploying"), "#58A6FF"
     elseif status == "Queued" then
-        return "Na fila", "#8B949E"
+        return i18n.tr("Na fila"), "#8B949E"
     elseif status == "Degraded" then
-        return "Degraded", "#D29922"
+        return i18n.tr("Degraded"), "#D29922"
     elseif status == "Stopping" then
-        return "Stopping", "#8B949E"
+        return i18n.tr("Stopping"), "#8B949E"
     elseif status == "Stopped" then
-        return "Stopped", "#8B949E"
+        return i18n.tr("Stopped"), "#8B949E"
     end
-    return "Error", "#F85149"
+    return i18n.tr("Error"), "#F85149"
 end
 
 function M.status_kind(status: any): string
@@ -164,15 +164,15 @@ end
 -- DeployState vem como string ("Live", "Failed", "BuildingImage", ...).
 function M.state_label_color(state: string?): (string, string)
     if state == "Live" then
-        return "LIVE", "#3FB950"
+        return i18n.tr("LIVE"), "#3FB950"
     elseif state == "Stopped" then
-        return "STOPPED", "#8B949E"
+        return i18n.tr("STOPPED"), "#8B949E"
     elseif state == "Failed" then
-        return "FAILED", "#F85149"
+        return i18n.tr("FAILED"), "#F85149"
     elseif state == "PreDeployCheck" then
-        return "PRÉ-DEPLOY CHECK", "#58A6FF"
+        return i18n.tr("PRÉ-DEPLOY CHECK"), "#58A6FF"
     end
-    return "BUILDING", "#58A6FF"
+    return i18n.tr("BUILDING"), "#58A6FF"
 end
 
 function M.state_kind(state: string?): string
@@ -235,7 +235,7 @@ function M.source_summary(source: any): string
     elseif source.Archive then
         return source.Archive.original_filename
             or source.Archive.archive_id
-            or "zip enviado"
+            or i18n.tr("zip enviado")
     elseif source.Compose then
         return "docker-compose"
     end

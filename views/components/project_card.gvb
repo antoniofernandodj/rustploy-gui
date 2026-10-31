@@ -21,7 +21,7 @@ component {
       }
 
       text(
-        "@service_count serviço(s) · @running_count rodando",
+        "{t('project_card.service_s_running', service_count=service_count, running_count=running_count)}",
         class = u-muted,
         size = 11,
       )
@@ -31,7 +31,7 @@ component {
 
       // Ações empilhadas: um botão fill disputando a linha com
       // texto/botão fica torto quando o card está estreito.
-      button(class = "card__action card__action--open", on_click = open_project:@id, disabled = @busy_open_project, text = "Abrir  ›")
+      button(class = "card__action card__action--open", on_click = open_project:@id, disabled = @busy_open_project, text = "{t('common.open')}")
 
       button(
         class = "card__action card__action--danger",
@@ -39,11 +39,11 @@ component {
         equals = 1,
         on_click = delete_project:@id,
         disabled = @busy_delete_project,
-        text = Remover,
+        text = "{t('common.remove')}",
       )
 
       text(
-        "Não removível: tem serviços",
+        "{t('project_card.cannot_be_removed_it_has')}",
         class = u-muted,
         if = @can_delete,
         not_equals = 1,

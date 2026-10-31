@@ -3,17 +3,15 @@
 component {
   resources {
     component(name = SemDominios) {
-      text("Nenhum domínio configurado.", class = u-muted)
+      text("{t('domains.no_domain_configured')}", class = u-muted)
     }
   }
 
   column(class = form-panel) {
-    text("DOMÍNIOS (@service_domains_count)", class = u-label-cap)
+    text("{t('domains.domains', service_domains_count=service_domains_count)}", class = u-label-cap)
 
     text(
-      """
-        Cada domínio pode apontar para uma porta de container diferente.
-      """,
+      "{t('domains.each_domain_can_point_to_a')}",
       class = u-muted,
     )
 
@@ -37,14 +35,14 @@ component {
       }
     }
 
-    text("ADICIONAR DOMÍNIO", class = u-label-cap)
+    text("{t('domains.add_domain')}", class = u-label-cap)
 
     input(
       class = field__input,
       form_control = service_form_domain,
       :value = service_form_domain,
       on_change = field:service_form_domain,
-      placeholder = app.exemplo.com,
+      placeholder = "{t('domains.app_example_com')}",
     )
 
     text(
@@ -54,14 +52,14 @@ component {
       class = u-error,
     )
 
-    text("PORTA DO CONTAINER (opcional)", class = u-label-cap)
+    text("{t('domains.container_port_optional')}", class = u-label-cap)
 
     input(
       class = field__input,
       form_control = service_form_port,
       :value = service_form_port,
       on_change = field:service_form_port,
-      placeholder = "(padrão do serviço)",
+      placeholder = "{t('domains.service_default')}",
     )
 
     text(
@@ -74,7 +72,7 @@ component {
     toggle(
       :checked = service_form_tls,
       on_toggle = field:service_form_tls,
-      label = "  HTTPS / TLS",
+      label = "{t('domains.https_tls')}",
     )
 
     row(class = env__add) {
@@ -82,14 +80,14 @@ component {
         class = "btn btn--primary",
         on_click = domain_add,
         disabled = @busy_domain_add,
-        text = "Adicionar domínio",
+        text = "{t('domains.add_domain_2')}",
       )
 
       text("@service_action_message", class = u-muted)
     }
 
     text(
-      "PORTA TCP DO HOST (passthrough, opcional)",
+      "{t('domains.host_tcp_port_passthrough_optional')}",
       class = u-label-cap,
     )
 
@@ -98,7 +96,7 @@ component {
       form_control = service_form_host_port,
       :value = service_form_host_port,
       on_change = field:service_form_host_port,
-      placeholder = "(padrão do serviço)",
+      placeholder = "{t('domains.service_default')}",
     )
 
     text(
@@ -113,21 +111,19 @@ component {
         class = "btn btn--ghost",
         on_click = domain_hostport_save,
         disabled = @busy_domain_hostport_save,
-        text = "Salvar porta",
+        text = "{t('common.save_port')}",
       )
 
       button(
         class = "btn btn--ghost",
         on_click = domain_hostport_auto,
         disabled = @busy_domain_hostport_auto,
-        text = Automática,
+        text = "{t('domains.automatic')}",
       )
     }
 
     text(
-      """
-        "Automática" aloca uma porta livre e a libera no firewall do host.
-      """,
+      "{t('domains.automatic_allocates_a_free_port_and')}",
       class = u-muted,
     )
   }

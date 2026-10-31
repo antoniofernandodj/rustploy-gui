@@ -2,14 +2,14 @@
 component {
   resources {
     component(name = SemContasGit) {
-      text("Nenhuma conta Git conectada ainda.", class = u-muted)
+      text("{t('settings_git.no_git_account_connected_yet')}", class = u-muted)
     }
   }
 
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
       text(
-        "CONTAS CONECTADAS (@gitea_count)",
+        "{t('settings_git.connected_accounts', gitea_count=gitea_count)}",
         class = u-label-cap,
       )
 
@@ -33,28 +33,28 @@ component {
               class = "btn btn--danger",
               on_click = git_provider_delete:@p.id,
               disabled = @busy_git_provider_delete,
-              text = Remover,
+              text = "{t('common.remove')}",
             )
           }
         }
       }
 
       hr
-      text("CONECTAR CONTA GIT", class = u-label-cap)
+      text("{t('settings_git.connect_git_account')}", class = u-label-cap)
 
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
       scroll(class = tabs__scroll, direction = horizontal) {
         row(class = tabs__main) {
           TabButton(
-            label = Gitea,
+            label = "{t('settings_git.gitea')}",
             current = @git_provider_kind,
             target = gitea,
             action = git_provider_kind:gitea,
           )
 
           TabButton(
-            label = GitHub,
+            label = "{t('settings_git.github')}",
             current = @git_provider_kind,
             target = github,
             action = git_provider_kind:github,
@@ -74,7 +74,7 @@ component {
         not_equals = "",
         class = "btn btn--primary",
         on_click = open:git_provider_oauth_url,
-        text = "Abrir autorização no navegador",
+        text = "{t('settings_git.open_authorization_in_the_browser')}",
       )
 
       form(
@@ -84,10 +84,10 @@ component {
       ) {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
-            text("NOME", class = u-label-cap)
+            text("{t('common.name')}", class = u-label-cap)
 
             input(
-              placeholder = "Meu Gitea",
+              placeholder = "{t('settings_git.my_gitea')}",
               class = field__input,
               form_control = git_provider_name,
               :value = git_provider_name,
@@ -103,10 +103,10 @@ component {
           }
 
           column(class = healthcheck__field) {
-            text("BASE URL", class = u-label-cap)
+            text("{t('settings_git.base_url')}", class = u-label-cap)
 
             input(
-              placeholder = "https://gitea.exemplo.com",
+              placeholder = "{t('settings_git.https_gitea_example_com')}",
               class = field__input,
               form_control = git_provider_base_url,
               :value = git_provider_base_url,
@@ -114,10 +114,7 @@ component {
             )
 
             text(
-              """
-                Deixe vazio para github.com. Só preencha para GitHub
-                Enterprise Server (ex.: https://ghe.suaempresa.com).
-              """,
+              "{t('settings_git.leave_empty_for_github_com_only')}",
               if = @git_provider_kind,
               equals = github,
               class = u-muted,
@@ -125,7 +122,7 @@ component {
           }
         }
 
-        text("MÉTODO", class = u-label-cap)
+        text("{t('settings_git.method')}", class = u-label-cap)
 
         scroll(class = tabs__scroll, direction = horizontal) {
           tabbar(
@@ -136,7 +133,7 @@ component {
 
         // OAuth2
         if @git_provider_mode != "pat" {
-          text("CLIENT ID", class = u-label-cap)
+          text("{t('settings_git.client_id')}", class = u-label-cap)
 
           input(
             placeholder = "",
@@ -146,7 +143,7 @@ component {
             on_change = field:git_provider_client_id,
           )
 
-          text("CLIENT SECRET", class = u-label-cap)
+          text("{t('settings_git.client_secret')}", class = u-label-cap)
 
           input(
             placeholder = "",
@@ -158,7 +155,7 @@ component {
           )
 
           text(
-            "REDIRECT URI (cole no app OAuth do provedor)",
+            "{t('settings_git.redirect_uri_paste_into_the')}",
             class = u-label-cap,
           )
 
@@ -168,26 +165,19 @@ component {
             button(
               class = "btn btn--ghost btn--xs",
               on_click = copy_ctx:git_provider_redirect,
-              text = Copiar,
+              text = "{t('common.copy')}",
             )
           }
 
           text(
-            """
-              No Gitea: Settings → Applications → crie um OAuth2 app e
-              cole a Redirect URI acima.
-            """,
+            "{t('settings_git.on_gitea_settings_applications_create_an')}",
             if = @git_provider_kind,
             not_equals = github,
             class = u-muted,
           )
 
           text(
-            """
-              No GitHub: Settings → Developer settings → OAuth Apps → New
-              OAuth App e cole a Redirect URI acima em "Authorization
-              callback URL".
-            """,
+            "{t('settings_git.on_github_settings_developer_settings_oauth')}",
             if = @git_provider_kind,
             equals = github,
             class = u-muted,
@@ -196,7 +186,7 @@ component {
 
         // PAT
         if @git_provider_mode == "pat" {
-          text("PERSONAL ACCESS TOKEN", class = u-label-cap)
+          text("{t('settings_git.personal_access_token')}", class = u-label-cap)
 
           input(
             placeholder = "",
@@ -208,20 +198,14 @@ component {
           )
 
           text(
-            """
-              No Gitea: Settings → Applications → Generate New Token
-              (escopo: repo).
-            """,
+            "{t('settings_git.on_gitea_settings_applications_generate_new')}",
             if = @git_provider_kind,
             not_equals = github,
             class = u-muted,
           )
 
           text(
-            """
-              No GitHub: Settings → Developer settings → Personal access
-              tokens → gere um token com escopo "repo".
-            """,
+            "{t('settings_git.on_github_settings_developer_settings_personal')}",
             if = @git_provider_kind,
             equals = github,
             class = u-muted,
@@ -233,14 +217,14 @@ component {
             class = "btn btn--primary",
             on_click = git_provider_connect,
             disabled = @busy_git_provider_connect,
-            text = "Conectar conta",
+            text = "{t('settings_git.connect_account')}",
           )
 
           button(
             class = tabs__tab,
             on_click = git_provider_refresh,
             disabled = @busy_git_provider_refresh,
-            text = "Atualizar lista",
+            text = "{t('settings_git.refresh_list')}",
           )
         }
       }

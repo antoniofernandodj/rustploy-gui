@@ -43,7 +43,7 @@ component {
     text("@kind_label", class = u-label-cap)
 
     row(class = card__container, if = @branch, not_equals = "") {
-      text("BRANCH", class = u-label-cap)
+      text("{t('common.branch')}", class = u-label-cap)
       text("@branch", class = card__title)
     }
 
@@ -52,22 +52,22 @@ component {
 
     row(class = card__stats) {
       column(class = card__stat) {
-        text("CPU", class = u-label-cap)
+        text("{t('common.cpu')}", class = u-label-cap)
         text("@cpu", class = card__stat-num)
       }
 
       column(class = card__stat) {
-        text("MEM", class = u-label-cap)
+        text("{t('common.mem')}", class = u-label-cap)
         text("@mem", class = card__stat-num)
       }
     }
 
     hr
 
-    text("PRÉ-DEPLOY CHECKS", class = u-label-cap)
+    text("{t('running_card.pre_deploy_checks')}", class = u-label-cap)
     text("@checks", class = u-muted)
 
-    text("WEBHOOK DE DEPLOY", class = u-label-cap)
+    text("{t('common.deploy_webhook')}", class = u-label-cap)
     text("@webhook_shown", class = u-muted)
 
     row(class = card__actions, if = @has_webhook, equals = true) {
@@ -75,7 +75,7 @@ component {
         class = "card__action",
         on_click = copy_webhook:@webhook,
         disabled = @busy_copy_webhook,
-        text = "⧉ Copiar",
+        text = "{t('running_card.copy')}",
       )
 
       button(
@@ -86,14 +86,14 @@ component {
       )
     }
 
-    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "Abrir serviço  ›")
+    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "{t('running_card.open_service')}")
 
     row(class = card__actions) {
       button(
         class = "card__action",
         on_click = running_deploy:@id,
         disabled = @busy_running_deploy,
-        text = "▶ Deploy",
+        text = "{t('running_card.deploy')}",
       )
 
       button(
@@ -101,7 +101,7 @@ component {
         on_click = service_stop_id:@id,
         disabled = @busy_service_stop_id,
         text = "■",
-        tooltip = Parar,
+        tooltip = "{t('common.stop')}",
       )
     }
   }

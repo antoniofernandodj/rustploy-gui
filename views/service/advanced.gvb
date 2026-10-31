@@ -5,7 +5,7 @@ component {
   ) {
     column(class = service__main) {
       form(name = advanced, on_submit = advanced_save, class = form-panel) {
-        text("REPLICAS", class = u-label-cap)
+        text("{t('advanced.replicas')}", class = u-label-cap)
 
         spinbox(
           field_class = field__spin,
@@ -17,38 +17,32 @@ component {
           placeholder = 1,
         )
 
-        text("RUN COMMAND", class = u-label-cap)
+        text("{t('advanced.run_command')}", class = u-label-cap)
 
         input(
           class = field__input,
           form_control = service_form_run_command,
           :value = service_form_run_command,
           on_change = field:service_form_run_command,
-          placeholder = "(padrão da imagem)",
+          placeholder = "{t('advanced.image_default')}",
         )
 
-        text("Run args atuais: @service_run_args", class = u-muted)
+        text("{t('advanced.current_run_args', service_run_args=service_run_args)}", class = u-muted)
 
         row(class = env__add) {
-          button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "Save")
+          button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "{t('common.save_2')}")
           text("@service_action_message", class = u-muted)
         }
       }
 
       column(class = form-panel) {
         text(
-          "FILA DE PRÉ-DEPLOY (@pre_deploy_checks_count)",
+          "{t('advanced.pre_deploy_queue', pre_deploy_checks_count=pre_deploy_checks_count)}",
           class = u-label-cap,
         )
 
         text(
-          """
-            Roda esses Jobs em ORDEM antes do deploy (manual ou webhook),
-            um de cada vez. Se o exit code de algum for diferente de 0, a
-            fila para e o deploy não acontece — os checks seguintes não
-            rodam. Arraste pelo ⋮ para reordenar. Cadastre jobs em
-            Schedules.
-          """,
+          "{t('advanced.runs_these_jobs_in_order_before')}",
           class = u-muted,
         )
 
@@ -104,14 +98,14 @@ component {
           }
         }
 
-        text("ADICIONAR À FILA", class = u-label-cap)
+        text("{t('advanced.add_to_the_queue')}", class = u-label-cap)
 
         select(
           class = form-select,
           :options = pre_deploy_available_jobs,
           :value = service_form_pre_deploy_check_add_job_id,
           on_change = field:service_form_pre_deploy_check_add_job_id,
-          placeholder = "escolher job...",
+          placeholder = "{t('advanced.choose_job')}",
           labelField = name,
           valueField = id,
         )
@@ -121,7 +115,7 @@ component {
             class = "btn btn--primary",
             on_click = pre_deploy_check_add,
             disabled = @busy_pre_deploy_check_add,
-            text = "Adicionar à fila",
+            text = "{t('advanced.add_to_the_queue_2')}",
           )
         }
       }

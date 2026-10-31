@@ -3,22 +3,22 @@
 component {
   resources {
     component(name = NadaRodando) {
-      text("Nenhum serviço em execução agora.", class = u-muted)
+      text("{t('running.no_service_running_right_now')}", class = u-muted)
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("Em execução", class = page-head__title)
+      text("{t('common.running')}", class = page-head__title)
 
       text(
-        "Projetos e serviços rodando agora — projetos sem serviço no ar não aparecem.",
+        "{t('running.projects_and_services_running_right')}",
         class = page-head__subtitle,
       )
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
-      StatCard(label = "SERVIÇOS NO AR", value = @running_count)
+      StatCard(label = "{t('running.services_up')}", value = @running_count)
     }
   }
 
@@ -34,7 +34,7 @@ component {
               class = "card__action card__action--auto",
               on_click = open_project:@p.project_id,
               disabled = @busy_open_project,
-              text = "Abrir projeto  ›",
+              text = "{t('running.open_project')}",
             )
           }
 

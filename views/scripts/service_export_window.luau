@@ -40,7 +40,7 @@ local function render(): ()
             table.insert(tags, "secret")
         end
         if env_var.suggested then
-            table.insert(tags, "citada pelo serviço")
+            table.insert(tags, i18n.tr("citada pelo serviço"))
         end
 
         table.insert(rows, {
@@ -66,7 +66,7 @@ end
 function copy_ctx(key: string): ()
     copy(ctx[key] or "")
     toast {
-        message = "Copiado para a área de transferência",
+        message = i18n.tr("Copiado para a área de transferência"),
         kind = "success",
     }
 end
@@ -87,7 +87,7 @@ function init(): ()
         )
     end
     ctx.export_service_vars = #names > 0 and table.concat(names, ", ")
-        or "(este serviço não tem variáveis próprias)"
+        or i18n.tr("(este serviço não tem variáveis próprias)")
     ctx.export_service_count = tostring(#names)
     ctx.export_has_vars = (#(plan.project_env or {}) > 0) and "true" or "false"
 
@@ -135,7 +135,7 @@ end
 local function generate(): (string?, string?)
     local api = client()
     if not api then
-        ctx.export_error = "sem conexão — reabra a janela pelo app"
+        ctx.export_error = i18n.tr("sem conexão — reabra a janela pelo app")
         return nil, nil
     end
 
@@ -147,7 +147,7 @@ local function generate(): (string?, string?)
     end
 
     ctx.export_error = ""
-    ctx.export_message = "gerando…"
+    ctx.export_message = i18n.tr("gerando…")
     local service_export_ok, service_export_response = api:rpc_checked {
         ServiceExport = {
             service_id = ctx.export_service_id,
@@ -178,7 +178,7 @@ function export_save(): ()
 
     -- `save_file` (SUSPENDE): o usuário escolhe onde gravar.
     local path = save_file {
-        title = "Salvar pacote do serviço",
+        title = i18n.tr("Salvar pacote do serviço"),
         default_name = filename or "servico.rustploy-service.yml",
         filters = { { name = "YAML", extensions = { "yml", "yaml" } } },
     }
@@ -188,10 +188,10 @@ function export_save(): ()
 
     local write_ok, write_error = write_file(path, yaml)
     if not write_ok then
-        ctx.export_error = "falha ao gravar: " .. tostring(write_error)
+        ctx.export_error = i18n.tr("falha ao gravar: ") .. tostring(write_error)
         return
     end
-    ctx.export_message = "salvo em " .. path
+    ctx.export_message = i18n.tr("salvo em ") .. path
 end
 
 -- Mostra o pacote como texto (com o botão Copiar) para quem não quer arquivo.

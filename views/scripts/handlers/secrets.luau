@@ -34,7 +34,7 @@ end
 -- {error_project_secret_new_name} / {error_project_secret_new_value} e acende
 -- o :invalid. Aqui é só o aviso.
 function secret_add_show_validation_errors(_erros_json: string?): ()
-    toast { message = "Preencha nome e valor do secret", kind = "warning" }
+    toast { message = i18n.tr("Preencha nome e valor do secret"), kind = "warning" }
 end
 
 function secret_add(): ()
@@ -53,11 +53,11 @@ function secret_add(): ()
     if secret_set_ok then
         ctx.project_secret_new_name = ""
         ctx.project_secret_new_value = ""
-        local message = 'Secret "' .. name .. '" criado'
+        local message = i18n.tr("Secret \"") .. name .. i18n.tr("\" criado")
         if replacing then
-            message = 'Secret "'
+            message = i18n.tr("Secret \"")
                 .. name
-                .. '" substituído — o novo valor vale no próximo deploy'
+                .. i18n.tr("\" substituído — o novo valor vale no próximo deploy")
         end
         toast { message = message, kind = "success" }
         Stream.refresh_now()
@@ -72,13 +72,11 @@ function secret_delete(name: string): ()
         return
     end
     local confirmed = confirm {
-        title = "Remover secret?",
-        message = "O valor cifrado será apagado e não há como recuperá-lo. "
-            .. 'Variáveis que referenciam "'
+        title = i18n.tr("Remover secret?"),
+        message = i18n.tr("O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam \"")
             .. name
-            .. '" passarão a receber '
-            .. "valor vazio no próximo deploy.",
-        confirm_label = "Remover secret",
+            .. i18n.tr("\" passarão a receber valor vazio no próximo deploy."),
+        confirm_label = i18n.tr("Remover secret"),
         destructive = true,
     }
     if not confirmed then
@@ -92,7 +90,7 @@ function secret_delete(name: string): ()
         SecretDelete = { project_id = project_id, name = name },
     }
     if secret_delete_ok then
-        toast { message = tostring("Secret removido"), kind = "success" }
+        toast { message = tostring(i18n.tr("Secret removido")), kind = "success" }
         Stream.refresh_now()
     else
         toast { message = tostring(secret_delete_response), kind = "error" }

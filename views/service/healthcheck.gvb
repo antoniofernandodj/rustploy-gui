@@ -3,7 +3,7 @@ component {
   resources {
     component(name = SemChecks) {
       text(
-        "Nenhum check configurado — deploy segue direto.",
+        "{t('healthcheck.no_check_configured_the_deploy')}",
         class = u-muted,
       )
     }
@@ -14,7 +14,7 @@ component {
     on_submit = healthcheck_save,
     class = form-panel,
   ) {
-    text("KIND", class = u-label-cap)
+    text("{t('healthcheck.kind')}", class = u-label-cap)
 
     scroll(class = tabs__scroll, direction = horizontal) {
       tabbar(
@@ -24,17 +24,17 @@ component {
     }
 
     if @service_form_healthcheck_kind == "http" {
-      text("HTTP PATH", class = u-label-cap)
+      text("{t('healthcheck.http_path')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_healthcheck_path,
         :value = service_form_healthcheck_path,
         on_change = field:service_form_healthcheck_path,
-        placeholder = "/health",
+        placeholder = "{t('healthcheck.health')}",
       )
 
-      text("EXPECTED STATUS", class = u-label-cap)
+      text("{t('healthcheck.expected_status')}", class = u-label-cap)
 
       spinbox(
         field_class = field__spin,
@@ -49,7 +49,7 @@ component {
 
     row(class = healthcheck__grid) {
       column(class = healthcheck__field) {
-        text("INTERVAL (s)", class = u-label-cap)
+        text("{t('healthcheck.interval_s')}", class = u-label-cap)
 
         spinbox(
           field_class = field__spin,
@@ -62,7 +62,7 @@ component {
       }
 
       column(class = healthcheck__field) {
-        text("TIMEOUT (s)", class = u-label-cap)
+        text("{t('healthcheck.timeout_s')}", class = u-label-cap)
 
         spinbox(
           field_class = field__spin,
@@ -77,7 +77,7 @@ component {
 
     row(class = healthcheck__grid) {
       column(class = healthcheck__field) {
-        text("RETRIES", class = u-label-cap)
+        text("{t('healthcheck.retries')}", class = u-label-cap)
 
         spinbox(
           field_class = field__spin,
@@ -90,7 +90,7 @@ component {
       }
 
       column(class = healthcheck__field) {
-        text("START PERIOD (s)", class = u-label-cap)
+        text("{t('healthcheck.start_period_s')}", class = u-label-cap)
 
         spinbox(
           field_class = field__spin,
@@ -104,7 +104,7 @@ component {
     }
 
     row(class = env__add) {
-      button(class = "btn btn--primary", on_click = healthcheck_save, disabled = @busy_healthcheck_save, text = Save)
+      button(class = "btn btn--primary", on_click = healthcheck_save, disabled = @busy_healthcheck_save, text = "{t('common.save_2')}")
       text("@service_action_message", class = u-muted)
     }
   }

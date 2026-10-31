@@ -17,7 +17,7 @@ component {
     text("@note", class = loading-row__note, if = @note, not_equals = "")
 
     text(
-      "Carregando dados…",
+      "{t('loading_row.loading_data')}",
       class = loading-row__note,
       if = @note,
       equals = "",

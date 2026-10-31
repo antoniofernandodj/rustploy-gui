@@ -1,27 +1,23 @@
 // Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.gvb.
 component {
-  text("ZIP DOCKERFILE", class = u-label-cap)
+  text("{t('general_zip.zip_dockerfile')}", class = u-label-cap)
 
   input(
     class = field__input,
     form_control = service_form_archive_path,
     :value = service_form_archive_path,
     on_change = field:service_form_archive_path,
-    placeholder = "/caminho/para/app.zip",
+    placeholder = "{t('general_zip.path_to_app_zip')}",
   )
 
   text(
-    """
-      O zip deve conter um Dockerfile na raiz. Depois do envio,
-      o deploy normal usa os arquivos descompactados pelo
-      daemon.
-    """,
+    "{t('general_zip.the_zip_must_contain_a_dockerfile')}",
     class = u-muted,
   )
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text("PORT", class = u-label-cap)
+      text("{t('common.port')}", class = u-label-cap)
 
       input(
         class = field__input,
@@ -33,7 +29,7 @@ component {
     }
 
     column(class = healthcheck__field) {
-      text("STATUS", class = u-label-cap)
+      text("{t('common.status')}", class = u-label-cap)
       text("@service_action_message", class = u-muted)
     }
   }
@@ -45,7 +41,7 @@ component {
       class = "btn btn--primary",
       on_click = archive_upload,
       disabled = @busy_archive_upload,
-      text = "Enviar zip",
+      text = "{t('general_zip.upload_zip')}",
     )
 
     button(
@@ -53,14 +49,14 @@ component {
       on_click = archive_upload_cancel,
       if = @archive_upload_active,
       equals = true,
-      text = "Cancelar",
+      text = "{t('common.cancel')}",
     )
 
     button(
       class = btn-secondary,
       on_click = general_save,
       disabled = @busy_general_save,
-      text = "Salvar porta",
+      text = "{t('common.save_port')}",
     )
   }
 }

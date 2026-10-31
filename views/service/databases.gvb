@@ -5,13 +5,10 @@ component {
     class = u-fill-all,
   ) {
     column(width = fill, spacing = 8, class = form-panel) {
-      text("DATABASES (@service_shared_databases_count)", class = u-label-cap)
+      text("{t('databases.databases', service_shared_databases_count=service_shared_databases_count)}", class = u-label-cap)
 
       text(
-        """
-          Cada database tem usuário próprio, sem acesso aos demais. O
-          projeto consumidor recebe a connection string numa env var.
-        """,
+        "{t('databases.each_database_has_its_own_user')}",
         class = u-muted,
       )
 
@@ -34,24 +31,24 @@ component {
       }
 
       row(class = kv-list__row, if = @shared_database_url, not_equals = "") {
-        text("URL", class = kv-list__key)
+        text("{t('databases.url')}", class = kv-list__key)
         text("@shared_database_url_short", class = "kv-list__val kv-list__val--compact")
 
         button(
           class = "btn btn--ghost btn--xs",
           on_click = copy_ctx:shared_database_url,
-          text = Copiar,
+          text = "{t('common.copy')}",
         )
       }
 
-      text("NOVO DATABASE", class = u-label-cap)
+      text("{t('databases.new_database')}", class = u-label-cap)
 
       input(
         class = field__input,
         form_control = service_form_shared_database_name,
         :value = service_form_shared_database_name,
         on_change = field:service_form_shared_database_name,
-        placeholder = "nome (a-z, 0-9, _)",
+        placeholder = "{t('databases.name_a_z_0_9')}",
       )
 
       select(
@@ -59,7 +56,7 @@ component {
         :options = service_shared_database_projects,
         :value = service_form_shared_database_project,
         on_change = field:service_form_shared_database_project,
-        placeholder = "projeto consumidor...",
+        placeholder = "{t('databases.consumer_project')}",
         labelField = name,
         valueField = id,
       )
@@ -69,7 +66,7 @@ component {
         form_control = service_form_shared_database_env,
         :value = service_form_shared_database_env,
         on_change = field:service_form_shared_database_env,
-        placeholder = "env var (padrão DATABASE_URL / MONGODB_URI)",
+        placeholder = "{t('databases.env_var_default_database_url')}",
       )
 
       input(
@@ -77,7 +74,7 @@ component {
         form_control = service_form_shared_database_limit,
         :value = service_form_shared_database_limit,
         on_change = field:service_form_shared_database_limit,
-        placeholder = "limite de conexões (opcional; não vale no Mongo)",
+        placeholder = "{t('databases.connection_limit_optional_does_not')}",
       )
 
       input(
@@ -85,19 +82,19 @@ component {
         form_control = service_form_shared_database_timeout,
         :value = service_form_shared_database_timeout,
         on_change = field:service_form_shared_database_timeout,
-        placeholder = "timeout de query em ms (opcional; só Postgres)",
+        placeholder = "{t('databases.query_timeout_in_ms_optional')}",
       )
 
       toggle(
         :checked = service_form_shared_database_overwrite,
         on_toggle = field:service_form_shared_database_overwrite,
-        label = "  Sobrescrever a env var se o projeto já a tiver",
+        label = "{t('databases.overwrite_the_env_var_if')}",
       )
 
       toggle(
         :checked = service_form_shared_database_skip_env,
         on_toggle = field:service_form_shared_database_skip_env,
-        label = "  Não mexer em env var (vou migrar os dados antes)",
+        label = "{t('databases.do_not_touch_env_vars')}",
       )
 
       row(class = env__add) {
@@ -105,7 +102,7 @@ component {
           class = "btn btn--primary",
           on_click = shared_database_create,
           disabled = @busy_shared_database_create,
-          text = "Criar database",
+          text = "{t('databases.create_database')}",
         )
 
         text("@service_action_message", class = u-muted)

@@ -131,9 +131,9 @@ end
 
 --- WEEKDAYS é uma lista de sete {id,label} com segunda = 0
 function test_dias_da_semana__weekdays_e_uma_lista_de_sete_id_label_com()
-    local dias = Time.WEEKDAYS
+    local dias = Time.weekdays()
     assert_eq(#dias, 7)
     assert_eq(dias[1].id, "0")
-    assert_eq(dias[1].label, "Seg")
-    assert_eq(dias[7].label, "Dom")
+    assert_eq(dias[1].label, "Mon")
+    assert_eq(dias[7].label, "Sun")
 end

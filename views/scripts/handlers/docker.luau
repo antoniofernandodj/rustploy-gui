@@ -17,23 +17,22 @@ local function prune(command: any, label: string): ()
     local rpc_ok, rpc_response = api:rpc_checked(command)
     if rpc_ok and rpc_response.PruneResult then
         ctx.docker_message = string.format(
-            "removidos: %d · %s liberados",
+            i18n.tr("removidos: %d · %s liberados"),
             rpc_response.PruneResult.count or 0,
             format.format_bytes(rpc_response.PruneResult.reclaimed_bytes)
         )
     elseif rpc_ok then
-        ctx.docker_message = "limpeza concluída"
+        ctx.docker_message = i18n.tr("limpeza concluída")
     else
-        ctx.docker_message = "erro: " .. rpc_response
+        ctx.docker_message = i18n.tr("erro: ") .. rpc_response
     end
 end
 
 function docker_prune_containers(): ()
     local confirmed = confirm {
-        title = "Limpar containers parados?",
-        message = "Todos os containers parados serão removidos (docker "
-            .. "container prune). Ação irreversível.",
-        confirm_label = "Limpar",
+        title = i18n.tr("Limpar containers parados?"),
+        message = i18n.tr("Todos os containers parados serão removidos (docker container prune). Ação irreversível."),
+        confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
 
@@ -41,15 +40,14 @@ function docker_prune_containers(): ()
         return
     end
 
-    prune("PruneContainers", "removendo containers parados…")
+    prune("PruneContainers", i18n.tr("removendo containers parados…"))
 end
 
 function docker_prune_images(): ()
     local confirmed = confirm {
-        title = "Limpar imagens sem uso?",
-        message = "As imagens sem uso serão removidas agora. Essa limpeza não "
-            .. "pode ser desfeita.",
-        confirm_label = "Limpar",
+        title = i18n.tr("Limpar imagens sem uso?"),
+        message = i18n.tr("As imagens sem uso serão removidas agora. Essa limpeza não pode ser desfeita."),
+        confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
 
@@ -60,17 +58,16 @@ function docker_prune_images(): ()
     local all = Helpers.is_true(ctx.docker_prune_all_images)
     prune(
         { PruneImages = { all = all } },
-        all and "removendo TODAS as imagens sem uso…"
-            or "removendo imagens dangling…"
+        all and i18n.tr("removendo TODAS as imagens sem uso…")
+            or i18n.tr("removendo imagens dangling…")
     )
 end
 
 function docker_prune_volumes(): ()
     local confirmed = confirm {
-        title = "Limpar volumes sem uso?",
-        message = "Os volumes sem uso serão removidos agora. Essa limpeza não "
-            .. "pode ser desfeita.",
-        confirm_label = "Limpar",
+        title = i18n.tr("Limpar volumes sem uso?"),
+        message = i18n.tr("Os volumes sem uso serão removidos agora. Essa limpeza não pode ser desfeita."),
+        confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
 
@@ -79,15 +76,14 @@ function docker_prune_volumes(): ()
     end
 
     local all = Helpers.is_true(ctx.docker_prune_all_volumes)
-    prune({ PruneVolumes = { all = all } }, "removendo volumes sem uso…")
+    prune({ PruneVolumes = { all = all } }, i18n.tr("removendo volumes sem uso…"))
 end
 
 function docker_prune_networks(): ()
     local confirmed = confirm {
-        title = "Limpar redes sem uso?",
-        message = "As redes sem uso serão removidas agora. Essa limpeza não "
-            .. "pode ser desfeita.",
-        confirm_label = "Limpar",
+        title = i18n.tr("Limpar redes sem uso?"),
+        message = i18n.tr("As redes sem uso serão removidas agora. Essa limpeza não pode ser desfeita."),
+        confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
 
@@ -95,7 +91,7 @@ function docker_prune_networks(): ()
         return
     end
 
-    prune("PruneNetworks", "removendo redes sem uso…")
+    prune("PruneNetworks", i18n.tr("removendo redes sem uso…"))
 end
 
 -- ── Remoção INDIVIDUAL (por item) ───────────────────────────────────────────
@@ -112,10 +108,10 @@ local function remove_one(command: any, doing: string): ()
     ctx.docker_message = doing
     local rpc_ok, rpc_response = api:rpc_checked(command)
     if rpc_ok then
-        ctx.docker_message = "removido"
+        ctx.docker_message = i18n.tr("removido")
         Stream.refresh_now()
     else
-        ctx.docker_message = "erro: " .. tostring(rpc_response)
+        ctx.docker_message = i18n.tr("erro: ") .. tostring(rpc_response)
     end
 end
 
@@ -124,10 +120,9 @@ end
 -- id/name capturado no escopo.
 function docker_remove_container(container_id: string): ()
     local confirmed = confirm {
-        title = "Remover container?",
-        message = "O container parado será removido (docker rm). Ação "
-            .. "irreversível.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover container?"),
+        message = i18n.tr("O container parado será removido (docker rm). Ação irreversível."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -137,16 +132,15 @@ function docker_remove_container(container_id: string): ()
 
     remove_one(
         { RemoveContainer = { id = container_id } },
-        "removendo container…"
+        i18n.tr("removendo container…")
     )
 end
 
 function docker_remove_image(image_id: string): ()
     local confirmed = confirm {
-        title = "Remover imagem?",
-        message = "A imagem será removida (docker rmi). Falha se algum "
-            .. "container a referencia.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover imagem?"),
+        message = i18n.tr("A imagem será removida (docker rmi). Falha se algum container a referencia."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -154,16 +148,14 @@ function docker_remove_image(image_id: string): ()
         return
     end
 
-    remove_one({ RemoveImage = { id = image_id } }, "removendo imagem…")
+    remove_one({ RemoveImage = { id = image_id } }, i18n.tr("removendo imagem…"))
 end
 
 function docker_remove_volume(name: string): ()
     local confirmed = confirm {
-        title = "Remover volume?",
-        message = "O volume será removido (docker volume rm). Falha se "
-            .. "estiver "
-            .. "em uso. Ação irreversível.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover volume?"),
+        message = i18n.tr("O volume será removido (docker volume rm). Falha se estiver em uso. Ação irreversível."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -171,7 +163,7 @@ function docker_remove_volume(name: string): ()
         return
     end
 
-    remove_one({ RemoveVolume = { name = name } }, "removendo volume…")
+    remove_one({ RemoveVolume = { name = name } }, i18n.tr("removendo volume…"))
 end
 
 -- "Somente em uso" (on_toggle="docker_only_used:<chave>"): grava a chave e
@@ -186,10 +178,9 @@ end
 
 function docker_remove_network(network_id: string): ()
     local confirmed = confirm {
-        title = "Remover rede?",
-        message = "A rede será removida (docker network rm). Falha se houver "
-            .. "container anexado.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover rede?"),
+        message = i18n.tr("A rede será removida (docker network rm). Falha se houver container anexado."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -197,5 +188,5 @@ function docker_remove_network(network_id: string): ()
         return
     end
 
-    remove_one({ RemoveNetwork = { id = network_id } }, "removendo rede…")
+    remove_one({ RemoveNetwork = { id = network_id } }, i18n.tr("removendo rede…"))
 end

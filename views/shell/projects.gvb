@@ -2,24 +2,24 @@
 component {
   resources {
     component(name = SemProjetos) {
-      text("Nenhum projeto ainda.", class = u-muted)
+      text("{t('common.no_projects_yet')}", class = u-muted)
     }
   }
 
   column(class = content) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text("Projects", class = page-head__title)
+        text("{t('projects.projects')}", class = page-head__title)
 
         text(
-          "Projetos do cluster e a contagem de serviços de cada um.",
+          "{t('projects.projects_of_the_cluster_and')}",
           class = page-head__subtitle,
         )
       }
 
       row(class = page-head__stats) {
-        StatCard(label = SERVICES, value = @services_count)
-        StatCard(label = PROJECTS, value = @projects_count, accent = 1)
+        StatCard(label = "{t('common.services')}", value = @services_count)
+        StatCard(label = "{t('projects.projects_2')}", value = @projects_count, accent = 1)
       }
     }
 
@@ -28,7 +28,7 @@ component {
         class = "btn btn--primary",
         on_click = open_new_project_window,
         disabled = @busy_open_new_project_window,
-        text = "+ Novo projeto",
+        text = "{t('projects.new_project')}",
       )
     }
 

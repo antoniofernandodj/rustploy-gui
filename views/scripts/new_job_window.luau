@@ -107,7 +107,7 @@ function init(): ()
     ctx.new_job_time = "03:00"
     ctx.new_job_weekday = "0"
     -- Coleção fixa do <radiogroup> de dia da semana (recorrência Semanal).
-    ctx.weekdays = format.WEEKDAYS
+    ctx.weekdays = format.weekdays()
     ctx.new_job_error = ""
     ctx.new_job_message = ""
 
@@ -169,7 +169,7 @@ function new_job_source(kind: string): ()
         if not api then
             return
         end
-        ctx.new_job_git_message = "carregando contas…"
+        ctx.new_job_git_message = i18n.tr("carregando contas…")
         ctx.new_job_git_busy = "true"
         local git_provider_list_ok, git_provider_list_response =
             api:rpc("GitProviderList")
@@ -181,7 +181,7 @@ function new_job_source(kind: string): ()
                 format.git_providers(git_provider_list_response.GitProviders)
             ctx.new_job_git_message = ""
         else
-            ctx.new_job_git_message = "erro ao listar contas conectadas"
+            ctx.new_job_git_message = i18n.tr("erro ao listar contas conectadas")
         end
     end
 end
@@ -195,7 +195,7 @@ function new_job_git_provider_pick(provider_id: string): ()
     if not api or ctx.new_job_git_provider_id == "" then
         return
     end
-    ctx.new_job_git_message = "carregando repositórios…"
+    ctx.new_job_git_message = i18n.tr("carregando repositórios…")
     ctx.new_job_git_busy = "true"
     local git_repo_list_ok, git_repo_list_response = api:rpc {
         GitRepoList = { provider_id = ctx.new_job_git_provider_id },
@@ -205,9 +205,9 @@ function new_job_git_provider_pick(provider_id: string): ()
         ctx.new_job_git_repos =
             format.git_repos(git_repo_list_response.GitRepos)
         ctx.new_job_git_message = tostring(#git_repo_list_response.GitRepos)
-            .. " repositório(s)"
+            .. i18n.tr(" repositório(s)")
     else
-        ctx.new_job_git_message = "erro ao listar repositórios"
+        ctx.new_job_git_message = i18n.tr("erro ao listar repositórios")
     end
 end
 
@@ -235,7 +235,7 @@ function new_job_git_repo_pick(full_name: string): ()
     if not api or provider_id == "" then
         return
     end
-    ctx.new_job_git_message = "carregando branches…"
+    ctx.new_job_git_message = i18n.tr("carregando branches…")
     ctx.new_job_git_busy = "true"
     local git_branch_list_ok, git_branch_list_response = api:rpc {
         GitBranchList = {
@@ -249,7 +249,7 @@ function new_job_git_repo_pick(full_name: string): ()
             format.git_branches(git_branch_list_response.GitBranches)
         ctx.new_job_git_message = ""
     else
-        ctx.new_job_git_message = "erro ao listar branches"
+        ctx.new_job_git_message = i18n.tr("erro ao listar branches")
     end
 end
 
@@ -290,7 +290,7 @@ end
 -- Job 100% autônomo: sem serviço gatilho, só as env vars do projeto.
 function new_job_pick_no_service(): ()
     ctx.new_job_service_id = ""
-    ctx.new_job_service_name = "nenhum (autônomo)"
+    ctx.new_job_service_name = i18n.tr("nenhum (autônomo)")
     ctx.new_job_step = "form"
 end
 
@@ -321,18 +321,18 @@ end
 function new_job_create(): ()
     local api = client()
     if not api then
-        ctx.new_job_error = "sem conexão — reabra a janela pelo app"
+        ctx.new_job_error = i18n.tr("sem conexão — reabra a janela pelo app")
         return
     end
     local name = Helpers.trim(ctx.new_job_name)
     if name == "" then
-        ctx.new_job_error = "informe um nome"
+        ctx.new_job_error = i18n.tr("informe um nome")
         return
     end
     local main_service = Helpers.trim(ctx.new_job_main_service)
     if main_service == "" then
         ctx.new_job_error =
-            "informe o main_service (nome do serviço dentro do compose)"
+            i18n.tr("informe o main_service (nome do serviço dentro do compose)")
         return
     end
 
@@ -341,7 +341,7 @@ function new_job_create(): ()
     if ctx.new_job_source == "git" then
         local branch = Helpers.trim(ctx.new_job_git_branch)
         if ctx.new_job_git_repo == "" or branch == "" then
-            ctx.new_job_error = "selecione repositório e branch"
+            ctx.new_job_error = i18n.tr("selecione repositório e branch")
             return
         end
         local compose_path = Helpers.trim(ctx.new_job_compose_path)
@@ -362,9 +362,7 @@ function new_job_create(): ()
             end
         end
         if url == "" then
-            ctx.new_job_error = "não foi possível resolver a URL do "
-                .. "repositório — selecione de "
-                .. "novo"
+            ctx.new_job_error = i18n.tr("não foi possível resolver a URL do repositório — selecione de novo")
             return
         end
         git_source = {
@@ -380,7 +378,7 @@ function new_job_create(): ()
     else
         compose = ctx.new_job_compose or ""
         if Helpers.trim(compose) == "" then
-            ctx.new_job_error = "cole o docker-compose.yml do job"
+            ctx.new_job_error = i18n.tr("cole o docker-compose.yml do job")
             return
         end
     end
@@ -418,7 +416,7 @@ function new_job_create(): ()
     end
     local editing = ctx.new_job_edit_id ~= ""
 
-    ctx.new_job_message = editing and "salvando…" or "criando…"
+    ctx.new_job_message = editing and i18n.tr("salvando…") or i18n.tr("criando…")
     ctx.new_job_busy = "true"
     local save_ok, save_response
     if editing then

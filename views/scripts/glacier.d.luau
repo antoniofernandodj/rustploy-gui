@@ -252,6 +252,19 @@ declare json: {
 -- `get` devolve o valor guardado ou nil; `remove` apaga a chave. No rustploy
 -- grava em `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida
 -- no Rust via `GlacierDaemon::storage_dir`, glacier-ui 0.45+).
+-- i18n (glacier-ui 0.147+): a locale ativa é a chave `__locale`; `set_locale` a espalha
+-- para todas as janelas. Ver locales/ e handlers/language.luau.
+declare i18n: {
+    locale: () -> string,
+    set_locale: (requested: string) -> string?,
+    available: () -> { string },
+    t: (key: string, args: { [string]: any }?) -> string,
+    -- Traduz pelo texto de origem (gettext): sem entrada no catálogo devolve o próprio texto.
+    tr: (source: string) -> string,
+    num: (value: number, decimals: number?) -> string,
+    date: (value: any) -> string,
+}
+
 declare storage: {
     get: (key: string) -> any,
     set: (key: string, value: any) -> (),

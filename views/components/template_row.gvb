@@ -34,6 +34,6 @@ component {
       )
     }
 
-    button(class = "btn btn--primary", on_click = @action, text = "Escolher ›")
+    button(class = "btn btn--primary", on_click = @action, text = "{t('template_row.choose')}")
   }
 }

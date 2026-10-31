@@ -56,10 +56,10 @@ component {
         not_equals = "",
         on_click = copy_container_name:@container_name_full,
         text = "⧉",
-        tooltip = "Copiar nome",
+        tooltip = "{t('service_card.copy_name')}",
       )
 
-      text("name: @container_name", class = u-muted)
+      text("{t('service_card.name', container_name=container_name)}", class = u-muted)
     }
 
     row(class = card__container) {
@@ -69,13 +69,13 @@ component {
         not_equals = "",
         on_click = copy_container_id:@container_id_full,
         text = "⧉",
-        tooltip = "Copiar id",
+        tooltip = "{t('service_card.copy_id')}",
       )
 
-      text("id: @container_id", class = u-muted)
+      text("{t('service_card.id', container_id=container_id)}", class = u-muted)
 
       text(
-        "extra: @container_extra",
+        "{t('service_card.extra', container_extra=container_extra)}",
         class = u-muted,
         if = @container_extra,
         not_equals = "",
@@ -86,19 +86,19 @@ component {
 
     row(class = card__stats) {
       column(class = card__stat) {
-        text("CPU", class = u-label-cap)
+        text("{t('common.cpu')}", class = u-label-cap)
         text("@cpu", class = card__stat-num)
       }
 
       column(class = card__stat) {
-        text("MEM", class = u-label-cap)
+        text("{t('common.mem')}", class = u-label-cap)
         text("@mem", class = card__stat-num)
       }
     }
 
     // Ações empilhadas: 3 botões numa linha só transbordam no tamanho mínimo
     // de janela (grade de 3 colunas).
-    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "Abrir  ›")
+    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "{t('common.open')}")
 
     row(class = card__actions) {
       button(
@@ -106,7 +106,7 @@ component {
         on_click = service_stop_id:@id,
         disabled = @busy_service_stop_id,
         text = "■",
-        tooltip = Parar,
+        tooltip = "{t('common.stop')}",
       )
 
       button(
@@ -114,7 +114,7 @@ component {
         on_click = stop_delete_service:@id,
         disabled = @busy_stop_delete_service,
         text = "✕",
-        tooltip = Remover,
+        tooltip = "{t('common.remove')}",
       )
 
       button(
@@ -122,7 +122,7 @@ component {
         on_click = open_export_window:@id,
         disabled = @busy_open_export_window,
         text = "⇪",
-        tooltip = "Exportar serviço (arquivo para recriá-lo em outro servidor)",
+        tooltip = "{t('service_card.export_service_a_file_to')}",
       )
     }
   }

@@ -29,12 +29,12 @@ end
 -- `clipboard:` da markup não o alcança, por isso `copy` + toast).
 function copy_container_name(name: string): ()
     copy(name)
-    toast { message = "Nome copiado", kind = "success" }
+    toast { message = i18n.tr("Nome copiado"), kind = "success" }
 end
 
 function copy_container_id(container_id: string): ()
     copy(container_id)
-    toast { message = "ID copiado", kind = "success" }
+    toast { message = i18n.tr("ID copiado"), kind = "success" }
 end
 
 -- Botões "Copiar" da markup: copia o valor da chave de contexto e avisa por
@@ -43,7 +43,7 @@ end
 function copy_ctx(key: string): ()
     copy(ctx[key] or "")
     toast {
-        message = "Copiado para a área de transferência",
+        message = i18n.tr("Copiado para a área de transferência"),
         kind = "success",
     }
 end
@@ -91,7 +91,7 @@ function M.fetch_service_detail(service_id: string): ()
         api:rpc { ServiceGet = { id = service_id } }
     if not service_get_ok or not service_get_response.Service then
         ctx.service_loading = "false"
-        ctx.service_error = service_get_ok and "serviço não encontrado"
+        ctx.service_error = service_get_ok and i18n.tr("serviço não encontrado")
             or service_get_response
         return
     end
@@ -206,15 +206,9 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.edit_service_name = spec.name
     ctx.error_edit_service_name = ""
     if source_kind == "Compose" then
-        ctx.service_rename_note = "A stack e os volumes do Docker não mudam "
-            .. "com o nome: os dados "
-            .. "continuam os mesmos."
+        ctx.service_rename_note = i18n.tr("A stack e os volumes do Docker não mudam com o nome: os dados continuam os mesmos.")
     else
-        ctx.service_rename_note = "O hostname interno (rp_<nome>) só passa a "
-            .. "valer no próximo deploy. "
-            .. "Outros serviços que usam o nome antigo em variáveis de "
-            .. "ambiente "
-            .. "precisam ser atualizados."
+        ctx.service_rename_note = i18n.tr("O hostname interno (rp_<nome>) só passa a valer no próximo deploy. Outros serviços que usam o nome antigo em variáveis de ambiente precisam ser atualizados.")
     end
     ctx.service_project = project_name
     ctx.service_project_id = spec.project_id
@@ -389,7 +383,7 @@ function M.fetch_service_detail(service_id: string): ()
                 ctx.gitea_repos =
                     format.git_repos(git_repo_list_response.GitRepos)
                 ctx.gitea_message = tostring(#git_repo_list_response.GitRepos)
-                    .. " repositório(s)"
+                    .. i18n.tr(" repositório(s)")
                 local full
                 for _, git_repo in ipairs(git_repo_list_response.GitRepos) do
                     if git_repo.clone_url == bound_url then
@@ -435,9 +429,9 @@ local function with_spec(mutate: (spec: any) -> ()): ()
     local service_get_ok, service_get_response =
         api:rpc { ServiceGet = { id = service_id } }
     if not service_get_ok or not service_get_response.Service then
-        ctx.service_action_message = "erro ao carregar spec"
+        ctx.service_action_message = i18n.tr("erro ao carregar spec")
         toast {
-            message = tostring("erro ao carregar o serviço"),
+            message = tostring(i18n.tr("erro ao carregar o serviço")),
             kind = "error",
         }
         return
@@ -451,11 +445,11 @@ local function with_spec(mutate: (spec: any) -> ()): ()
         },
     }
     if service_update_ok then
-        ctx.service_action_message = "salvo"
+        ctx.service_action_message = i18n.tr("salvo")
         toast { message = tostring("Salvo"), kind = "success" }
         M.fetch_service_detail(service_id)
     else
-        ctx.service_action_message = "erro: " .. service_update_response
+        ctx.service_action_message = i18n.tr("erro: ") .. service_update_response
         toast { message = tostring(service_update_response), kind = "error" }
     end
 end
@@ -559,8 +553,7 @@ function shared_disable(): ()
         and tonumber(ctx.service_shared_databases_count) > 0
     then
         toast {
-            message = "Remova os databases deste servidor antes de deixar de "
-                .. "compartilhar",
+            message = i18n.tr("Remova os databases deste servidor antes de deixar de compartilhar"),
             kind = "warning",
         }
         return
@@ -589,7 +582,7 @@ function shared_database_create(): ()
     local name = Helpers.trim(ctx.service_form_shared_database_name)
     if name == "" or ctx.service_form_shared_database_project == "" then
         toast {
-            message = "Informe o nome e o projeto consumidor",
+            message = i18n.tr("Informe o nome e o projeto consumidor"),
             kind = "warning",
         }
         return
@@ -610,16 +603,16 @@ function shared_database_create(): ()
             Helpers.trim(ctx.service_form_shared_database_timeout)
         ),
     }
-    ctx.service_action_message = "criando database…"
+    ctx.service_action_message = i18n.tr("criando database…")
     local managed_database_create_ok, managed_database_create_response =
         api:rpc_checked { ManagedDatabaseCreate = create_request }
     if managed_database_create_ok then
-        toast { message = "Database criado", kind = "success" }
-        ctx.service_action_message = "database criado"
+        toast { message = i18n.tr("Database criado"), kind = "success" }
+        ctx.service_action_message = i18n.tr("database criado")
         ctx.service_form_shared_database_name = ""
         M.fetch_service_detail(ctx.selected_service)
     else
-        ctx.service_action_message = "erro: "
+        ctx.service_action_message = i18n.tr("erro: ")
             .. managed_database_create_response
         toast {
             message = tostring(managed_database_create_response),
@@ -630,10 +623,9 @@ end
 
 function shared_database_delete(shared_database_id: string): ()
     local confirmed = confirm {
-        title = "Remover database?",
-        message = "O database e o usuário são apagados do servidor, com todos "
-            .. "os dados. Ação irreversível.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover database?"),
+        message = i18n.tr("O database e o usuário são apagados do servidor, com todos os dados. Ação irreversível."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
     if not confirmed then
@@ -784,18 +776,15 @@ function migration_start(): ()
         or Helpers.trim(ctx.service_form_migration_database) == ""
     then
         toast {
-            message = "Escolha o database de destino e informe o de origem",
+            message = i18n.tr("Escolha o database de destino e informe o de origem"),
             kind = "warning",
         }
         return
     end
     local confirmed = confirm {
-        title = "Iniciar migração?",
-        message = "Os serviços do projeto que usam este banco serão parados "
-            .. "durante o dump/restore e subirão de novo no banco novo. O "
-            .. "banco "
-            .. "antigo é mantido (parado) para rollback.",
-        confirm_label = "Migrar",
+        title = i18n.tr("Iniciar migração?"),
+        message = i18n.tr("Os serviços do projeto que usam este banco serão parados durante o dump/restore e subirão de novo no banco novo. O banco antigo é mantido (parado) para rollback."),
+        confirm_label = i18n.tr("Migrar"),
     }
     if not confirmed then
         return
@@ -813,7 +802,7 @@ function migration_start(): ()
         }
     if migration_start_ok then
         toast {
-            message = "Migração iniciada — use Atualizar para acompanhar",
+            message = i18n.tr("Migração iniciada — use Atualizar para acompanhar"),
             kind = "success",
         }
         M.fetch_service_detail(ctx.selected_service)
@@ -824,11 +813,9 @@ end
 
 function migration_rollback(): ()
     local confirmed = confirm {
-        title = "Reverter a migração?",
-        message = "A app volta ao banco antigo. O que foi escrito no banco "
-            .. "novo "
-            .. "depois da migração se perde.",
-        confirm_label = "Reverter",
+        title = i18n.tr("Reverter a migração?"),
+        message = i18n.tr("A app volta ao banco antigo. O que foi escrito no banco novo depois da migração se perde."),
+        confirm_label = i18n.tr("Reverter"),
         destructive = true,
     }
     if not confirmed then
@@ -851,11 +838,9 @@ end
 
 function migration_discard(): ()
     local confirmed = confirm {
-        title = "Descartar o banco antigo?",
-        message = "O serviço do banco antigo é removido, com os dados dele. "
-            .. "Sem "
-            .. "volta.",
-        confirm_label = "Descartar",
+        title = i18n.tr("Descartar o banco antigo?"),
+        message = i18n.tr("O serviço do banco antigo é removido, com os dados dele. Sem volta."),
+        confirm_label = i18n.tr("Descartar"),
         destructive = true,
     }
     if not confirmed then
@@ -876,7 +861,7 @@ function migration_discard(): ()
     end
     ctx.view = "projects"
     ctx.selected_service = ""
-    toast { message = "Banco antigo descartado", kind = "success" }
+    toast { message = i18n.tr("Banco antigo descartado"), kind = "success" }
 end
 
 -- ── Renomear serviço (aba General → "Nome do serviço") ──────────────────────
@@ -884,7 +869,7 @@ end
 -- on_validation_error do form(name = service_rename): o motor já acendeu o
 -- :invalid e publicou {error_edit_service_name}; aqui é só o aviso.
 function service_rename_show_validation_errors(_erros_json: string?): ()
-    toast { message = "Informe o nome do serviço", kind = "warning" }
+    toast { message = i18n.tr("Informe o nome do serviço"), kind = "warning" }
 end
 
 -- on_submit: só roda com a validação (rules="required") aprovada. Unicidade
@@ -918,7 +903,7 @@ end
 function domain_add(): ()
     local domain = Helpers.trim(ctx.service_form_domain)
     if domain == "" then
-        ctx.error_service_form_domain = "domínio vazio"
+        ctx.error_service_form_domain = i18n.tr("domínio vazio")
         return
     end
     ctx.error_service_form_domain = ""
@@ -1186,7 +1171,7 @@ function archive_upload(): ()
         return
     end
     if path == "" then
-        ctx.service_action_message = "informe o caminho do zip"
+        ctx.service_action_message = i18n.tr("informe o caminho do zip")
         return
     end
 
@@ -1196,7 +1181,7 @@ function archive_upload(): ()
     archive_upload_abort = abort_controller()
     ctx.archive_upload_percent = 0
     ctx.archive_upload_active = "true"
-    ctx.service_action_message = "enviando zip…"
+    ctx.service_action_message = i18n.tr("enviando zip…")
     local upload_archive_ok, upload_archive_response =
         api:upload_archive(service_id, filename, path, {
             signal = archive_upload_abort,
@@ -1211,13 +1196,13 @@ function archive_upload(): ()
     ctx.archive_upload_active = "false"
 
     if upload_archive_ok and upload_archive_response.Service then
-        ctx.service_action_message = "zip enviado"
-        toast { message = tostring("Zip enviado"), kind = "success" }
+        ctx.service_action_message = i18n.tr("zip enviado")
+        toast { message = tostring(i18n.tr("Zip enviado")), kind = "success" }
         M.fetch_service_detail(service_id)
     elseif upload_archive_response == "cancelado" then
-        ctx.service_action_message = "envio cancelado"
+        ctx.service_action_message = i18n.tr("envio cancelado")
     else
-        ctx.service_action_message = "erro: "
+        ctx.service_action_message = i18n.tr("erro: ")
             .. tostring(upload_archive_response)
         toast { message = tostring(upload_archive_response), kind = "error" }
     end
@@ -1282,7 +1267,7 @@ end
 -- on_validation_error do form(name = env_add) — a chave é `rules="required"`;
 -- o motor publica {error_env_new_key} e acende o :invalid. Aqui é só o aviso.
 function env_show_validation_errors(_erros_json: string?): ()
-    toast { message = "Informe a chave (KEY)", kind = "warning" }
+    toast { message = i18n.tr("Informe a chave (KEY)"), kind = "warning" }
 end
 
 function env_add(): ()
@@ -1404,12 +1389,12 @@ function deployment_logs(deployment_id: string): ()
         component = "log",
         size = "900 560",
         decorations = false,
-        title = "Build — " .. string.sub(deployment_id, 1, 12),
+        title = i18n.tr("Build — ") .. string.sub(deployment_id, 1, 12),
         resizable = true,
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            log_window_title = "Build logs · "
+            log_window_title = i18n.tr("Build logs · ")
                 .. string.sub(deployment_id, 1, 12),
             log_window_stream_url = "/api/deployments/"
                 .. deployment_id
@@ -1421,11 +1406,9 @@ end
 
 function delete_deployment(deployment_id: string): ()
     local confirmed = confirm {
-        title = "Remover deployment?",
-        message = "O registro do deployment e seus build logs serão "
-            .. "removidos. "
-            .. "Essa ação não pode ser desfeita.",
-        confirm_label = "Remover",
+        title = i18n.tr("Remover deployment?"),
+        message = i18n.tr("O registro do deployment e seus build logs serão removidos. Essa ação não pode ser desfeita."),
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -1439,7 +1422,7 @@ function delete_deployment(deployment_id: string): ()
     end
     local deploy_delete_ok, deploy_delete_response =
         api:rpc_checked { DeployDelete = { deployment_id = deployment_id } }
-    ctx.service_action_message = deploy_delete_ok and "deployment removido"
+    ctx.service_action_message = deploy_delete_ok and i18n.tr("deployment removido")
         or ("erro: " .. deploy_delete_response)
     if not deploy_delete_ok then
         toast { message = tostring(deploy_delete_response), kind = "error" }
@@ -1463,11 +1446,9 @@ end
 -- passa pelo confirm.
 function regenerate_webhook(): ()
     local confirmed = confirm {
-        title = "Regenerar token do webhook?",
-        message = "A URL atual para de funcionar imediatamente. Você "
-            .. "precisará "
-            .. "recadastrá-la no provedor (GitHub, Gitea, Docker Hub…).",
-        confirm_label = "Regenerar",
+        title = i18n.tr("Regenerar token do webhook?"),
+        message = i18n.tr("A URL atual para de funcionar imediatamente. Você precisará recadastrá-la no provedor (GitHub, Gitea, Docker Hub…)."),
+        confirm_label = i18n.tr("Regenerar"),
         destructive = true,
     }
 
@@ -1492,17 +1473,17 @@ function regenerate_webhook(): ()
         and regenerate_webhook_token_response.WebhookUrl
     then
         M.set_webhook_url(regenerate_webhook_token_response.WebhookUrl)
-        ctx.service_action_message = "token do webhook regenerado"
+        ctx.service_action_message = i18n.tr("token do webhook regenerado")
         toast {
-            message = tostring("Token do webhook regenerado"),
+            message = tostring(i18n.tr("Token do webhook regenerado")),
             kind = "success",
         }
     else
         local error_message = type(regenerate_webhook_token_response)
                     == "string"
                 and regenerate_webhook_token_response
-            or "falha ao regenerar o token"
-        ctx.service_action_message = "erro: " .. error_message
+            or i18n.tr("falha ao regenerar o token")
+        ctx.service_action_message = i18n.tr("erro: ") .. error_message
         toast { message = tostring(error_message), kind = "error" }
     end
 end
@@ -1518,7 +1499,7 @@ local function service_lifecycle(command: any, message: string): ()
     ctx.service_action_message = message
     local rpc_ok, rpc_response = api:rpc_checked(command)
     if not rpc_ok then
-        ctx.service_action_message = "erro: " .. rpc_response
+        ctx.service_action_message = i18n.tr("erro: ") .. rpc_response
     end
     M.fetch_service_detail(service_id)
 end
@@ -1534,7 +1515,7 @@ local function start_deploy(requested_service_id: string?): ()
     if not api or not service_id or service_id == "" then
         return
     end
-    ctx.service_action_message = "iniciando deploy…"
+    ctx.service_action_message = i18n.tr("iniciando deploy…")
     ctx.service_action_color = "#58A6FF"
     -- Nome do serviço (para a notificação do SO no desfecho, ver stream.luau):
     -- resolvido agora, do snapshot corrente, pois o evento só traz o
@@ -1560,16 +1541,16 @@ local function start_deploy(requested_service_id: string?): ()
         }
         ctx.service_deploy_running = "true"
         ctx.service_deploy_elapsed = "0s"
-        ctx.service_action_message = "deploy iniciado · "
+        ctx.service_action_message = i18n.tr("deploy iniciado · ")
             .. tostring(deploy_start_response.Deployment.state)
-        toast { message = tostring("Deploy iniciado"), kind = "success" }
+        toast { message = tostring(i18n.tr("Deploy iniciado")), kind = "success" }
     else
-        ctx.service_action_message = deploy_start_ok and "resposta inesperada"
+        ctx.service_action_message = deploy_start_ok and i18n.tr("resposta inesperada")
             or ("erro: " .. deploy_start_response)
         ctx.service_action_color = "#F85149"
         toast {
             message = tostring(
-                deploy_start_ok and "resposta inesperada do daemon"
+                deploy_start_ok and i18n.tr("resposta inesperada do daemon")
                     or deploy_start_response
             ),
             kind = "error",
@@ -1599,15 +1580,14 @@ function service_reload(): ()
         ServiceReload = {
             service_id = ctx.selected_service,
         },
-    }, "recarregando…")
+    }, i18n.tr("recarregando…"))
 end
 
 function service_stop(): ()
     local confirmed = confirm {
-        title = "Parar serviço?",
-        message = "O tráfego para este serviço será interrompido até um novo "
-            .. "deploy.",
-        confirm_label = "Parar",
+        title = i18n.tr("Parar serviço?"),
+        message = i18n.tr("O tráfego para este serviço será interrompido até um novo deploy."),
+        confirm_label = i18n.tr("Parar"),
         destructive = true,
     }
 
@@ -1619,7 +1599,7 @@ function service_stop(): ()
         ServiceStop = {
             service_id = ctx.selected_service,
         },
-    }, "parando…")
+    }, i18n.tr("parando…"))
 end
 
 -- Aquece o serviço (constrói a imagem para popular o cache de build) sem
@@ -1642,11 +1622,11 @@ function service_warm(): ()
     end
     if service_warm_response.ServiceWarmRequested.already_warm then
         toast {
-            message = tostring("Serviço já está aquecido"),
+            message = tostring(i18n.tr("Serviço já está aquecido")),
             kind = "success",
         }
     else
-        toast { message = tostring("Aquecimento iniciado"), kind = "success" }
+        toast { message = tostring(i18n.tr("Aquecimento iniciado")), kind = "success" }
     end
 end
 
@@ -1661,7 +1641,7 @@ function gitea_provider_pick(provider_id: string): ()
     if not api or provider_id == "" then
         return
     end
-    ctx.gitea_message = "carregando repositórios…"
+    ctx.gitea_message = i18n.tr("carregando repositórios…")
     ctx.gitea_busy = "true"
     local git_repo_list_ok, git_repo_list_response =
         api:rpc { GitRepoList = { provider_id = provider_id } }
@@ -1669,9 +1649,9 @@ function gitea_provider_pick(provider_id: string): ()
     if git_repo_list_ok and git_repo_list_response.GitRepos then
         ctx.gitea_repos = format.git_repos(git_repo_list_response.GitRepos)
         ctx.gitea_message = tostring(#git_repo_list_response.GitRepos)
-            .. " repositório(s)"
+            .. i18n.tr(" repositório(s)")
     else
-        ctx.gitea_message = "erro ao listar repositórios"
+        ctx.gitea_message = i18n.tr("erro ao listar repositórios")
     end
 end
 
@@ -1701,7 +1681,7 @@ function gitea_repo_pick(full_name: string): ()
     if not api or provider_id == "" then
         return
     end
-    ctx.gitea_message = "carregando branches…"
+    ctx.gitea_message = i18n.tr("carregando branches…")
     ctx.gitea_busy = "true"
     local git_branch_list_ok, git_branch_list_response = api:rpc {
         GitBranchList = {
@@ -1716,7 +1696,7 @@ function gitea_repo_pick(full_name: string): ()
         ctx.gitea_message = tostring(#git_branch_list_response.GitBranches)
             .. " branch(es)"
     else
-        ctx.gitea_message = "erro ao listar branches"
+        ctx.gitea_message = i18n.tr("erro ao listar branches")
     end
 end
 
@@ -1749,12 +1729,12 @@ function open_logs_window(): ()
         component = "log",
         size = "900 560",
         decorations = false,
-        title = "Logs — " .. (ctx.service_name or service_id),
+        title = i18n.tr("Logs — ") .. (ctx.service_name or service_id),
         resizable = true,
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            log_window_title = "Logs · " .. (ctx.service_name or service_id),
+            log_window_title = i18n.tr("Logs · ") .. (ctx.service_name or service_id),
             log_window_stream_url = "/api/services/" .. service_id .. "/logs",
             log_window_seed = seed,
         },

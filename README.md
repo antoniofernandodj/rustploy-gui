@@ -467,6 +467,30 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
 
 ---
 
+## 5b. Idiomas: `locales/`, `i18n.tr` e o porquê de cada escolha
+
+A GUI fala inglês (padrão) e pt-BR. **Onde mora o quê:** `locales/en.json` e `locales/pt-BR.json`
+são embutidos por `include_str!` em `src/app/mod.rs` (`locale_json`), então valem no binário de
+release e no debug do mesmo jeito. `views/scripts/handlers/language.luau` restaura o idioma
+gravado (`storage`, chave `language`) na subida da janela principal e troca ao vivo;
+`i18n.set_locale` espalha a locale para todas as janelas abertas (cada janela é um motor isolado).
+
+**Duas famílias de chave.** No markup, chave semântica (`{t('docker_images.no_images')}`): é o que
+o `tests/locales.rs` confere nos dois idiomas. No Luau, o texto de origem é a chave
+(`i18n.tr("Remover tag?")`): um literal de toast ou confirmação não ganha um nome inventado, e
+sem entrada o texto aparece como foi escrito. **Por que não chave semântica no Luau também:**
+são centenas de literais montados por concatenação (`"Projeto \"" .. nome .. "\" criado"`), e
+um nome para cada pedaço seria ruído; cada pedaço é traduzido à parte, então a **ordem das
+palavras deve ser a mesma nos dois idiomas**.
+
+**A armadilha:** uma tabela de rótulos no topo de um módulo é avaliada uma vez, na carga, antes do
+idioma ser restaurado. Guarde o texto de origem e chame `i18n.tr` no ponto de uso. O título de
+janela (`screen(title = "{t(…)}")`) é resolvido a cada leitura (glacier-ui 0.147); os rótulos da
+bandeja (`tray`) **não** são traduzidos (o menu nativo é montado uma vez na subida).
+
+**Os testes** comparam o texto em inglês. Para um texto novo: ponha a chave nos dois `.json`
+(ou o `i18n.tr` no Luau), rode `glacier test` e `cargo test --test locales`.
+
 ## 6. Os templates `.gvb` por dentro
 
 Os templates descrevem a interface; o comportamento mora em Luau (`views/scripts/`).

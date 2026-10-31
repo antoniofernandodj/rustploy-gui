@@ -30,12 +30,12 @@ end
 
 -- "dd/mm HH:MM" local.
 function M.date_day_month_hour_minute(iso_timestamp: string?): string
-    return date.format(date.to_local(iso_timestamp), "DD/MM HH:mm") or ""
+    return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm")) or ""
 end
 
 -- "dd/mm HH:MM:SS" local.
 function M.date_day_month_hour_minute_second(iso_timestamp: string?): string
-    return date.format(date.to_local(iso_timestamp), "DD/MM HH:mm:SS") or ""
+    return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm:SS")) or ""
 end
 
 -- Ns ou Mm Ns.
@@ -108,7 +108,7 @@ end
 -- que agendam por semana (limpeza automática e jobs) precisam da mesma lista.
 -- É uma tabela de dados: `ctx.weekdays = format.WEEKDAYS` já grava o JSON que
 -- o <radiogroup> espera em `:items`, sem escrever o JSON em string.
-M.WEEKDAYS = {
+local WEEKDAYS = {
     { id = "0", label = "Seg" },
     { id = "1", label = "Ter" },
     { id = "2", label = "Qua" },
@@ -117,6 +117,16 @@ M.WEEKDAYS = {
     { id = "5", label = "Sáb" },
     { id = "6", label = "Dom" },
 }
+
+-- Os dias da semana para o combo (rótulo traduzido na hora de chamar, para acompanhar a troca
+-- de idioma): `ctx.weekdays = format.weekdays()` grava o JSON que o combo consome.
+function M.weekdays(): { { id: string, label: string } }
+    local out = {}
+    for _, weekday in ipairs(WEEKDAYS) do
+        table.insert(out, { id = weekday.id, label = i18n.tr(weekday.label) })
+    end
+    return out
+end
 
 -- ── Ponte entre o <timeedit> e o protocolo ──────────────────────────────────
 -- O <timeedit> do glacier-ui (0.68) guarda o horário numa chave ÚNICA, em ISO

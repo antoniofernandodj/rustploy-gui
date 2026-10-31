@@ -63,7 +63,7 @@ function M.source_summary_parts(source: any): (string, string, string)
         return "Zip",
             archive_source.original_filename
                 or archive_source.archive_id
-                or "zip enviado",
+                or i18n.tr("zip enviado"),
             archive_source.dockerfile_path or "Dockerfile"
     elseif source.Compose then
         return "Compose", "docker-compose", "Compose"

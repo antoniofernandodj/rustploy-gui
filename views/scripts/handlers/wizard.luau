@@ -245,7 +245,7 @@ function new_service_create(): ()
         kind, selected_template_id =
             "template", ctx.new_service_template_id or ""
     else
-        ctx.new_service_message = "passo inválido"
+        ctx.new_service_message = i18n.tr("passo inválido")
         return
     end
 
@@ -256,7 +256,7 @@ function new_service_create(): ()
         and Helpers.trim(ctx.new_service_app_name) == ""
         and name == ""
     then
-        ctx.error_new_service_name = "informe um nome"
+        ctx.error_new_service_name = i18n.tr("informe um nome")
         return
     end
     ctx.error_new_service_name = ""
@@ -294,7 +294,7 @@ function new_service_create(): ()
         -- faixa [external_ports]; sentinela host_port=0 no build_spec).
         expose_external = (Helpers.is_true(ctx.new_service_expose_external)),
     }
-    ctx.new_service_message = "criando…"
+    ctx.new_service_message = i18n.tr("criando…")
     ctx.new_service_busy = "true"
     local wizard_create_ok, wizard_create_response =
         api:rpc_checked { WizardCreate = create_request }
@@ -310,11 +310,11 @@ function new_service_create(): ()
         })
         close_window()
     else
-        ctx.new_service_message = wizard_create_ok and "resposta inesperada"
+        ctx.new_service_message = wizard_create_ok and i18n.tr("resposta inesperada")
             or ("erro: " .. wizard_create_response)
         toast {
             message = tostring(
-                wizard_create_ok and "resposta inesperada do daemon"
+                wizard_create_ok and i18n.tr("resposta inesperada do daemon")
                     or wizard_create_response
             ),
             kind = "error",

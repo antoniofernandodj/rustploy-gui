@@ -71,59 +71,59 @@ component {
       panel_class = sidebar,
     ) {
       column(class = brand) {
-        text("Rustploy", class = brand__name)
-        text("PRODUCTION CLUSTER", class = brand__sub)
+        text("{t('common.rustploy')}", class = brand__name)
+        text("{t('shell.production_cluster')}", class = brand__sub)
       }
 
-      text("DEPLOYMENT OPS", class = sidebar__section)
+      text("{t('shell.deployment_ops')}", class = sidebar__section)
 
       NavItem(
-        label = "Em execução",
+        label = "{t('common.running')}",
         icon = "●",
         target = running,
         action = nav_running,
       )
 
       NavItem(
-        label = Deployments,
+        label = "{t('common.deployments')}",
         icon = "▶",
         target = deployments,
         action = nav_deployments,
       )
 
       NavItem(
-        label = "Deploy Engine",
+        label = "{t('common.deploy_engine')}",
         icon = "⚡",
         target = deploy_engine,
         action = nav_deploy_engine,
       )
 
       NavItem(
-        label = Monitoring,
+        label = "{t('common.monitoring')}",
         icon = "◔",
         target = monitoring,
         action = nav_monitoring,
       )
 
       NavItem(
-        label = Schedules,
+        label = "{t('common.schedules')}",
         icon = "◫",
         target = schedules,
         action = nav_schedules,
       )
 
       NavItem(
-        label = Ingress,
+        label = "{t('common.ingress')}",
         icon = "↦",
         target = ingress,
         action = nav_ingress,
       )
 
-      NavItem(label = Runtime, icon = "◉", target = docker, action = nav_docker)
-      text("MANAGEMENT", class = sidebar__section)
+      NavItem(label = "{t('common.runtime')}", icon = "◉", target = docker, action = nav_docker)
+      text("{t('shell.management')}", class = sidebar__section)
 
       NavItem(
-        label = "Projects (@projects_count)",
+        label = "{t('shell.projects', projects_count=projects_count)}",
         icon = "◧",
         target = "projects project_services service",
         action = nav_projects,
@@ -133,7 +133,7 @@ component {
       hr
 
       NavItem(
-        label = Settings,
+        label = "{t('common.settings')}",
         icon = "⌥",
         target = settings,
         action = nav_settings,
@@ -141,7 +141,7 @@ component {
       )
 
       NavItem(
-        label = Support,
+        label = "{t('common.support')}",
         icon = "◊",
         target = support,
         action = nav_support,
@@ -156,24 +156,26 @@ component {
           class = topbar__menu,
           text = "☰",
           on_click = app:drawer::toggle:menu,
-          tooltip = "Mostrar/ocultar o menu",
+          tooltip = "{t('shell.show_hide_the_menu')}",
         )
 
         input(
           class = topbar__search,
           :value = search,
           on_change = search_changed,
-          placeholder = "Search deployments, nodes…",
+          placeholder = "{t('shell.search_deployments_nodes')}",
         )
 
         text(
-          "● @connected_server · daemon v@daemon_version",
+          "{t('shell.daemon_v', connected_server=connected_server, daemon_version=daemon_version)}",
           class = "u-muted topbar__status",
         )
 
         flow(class = topbar__actions) {
-          button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "Stop All")
-          button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = Disconnect)
+          button(class = "{language_english_class}", on_click = language_select_english, text = English)
+          button(class = "{language_portuguese_class}", on_click = language_select_portuguese, text = Português)
+          button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "{t('shell.stop_all')}")
+          button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = "{t('shell.disconnect')}")
         }
       }
 

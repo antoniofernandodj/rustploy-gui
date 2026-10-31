@@ -63,9 +63,9 @@ end
 --- as etiquetas dizem se é secret e se o serviço a cita
 function test_janela_exportar_servico__as_etiquetas_dizem_se_e_secret_e_se_o()
     local vars = linhas(exportar())
-    assert_eq(vars.DB.tag, "citada pelo serviço")
+    assert_eq(vars.DB.tag, "cited by the service")
     assert_eq(vars.LOG.tag, "")
-    assert_eq(vars.TOK.tag, "secret · citada pelo serviço")
+    assert_eq(vars.TOK.tag, "secret · cited by the service")
 end
 
 --- alternar uma variável inverte só ela
@@ -110,7 +110,7 @@ function test_janela_exportar_servico__plano_vazio_ou_ilegivel_nao_quebra_sem()
         assert_eq(tela:get("export_service"), "")
         assert_eq(
             tela:get("export_service_vars"),
-            "(este serviço não tem variáveis próprias)"
+            "(this service has no variables of its own)"
         )
         assert_eq(tela:get("export_service_count"), "0")
         assert_eq(tela:get("export_has_vars"), "false")
@@ -125,7 +125,7 @@ function test_janela_exportar_servico__mostrar_o_pacote_sem_conexao_explica_o()
     tela:call("export_show")
     assert_eq(
         tela:get("export_error"),
-        "sem conexão — reabra a janela pelo app"
+        "no connection — reopen the window from the app"
     )
     assert_eq(tela:get("export_yaml"), "")
 end
@@ -205,7 +205,7 @@ end
 function test_janela_novo_projeto__a_falha_de_validacao_so_avisa()
     local tela = janela("views/new_project_form.gvb")
     tela:call("new_project_show_validation_errors", "[]")
-    assert_eq(tela:toasts()[1].message, "Corrija os campos destacados")
+    assert_eq(tela:toasts()[1].message, "Fix the highlighted fields")
     assert_eq(tela:toasts()[1].kind, "warning")
 end
 
@@ -216,7 +216,7 @@ function test_janela_novo_projeto__criar_sem_a_conexao_semeada_manda_reabrir()
     tela:call("submit_project")
     assert_eq(
         tela:get("new_project_error"),
-        "sem conexão — reabra a janela pelo app"
+        "no connection — reopen the window from the app"
     )
     assert_eq(tela:get("new_project_busy"), "")
 end
@@ -265,11 +265,11 @@ function test_janela_novo_token_do_registry__criar_sem_conexao_e_a_falha_de()
     tela:call("new_registry_token_create")
     assert_eq(
         tela:get("new_registry_token_error"),
-        "sem conexão — reabra a janela pelo app"
+        "no connection — reopen the window from the app"
     )
     assert_eq(tela:get("new_registry_token_step"), "form")
     tela:call("new_registry_token_show_validation_errors", "[]")
-    assert_eq(tela:toasts()[1].message, "Informe o nome do token")
+    assert_eq(tela:toasts()[1].message, "Enter the token name")
 end
 
 -- ── Novo serviço ────────────────────────────────────────────────────────────

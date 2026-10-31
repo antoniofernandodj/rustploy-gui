@@ -38,7 +38,7 @@ component {
       slot = anchor,
       class = "btn btn--ghost btn--xs",
       text = "⋯",
-      tooltip = "Ações do job",
+      tooltip = "{t('job_actions.job_actions')}",
     )
 
     column(class = job-actions__panel) {
@@ -55,7 +55,7 @@ component {
         )
 
         text(
-          "aquecido em @warmed_at_label",
+          "{t('job_actions.warmed', warmed_at_label=warmed_at_label)}",
           class = u-muted,
           if = @is_warm,
           equals = true,
@@ -68,7 +68,7 @@ component {
         not_equals = true,
         on_click = job_run_now:@job_id,
         disabled = @busy_job_run_now,
-        text = "▶  Rodar agora",
+        text = "{t('job_actions.run_now')}",
       )
 
       button(
@@ -77,14 +77,14 @@ component {
         equals = true,
         on_click = job_run_cancel:@last_run_id,
         disabled = @busy_job_run_cancel,
-        text = "■  Cancelar execução",
+        text = "{t('job_actions.cancel_run')}",
       )
 
       button(
         class = "btn btn--ghost btn--sm job-actions__item",
         on_click = job_warm:@job_id,
         disabled = @busy_job_warm,
-        text = "◐  Aquecer",
+        text = "{t('job_actions.warm')}",
       )
 
       button(
@@ -93,8 +93,8 @@ component {
         equals = true,
         on_click = job_rebuild:@job_id,
         disabled = @busy_job_rebuild,
-        text = "↻  Reconstruir (sem cache)",
-        tooltip = "Refaz o build do zero e rebaixa as imagens base",
+        text = "{t('job_actions.rebuild_no_cache')}",
+        tooltip = "{t('job_actions.redoes_the_build_from_scratch')}",
       )
 
       button(
@@ -103,7 +103,7 @@ component {
         not_equals = "",
         on_click = open_job_logs_window:@last_run_id,
         disabled = @busy_open_job_logs_window,
-        text = "≡  Ver logs",
+        text = "{t('job_actions.view_logs')}",
       )
 
       button(
@@ -117,14 +117,14 @@ component {
         class = "btn btn--ghost btn--sm job-actions__item",
         on_click = open_edit_job_window:@job_id,
         disabled = @busy_open_edit_job_window,
-        text = "✎  Editar",
+        text = "{t('job_actions.edit')}",
       )
 
       button(
         class = "btn btn--danger btn--sm job-actions__item",
         on_click = job_delete:@job_id,
         disabled = @busy_job_delete,
-        text = "✕  Remover",
+        text = "{t('job_actions.remove')}",
       )
     }
   }

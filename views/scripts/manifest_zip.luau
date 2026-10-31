@@ -41,13 +41,13 @@ local function read(path: string): any
         elseif entry.text == nil then
             return {
                 ok = false,
-                error = entry.name .. " não é texto UTF-8 válido",
+                error = entry.name .. i18n.tr(" não é texto UTF-8 válido"),
             }
         elseif is_yaml then
             if yaml ~= nil then
                 return {
                     ok = false,
-                    error = "o zip tem mais de um arquivo .yml",
+                    error = i18n.tr("o zip tem mais de um arquivo .yml"),
                 }
             end
             yaml = entry.text
@@ -55,7 +55,7 @@ local function read(path: string): any
             if toml ~= nil then
                 return {
                     ok = false,
-                    error = "o zip tem mais de um arquivo .toml",
+                    error = i18n.tr("o zip tem mais de um arquivo .toml"),
                 }
             end
             toml = entry.text
@@ -65,15 +65,15 @@ local function read(path: string): any
     if #extras > 0 then
         return {
             ok = false,
-            error = "o zip só pode ter um .yml e um .toml — sobrou: "
+            error = i18n.tr("o zip só pode ter um .yml e um .toml — sobrou: ")
                 .. table.concat(extras, ", "),
         }
     end
     if yaml == nil then
-        return { ok = false, error = "o zip não tem um arquivo .yml" }
+        return { ok = false, error = i18n.tr("o zip não tem um arquivo .yml") }
     end
     if toml == nil then
-        return { ok = false, error = "o zip não tem um arquivo .toml" }
+        return { ok = false, error = i18n.tr("o zip não tem um arquivo .toml") }
     end
     return { ok = true, yaml = yaml, toml = toml }
 end

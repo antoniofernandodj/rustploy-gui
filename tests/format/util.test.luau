@@ -96,7 +96,7 @@ function test_estados__status_label_color_e_status_kind_concordam_em_todos_os()
     local casos = {
         { "Running", "Running", "ok" },
         { "Deploying", "Deploying", "info" },
-        { "Queued", "Na fila", "muted" },
+        { "Queued", "Queued", "muted" },
         { "Degraded", "Degraded", "warn" },
         { "Stopping", "Stopping", "muted" },
         { "Stopped", "Stopped", "muted" },
@@ -124,7 +124,7 @@ function test_estados__estado_de_deploy_rotulo_cor_e_kind()
     assert_eq(label, "LIVE")
     assert_eq(cor, "#3FB950")
     assert_eq(Util.state_label_color("Failed"), "FAILED")
-    assert_eq(Util.state_label_color("PreDeployCheck"), "PRÉ-DEPLOY CHECK")
+    assert_eq(Util.state_label_color("PreDeployCheck"), "PRE-DEPLOY CHECK")
     assert_eq(Util.state_label_color("BuildingImage"), "BUILDING")
     assert_eq(Util.state_label_color(nil), "BUILDING")
     assert_eq(Util.state_kind("Live"), "ok")
@@ -185,7 +185,7 @@ function test_dominio_do_servico__source_summary_de_cada_origem()
         "app.zip"
     )
     assert_eq(Util.source_summary({ Archive = { archive_id = "a1" } }), "a1")
-    assert_eq(Util.source_summary({ Archive = {} }), "zip enviado")
+    assert_eq(Util.source_summary({ Archive = {} }), "zip uploaded")
     assert_eq(Util.source_summary({ Compose = {} }), "docker-compose")
 end
 

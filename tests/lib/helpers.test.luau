@@ -72,8 +72,8 @@ function test_env__linha_ruim_vira_erro_com_numero_da_linha()
         H.parse_dotenv("OK=1\nsem igual\n=semchave\n1ABC=x\nA B=y")
     assert_eq(#vars, 1)
     assert_eq(#errors, 4)
-    assert_eq(string.find(errors[1], "linha 2", 1, true) ~= nil, true)
-    assert_eq(string.find(errors[3], "inválido", 1, true) ~= nil, true)
+    assert_eq(string.find(errors[1], "line 2", 1, true) ~= nil, true)
+    assert_eq(string.find(errors[3], "invalid", 1, true) ~= nil, true)
 end
 
 --- chave repetida aponta a linha da primeira definição e não duplica a var
@@ -81,8 +81,8 @@ function test_env__chave_repetida_vira_erro()
     local vars, _, errors = H.parse_dotenv("A=1\nB=2\nA=3")
     assert_eq(#vars, 2)
     assert_eq(#errors, 1)
-    assert_eq(string.find(errors[1], "linha 3", 1, true) ~= nil, true)
-    assert_eq(string.find(errors[1], "linha 1", 1, true) ~= nil, true)
+    assert_eq(string.find(errors[1], "line 3", 1, true) ~= nil, true)
+    assert_eq(string.find(errors[1], "line 1", 1, true) ~= nil, true)
 end
 
 --- valor vazio é legítimo

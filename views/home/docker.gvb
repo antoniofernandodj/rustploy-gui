@@ -10,54 +10,54 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("Runtime", class = page-head__title)
+      text("{t('common.runtime')}", class = page-head__title)
 
       text(
-        "Containers, imagens, volumes e networks do host.",
+        "{t('docker.containers_images_volumes_and_networks')}",
         class = page-head__subtitle,
       )
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
-      StatCard(label = CONTAINERS, value = @docker_containers_count)
-      StatCard(label = IMAGENS, value = @docker_images_count)
-      StatCard(label = VOLUMES, value = @docker_volumes_count)
-      StatCard(label = NETWORKS, value = @docker_networks_count, accent = 1)
+      StatCard(label = "{t('common.containers')}", value = @docker_containers_count)
+      StatCard(label = "{t('docker.images')}", value = @docker_images_count)
+      StatCard(label = "{t('docker.volumes')}", value = @docker_volumes_count)
+      StatCard(label = "{t('docker.networks')}", value = @docker_networks_count, accent = 1)
     }
   }
 
   scroll(class = tabs__scroll, direction = horizontal) {
     row(class = tabs__main) {
       TabButton(
-        label = Containers,
+        label = "{t('docker.containers')}",
         current = @docker_tab,
         target = containers,
         action = docker_tab:containers,
       )
 
       TabButton(
-        label = Images,
+        label = "{t('docker.images_2')}",
         current = @docker_tab,
         target = images,
         action = docker_tab:images,
       )
 
       TabButton(
-        label = Volumes,
+        label = "{t('docker.volumes_2')}",
         current = @docker_tab,
         target = volumes,
         action = docker_tab:volumes,
       )
 
       TabButton(
-        label = Networks,
+        label = "{t('docker.networks_2')}",
         current = @docker_tab,
         target = networks,
         action = docker_tab:networks,
       )
 
       TabButton(
-        label = Registry,
+        label = "{t('docker.registry')}",
         current = @docker_tab,
         target = registry,
         action = docker_tab:registry,

@@ -3,14 +3,14 @@
 component {
   resources {
     component(name = SemContainersDocker) {
-      text("Nenhum container.", class = u-muted)
+      text("{t('docker_containers.no_containers')}", class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
-        "@docker_containers_count container(s)",
+        "{t('docker_containers.container_s', docker_containers_count=docker_containers_count)}",
         class = "u-muted u-fill",
       )
 
@@ -18,7 +18,7 @@ component {
         class = "btn btn--danger",
         on_click = docker_prune_containers,
         disabled = @busy_docker_prune_containers,
-        text = "Limpar parados",
+        text = "{t('docker_containers.clean_stopped')}",
       )
     }
 
@@ -37,28 +37,28 @@ component {
       row_class = "table__row table__cell table__row--divided",
       class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = NOME, class = table__col-svc) {
+      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
         text("@c.name", class = "table__cell table__cell--key")
       }
 
-      tablecolumn(key = image, label = IMAGEM, class = table__col-img)
+      tablecolumn(key = image, label = "{t('docker_containers.image')}", class = table__col-img)
 
-      tablecolumn(key = owner, label = DONO, class = table__col-state) {
+      tablecolumn(key = owner, label = "{t('docker_containers.owner')}", class = table__col-state) {
         text("@c.owner", class = u-muted)
       }
 
-      tablecolumn(key = state_label, label = ESTADO, class = table__col-state) {
+      tablecolumn(key = state_label, label = "{t('common.state')}", class = table__col-state) {
         StateCell(kind = @c.state_kind, label = @c.state_label)
       }
 
-      tablecolumn(label = "AÇÃO", class = table__col-act) {
+      tablecolumn(label = "{t('common.action')}", class = table__col-act) {
         button(
           if = @c.can_remove,
           equals = 1,
           class = "btn btn--danger btn--xs",
           on_click = docker_remove_container:@c.id_full,
           disabled = @busy_docker_remove_container,
-          text = Remover,
+          text = "{t('common.remove')}",
         )
       }
 

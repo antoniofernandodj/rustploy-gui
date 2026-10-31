@@ -87,7 +87,7 @@ end
 function copy_ctx(key: string): ()
     copy(ctx[key] or "")
     toast {
-        message = "Copiado para a área de transferência",
+        message = i18n.tr("Copiado para a área de transferência"),
         kind = "success",
     }
 end

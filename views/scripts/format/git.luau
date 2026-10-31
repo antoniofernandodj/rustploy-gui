@@ -34,9 +34,9 @@ function M.git_providers(providers: { any }?): string
             account_lbl = "@" .. tostring(login or "")
             account_login = tostring(login or "")
         else
-            display = tostring(provider.name or "") .. " — não conectado"
-            account_lbl = "(pendente — autorize no navegador)"
-            account_login = "não conectado"
+            display = tostring(provider.name or "") .. i18n.tr(" — não conectado")
+            account_lbl = i18n.tr("(pendente — autorize no navegador)")
+            account_login = i18n.tr("não conectado")
         end
         local auth_mode = (provider.auth_mode == "OAuth") and "OAuth2" or "PAT"
         table.insert(rows, {

@@ -17,14 +17,14 @@ local LABELS: { [string]: string } = {
 }
 
 function M.resource_label(name: string): string
-    return LABELS[name] or name
+    return i18n.tr(LABELS[name] or name)
 end
 
 -- `lr`: `DockerCleanupLastRun?` (`{ at, results: { { resource, count,
 -- reclaimed_bytes, error } } }`). `nil` = nunca rodou.
 function M.last_run_summary(last_run: any): string
     if last_run == nil then
-        return "ainda não rodou"
+        return i18n.tr("ainda não rodou")
     end
     local total_bytes = 0
     local parts = {}
@@ -33,7 +33,7 @@ function M.last_run_summary(last_run: any): string
         total_bytes = total_bytes + (result.reclaimed_bytes or 0)
         if result.error ~= nil then
             any_error = true
-            table.insert(parts, M.resource_label(result.resource) .. ": erro")
+            table.insert(parts, M.resource_label(result.resource) .. i18n.tr(": erro"))
         else
             table.insert(
                 parts,
@@ -52,7 +52,7 @@ function M.last_run_summary(last_run: any): string
     end
     local suffix = " (" .. table.concat(parts, ", ") .. ")"
     if any_error then
-        suffix = suffix .. " — alguns recursos falharam, ver logs do daemon"
+        suffix = suffix .. i18n.tr(" — alguns recursos falharam, ver logs do daemon")
     end
     return head .. suffix
 end

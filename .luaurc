@@ -16,6 +16,7 @@
         "confirm",
         "toast",
         "storage",
+        "i18n",
         "date",
         "open_window",
         "broadcast",

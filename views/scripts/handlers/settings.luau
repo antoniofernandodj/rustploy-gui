@@ -25,7 +25,7 @@ function settings_save(): ()
     end
     local email = Helpers.trim(ctx.server_settings_email)
     local registry_domain = Helpers.trim(ctx.server_settings_registry_domain)
-    ctx.settings_message = "salvando…"
+    ctx.settings_message = i18n.tr("salvando…")
     local set_daemon_settings_ok, set_daemon_settings_response =
         api:rpc_checked {
             SetDaemonSettings = {
@@ -35,10 +35,10 @@ function settings_save(): ()
                 ),
             },
         }
-    ctx.settings_message = set_daemon_settings_ok and "configurações salvas"
+    ctx.settings_message = set_daemon_settings_ok and i18n.tr("configurações salvas")
         or ("erro: " .. set_daemon_settings_response)
     if set_daemon_settings_ok then
-        toast { message = tostring("Configurações salvas"), kind = "success" }
+        toast { message = tostring(i18n.tr("Configurações salvas")), kind = "success" }
     else
         toast {
             message = tostring(set_daemon_settings_response),
@@ -107,7 +107,7 @@ function git_provider_connect(): ()
         if is_github then
             base = "https://github.com"
         else
-            ctx.git_provider_message = "informe a Base URL do Gitea"
+            ctx.git_provider_message = i18n.tr("informe a Base URL do Gitea")
             return
         end
     end
@@ -122,7 +122,7 @@ function git_provider_connect(): ()
         local client_secret = ctx.git_provider_client_secret or ""
         if client_id == "" or Helpers.trim(client_secret) == "" then
             ctx.git_provider_message =
-                "Client ID e Client Secret são obrigatórios"
+                i18n.tr("Client ID e Client Secret são obrigatórios")
             return
         end
         provider_command = {
@@ -140,7 +140,7 @@ function git_provider_connect(): ()
         local personal_access_token = ctx.git_provider_personal_access_token
             or ""
         if Helpers.trim(personal_access_token) == "" then
-            ctx.git_provider_message = "informe o Personal Access Token"
+            ctx.git_provider_message = i18n.tr("informe o Personal Access Token")
             return
         end
         provider_command = {
@@ -155,11 +155,11 @@ function git_provider_connect(): ()
             },
         }
     end
-    ctx.git_provider_message = "conectando…"
+    ctx.git_provider_message = i18n.tr("conectando…")
     local rpc_ok, rpc_response = api:rpc(provider_command)
     if not rpc_ok or not rpc_response.GitProviderInfo then
-        ctx.git_provider_message = "erro: "
-            .. (rpc_ok and "resposta inesperada" or rpc_response)
+        ctx.git_provider_message = i18n.tr("erro: ")
+            .. (rpc_ok and i18n.tr("resposta inesperada") or rpc_response)
         return
     end
     local provider_id = rpc_response.GitProviderInfo.id
@@ -171,14 +171,14 @@ function git_provider_connect(): ()
             api:rpc { GitOAuthStart = { provider_id = provider_id } }
         if git_o_auth_start_ok and git_o_auth_start_response.OAuthUrl then
             ctx.git_provider_oauth_url = git_o_auth_start_response.OAuthUrl
-            ctx.git_provider_message = "abra para autorizar: "
+            ctx.git_provider_message = i18n.tr("abra para autorizar: ")
                 .. git_o_auth_start_response.OAuthUrl
         else
             ctx.git_provider_message =
-                "provider criado; inicie o OAuth manualmente"
+                i18n.tr("provider criado; inicie o OAuth manualmente")
         end
     else
-        ctx.git_provider_message = "conta " .. label .. " conectada ✓"
+        ctx.git_provider_message = i18n.tr("conta ") .. label .. i18n.tr(" conectada ✓")
     end
     ctx.git_provider_name = ""
     ctx.git_provider_base_url = ""
@@ -195,7 +195,7 @@ function git_provider_delete(provider_id: string): ()
     end
     local git_provider_delete_ok, git_provider_delete_response =
         api:rpc_checked { GitProviderDelete = { id = provider_id } }
-    ctx.git_provider_message = git_provider_delete_ok and "provider removido"
+    ctx.git_provider_message = git_provider_delete_ok and i18n.tr("provider removido")
         or ("erro: " .. git_provider_delete_response)
     if not git_provider_delete_ok then
         toast {
@@ -219,7 +219,7 @@ end
 -- O corpo do export DEPOIS do diálogo — separado só para o `manifest_busy` ser
 -- ligado/desligado em volta sem repetir o reset em cada early-return.
 local function do_export(api: any, zip_path: string): ()
-    ctx.manifest_export_message = "exportando…"
+    ctx.manifest_export_message = i18n.tr("exportando…")
     local manifest_export_all_ok, manifest_export_all_response =
         api:rpc_checked("ManifestExportAll")
     if
@@ -227,7 +227,7 @@ local function do_export(api: any, zip_path: string): ()
         or type(manifest_export_all_response) ~= "table"
         or not manifest_export_all_response.ManifestBundle
     then
-        ctx.manifest_export_message = "erro: "
+        ctx.manifest_export_message = i18n.tr("erro: ")
             .. tostring(manifest_export_all_response)
         toast {
             message = tostring(tostring(manifest_export_all_response)),
@@ -242,16 +242,16 @@ local function do_export(api: any, zip_path: string): ()
         manifest_export_all_response.ManifestBundle.dotenv or ""
     )
     if not zip_write_ok then
-        ctx.manifest_export_message = "erro ao gravar o zip: "
+        ctx.manifest_export_message = i18n.tr("erro ao gravar o zip: ")
             .. tostring(zip_write_error)
         toast {
-            message = "Falha ao gravar o zip: " .. tostring(zip_write_error),
+            message = i18n.tr("Falha ao gravar o zip: ") .. tostring(zip_write_error),
             kind = "error",
         }
         return
     end
-    ctx.manifest_export_message = "salvo em " .. zip_path
-    toast { message = "Infra as Code exportado", kind = "success" }
+    ctx.manifest_export_message = i18n.tr("salvo em ") .. zip_path
+    toast { message = i18n.tr("Infra as Code exportado"), kind = "success" }
 end
 
 function manifest_export(): ()
@@ -262,7 +262,7 @@ function manifest_export(): ()
 
     -- `save_file` (SUSPENDE): o usuário escolhe o caminho do .zip.
     local zip_path = save_file {
-        title = "Exportar Infra as Code",
+        title = i18n.tr("Exportar Infra as Code"),
         default_name = "rustploy-infra.zip",
         filters = { { name = "Zip", extensions = { "zip" } } },
     }
@@ -290,7 +290,7 @@ local function do_import(
     ctx.manifest_missing_vars = ""
     ctx.manifest_report_lines = {}
 
-    ctx.manifest_import_message = "importando…"
+    ctx.manifest_import_message = i18n.tr("importando…")
     local manifest_import_ok, manifest_import_response = api:rpc {
         ManifestImport = {
             yaml = yaml,
@@ -300,7 +300,7 @@ local function do_import(
         },
     }
     if not manifest_import_ok then
-        ctx.manifest_import_message = "erro: "
+        ctx.manifest_import_message = i18n.tr("erro: ")
             .. tostring(manifest_import_response)
         toast {
             message = tostring(tostring(manifest_import_response)),
@@ -316,10 +316,10 @@ local function do_import(
         ctx.manifest_has_missing = "true"
         ctx.manifest_missing_vars =
             table.concat(manifest_import_response.MissingEnvVars, ", ")
-        ctx.manifest_import_message = "faltam variáveis — nada foi aplicado"
+        ctx.manifest_import_message = i18n.tr("faltam variáveis — nada foi aplicado")
         toast {
             message = tostring(
-                "Faltam variáveis no TOML: " .. ctx.manifest_missing_vars
+                i18n.tr("Faltam variáveis no TOML: ") .. ctx.manifest_missing_vars
             ),
             kind = "error",
         }
@@ -330,7 +330,7 @@ local function do_import(
         type(manifest_import_response) == "table"
         and manifest_import_response.Err ~= nil
     then
-        ctx.manifest_import_message = "erro: "
+        ctx.manifest_import_message = i18n.tr("erro: ")
             .. tostring(manifest_import_response.Err.code)
             .. ": "
             .. tostring(manifest_import_response.Err.message)
@@ -345,7 +345,7 @@ local function do_import(
         type(manifest_import_response) ~= "table"
         or not manifest_import_response.ManifestReport
     then
-        ctx.manifest_import_message = "resposta inesperada do daemon"
+        ctx.manifest_import_message = i18n.tr("resposta inesperada do daemon")
         return
     end
 
@@ -377,30 +377,30 @@ local function do_import(
     if #pruned > 0 then
         table.insert(
             lines,
-            "removidos (prune): " .. table.concat(pruned, ", ")
+            i18n.tr("removidos (prune): ") .. table.concat(pruned, ", ")
         )
     elseif prune then
         table.insert(
             lines,
-            "prune ligado — nenhum serviço ausente para remover"
+            i18n.tr("prune ligado — nenhum serviço ausente para remover")
         )
     end
     if #(manifest_import_response.ManifestReport.deployed or {}) > 0 then
         table.insert(
             lines,
-            "deploy disparado: "
+            i18n.tr("deploy disparado: ")
                 .. table.concat(
                     manifest_import_response.ManifestReport.deployed,
                     ", "
                 )
         )
     elseif deploy then
-        table.insert(lines, "deploy ligado — nada mudou para disparar")
+        table.insert(lines, i18n.tr("deploy ligado — nada mudou para disparar"))
     end
     ctx.manifest_report_lines = lines
     ctx.manifest_has_report = "true"
-    ctx.manifest_import_message = "import concluído ✓"
-    toast { message = tostring("Infra as Code importado"), kind = "success" }
+    ctx.manifest_import_message = i18n.tr("import concluído ✓")
+    toast { message = tostring(i18n.tr("Infra as Code importado")), kind = "success" }
     Stream.refresh_now()
 end
 
@@ -413,7 +413,7 @@ function manifest_import(): ()
     -- `open_file` (SUSPENDE): o `.zip` do manifesto. `ManifestZip.read` extrai
     -- e VALIDA — exatamente um .yml e um .toml na raiz, nada mais.
     local zip_path = open_file {
-        title = "Importar Infra as Code (.zip)",
+        title = i18n.tr("Importar Infra as Code (.zip)"),
         filters = { { name = "Zip", extensions = { "zip" } } },
     }
     if not zip_path then
@@ -422,7 +422,7 @@ function manifest_import(): ()
 
     local zip_manifest = ManifestZip.read(zip_path)
     if not zip_manifest.ok then
-        ctx.manifest_import_message = "zip inválido: "
+        ctx.manifest_import_message = i18n.tr("zip inválido: ")
             .. tostring(zip_manifest.error)
         toast { message = tostring(zip_manifest.error), kind = "error" }
         return
@@ -433,22 +433,20 @@ function manifest_import(): ()
     local prune = Helpers.is_true(ctx.manifest_prune)
     local deploy = Helpers.is_true(ctx.manifest_deploy)
     local confirmed = confirm {
-        title = "Aplicar este manifesto?",
-        message = "Do zip: "
+        title = i18n.tr("Aplicar este manifesto?"),
+        message = i18n.tr("Do zip: ")
             .. tostring(zip_manifest.yaml and #zip_manifest.yaml or 0)
-            .. " B de YAML + "
+            .. i18n.tr(" B de YAML + ")
             .. tostring(zip_manifest.toml and #zip_manifest.toml or 0)
-            .. " B de TOML.\n\n"
-            .. "• Remover serviços ausentes (prune): "
-            .. (prune and "SIM" or "não")
-            .. "\n"
-            .. "• Disparar deploy dos alterados: "
-            .. (deploy and "SIM" or "não"),
-        confirm_label = "Aplicar",
+            .. i18n.tr(" B de TOML.\n\n• Remover serviços ausentes (prune): ")
+            .. (prune and "SIM" or i18n.tr("não"))
+            .. i18n.tr("\n• Disparar deploy dos alterados: ")
+            .. (deploy and "SIM" or i18n.tr("não")),
+        confirm_label = i18n.tr("Aplicar"),
         destructive = prune,
     }
     if not confirmed then
-        ctx.manifest_import_message = "cancelado"
+        ctx.manifest_import_message = i18n.tr("cancelado")
         return
     end
 
@@ -616,7 +614,7 @@ function docker_cleanup_save(): ()
     if not api then
         return
     end
-    ctx.docker_cleanup_message = "salvando…"
+    ctx.docker_cleanup_message = i18n.tr("salvando…")
     local cache_hours = docker_cleanup_retention_hours(
         ctx.docker_cleanup_build_cache_older_than_hours
     )
@@ -664,13 +662,13 @@ function docker_cleanup_save(): ()
             format.docker_cleanup_last_run_summary(
                 docker_cleanup_config_set_response.DockerCleanupConfig.last_run
             )
-        ctx.docker_cleanup_message = "configurações salvas"
+        ctx.docker_cleanup_message = i18n.tr("configurações salvas")
         toast {
-            message = tostring("Limpeza automática salva"),
+            message = tostring(i18n.tr("Limpeza automática salva")),
             kind = "success",
         }
     else
-        ctx.docker_cleanup_message = "erro: "
+        ctx.docker_cleanup_message = i18n.tr("erro: ")
             .. tostring(docker_cleanup_config_set_response)
         toast {
             message = tostring(docker_cleanup_config_set_response),
@@ -695,27 +693,25 @@ function docker_cleanup_run_now(): ()
         or Helpers.is_true(ctx.docker_cleanup_networks)
         or Helpers.is_true(ctx.docker_cleanup_build_cache)
     if not any_selected then
-        ctx.docker_cleanup_message = "marque pelo menos um recurso"
+        ctx.docker_cleanup_message = i18n.tr("marque pelo menos um recurso")
         return
     end
     local confirmed = confirm {
-        title = "Executar limpeza agora?",
-        message = "Roda a limpeza dos recursos marcados imediatamente, fora "
-            .. "do "
-            .. "horário agendado. Ação irreversível.",
-        confirm_label = "Executar",
+        title = i18n.tr("Executar limpeza agora?"),
+        message = i18n.tr("Roda a limpeza dos recursos marcados imediatamente, fora do horário agendado. Ação irreversível."),
+        confirm_label = i18n.tr("Executar"),
         destructive = true,
     }
     if not confirmed then
         return
     end
     ctx.docker_cleanup_running = "true"
-    ctx.docker_cleanup_message = "executando…"
+    ctx.docker_cleanup_message = i18n.tr("executando…")
     local docker_cleanup_run_now_ok, docker_cleanup_run_now_response =
         api:rpc_checked("DockerCleanupRunNow")
     if not docker_cleanup_run_now_ok then
         ctx.docker_cleanup_running = "false"
-        ctx.docker_cleanup_message = "erro: "
+        ctx.docker_cleanup_message = i18n.tr("erro: ")
             .. tostring(docker_cleanup_run_now_response)
         toast {
             message = tostring(docker_cleanup_run_now_response),
@@ -736,7 +732,7 @@ function M.update_check(force: boolean): ()
     if not api then
         return
     end
-    ctx.update_message = "verificando…"
+    ctx.update_message = i18n.tr("verificando…")
     local update_check_ok, update_check_response =
         api:rpc_checked { CheckUpdate = { force = force } }
     if not update_check_ok then
@@ -747,7 +743,7 @@ function M.update_check(force: boolean): ()
     end
     local update_info = update_check_response.UpdateInfo
     if not update_info then
-        ctx.update_message = "resposta inesperada do daemon"
+        ctx.update_message = i18n.tr("resposta inesperada do daemon")
         return
     end
     Stream.apply_update_info(update_info)
@@ -769,9 +765,9 @@ local APP_MANUAL_COMMAND_LINUX =
 local APP_MANUAL_COMMAND_WINDOWS =
     "irm https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.ps1 | iex"
 local APP_APPLY_HINT_DEB =
-    "O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho."
+    i18n.tr("O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho.")
 local APP_APPLY_HINT_ZIP =
-    "O app baixa a versão nova e confere a assinatura; depois fecha, troca os arquivos e reabre sozinho. Só um pacote assinado pelo projeto é aceito."
+    i18n.tr("O app baixa a versão nova e confere a assinatura; depois fecha, troca os arquivos e reabre sozinho. Só um pacote assinado pelo projeto é aceito.")
 
 -- Pergunta ao GitHub se há versão nova do app. Ao contrário do daemon, a consulta é daqui
 -- (o app roda na máquina da pessoa); a comparação de versões e a escolha do pacote são da
@@ -812,7 +808,7 @@ function M.update_app_check(): ()
         timeout = 15000,
     })
     if not http_response.ok then
-        ctx.update_app_message = "Não consegui consultar o GitHub: "
+        ctx.update_app_message = i18n.tr("Não consegui consultar o GitHub: ")
             .. tostring(
                 http_response.error ~= "" and http_response.error
                     or http_response.status
@@ -832,8 +828,8 @@ function M.update_app_check(): ()
     ctx.update_app_deb_name = plan.deb_name or ""
     ctx.update_app_signature_url = plan.signature_url or ""
     ctx.update_app_message = plan.is_update_available
-            and ("Há uma versão nova do app: " .. plan.latest_version)
-        or "O app está na versão mais recente."
+            and (i18n.tr("Há uma versão nova do app: ") .. plan.latest_version)
+        or i18n.tr("O app está na versão mais recente.")
 end
 
 -- Acompanha a instalação que o Rust faz numa thread (`app_update.install_start`): atualiza a
@@ -857,22 +853,22 @@ local function update_app_poll(is_zip: boolean): ()
 
     ctx.update_app_running = "false"
     if not status.ok then
-        ctx.update_app_message = "A atualização do app falhou: "
+        ctx.update_app_message = i18n.tr("A atualização do app falhou: ")
             .. tostring(status.message)
         toast { message = tostring(status.message), kind = "error" }
         return
     end
     ctx.update_app_message = is_zip
-            and "Conferido. Fechando para trocar os arquivos…"
-        or "Atualizado. Reabrindo o app…"
+            and i18n.tr("Conferido. Fechando para trocar os arquivos…")
+        or i18n.tr("Atualizado. Reabrindo o app…")
     local restart_error = native.restart()
     if restart_error then
         ctx.update_app_message = is_zip
-                and ("Nada foi trocado: " .. tostring(restart_error))
+                and (i18n.tr("Nada foi trocado: ") .. tostring(restart_error))
             or (
-                "Atualizado, mas não consegui reabrir: "
+                i18n.tr("Atualizado, mas não consegui reabrir: ")
                 .. tostring(restart_error)
-                .. ". Abra o Rustploy de novo."
+                .. i18n.tr(". Abra o Rustploy de novo.")
             )
     end
 end
@@ -893,18 +889,18 @@ function update_app_apply(): ()
     end
     local is_zip = ctx.update_app_install_kind == "zip"
     local confirmed = confirm {
-        title = "Atualizar o app?",
-        message = "O app baixa a versão "
+        title = i18n.tr("Atualizar o app?"),
+        message = i18n.tr("O app baixa a versão ")
             .. ctx.update_app_latest_version
-            .. (is_zip and ", confere a assinatura e fecha para trocar os arquivos; depois reabre. " or ", pede a senha de administrador e a instala; depois reabre. ")
-            .. "Só um pacote assinado pelo projeto é instalado.",
-        confirm_label = "Atualizar",
+            .. (is_zip and i18n.tr(", confere a assinatura e fecha para trocar os arquivos; depois reabre. ") or i18n.tr(", pede a senha de administrador e a instala; depois reabre. "))
+            .. i18n.tr("Só um pacote assinado pelo projeto é instalado."),
+        confirm_label = i18n.tr("Atualizar"),
         destructive = true,
     }
     if not confirmed then
         return
     end
-    ctx.update_app_message = "atualizando…"
+    ctx.update_app_message = i18n.tr("atualizando…")
     ctx.update_app_percent = 0
     local started, start_error = native.install_start(
         ctx.update_app_deb_url,
@@ -912,7 +908,7 @@ function update_app_apply(): ()
         ctx.update_app_deb_name
     )
     if not started then
-        ctx.update_app_message = "A atualização do app falhou: "
+        ctx.update_app_message = i18n.tr("A atualização do app falhou: ")
             .. tostring(start_error)
         toast { message = tostring(start_error), kind = "error" }
         return
@@ -930,19 +926,19 @@ local function update_progress_text(update_progress: any): string
     local target = update_progress.target_version
     local message = update_progress.message or ""
     if stage == "Downloading" then
-        return "Atualizando… " .. message
+        return i18n.tr("Atualizando… ") .. message
     elseif stage == "Installing" then
-        return "Instalando"
+        return i18n.tr("Instalando")
             .. (target and (" " .. target) or "")
-            .. "… o daemon vai reiniciar e esta janela volta ao login."
+            .. i18n.tr("… o daemon vai reiniciar e esta janela volta ao login.")
     elseif stage == "RollingBack" then
-        return "Revertendo… o daemon vai reiniciar e esta janela volta ao login."
+        return i18n.tr("Revertendo… o daemon vai reiniciar e esta janela volta ao login.")
     elseif stage == "Succeeded" then
-        return "Atualizado" .. (target and (" para " .. target) or "") .. "."
+        return i18n.tr("Atualizado") .. (target and (i18n.tr(" para ") .. target) or "") .. "."
     elseif stage == "Failed" then
-        return "A atualização falhou: " .. message
+        return i18n.tr("A atualização falhou: ") .. message
     elseif stage == "RolledBack" then
-        return "A atualização foi revertida: " .. message
+        return i18n.tr("A atualização foi revertida: ") .. message
     end
     return ""
 end
@@ -973,19 +969,17 @@ function update_apply(): ()
         return
     end
     local confirmed = confirm {
-        title = "Atualizar o daemon?",
-        message = "O daemon baixa a versão "
+        title = i18n.tr("Atualizar o daemon?"),
+        message = i18n.tr("O daemon baixa a versão ")
             .. ctx.update_latest_version
-            .. ", confere a assinatura e a instala. Ele reinicia (os "
-            .. "containers dos serviços continuam rodando) e esta janela "
-            .. "volta ao login. Um snapshot do banco é guardado antes.",
-        confirm_label = "Atualizar",
+            .. i18n.tr(", confere a assinatura e a instala. Ele reinicia (os containers dos serviços continuam rodando) e esta janela volta ao login. Um snapshot do banco é guardado antes."),
+        confirm_label = i18n.tr("Atualizar"),
         destructive = true,
     }
     if not confirmed then
         return
     end
-    ctx.update_progress_message = "pedindo a atualização…"
+    ctx.update_progress_message = i18n.tr("pedindo a atualização…")
     local apply_ok, apply_response =
         api:rpc_checked { ApplyUpdate = { allow_active_deploys = false } }
     if
@@ -993,10 +987,9 @@ function update_apply(): ()
         and string.find(tostring(apply_response), "DeploysInProgress", 1, true)
     then
         local confirmed_anyway = confirm {
-            title = "Há deploy em andamento",
-            message = "Atualizar agora interrompe o deploy que está rodando "
-                .. "ou na fila. Atualizar mesmo assim?",
-            confirm_label = "Atualizar mesmo assim",
+            title = i18n.tr("Há deploy em andamento"),
+            message = i18n.tr("Atualizar agora interrompe o deploy que está rodando ou na fila. Atualizar mesmo assim?"),
+            confirm_label = i18n.tr("Atualizar mesmo assim"),
             destructive = true,
         }
         if not confirmed_anyway then
@@ -1012,11 +1005,11 @@ function update_apply(): ()
         return
     end
     ctx.update_progress_message =
-        "Atualizando… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto."
-    State.restart_notice = "Atualizando o daemon para a "
+        i18n.tr("Atualizando… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto.")
+    State.restart_notice = i18n.tr("Atualizando o daemon para a ")
         .. ctx.update_latest_version
-        .. ": ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto."
-    toast { message = "Atualização iniciada", kind = "success" }
+        .. i18n.tr(": ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto.")
+    toast { message = i18n.tr("Atualização iniciada"), kind = "success" }
 end
 
 -- Volta os binários para os do backup da última atualização (Command::UpdateRollback).
@@ -1026,18 +1019,15 @@ function update_rollback(): ()
         return
     end
     local confirmed = confirm {
-        title = "Reverter para a versão anterior?",
-        message = "Restaura os binários do backup da última atualização e "
-            .. "reinicia o daemon. O banco não é revertido: se a versão nova "
-            .. "migrou o esquema, o snapshot guardado antes da atualização "
-            .. "fica no diretório do banco.",
-        confirm_label = "Reverter",
+        title = i18n.tr("Reverter para a versão anterior?"),
+        message = i18n.tr("Restaura os binários do backup da última atualização e reinicia o daemon. O banco não é revertido: se a versão nova migrou o esquema, o snapshot guardado antes da atualização fica no diretório do banco."),
+        confirm_label = i18n.tr("Reverter"),
         destructive = true,
     }
     if not confirmed then
         return
     end
-    ctx.update_progress_message = "revertendo…"
+    ctx.update_progress_message = i18n.tr("revertendo…")
     local rollback_ok, rollback_response = api:rpc_checked("UpdateRollback")
     if not rollback_ok then
         ctx.update_progress_message = tostring(rollback_response)
@@ -1045,10 +1035,10 @@ function update_rollback(): ()
         return
     end
     ctx.update_progress_message =
-        "Revertendo… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto."
+        i18n.tr("Revertendo… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto.")
     State.restart_notice =
-        "Revertendo o daemon para a versão anterior: ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto."
-    toast { message = "Reversão iniciada", kind = "success" }
+        i18n.tr("Revertendo o daemon para a versão anterior: ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto.")
+    toast { message = i18n.tr("Reversão iniciada"), kind = "success" }
 end
 
 return M

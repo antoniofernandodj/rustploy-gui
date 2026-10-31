@@ -115,8 +115,8 @@ end
 function test_decode__vazio_pede_para_colar()
     local chave, motivo = AccessKey.decode("   ")
     assert_nil(chave)
-    assert_has(motivo, "cole o token")
-    assert_has(select(2, AccessKey.decode(nil)), "cole o token")
+    assert_has(motivo, "paste the connection token")
+    assert_has(select(2, AccessKey.decode(nil)), "paste the connection token")
 end
 
 --- caractere fora do alfabeto ou comprimento impossível = corrompido
@@ -124,7 +124,7 @@ function test_decode__caractere_fora_do_alfabeto_ou_comprimento_impossivel()
     for _, ruim in { "!!!!", "aDo5Nzk3Ojp0b2s$", "a" } do
         local chave, motivo = AccessKey.decode(ruim)
         assert_nil(chave)
-        assert_has(motivo, "corrompido")
+        assert_has(motivo, "corrupted")
     end
 end
 
@@ -133,21 +133,21 @@ function test_decode__o_token_da_api_colado_no_lugar_do_de_conexao_e()
     -- Um token hex também "decodifica" como base64, mas não traz o `::`.
     local chave, motivo = AccessKey.decode("0123456789abcdef0123456789abcdef")
     assert_nil(chave)
-    assert_has(motivo, "não é um token de conexão")
+    assert_has(motivo, "not a connection token")
 end
 
 --- bytes que não são texto também caem nesse aviso
 function test_decode__bytes_que_nao_sao_texto_tambem_caem_nesse_aviso()
     local chave, motivo = AccessKey.decode("//79/A==")
     assert_nil(chave)
-    assert_has(motivo, "não é um token de conexão")
+    assert_has(motivo, "not a connection token")
 end
 
 --- endereço vazio é corrompido
 function test_decode__endereco_vazio_e_corrompido()
     local chave, motivo = AccessKey.decode("Ojp0b2s=")
     assert_nil(chave)
-    assert_has(motivo, "endereço vazio")
+    assert_has(motivo, "empty address")
 end
 
 --- mostra o servidor e as pontas da chave

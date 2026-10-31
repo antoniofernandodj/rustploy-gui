@@ -23,7 +23,7 @@ end
 function copy_ctx(key: string): ()
     copy(ctx[key] or "")
     toast {
-        message = "Copiado para a área de transferência",
+        message = i18n.tr("Copiado para a área de transferência"),
         kind = "success",
     }
 end
@@ -36,8 +36,8 @@ function init(): ()
     ctx.new_registry_token_name = ""
     ctx.new_registry_token_scope = "pull"
     ctx.new_registry_token_scopes = {
-        { id = "pull", label = "Somente leitura (pull)" },
-        { id = "push", label = "Leitura e escrita (push)" },
+        { id = "pull", label = i18n.tr("Somente leitura (pull)") },
+        { id = "push", label = i18n.tr("Leitura e escrita (push)") },
     }
     ctx.new_registry_token_error = ""
     ctx.new_registry_token_message = ""
@@ -54,21 +54,21 @@ end
 -- on_validation_error do form(...) — NOME é `rules="required"`; o motor já
 -- publicou {error_new_registry_token_name} e acendeu o :invalid.
 function new_registry_token_show_validation_errors(_erros_json: string?): ()
-    toast { message = "Informe o nome do token", kind = "warning" }
+    toast { message = i18n.tr("Informe o nome do token"), kind = "warning" }
 end
 
 function new_registry_token_create(): ()
     local api = client()
     if not api then
         ctx.new_registry_token_error =
-            "sem conexão — reabra a janela pelo app"
+            i18n.tr("sem conexão — reabra a janela pelo app")
         return
     end
     -- rules="required" no form(...) garante new_registry_token_name preenchido
     -- aqui.
     local name = Helpers.trim(ctx.new_registry_token_name)
     ctx.new_registry_token_error = ""
-    ctx.new_registry_token_message = "criando…"
+    ctx.new_registry_token_message = i18n.tr("criando…")
     ctx.new_registry_token_busy = "true"
 
     local registry_token_create_ok, registry_token_create_response =

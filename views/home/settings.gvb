@@ -10,10 +10,10 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("Settings", class = page-head__title)
+      text("{t('common.settings')}", class = page-head__title)
 
       text(
-        "Daemon web server, HTTPS e contas Git.",
+        "{t('settings.daemon_web_server_https_and')}",
         class = page-head__subtitle,
       )
     }

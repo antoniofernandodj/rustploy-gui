@@ -407,7 +407,7 @@ function M.docker_images(
                         .. (image.service or "—"),
                     column_budgets.proj
                 ),
-                in_use_label = in_use and "EM USO" or "SEM USO",
+                in_use_label = in_use and i18n.tr("EM USO") or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(in_use),
             })
         end
@@ -445,7 +445,7 @@ function M.docker_volumes(
                         and Time.format_bytes(item.size_bytes)
                     or "—",
                 size_bytes = item.size_bytes or -1,
-                in_use_label = item.in_use and "EM USO" or "SEM USO",
+                in_use_label = item.in_use and i18n.tr("EM USO") or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(item.in_use),
             })
         end
@@ -482,7 +482,7 @@ function M.docker_networks(
                     column_budgets.proj
                 ),
                 containers = tostring(item.container_count or 0),
-                in_use_label = item.in_use and "EM USO" or "SEM USO",
+                in_use_label = item.in_use and i18n.tr("EM USO") or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(item.in_use),
             })
         end
@@ -693,7 +693,7 @@ local function deploy_stepper(info: any): { any }
         end
         table.insert(
             out,
-            { text = STEP_ICON[status] .. step.label, status = status }
+            { text = STEP_ICON[status] .. i18n.tr(step.label), status = status }
         )
     end
     return out

@@ -188,8 +188,8 @@ function M.apply_update_info(update_info: any): ()
     ctx.update_checked_at_label =
         format.date_day_month_hour_minute(update_info.checked_at)
     ctx.update_message = update_info.is_update_available
-            and ("Há uma versão nova: " .. update_info.latest_version)
-        or "Você está na versão mais recente."
+            and (i18n.tr("Há uma versão nova: ") .. update_info.latest_version)
+        or i18n.tr("Você está na versão mais recente.")
 end
 
 local function apply_snapshot(snapshot: any): ()
@@ -294,7 +294,7 @@ local function apply_snapshot(snapshot: any): ()
                 and registry_status.domain
             or ("127.0.0.1:" .. tostring(registry_status.port))
         ctx.registry_status_label = registry_status.enabled
-                and ("ativo em " .. ctx.registry_host)
+                and (i18n.tr("ativo em ") .. ctx.registry_host)
             or "desabilitado"
         ctx.registry_storage_human =
             format.format_bytes(registry_status.storage_bytes or 0)
@@ -363,11 +363,9 @@ M.refresh_now = refresh_now
 -- trava.
 function deployments_clear_finished(): ()
     local confirmed = confirm {
-        title = "Limpar deployments parados/falhos?",
-        message = "Remove do histórico todo deployment em estado Stopped ou "
-            .. "Failed, e seus build logs. Deployments em andamento não são "
-            .. "afetados. Ação irreversível.",
-        confirm_label = "Limpar",
+        title = i18n.tr("Limpar deployments parados/falhos?"),
+        message = i18n.tr("Remove do histórico todo deployment em estado Stopped ou Failed, e seus build logs. Deployments em andamento não são afetados. Ação irreversível."),
+        confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
 
@@ -394,11 +392,11 @@ function deployments_clear_finished(): ()
         end
     end
     if #deployment_ids == 0 then
-        ctx.deployments_message = "nada para limpar"
+        ctx.deployments_message = i18n.tr("nada para limpar")
         return
     end
     ctx.deployments_message =
-        string.format("removendo %d deployment(s)…", #deployment_ids)
+        string.format(i18n.tr("removendo %d deployment(s)…"), #deployment_ids)
     local removed = 0
     local failed = 0
     for _, deployment_id in ipairs(deployment_ids) do
@@ -412,14 +410,14 @@ function deployments_clear_finished(): ()
         end
     end
     if failed == 0 then
-        ctx.deployments_message = string.format("%d removido(s)", removed)
+        ctx.deployments_message = string.format(i18n.tr("%d removido(s)"), removed)
     else
         ctx.deployments_message =
-            string.format("%d removido(s), %d falharam", removed, failed)
+            string.format(i18n.tr("%d removido(s), %d falharam"), removed, failed)
         toast {
             message = tostring(
                 string.format(
-                    "%d deployment(s) não puderam ser removidos",
+                    i18n.tr("%d deployment(s) não puderam ser removidos"),
                     failed
                 )
             ),
@@ -458,7 +456,7 @@ local function apply_bus_event(bus_event: any): ()
                     and (" — " .. tostring(service_warm_event.error))
                 or ""
             toast {
-                message = tostring("falha ao aquecer o serviço" .. failure),
+                message = tostring(i18n.tr("falha ao aquecer o serviço") .. failure),
                 kind = "error",
             }
         end
@@ -479,7 +477,7 @@ local function apply_bus_event(bus_event: any): ()
                     or ""
                 toast {
                     message = tostring(
-                        warmed_job_name .. ": falha ao aquecer" .. failure
+                        warmed_job_name .. i18n.tr(": falha ao aquecer") .. failure
                     ),
                     kind = "error",
                 }
@@ -543,7 +541,7 @@ local function apply_bus_event(bus_event: any): ()
                 -- evita isso. Ver glacier-ui 0.43 e docs/notificacao-so.md.
                 local service_name = State.deploy_track.name
                 if service_name == "" then
-                    service_name = "serviço"
+                    service_name = i18n.tr("serviço")
                 end
                 -- `d.message` é o MOTIVO da falha (o texto do Docker, o
                 -- healthcheck que não passou…). O evento sempre o carregou;
@@ -554,15 +552,15 @@ local function apply_bus_event(bus_event: any): ()
                     format.short_reason(deploy_event.message)
                 if live then
                     notify {
-                        title = "Deploy concluído",
+                        title = i18n.tr("Deploy concluído"),
                         body = service_name
-                            .. " está no ar e recebendo tráfego.",
+                            .. i18n.tr(" está no ar e recebendo tráfego."),
                         app_name = "Rustploy",
                         icon = "rustploy-gui",
                     }
                 else
                     notify {
-                        title = "Deploy falhou",
+                        title = i18n.tr("Deploy falhou"),
                         body = (
                             failure_reason ~= ""
                                 and (service_name .. ": " .. failure_reason)
@@ -592,10 +590,10 @@ local function apply_bus_event(bus_event: any): ()
                 if deploy_event.service_id == ctx.selected_service then
                     ctx.service_deploy_running = "false"
                     ctx.service_action_message = (
-                        live and "deploy concluído"
+                        live and i18n.tr("deploy concluído")
                         or (
                             failure_reason ~= ""
-                                and ("deploy falhou: " .. failure_reason)
+                                and (i18n.tr("deploy falhou: ") .. failure_reason)
                             or ("deploy: " .. tostring(deploy_event.state))
                         )
                     )
@@ -604,7 +602,7 @@ local function apply_bus_event(bus_event: any): ()
                 end
             elseif deploy_event.service_id == ctx.selected_service then
                 ctx.service_deploy_running = "true"
-                ctx.service_action_message = "deploy · "
+                ctx.service_action_message = i18n.tr("deploy · ")
                     .. tostring(deploy_event.state)
                 ctx.service_action_color = "#58A6FF"
             end
@@ -689,7 +687,7 @@ function M.open_stream(): ()
                 ctx.status_line = State.restart_notice
                 State.restart_notice = ""
             else
-                ctx.status_line = "conexão encerrada"
+                ctx.status_line = i18n.tr("conexão encerrada")
             end
             ctx.connected = "false"
             ctx.screen = "login"

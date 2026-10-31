@@ -2,7 +2,7 @@
 component {
   resources {
     component(name = SemDeploysDoServico) {
-      text("Nenhum deploy ainda.", class = u-muted)
+      text("{t('deployments.no_deploy_yet')}", class = u-muted)
     }
   }
 
@@ -14,7 +14,7 @@ component {
       equals = true,
       class = form-panel,
     ) {
-      text("WEBHOOK DE DEPLOY", class = u-label-cap)
+      text("{t('common.deploy_webhook')}", class = u-label-cap)
 
       column(if = @service_webhook_url, not_equals = "", class = webhook) {
         text(
@@ -27,39 +27,32 @@ component {
           button(
             class = "btn btn--ghost btn--xs",
             on_click = copy_ctx:service_webhook_url,
-            text = Copiar,
+            text = "{t('common.copy')}",
           )
 
           button(
             class = "btn btn--danger btn--xs",
             on_click = regenerate_webhook,
             disabled = @busy_regenerate_webhook,
-            text = Regenerar,
+            text = "{t('deployments.regenerate')}",
           )
         }
       }
 
       text(
-        """
-          O token nasce no primeiro deploy deste serviço — rode um deploy
-          para a URL aparecer.
-        """,
+        "{t('deployments.the_token_is_born_on_this')}",
         if = @service_webhook_url,
         equals = "",
         class = u-muted,
       )
 
       text(
-        """
-          Um POST nesta URL dispara um deploy. O corpo é ignorado: o token
-          na própria URL é a autenticação. Regenerar invalida a URL
-          anterior.
-        """,
+        "{t('deployments.a_post_to_this_url_triggers')}",
         class = u-muted,
       )
     }
 
-    text("@service_deployments_count deployments", class = u-muted)
+    text("{t('deployments.deployments', service_deployments_count=service_deployments_count)}", class = u-muted)
 
     scrollable(direction = vertical, class = deployments__list-scroll) {
       column(class = u-fill) {
@@ -77,7 +70,7 @@ component {
                   on_click = deployment_logs:@d.id_full,
                   disabled = @busy_deployment_logs,
                   text = "≡",
-                  tooltip = "Ver build log",
+                  tooltip = "{t('deployments.view_build_log')}",
                 )
 
                 button(
@@ -87,7 +80,7 @@ component {
                   on_click = delete_deployment:@d.id_full,
                   disabled = @busy_delete_deployment,
                   text = "✕",
-                  tooltip = "Remover deployment",
+                  tooltip = "{t('deployments.remove_deployment')}",
                 )
               }
             }

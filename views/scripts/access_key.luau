@@ -127,11 +127,11 @@ function M.decode(
 ): ({ address: string, token: string }?, string?)
     local key = trim(raw_key or "")
     if key == "" then
-        return nil, "cole o token de conexão"
+        return nil, i18n.tr("cole o token de conexão")
     end
     local text = base64_decode(key)
     if text == nil then
-        return nil, "token de conexão corrompido (cortado ao copiar?)"
+        return nil, i18n.tr("token de conexão corrompido (cortado ao copiar?)")
     end
     -- Bytes que não são texto, ou sem o `::`: quase sempre o token da API
     -- colado no lugar do de conexão (todo token hex/base64url também
@@ -153,8 +153,7 @@ function M.decode(
     end
     if separator_at == nil then
         return nil,
-            "isso não é um token de conexão — cole o token de conexão inteiro "
-                .. "(base64 de host:porta::token), não só o token da API"
+            i18n.tr("isso não é um token de conexão — cole o token de conexão inteiro (base64 de host:porta::token), não só o token da API")
     end
     local address = (
         string.gsub(
@@ -166,7 +165,7 @@ function M.decode(
     local token = trim(string.sub(text, separator_at + #M.SEPARATOR))
     -- Token vazio vale: é o de um daemon sem `[api].token` (API aberta).
     if address == "" then
-        return nil, "token de conexão corrompido (endereço vazio)"
+        return nil, i18n.tr("token de conexão corrompido (endereço vazio)")
     end
     return { address = address, token = token }, nil
 end

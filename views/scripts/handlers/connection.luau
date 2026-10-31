@@ -12,6 +12,7 @@ local Stream = require("stream")
 local Settings = require("settings")
 local AccessKey = require("../access_key")
 local History = require("history")
+local Language = require("language")
 
 -- ── login lembrado: lista de servidor/token (via o `storage` do glacier) ────
 -- O login é UM campo: o token de conexão (endereço + token, ver
@@ -47,7 +48,7 @@ end
 local function publish_access_key_target(): ()
     local decoded_key = AccessKey.decode(ctx.access_key)
     ctx.access_key_target = if decoded_key
-        then "conecta em " .. decoded_key.address
+        then i18n.tr("conecta em ") .. decoded_key.address
         else ""
     ctx.saved_server_choice = ""
     for _, saved_server in ipairs(saved_servers) do
@@ -116,6 +117,7 @@ end
 
 -- ── init: semeia o contexto para a UI pintar antes de qualquer dado ─────────
 function init(): ()
+    Language.restore()
     if not ctx.screen or ctx.screen == "" then
         ctx.screen = "login"
     end
@@ -123,7 +125,7 @@ function init(): ()
         ctx.view = "deployments"
     end
     ctx.connected = ctx.connected or "false"
-    ctx.status_line = ctx.status_line or "pronto para conectar"
+    ctx.status_line = ctx.status_line or i18n.tr("pronto para conectar")
     ctx.error = ctx.error or ""
     ctx.search = ctx.search or ""
     -- Sidebar-gaveta (<drawer> em shell.gvb): começa aberta; o ☰ da topbar
@@ -137,15 +139,15 @@ function init(): ()
     -- Coleção fixa do <radiogroup> de dia da semana (aba Manutenção). Semeada
     -- aqui, e não no docker_cleanup_apply_config, porque não depende da config
     -- carregada: se o load falhasse, a lista sumiria e o grupo ficaria vazio.
-    ctx.weekdays = format.WEEKDAYS
+    ctx.weekdays = format.weekdays()
     -- Itens das <tabbar> de rótulo fixo ({id,label}); a barra grava o id na
     -- chave `:value` sozinha, sem handler.
     ctx.settings_tabs = {
         { id = "web", label = "Web Server" },
         { id = "git", label = "Git" },
         { id = "iac", label = "Infra as Code" },
-        { id = "maintenance", label = "Manutenção" },
-        { id = "updates", label = "Atualizações" },
+        { id = "maintenance", label = i18n.tr("Manutenção") },
+        { id = "updates", label = i18n.tr("Atualizações") },
     }
     -- Aba Atualizações (Command::CheckUpdate). Semeadas aqui para o markup
     -- nunca ler `nil`; `update_check` as preenche.
@@ -170,14 +172,14 @@ function init(): ()
     ctx.update_app_manual_command = ctx.update_app_manual_command
         or "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
     ctx.update_app_apply_hint = ctx.update_app_apply_hint
-        or "O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho."
+        or i18n.tr("O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho.")
     ctx.update_is_helper_available = ctx.update_is_helper_available or "false"
     ctx.update_install_command =
         "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh"
     ctx.docker_cleanup_kinds = {
-        { id = "interval", label = "A cada N horas" },
-        { id = "daily", label = "Todo dia" },
-        { id = "weekly", label = "Toda semana" },
+        { id = "interval", label = i18n.tr("A cada N horas") },
+        { id = "daily", label = i18n.tr("Todo dia") },
+        { id = "weekly", label = i18n.tr("Toda semana") },
     }
     ctx.git_provider_modes = {
         { id = "oauth", label = "OAuth2" },
@@ -329,7 +331,7 @@ local function load_settings(): ()
             ctx.server_access_key,
             -6
         )
-        else "— (daemon sem token)"
+        else i18n.tr("— (daemon sem token)")
     local git_provider_list_ok, git_provider_list_response =
         api:rpc("GitProviderList")
     if git_provider_list_ok and git_provider_list_response.GitProviders then
@@ -372,12 +374,12 @@ local function resolve_base(address: string): (string?, string?)
         last_error = if http_response.error ~= nil
                 and http_response.error ~= ""
             then http_response.error
-            else "sem resposta"
+            else i18n.tr("sem resposta")
     end
     return nil,
-        "não deu para falar com "
+        i18n.tr("não deu para falar com ")
             .. address
-            .. " nem por https nem por http ("
+            .. i18n.tr(" nem por https nem por http (")
             .. last_error
             .. ")"
 end
@@ -390,11 +392,11 @@ end
 function connect(): ()
     local decoded_key, key_error = AccessKey.decode(ctx.access_key)
     if not decoded_key then
-        ctx.error_access_key = key_error or "token de conexão inválido"
+        ctx.error_access_key = key_error or i18n.tr("token de conexão inválido")
         return
     end
     ctx.error_access_key = ""
-    ctx.status_line = "conectando…"
+    ctx.status_line = i18n.tr("conectando…")
     ctx.error = ""
 
     local resolved_base, resolve_error = resolve_base(decoded_key.address)
@@ -404,10 +406,10 @@ function connect(): ()
     if not base then
         ctx.error = resolve_error
             or (
-                "endereço inválido no token de conexão: "
+                i18n.tr("endereço inválido no token de conexão: ")
                 .. decoded_key.address
             )
-        ctx.status_line = "falha na conexão"
+        ctx.status_line = i18n.tr("falha na conexão")
         ctx.connected = "false"
         return
     end
@@ -424,7 +426,7 @@ function connect(): ()
     if not daemon_status_ok then
         State.api = nil
         ctx.error = daemon_status_response
-        ctx.status_line = "falha na conexão"
+        ctx.status_line = i18n.tr("falha na conexão")
         ctx.connected = "false"
         return
     end
@@ -436,7 +438,7 @@ function connect(): ()
 
     History.clear()
     ctx.connected = "true"
-    ctx.status_line = "conectado"
+    ctx.status_line = i18n.tr("conectado")
     ctx.screen = "shell"
     if not ctx.view or ctx.view == "" then
         ctx.view = "deployments"
@@ -495,5 +497,5 @@ function disconnect(): ()
     init()
     ctx.connected = "false"
     ctx.screen = "login"
-    ctx.status_line = "desconectado"
+    ctx.status_line = i18n.tr("desconectado")
 end

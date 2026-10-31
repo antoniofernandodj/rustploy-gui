@@ -43,9 +43,9 @@ end
 function M.confirm_env_key(key: string, existing_json: string?): boolean
     if not M.valid_env_key(key) then
         toast {
-            message = 'Nome inválido: "'
+            message = i18n.tr("Nome inválido: \"")
                 .. key
-                .. '" — use letras, dígitos e _, sem começar por dígito',
+                .. i18n.tr("\" — use letras, dígitos e _, sem começar por dígito"),
             kind = "error",
         }
         return false
@@ -57,10 +57,10 @@ function M.confirm_env_key(key: string, existing_json: string?): boolean
     do
         if env_var.key == key then
             return confirm {
-                title = "Sobrescrever variável?",
+                title = i18n.tr("Sobrescrever variável?"),
                 message = key
-                    .. " já existe; o valor atual será substituído.",
-                confirm_label = "Sobrescrever",
+                    .. i18n.tr(" já existe; o valor atual será substituído."),
+                confirm_label = i18n.tr("Sobrescrever"),
                 destructive = false,
             }
         end
@@ -94,7 +94,7 @@ function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
                 table.insert(
                     errors,
                     string.format(
-                        "linha %d: falta o '=' (%s)",
+                        i18n.tr("linha %d: falta o '=' (%s)"),
                         line_number,
                         trimmed_line
                     )
@@ -103,7 +103,7 @@ function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
                 table.insert(
                     errors,
                     string.format(
-                        "linha %d: falta o nome antes do '='",
+                        i18n.tr("linha %d: falta o nome antes do '='"),
                         line_number
                     )
                 )
@@ -111,7 +111,7 @@ function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
                 table.insert(
                     errors,
                     string.format(
-                        'linha %d: nome inválido "%s"',
+                        i18n.tr("linha %d: nome inválido \"%s\""),
                         line_number,
                         key
                     )
@@ -120,7 +120,7 @@ function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
                 table.insert(
                     errors,
                     string.format(
-                        "linha %d: %s repetida (já definida na linha %d)",
+                        i18n.tr("linha %d: %s repetida (já definida na linha %d)"),
                         line_number,
                         key,
                         first_line_of[key]
@@ -157,7 +157,7 @@ function M.dotenv_errors_message(errors: { string }): string
     end
     local message = table.concat(shown, "\n")
     if #errors > 3 then
-        message ..= string.format("\n… e mais %d", #errors - 3)
+        message ..= string.format(i18n.tr("\n… e mais %d"), #errors - 3)
     end
     return message
 end

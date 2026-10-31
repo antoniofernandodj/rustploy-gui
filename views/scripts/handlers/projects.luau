@@ -63,7 +63,7 @@ function on_broadcast(event: string, payload: any): ()
     if event == "project_created" then
         toast {
             message = tostring(
-                'Projeto "' .. (name ~= "" and name or "projeto") .. '" criado'
+                i18n.tr("Projeto \"") .. (name ~= "" and name or "projeto") .. i18n.tr("\" criado")
             ),
             kind = "success",
         }
@@ -71,9 +71,9 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "service_created" then
         toast {
             message = tostring(
-                'Serviço "'
-                    .. (name ~= "" and name or "serviço")
-                    .. '" criado'
+                i18n.tr("Serviço \"")
+                    .. (name ~= "" and name or i18n.tr("serviço"))
+                    .. i18n.tr("\" criado")
             ),
             kind = "success",
         }
@@ -81,7 +81,7 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "job_created" then
         toast {
             message = tostring(
-                'Job "' .. (name ~= "" and name or "job") .. '" criado'
+                i18n.tr("Job \"") .. (name ~= "" and name or "job") .. i18n.tr("\" criado")
             ),
             kind = "success",
         }
@@ -89,7 +89,7 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "job_updated" then
         toast {
             message = tostring(
-                'Job "' .. (name ~= "" and name or "job") .. '" salvo'
+                i18n.tr("Job \"") .. (name ~= "" and name or "job") .. i18n.tr("\" salvo")
             ),
             kind = "success",
         }
@@ -97,7 +97,7 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "registry_token_created" then
         toast {
             message = tostring(
-                'Token "' .. (name ~= "" and name or "token") .. '" criado'
+                i18n.tr("Token \"") .. (name ~= "" and name or "token") .. i18n.tr("\" criado")
             ),
             kind = "success",
         }
@@ -117,7 +117,7 @@ function create_project(): ()
     end
     local name = Helpers.trim(ctx.new_project_inline_name)
     if name == "" then
-        ctx.error_new_project_inline_name = "informe um nome"
+        ctx.error_new_project_inline_name = i18n.tr("informe um nome")
         return
     end
     ctx.error_new_project_inline_name = ""
@@ -128,19 +128,19 @@ function create_project(): ()
             description = (description ~= "" and description or nil),
         },
     }
-    ctx.new_project_inline_message = "criando…"
+    ctx.new_project_inline_message = i18n.tr("criando…")
     local rpc_ok, rpc_response = api:rpc_checked(create_command)
     if rpc_ok then
         ctx.new_project_inline_name = ""
         ctx.new_project_inline_description = ""
-        ctx.new_project_inline_message = "projeto criado"
+        ctx.new_project_inline_message = i18n.tr("projeto criado")
         toast {
-            message = tostring('Projeto "' .. name .. '" criado'),
+            message = tostring(i18n.tr("Projeto \"") .. name .. i18n.tr("\" criado")),
             kind = "success",
         }
         Stream.refresh_now()
     else
-        ctx.new_project_inline_message = "erro: " .. rpc_response
+        ctx.new_project_inline_message = i18n.tr("erro: ") .. rpc_response
         toast {
             message = tostring(rpc_response),
             kind = "error",
@@ -153,11 +153,9 @@ function delete_project(project_id: string): ()
         return
     end
     local confirmed = confirm {
-        title = "Remover projeto?",
-        message = "O projeto será removido. Só é possível remover projetos "
-            .. "sem "
-            .. "serviços.",
-        confirm_label = "Remover projeto",
+        title = i18n.tr("Remover projeto?"),
+        message = i18n.tr("O projeto será removido. Só é possível remover projetos sem serviços."),
+        confirm_label = i18n.tr("Remover projeto"),
         destructive = true,
     }
 
@@ -169,17 +167,17 @@ function delete_project(project_id: string): ()
     if not api or project_id == "" then
         return
     end
-    ctx.project_action_message = "removendo…"
+    ctx.project_action_message = i18n.tr("removendo…")
     local project_delete_ok, project_delete_response =
         api:rpc_checked { ProjectDelete = { id = project_id } }
     if project_delete_ok then
         History.drop("selected_project_id", project_id)
         ctx.selected_project_id = ""
         ctx.view = "projects"
-        toast { message = tostring("Projeto removido"), kind = "success" }
+        toast { message = tostring(i18n.tr("Projeto removido")), kind = "success" }
         Stream.refresh_now()
     else
-        ctx.project_action_message = "erro: " .. project_delete_response
+        ctx.project_action_message = i18n.tr("erro: ") .. project_delete_response
         toast { message = tostring(project_delete_response), kind = "error" }
     end
 end
@@ -200,7 +198,7 @@ end
 -- on_validation_error do form(name = edit_project) — o motor já publicou
 -- {error_edit_project_name} e acendeu o :invalid; aqui é só o aviso.
 function project_edit_show_validation_errors(_erros_json: string?): ()
-    toast { message = "Informe o nome do projeto", kind = "warning" }
+    toast { message = i18n.tr("Informe o nome do projeto"), kind = "warning" }
 end
 
 -- on_submit: só roda com a validação (rules="required" no NOME) aprovada.
@@ -221,11 +219,11 @@ function save_project_edit(): ()
     }
     if project_update_ok then
         ctx.editing_project = "false"
-        ctx.project_action_message = "projeto atualizado"
+        ctx.project_action_message = i18n.tr("projeto atualizado")
         ctx.project_name = name
         ctx.project_description = description
     else
-        ctx.project_action_message = "erro: " .. project_update_response
+        ctx.project_action_message = i18n.tr("erro: ") .. project_update_response
     end
 end
 
@@ -346,7 +344,7 @@ end
 -- `rules="required"`; o motor publica {error_project_env_new_key} e acende o
 -- :invalid. Aqui é só o aviso.
 function project_env_show_validation_errors(_erros_json: string?): ()
-    toast { message = "Informe a chave (KEY)", kind = "warning" }
+    toast { message = i18n.tr("Informe a chave (KEY)"), kind = "warning" }
 end
 
 function project_env_add(): ()
@@ -370,7 +368,7 @@ function project_env_add(): ()
         -- Modo secret: o valor JÁ é o nome (o chip preenche assim).
         local name = Helpers.trim(raw_value)
         if name == "" then
-            ctx.error_project_env_new_key = "escolha um secret"
+            ctx.error_project_env_new_key = i18n.tr("escolha um secret")
             return
         end
         secret_name = name
@@ -469,7 +467,7 @@ end
 -- mascarado até o usuário pedir).
 function copy_webhook(url: string): ()
     copy(url)
-    toast { message = "Webhook copiado", kind = "success" }
+    toast { message = i18n.tr("Webhook copiado"), kind = "success" }
 end
 
 -- Alterna entre token mascarado e visível no card; reconstrói a lista na hora
@@ -481,10 +479,9 @@ end
 
 function service_stop_id(service_id: string): ()
     local confirmed = confirm {
-        title = "Parar serviço?",
-        message = "O tráfego para este serviço será interrompido até um novo "
-            .. "deploy.",
-        confirm_label = "Parar",
+        title = i18n.tr("Parar serviço?"),
+        message = i18n.tr("O tráfego para este serviço será interrompido até um novo deploy."),
+        confirm_label = i18n.tr("Parar"),
         destructive = true,
     }
 
@@ -496,10 +493,10 @@ function service_stop_id(service_id: string): ()
     if not api then
         return
     end
-    ctx.project_action_message = "enviando…"
+    ctx.project_action_message = i18n.tr("enviando…")
     local service_stop_ok, service_stop_response =
         api:rpc_checked { ServiceStop = { service_id = service_id } }
-    ctx.project_action_message = service_stop_ok and "serviço parado"
+    ctx.project_action_message = service_stop_ok and i18n.tr("serviço parado")
         or ("erro: " .. service_stop_response)
     if not service_stop_ok then
         toast { message = tostring(service_stop_response), kind = "error" }
@@ -516,21 +513,19 @@ function stop_delete_service(service_id: string): ()
             table.insert(deployment_names, tostring(job.name))
         end
     end
-    local message = "O serviço será parado e removido."
+    local message = i18n.tr("O serviço será parado e removido.")
     if #deployment_names > 0 then
         table.sort(deployment_names)
         message = message
-            .. "Os jobs de Schedules que dependem dele também serão "
-            .. "removidos, "
-            .. "com histórico: "
+            .. i18n.tr("Os jobs de Schedules que dependem dele também serão removidos, com histórico: ")
             .. table.concat(deployment_names, ", ")
             .. "."
     end
-    message = message .. " Essa ação não pode ser desfeita."
+    message = message .. i18n.tr(" Essa ação não pode ser desfeita.")
     local confirmed = confirm {
-        title = "Parar e remover serviço?",
+        title = i18n.tr("Parar e remover serviço?"),
         message = message,
-        confirm_label = "Remover",
+        confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
 
@@ -542,22 +537,22 @@ function stop_delete_service(service_id: string): ()
     if not api then
         return
     end
-    ctx.project_action_message = "removendo…"
+    ctx.project_action_message = i18n.tr("removendo…")
     local service_stop_ok, service_stop_response =
         api:rpc_checked { ServiceStop = { service_id = service_id } }
     if not service_stop_ok then
-        ctx.project_action_message = "erro ao parar: " .. service_stop_response
+        ctx.project_action_message = i18n.tr("erro ao parar: ") .. service_stop_response
         toast { message = tostring(service_stop_response), kind = "error" }
         return
     end
     local service_delete_ok, service_delete_response =
         api:rpc_checked { ServiceDelete = { id = service_id } }
     ctx.project_action_message = service_delete_ok
-            and "serviço parado e removido"
-        or ("erro ao remover: " .. service_delete_response)
+            and i18n.tr("serviço parado e removido")
+        or (i18n.tr("erro ao remover: ") .. service_delete_response)
     if service_delete_ok then
         History.drop("selected_service", service_id)
-        toast { message = tostring("Serviço removido"), kind = "success" }
+        toast { message = tostring(i18n.tr("Serviço removido")), kind = "success" }
     else
         toast { message = tostring(service_delete_response), kind = "error" }
     end
@@ -568,11 +563,9 @@ end
 
 function stop_all(): ()
     local confirmed = confirm {
-        title = "Parar todos os serviços?",
-        message = "Todos os serviços em execução serão parados agora. Você "
-            .. "pode "
-            .. "reiniciá-los depois com um novo deploy.",
-        confirm_label = "Parar todos",
+        title = i18n.tr("Parar todos os serviços?"),
+        message = i18n.tr("Todos os serviços em execução serão parados agora. Você pode reiniciá-los depois com um novo deploy."),
+        confirm_label = i18n.tr("Parar todos"),
         destructive = true,
     }
 
@@ -584,7 +577,7 @@ function stop_all(): ()
     if not api then
         return
     end
-    ctx.status_line = "parando todos…"
+    ctx.status_line = i18n.tr("parando todos…")
     local stop_all_managed_ok, stop_all_managed_response =
         api:rpc_checked("StopAllManaged")
     if stop_all_managed_ok then

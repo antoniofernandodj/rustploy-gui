@@ -26,7 +26,7 @@ function test_init__a_janela_nasce_no_login_na_visao_de_deployments()
     assert_eq(tela:get("screen"), "login")
     assert_eq(tela:get("view"), "deployments")
     assert_eq(tela:get("connected"), "false")
-    assert_eq(tela:get("status_line"), "pronto para conectar")
+    assert_eq(tela:get("status_line"), "ready to connect")
     assert_eq(tela:get("menu"), "true")
     assert_eq(tela:get("search"), "")
     assert_eq(tela:get("error"), "")
@@ -116,7 +116,7 @@ end
 --- o init aponta o servidor da chave semeada
 function test_init__o_init_aponta_o_servidor_da_chave_semeada()
     local tela = nova()
-    assert_eq(tela:get("access_key_target"), "conecta em zz-teste.invalid:1")
+    assert_eq(tela:get("access_key_target"), "connects to zz-teste.invalid:1")
 end
 
 --- os checkboxes de IaC nascem desmarcados
@@ -134,7 +134,7 @@ function test_campo_do_token__digitar_uma_chave_valida_mostra_o_servidor_e()
         "access_key_input",
         AccessKey.encode("https://outro.invalid:9797", "t")
     )
-    assert_eq(tela:get("access_key_target"), "conecta em outro.invalid:9797")
+    assert_eq(tela:get("access_key_target"), "connects to outro.invalid:9797")
     assert_eq(tela:get("error_access_key"), "")
 end
 
@@ -152,7 +152,7 @@ function test_campo_do_token__escolher_um_servidor_salvo_preenche_o_campo_do()
     local chave = AccessKey.encode("https://salvo.invalid:1", "t")
     tela:call("choose_saved_server", chave)
     assert_eq(tela:get("access_key"), chave)
-    assert_eq(tela:get("access_key_target"), "conecta em salvo.invalid:1")
+    assert_eq(tela:get("access_key_target"), "connects to salvo.invalid:1")
 end
 
 --- a lista de servidores salvos é um array JSON
@@ -166,7 +166,7 @@ function test_connect_so_o_que_falha_antes_da_rede__sem_token_pede_para_colar()
     local tela = nova()
     tela:set("access_key", "")
     tela:call("connect")
-    assert_has(tela:get("error_access_key"), "cole o token")
+    assert_has(tela:get("error_access_key"), "paste the connection token")
     assert_eq(tela:get("screen"), "login")
     assert_eq(tela:get("connected"), "false")
 end
@@ -176,7 +176,7 @@ function test_connect_so_o_que_falha_antes_da_rede__o_token_da_api_no_lugar()
     local tela = nova()
     tela:set("access_key", "0123456789abcdef0123456789abcdef")
     tela:call("connect")
-    assert_has(tela:get("error_access_key"), "não é um token de conexão")
+    assert_has(tela:get("error_access_key"), "not a connection token")
     assert_eq(tela:get("screen"), "login")
 end
 
@@ -185,7 +185,7 @@ function test_connect_so_o_que_falha_antes_da_rede__chave_corrompida_avisa_e()
     local tela = nova()
     tela:set("access_key", "!!!!")
     tela:call("connect")
-    assert_has(tela:get("error_access_key"), "corrompido")
+    assert_has(tela:get("error_access_key"), "corrupted")
     assert_nil(tela:get("api_token"))
 end
 
@@ -201,7 +201,7 @@ function test_disconnect__apaga_o_contexto_da_sessao_e_volta_ao_login()
     tela:call("disconnect")
     assert_eq(tela:get("screen"), "login")
     assert_eq(tela:get("connected"), "false")
-    assert_eq(tela:get("status_line"), "desconectado")
+    assert_eq(tela:get("status_line"), "disconnected")
     assert_nil(tela:get("api_token"))
     assert_nil(tela:get("api_url"))
     assert_nil(tela:get("projeto_aberto"))
