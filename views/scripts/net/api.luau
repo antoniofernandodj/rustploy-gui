@@ -3,9 +3,15 @@
 -- net/api.luau — cliente HTTP/JSON da API do daemon.
 --
 -- Encapsula base_url + header Authorization e expõe `rpc(cmd)`: faz
--- POST /api/rpc com o Command em JSON e devolve a Response decodificada. O
--- `fetch` do prelúdio SUSPENDE a corrotina da ação (async/await) — a UI não
--- trava enquanto espera a resposta.
+-- POST /api/rpc com o Command em JSON e devolve a Response decodificada. Fala
+-- pelo cliente `http()` do glacier (glacier-ui 0.145+), que SUSPENDE a corrotina
+-- da ação (async/await) — a UI não trava enquanto espera a resposta. O cliente
+-- guarda base_url, Authorization e o teto de tempo num lugar só; a tradução de
+-- "falhou" para texto (`failure_text`) também.
+--
+-- `rpc` é POST: o cliente NUNCA repete um POST sozinho (o primeiro pode ter
+-- chegado ao daemon — repetir um `ServiceDelete` ou um deploy seria perigoso).
+-- Só as leituras puras (GET, como o `/api/version`) usam `retries`.
 --
 -- Convenção de Command (serde externally-tagged):
 --   • variante unitária  → string:  "DaemonStatus", "StopAllManaged"
@@ -35,11 +41,26 @@ function M.auth_headers(token: string?): { [string]: string }
     return { Authorization = "Bearer " .. token }
 end
 
-function M:headers(): { [string]: string }
-    local headers = M.auth_headers(self.token)
-    headers["Content-Type"] = "application/json"
+--- O texto de uma falha de transporte/HTTP: a mensagem do motor quando a
+--- requisição nem chegou a responder, senão `HTTP <status>`. Uma definição só
+--- para todas as chamadas deste módulo (e para quem usa `fetch` cru).
+function M.failure_text(http_response: any): string
+    if http_response.error ~= nil and http_response.error ~= "" then
+        return tostring(http_response.error)
+    end
 
-    return headers
+    return "HTTP " .. tostring(http_response.status)
+end
+
+--- `{ ["Content-Type"] = "application/json" }` — o corpo de toda chamada de
+--- comando é JSON.
+local JSON_HEADERS = { ["Content-Type"] = "application/json" }
+
+--- Decodifica o corpo; `ok=false` quando não é JSON. Aceita QUALQUER valor
+--- decodificado: uma Response de variante UNITÁRIA (ex.: `Response::Ok`) é
+--- serializada pelo serde como a string bare "Ok" (não um objeto).
+local function decode_body(body: string?): (boolean, any)
+    return pcall(json.decode, body or "")
 end
 
 --- `POST /api/login`: troca o token de conexão pelo token da API. O login da
@@ -53,14 +74,10 @@ function M.login(
     base_url: string,
     access_key: string
 ): (boolean, string, number?)
-    local http_response = fetch(base_url .. "/api/login", {
-        method = "POST",
-        body = json.encode({ key = access_key }),
-        headers = { ["Content-Type"] = "application/json" },
-        timeout = M.RPC_TIMEOUT_MS,
-    })
+    local anonymous = http(base_url, { timeout = M.RPC_TIMEOUT_MS })
+    local http_response = anonymous:post("/api/login", { key = access_key })
 
-    local decode_ok, decoded = pcall(json.decode, http_response.body or "")
+    local decode_ok, decoded = decode_body(http_response.body)
     if
         http_response.ok
         and decode_ok
@@ -79,40 +96,25 @@ function M.login(
         return false, tostring(decoded.error.message), http_response.status
     end
 
-    local error_message = (
-        http_response.error ~= nil and http_response.error ~= ""
-    )
-            and http_response.error
-        or ("HTTP " .. tostring(http_response.status))
-
-    return false, error_message, http_response.status
+    return false, M.failure_text(http_response), http_response.status
 end
 
 --- Executa um Command. Retorna (true, response_table) em sucesso HTTP, ou
 --- (false, mensagem) em falha de transporte / corpo inválido.
 function M:rpc(command: any): (boolean, any)
-    local http_response = fetch(tostring(self.base_url) .. "/api/rpc", {
-        method = "POST",
-        body = json.encode(command),
-        headers = self:headers(),
-        timeout = M.RPC_TIMEOUT_MS,
-    })
+    -- `json.encode` aqui (e não o corpo-tabela do `http()`): um Command
+    -- unitário é a STRING "DaemonStatus", que o cliente mandaria sem aspas.
+    local http_response = self.client:post(
+        "/api/rpc",
+        json.encode(command),
+        { headers = JSON_HEADERS }
+    )
 
     if not http_response.ok then
-        local error_message = (
-            http_response.error ~= nil and http_response.error ~= ""
-        )
-                and http_response.error
-            or ("HTTP " .. tostring(http_response.status))
-
-        return false, error_message
+        return false, M.failure_text(http_response)
     end
 
-    local json_decode_ok, decoded = pcall(json.decode, http_response.body)
-
-    -- Aceita QUALQUER valor decodificado: uma Response de variante UNITÁRIA
-    -- (ex.: `Response::Ok`) é serializada pelo serde como a string bare "Ok"
-    -- (não um objeto). Só o parse falhando é resposta inválida.
+    local json_decode_ok, decoded = decode_body(http_response.body)
     if not json_decode_ok then
         return false, "resposta inválida do daemon"
     end
@@ -138,32 +140,35 @@ function M:rpc_checked(command: any): (boolean, any)
     return true, rpc_response
 end
 
+--- Envia um zip como corpo CRU (`body_file`: o motor lê o arquivo ao enviar —
+--- sem base64 e sem carregar o zip no Lua). `opts.on_progress` recebe
+--- `{ phase, done, total, fraction }` (~20×/s) e `opts.signal` (um
+--- `abort_controller()`) cancela o envio; um envio cancelado volta
+--- `(false, "cancelado")`.
 function M:upload_archive(
     service_id: string,
     filename: string,
-    body_base64: string
+    path: string,
+    opts: {
+        on_progress: ((progress: any) -> ())?,
+        signal: any?,
+    }?
 ): (boolean, any)
-    local headers = self:headers()
-    headers["Content-Type"] = "application/zip"
-    headers["X-Rustploy-Filename"] = filename
-
-    local url = tostring(self.base_url)
-        .. "/api/services/"
-        .. service_id
-        .. "/archive"
-    local http_response = fetch(url, {
-        method = "POST",
-        body_base64 = body_base64,
-        headers = headers,
-        timeout = M.UPLOAD_TIMEOUT_MS,
-    })
+    local http_response =
+        self.client:post("/api/services/" .. service_id .. "/archive", nil, {
+            headers = {
+                ["Content-Type"] = "application/zip",
+                ["X-Rustploy-Filename"] = filename,
+            },
+            body_file = path,
+            timeout = M.UPLOAD_TIMEOUT_MS,
+            on_progress = if opts then opts.on_progress else nil,
+            signal = if opts then opts.signal else nil,
+        })
     if not http_response.ok then
-        return false,
-            (http_response.error ~= nil and http_response.error ~= "")
-                    and http_response.error
-                or ("HTTP " .. tostring(http_response.status))
+        return false, M.failure_text(http_response)
     end
-    local json_decode_ok, decoded = pcall(json.decode, http_response.body)
+    local json_decode_ok, decoded = decode_body(http_response.body)
     if not json_decode_ok then
         return false, "resposta inválida do daemon"
     end
@@ -174,18 +179,31 @@ function M:upload_archive(
     return true, decoded
 end
 
+--- Sonda `GET /api/version` (leitura pura: o cliente repete 1× sozinho numa
+--- falha de rede). Retorna a resposta crua do `http()` — quem chama olha
+--- `status`/`error`.
+function M.probe(base_url: string): any
+    return http(base_url, { timeout = 8000, retries = 1 }):get("/api/version")
+end
+
 export type Client = typeof(setmetatable(
     {} :: {
         base_url: string,
         token: string?,
+        client: any, -- o `http()` do glacier, com base_url + Authorization
     },
     M
 ))
 
 function M.new(base_url: string, token: string?): Client
+    local clean_token = if token ~= nil and token ~= "" then token else nil
     return setmetatable({
         base_url = base_url,
-        token = token ~= nil and token ~= "" and token or nil,
+        token = clean_token,
+        client = http(base_url, {
+            headers = M.auth_headers(clean_token),
+            timeout = M.RPC_TIMEOUT_MS,
+        }),
     }, M)
 end
 

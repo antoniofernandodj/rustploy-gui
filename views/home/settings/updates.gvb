@@ -88,6 +88,18 @@ component {
               )
             }
 
+            progressbar(if = @update_app_running, equals = true, :value = update_app_percent)
+
+            row(class = healthcheck__grid) {
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = update_app_cancel,
+                if = @update_app_running,
+                equals = true,
+                text = "Cancelar",
+              )
+            }
+
             text(class = u-muted, content = "@update_app_apply_hint")
           }
 

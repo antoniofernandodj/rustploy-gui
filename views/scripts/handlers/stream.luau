@@ -21,7 +21,8 @@ local function rebuild_lists(): ()
         return
     end
     local term = State.search_term
-    ctx.deployments = format.deployments(snap.deployments, term, State.last_pairs)
+    ctx.deployments =
+        format.deployments(snap.deployments, term, State.last_pairs)
     ctx.projects = format.projects(snap.projects, State.last_pairs, term)
     ctx.project_rows =
         format.project_rows(snap.projects, State.last_pairs, term)
@@ -238,12 +239,15 @@ local function apply_snapshot(snapshot: any): ()
         ctx.deploy_engine_failed_24h = tostring(engine.failed_24h or 0)
         ctx.deploy_engine_total_24h = tostring(engine.total_24h or 0)
         ctx.deploy_engine_uptime = format.format_uptime(engine.uptime_secs)
-        ctx.deploy_engine_active = format.deploy_engine_active(engine.active, State.last_pairs)
+        ctx.deploy_engine_active =
+            format.deploy_engine_active(engine.active, State.last_pairs)
         M.refresh_deploy_engine_detail(engine.active)
-        ctx.deploy_engine_recent = format.deploy_engine_recent(engine.recent, State.last_pairs)
+        ctx.deploy_engine_recent =
+            format.deploy_engine_recent(engine.recent, State.last_pairs)
         ctx.deploy_engine_recent_count = tostring(#(engine.recent or {}))
         -- Fila global (um por vez): itens esperando + estado pausado.
-        ctx.deploy_engine_queued = format.deploy_engine_queued(engine.queued, State.last_pairs)
+        ctx.deploy_engine_queued =
+            format.deploy_engine_queued(engine.queued, State.last_pairs)
         ctx.deploy_engine_queued_count = tostring(#(engine.queued or {}))
         ctx.deploy_engine_paused = (engine.paused and "true" or "false")
 
@@ -616,6 +620,15 @@ end
 -- `sse(url, opts: StreamOptions?)`, então é a própria chamada que checa a
 -- tabela literal contra `StreamOptions`.
 
+-- Reconexão: uma queda de rede de poucos segundos não deve devolver a pessoa
+-- ao login. Quando o stream cai com a sessão aberta, tenta de novo com espera
+-- crescente (1, 2, 4, 8, 16 s); o daemon manda um snapshot ao reconectar, que
+-- ressincroniza a tela. Esgotadas as tentativas, vale o caminho antigo
+-- ("conexão encerrada" + login). Um aviso de reinício (`restart_notice`, de
+-- "Atualizar daemon") não reconecta: o daemon vai demorar e o aviso é do login.
+local RECONNECT_DELAYS_MS = { 1000, 2000, 4000, 8000, 16000 }
+local reconnect_attempts = 0
+
 function M.open_stream(): ()
     if State.state_conn then
         return
@@ -637,6 +650,7 @@ function M.open_stream(): ()
                 return
             end
             if decoded.kind == "snapshot" then
+                reconnect_attempts = 0
                 apply_snapshot(decoded)
             elseif decoded.kind == "bus" then
                 apply_bus_event(decoded.event)
@@ -649,16 +663,36 @@ function M.open_stream(): ()
 
         on_close = function(): ()
             State.state_conn = nil
-            if Helpers.is_true(ctx.connected) then
-                if State.restart_notice ~= "" then
-                    ctx.status_line = State.restart_notice
-                    State.restart_notice = ""
-                else
-                    ctx.status_line = "conexão encerrada"
-                end
-                ctx.connected = "false"
-                ctx.screen = "login"
+            if not Helpers.is_true(ctx.connected) then
+                return
             end
+
+            local delay = RECONNECT_DELAYS_MS[reconnect_attempts + 1]
+            if State.restart_notice == "" and delay ~= nil then
+                reconnect_attempts += 1
+                ctx.status_line =
+                    `conexão perdida — reconectando ({reconnect_attempts}/{#RECONNECT_DELAYS_MS})…`
+                after(delay, function(): ()
+                    if
+                        Helpers.is_true(ctx.connected)
+                        and State.api ~= nil
+                        and State.state_conn == nil
+                    then
+                        M.open_stream()
+                    end
+                end)
+                return
+            end
+
+            reconnect_attempts = 0
+            if State.restart_notice ~= "" then
+                ctx.status_line = State.restart_notice
+                State.restart_notice = ""
+            else
+                ctx.status_line = "conexão encerrada"
+            end
+            ctx.connected = "false"
+            ctx.screen = "login"
         end,
     })
 end

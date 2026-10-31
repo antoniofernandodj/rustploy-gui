@@ -23,7 +23,10 @@ const USER_CACHE_SUBDIR: &str = ".cache/rustploy-gui/updates";
 fn trusted_keys() -> Vec<String> {
     match option_env!("RUSTPLOY_E2E_TRUSTED_KEY") {
         Some(key) if !key.is_empty() => vec![key.to_string()],
-        _ => TRUSTED_PUBLIC_KEYS.iter().map(|key| key.to_string()).collect(),
+        _ => TRUSTED_PUBLIC_KEYS
+            .iter()
+            .map(|key| key.to_string())
+            .collect(),
     }
 }
 
@@ -35,7 +38,11 @@ fn home_of(uid: u32) -> Result<PathBuf, String> {
     // SAFETY: `entry`, `buffer` e `result` vivem durante a chamada; o buffer tem o tamanho passado.
     let status = unsafe {
         libc::getpwuid_r(
-            uid, &mut entry,buffer.as_mut_ptr().cast(), buffer.len(), &mut result,
+            uid,
+            &mut entry,
+            buffer.as_mut_ptr().cast(),
+            buffer.len(),
+            &mut result,
         )
     };
     if status != 0 || result.is_null() {
@@ -43,7 +50,8 @@ fn home_of(uid: u32) -> Result<PathBuf, String> {
     }
     // SAFETY: com `result` não nulo, `pw_dir` aponta para uma string C válida dentro de `buffer`.
     let home = unsafe { CStr::from_ptr(entry.pw_dir) }
-        .to_str().map_err(|_| "a home do usuário não é UTF-8".to_string())?;
+        .to_str()
+        .map_err(|_| "a home do usuário não é UTF-8".to_string())?;
     if !home.starts_with('/') {
         return Err(format!("home inválida para o usuário {uid}: {home:?}"));
     }
@@ -54,7 +62,8 @@ fn home_of(uid: u32) -> Result<PathBuf, String> {
 fn allowed_dir() -> Result<PathBuf, String> {
     match std::env::var("PKEXEC_UID") {
         Ok(text) => {
-            let uid: u32 = text.parse()
+            let uid: u32 = text
+                .parse()
                 .map_err(|_| format!("PKEXEC_UID inválido: {text:?}"))?;
             Ok(home_of(uid)?.join(USER_CACHE_SUBDIR))
         }
@@ -62,7 +71,8 @@ fn allowed_dir() -> Result<PathBuf, String> {
         // `pkexec` o ambiente é limpo pelo próprio `pkexec`, então isto nunca é alcançável por um
         // usuário comum.
         Err(_) => std::env::var("RUSTPLOY_GUI_UPDATE_ALLOWED_DIR")
-            .map(PathBuf::from).map_err(|_| {
+            .map(PathBuf::from)
+            .map_err(|_| {
                 "rode por `pkexec` (sem PKEXEC_UID não sei de onde ler o pacote)".to_string()
             }),
     }
@@ -95,7 +105,8 @@ pub fn run() -> ExitCode {
         allowed_dir,
         state_dir: PathBuf::from(
             std::env::var("RUSTPLOY_GUI_UPDATE_STATE_DIR")
-                .ok().filter(|_| std::env::var_os("PKEXEC_UID").is_none())
+                .ok()
+                .filter(|_| std::env::var_os("PKEXEC_UID").is_none())
                 .unwrap_or_else(|| STATE_DIR.to_string()),
         ),
         managed_binaries: vec![PathBuf::from(BINARY)],
@@ -103,11 +114,19 @@ pub fn run() -> ExitCode {
     let settings = Settings {
         package: "rustploy-gui".into(),
         // O app desktop não é um serviço: não há o que reiniciar nem esperar.
-        service: None, trusted_keys: trusted_keys(), max_deb_bytes: MAX_DEB_BYTES,
-        poll_interval: Duration::from_secs(1), stable_polls: 1, max_polls: 1,
+        service: None,
+        trusted_keys: trusted_keys(),
+        max_deb_bytes: MAX_DEB_BYTES,
+        poll_interval: Duration::from_secs(1),
+        stable_polls: 1,
+        max_polls: 1,
     };
     let system = RealSystem;
-    let updater = Updater { paths: &paths, settings: &settings, system: &system };
+    let updater = Updater {
+        paths: &paths,
+        settings: &settings,
+        system: &system,
+    };
 
     match updater.prepare(deb, signature) {
         Ok(prepared) => {
@@ -116,7 +135,9 @@ pub fn run() -> ExitCode {
                 "{}",
                 serde_json::to_string(&outcome).unwrap_or_else(|_| "{}".into())
             );
-            if outcome.kind == OutcomeKind::Installed { ExitCode::SUCCESS } else {
+            if outcome.kind == OutcomeKind::Installed {
+                ExitCode::SUCCESS
+            } else {
                 eprintln!("{}", outcome.message);
                 ExitCode::from(1)
             }
@@ -140,7 +161,9 @@ mod tests {
             "RUSTPLOY_E2E_TRUSTED_KEY está definida neste build: não é um build de produção"
         );
         let expected: Vec<String> = TRUSTED_PUBLIC_KEYS
-            .iter().map(|key| key.to_string()).collect();
+            .iter()
+            .map(|key| key.to_string())
+            .collect();
         assert_eq!(trusted_keys(), expected);
     }
 

@@ -1,5 +1,5 @@
-//! A ponte nativa do "Atualizar app": o que o Luau não consegue fazer sozinho (rodar `curl` e
-//! `pkexec`, reabrir o app) e as decisões de segurança que não devem ser reescritas em Luau
+//! A ponte nativa do "Atualizar app": o que o Luau não consegue fazer sozinho (baixar o pacote
+//! pela camada de rede do glacier, rodar `pkexec`, reabrir o app) e as decisões de segurança que não devem ser reescritas em Luau
 //! (comparar versões, escolher o pacote certo da release).
 //!
 //! Exposto ao Luau como o global `app_update` (ver `views/scripts/glacier.d.luau`). Nada aqui
@@ -12,6 +12,7 @@
 //! `src/bin/rustploy-gui-update/portable.rs`.
 
 use glacier_ui::mlua::{Lua, Result as LuaResult, Table};
+use glacier_ui::net::{AbortHandle, Progress, Request};
 use std::{
     path::{Path, PathBuf},
     process::Command,
@@ -99,13 +100,12 @@ fn install_kind() -> InstallKind {
         .unwrap_or(InstallKind::Other)
 }
 
-/// O app pode se atualizar sozinho? `.deb` + helper + `pkexec`, ou zip + helper + `curl`.
+/// O app pode se atualizar sozinho? `.deb` + helper + `pkexec`, ou zip + helper.
 fn can_update() -> bool {
     match install_kind() {
         InstallKind::Deb => Path::new(HELPER).exists() && find_in_path("pkexec").is_some(),
         InstallKind::Zip => {
             portable_dir().is_some_and(|directory| directory.join(PORTABLE_HELPER).is_file())
-                && find_in_path("curl").is_some()
         }
         InstallKind::Other => false,
     }
@@ -153,44 +153,79 @@ fn updates_dir() -> Result<PathBuf, String> {
     Ok(cache.join(CACHE_SUBDIR))
 }
 
-/// Baixa `url` para `destination` com o `curl` do sistema (TLS e certificados do sistema), seguindo
-/// redirecionamentos só por https. A integridade e a autenticidade NÃO dependem daqui: o helper
-/// root confere a assinatura do que chegar.
-fn download(url: &str, destination: &Path, max_bytes: u64) -> Result<(), String> {
+/// O andamento da instalação, lido pelo Luau (`app_update.install_status`) enquanto a thread de
+/// instalação trabalha: o download do pacote (bytes), a fase em texto e, no fim, o resultado.
+struct InstallState {
+    running: bool,
+    phase: &'static str,
+    done: u64,
+    total: Option<u64>,
+    abort: Option<AbortHandle>,
+    result: Option<Result<String, String>>,
+}
+
+static INSTALL: Mutex<InstallState> = Mutex::new(InstallState {
+    running: false,
+    phase: "",
+    done: 0,
+    total: None,
+    abort: None,
+    result: None,
+});
+
+fn install_state() -> std::sync::MutexGuard<'static, InstallState> {
+    INSTALL
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
+fn set_phase(phase: &'static str) {
+    let mut state = install_state();
+    state.phase = phase;
+    state.done = 0;
+    state.total = None;
+}
+
+/// Baixa `url` para `destination` pela camada de rede do glacier (`glacier_ui::net`), seguindo
+/// até 5 redirecionamentos — que nunca descem de https para http — e recusando um corpo acima
+/// de `max_bytes`. O progresso vai para o `INSTALL` e o `abort` cancela. A integridade e a
+/// autenticidade NÃO dependem daqui: o helper root confere a assinatura do que chegar.
+fn download(
+    url: &str,
+    destination: &Path,
+    max_bytes: u64,
+    abort: &AbortHandle,
+) -> Result<(), String> {
     if !url.starts_with("https://github.com/") {
         return Err(format!("recusei baixar de fora do GitHub: {url}"));
     }
     let partial = destination.with_extension("partial");
-    let status = without_console(&mut Command::new("curl"))
-        .args([
-            "--fail",
-            "--silent",
-            "--show-error",
-            "--location",
-            "--proto",
-            "=https",
-            "--proto-redir",
-            "=https",
-            "--max-redirs",
-            "5",
-            "--connect-timeout",
-            "20",
-            "--max-time",
-            "600",
-            "--max-filesize",
-        ])
-        .arg(max_bytes.to_string())
-        .arg("--output")
-        .arg(&partial)
-        .arg(url)
-        .output()
-        .map_err(|error| format!("não consegui rodar o curl: {error}"))?;
-    if !status.status.success() {
+    let request = Request::get(url)
+        .max_redirects(5)
+        .max_bytes(max_bytes)
+        .timeout_ms(600_000)
+        .no_cookies()
+        .abortable(abort)
+        .download_to(partial.to_string_lossy().into_owned())
+        .on_progress(|progress: Progress| {
+            let mut state = install_state();
+            state.done = progress.done;
+            state.total = progress.total;
+        });
+    // Esta thread não é a do iced: um runtime próprio, só para este pedido.
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|error| format!("não consegui iniciar o download: {error}"))?;
+    let result = runtime.block_on(request.send());
+    if !result.ok {
         let _ = std::fs::remove_file(&partial);
-        return Err(format!(
-            "o download falhou: {}",
-            String::from_utf8_lossy(&status.stderr).trim()
-        ));
+        let reason = if result.error.is_empty() {
+            format!("HTTP {}", result.status)
+        } else {
+            result.error
+        };
+        return Err(format!("o download falhou: {reason}"));
     }
     std::fs::rename(&partial, destination).map_err(|error| format!("gravando o download: {error}"))
 }
@@ -251,17 +286,66 @@ static PENDING_SWAP: Mutex<Option<PendingSwap>> = Mutex::new(None);
 
 /// Baixa o pacote certo para este jeito de instalar. `.deb`: instala já (pede a senha). Zip:
 /// baixa, confere com o helper e deixa a troca para o `restart`.
-fn install(package_url: &str, signature_url: &str, package_name: &str) -> Result<String, String> {
+fn install(
+    package_url: &str,
+    signature_url: &str,
+    package_name: &str,
+    abort: &AbortHandle,
+) -> Result<String, String> {
     if !can_update() {
-        return Err("este app não foi instalado por .deb nem pelo install.ps1 (ou falta o pkexec ou o curl): atualize pelo comando de instalação".into());
+        return Err("este app não foi instalado por .deb nem pelo install.ps1 (ou falta o pkexec): atualize pelo comando de instalação".into());
     }
     match install_kind() {
-        InstallKind::Zip => prepare_portable(package_url, signature_url, package_name),
-        _ => install_deb(package_url, signature_url, package_name),
+        InstallKind::Zip => prepare_portable(package_url, signature_url, package_name, abort),
+        _ => install_deb(package_url, signature_url, package_name, abort),
     }
 }
 
-fn prepare_portable(zip_url: &str, signature_url: &str, zip_name: &str) -> Result<String, String> {
+/// Começa a instalação numa thread (o download e o `pkexec` bloqueiam: na thread da UI a janela
+/// congelava) e volta na hora. `install_status` mostra o andamento; `install_cancel` interrompe o
+/// download (a senha e a instalação, depois dele, não se cancelam daqui).
+fn install_start(
+    package_url: String,
+    signature_url: String,
+    package_name: String,
+) -> Result<(), String> {
+    let abort = AbortHandle::new();
+    {
+        let mut state = install_state();
+        if state.running {
+            return Err("já há uma atualização em andamento".into());
+        }
+        *state = InstallState {
+            running: true,
+            phase: "preparando",
+            done: 0,
+            total: None,
+            abort: Some(abort.clone()),
+            result: None,
+        };
+    }
+    std::thread::spawn(move || {
+        let result = install(&package_url, &signature_url, &package_name, &abort);
+        let mut state = install_state();
+        state.running = false;
+        state.abort = None;
+        state.result = Some(result);
+    });
+    Ok(())
+}
+
+fn install_cancel() {
+    if let Some(abort) = &install_state().abort {
+        abort.abort();
+    }
+}
+
+fn prepare_portable(
+    zip_url: &str,
+    signature_url: &str,
+    zip_name: &str,
+    abort: &AbortHandle,
+) -> Result<String, String> {
     validate_zip_name(zip_name)?;
     let install_dir = portable_dir().ok_or_else(|| "sem LOCALAPPDATA".to_string())?;
     let staging = staging_dir(&install_dir);
@@ -274,8 +358,11 @@ fn prepare_portable(zip_url: &str, signature_url: &str, zip_name: &str) -> Resul
         .map_err(|error| format!("criando {}: {error}", staging.display()))?;
     let zip = staging.join(zip_name);
     let signature = staging.join(format!("{zip_name}.minisig"));
-    download(zip_url, &zip, MAX_DEB_BYTES)?;
-    download(signature_url, &signature, 8 * 1024)?;
+    set_phase("baixando o pacote");
+    download(zip_url, &zip, MAX_DEB_BYTES, abort)?;
+    set_phase("baixando a assinatura");
+    download(signature_url, &signature, 8 * 1024, abort)?;
+    set_phase("conferindo a assinatura");
 
     // O helper roda de fora da pasta que vai trocar.
     let helper = staging.join(PORTABLE_HELPER);
@@ -335,8 +422,14 @@ fn parse_last_result(text: &str) -> Option<(bool, String)> {
 }
 
 /// Baixa o pacote e a assinatura para o cache do usuário e chama o helper por `pkexec`.
-/// Devolve a mensagem do resultado; bloqueia até o fim (download + senha + instalação).
-fn install_deb(deb_url: &str, signature_url: &str, deb_name: &str) -> Result<String, String> {
+/// Devolve a mensagem do resultado; bloqueia até o fim (download + senha + instalação) — por isso
+/// roda numa thread (`install_start`).
+fn install_deb(
+    deb_url: &str,
+    signature_url: &str,
+    deb_name: &str,
+    abort: &AbortHandle,
+) -> Result<String, String> {
     validate_deb_name(deb_name)?;
     let directory = updates_dir()?;
     std::fs::create_dir_all(&directory)
@@ -349,8 +442,11 @@ fn install_deb(deb_url: &str, signature_url: &str, deb_name: &str) -> Result<Str
     }
     let deb_path = directory.join(deb_name);
     let signature_path = directory.join(format!("{deb_name}.minisig"));
-    download(deb_url, &deb_path, MAX_DEB_BYTES)?;
-    download(signature_url, &signature_path, 8 * 1024)?;
+    set_phase("baixando o pacote");
+    download(deb_url, &deb_path, MAX_DEB_BYTES, abort)?;
+    set_phase("baixando a assinatura");
+    download(signature_url, &signature_path, 8 * 1024, abort)?;
+    set_phase("aguardando a senha e instalando");
 
     let output = Command::new("pkexec")
         .arg(HELPER)
@@ -466,17 +562,56 @@ pub(crate) fn install_lua(lua: &Lua) -> LuaResult<()> {
         })?,
     )?;
 
-    // Baixa, autentica (pkexec) e instala. Devolve `true, mensagem` ou `false, causa`.
+    // Começa a baixar, autenticar (pkexec) e instalar, numa thread. Devolve `true` ou `false, causa`.
     table.set(
-        "install",
+        "install_start",
         lua.create_function(
             |_, (deb_url, signature_url, deb_name): (String, String, String)| {
-                Ok(match install(&deb_url, &signature_url, &deb_name) {
-                    Ok(message) => (true, message),
-                    Err(message) => (false, message),
+                Ok(match install_start(deb_url, signature_url, deb_name) {
+                    Ok(()) => (true, None),
+                    Err(message) => (false, Some(message)),
                 })
             },
         )?,
+    )?;
+
+    // { running, phase, done, total?, percent?, ok?, message? } — `ok`/`message` só depois do fim.
+    table.set(
+        "install_status",
+        lua.create_function(|lua, ()| {
+            let status = lua.create_table()?;
+            let state = install_state();
+            status.set("running", state.running)?;
+            status.set("phase", state.phase)?;
+            status.set("done", state.done)?;
+            if let Some(total) = state.total {
+                status.set("total", total)?;
+                if total > 0 {
+                    status.set("percent", state.done as f64 * 100.0 / total as f64)?;
+                }
+            }
+            match &state.result {
+                Some(Ok(message)) => {
+                    status.set("ok", true)?;
+                    status.set("message", message.as_str())?;
+                }
+                Some(Err(message)) => {
+                    status.set("ok", false)?;
+                    status.set("message", message.as_str())?;
+                }
+                None => {}
+            }
+            Ok(status)
+        })?,
+    )?;
+
+    // Cancela o download em andamento (um `install_status` seguinte traz `ok = false`).
+    table.set(
+        "install_cancel",
+        lua.create_function(|_, ()| {
+            install_cancel();
+            Ok(())
+        })?,
     )?;
 
     table.set("restart", lua.create_function(|_, ()| Ok(restart().err()))?)?;
@@ -647,9 +782,61 @@ mod tests {
             "file:///etc/passwd",
             "ftp://github.com/x",
         ] {
-            let error = download(url, &destination, 1024).unwrap_err();
+            let error = download(url, &destination, 1024, &AbortHandle::new()).unwrap_err();
             assert!(error.contains("fora do GitHub"), "{url}: {error}");
         }
+        assert!(!destination.exists());
+    }
+
+    #[test]
+    fn install_runs_in_a_thread_and_reports_the_result() {
+        // Aqui o executável não é um `.deb` instalado, então a instalação recusa — mas o caminho
+        // inteiro (thread, estado, resultado) roda, e uma segunda chamada enquanto roda é recusada.
+        install_start(
+            "https://github.com/x".into(),
+            "https://github.com/y".into(),
+            "x.deb".into(),
+        )
+        .unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        loop {
+            let state = install_state();
+            if !state.running {
+                let result = state.result.as_ref().expect("terminou com um resultado");
+                assert!(
+                    result.as_ref().unwrap_err().contains("não foi instalado"),
+                    "{result:?}"
+                );
+                break;
+            }
+            drop(state);
+            assert!(
+                std::time::Instant::now() < deadline,
+                "a thread não terminou"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+    }
+
+    /// Rede de verdade (`cargo test -- --ignored`): baixa o `.deb` do app de uma release pública,
+    /// que o GitHub redireciona para outro host, e confere tamanho e progresso.
+    #[test]
+    #[ignore = "usa a rede (GitHub)"]
+    fn downloads_a_real_release_asset_through_redirects() {
+        let url = "https://github.com/antoniofernandodj/rustploy/releases/download/v0.1.29/rustploy-gui_0.1.32-1_amd64.deb";
+        let destination = std::env::temp_dir().join("rustploy-gui-real-download.deb");
+        let _ = std::fs::remove_file(&destination);
+        set_phase("teste");
+        download(url, &destination, MAX_DEB_BYTES, &AbortHandle::new()).unwrap();
+        assert_eq!(std::fs::metadata(&destination).unwrap().len(), 10_558_520);
+        let state = install_state();
+        assert_eq!(state.done, 10_558_520);
+        assert_eq!(state.total, Some(10_558_520));
+        drop(state);
+        let _ = std::fs::remove_file(&destination);
+        // O teto de tamanho recusa antes de gravar.
+        let error = download(url, &destination, 1024, &AbortHandle::new()).unwrap_err();
+        assert!(error.contains("teto"), "{error}");
         assert!(!destination.exists());
     }
 

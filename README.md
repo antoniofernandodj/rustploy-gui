@@ -485,6 +485,26 @@ service) só têm markup, e os handlers deles resolvem para as funções desse s
 script. As janelas auxiliares são a exceção: cada uma tem o próprio script e o próprio
 motor.
 
+**A rede (`net/api.luau`) é o cliente `http()` do glacier** (glacier-ui 0.145+). O `Client` guarda
+`base_url`, o `Authorization` e o teto de tempo num `http()`; `rpc` faz `POST /api/rpc` com o
+`Command` já em JSON (um comando unitário é a *string* `"DaemonStatus"`, que o cliente mandaria
+sem aspas se o corpo fosse a tabela). O cliente **nunca repete um POST** sozinho — repetir um
+`ServiceDelete` ou um deploy seria perigoso —, então só as leituras puras (a sonda
+`Api.probe`, um `GET /api/version`) usam `retries`. `Api.failure_text` é a única tradução de
+"falhou" para texto. O envio do zip usa `body_file` (o motor lê o arquivo do disco ao enviar:
+sem base64 e sem o zip dentro do Lua) com `on_progress` (a barra da aba Zip) e um
+`abort_controller` (o botão Cancelar).
+
+**Reconexão do stream (`handlers/stream.luau`).** Quando o SSE cai com a sessão aberta, o app
+tenta de novo 5 vezes (1, 2, 4, 8 e 16 s) antes de voltar ao login; o snapshot que o daemon manda
+ao reconectar ressincroniza a tela. Um aviso de reinício (`restart_notice`, de "Atualizar
+daemon") não reconecta.
+
+**"Atualizar app" não congela a janela.** O download e o `pkexec` rodam numa thread
+(`app_update.install_start`); o Luau acompanha por `install_status` a cada 250 ms (barra de
+progresso) e pode cancelar o download (`install_cancel`). O download usa `glacier_ui::net`
+(`max_redirects(5)`, `max_bytes`, só `https://github.com/` na origem), sem depender do `curl`.
+
 **Janelas isoladas para o que é caro.** O glacier reavalia **todos** os templates
 registrados a cada reavaliação. Na janela principal (shell + home + service + wizard, com
 dezenas de `for-each`) isso é caro, e sob um stream de logs verborrágico satura a UI,

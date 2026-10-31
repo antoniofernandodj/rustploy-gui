@@ -365,8 +365,7 @@ local function resolve_base(address: string): (string?, string?)
     local last_error = ""
     for _, scheme in ipairs(schemes) do
         local base = scheme .. "://" .. address
-        local http_response =
-            fetch(base .. "/api/version", { method = "GET", timeout = 8000 })
+        local http_response = Api.probe(base)
         if http_response.status ~= nil and http_response.status > 0 then
             return base, nil
         end

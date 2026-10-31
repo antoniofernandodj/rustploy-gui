@@ -62,6 +62,8 @@ function open_service(service_id: string): ()
     ctx.deployment_selected = ""
     ctx.service_action_message = ""
     ctx.service_action_color = "#8B949E"
+    ctx.archive_upload_active = "false"
+    ctx.archive_upload_percent = 0
     if State.deploy_track.service_id ~= service_id then
         ctx.service_deploy_running = "false"
         ctx.service_deploy_elapsed = ""
@@ -1166,6 +1168,16 @@ function general_save(): ()
     end)
 end
 
+-- Cancela o envio do zip em andamento (botão "Cancelar" da aba Zip). O
+-- controlador só existe enquanto `archive_upload` roda.
+local archive_upload_abort: any = nil
+
+function archive_upload_cancel(): ()
+    if archive_upload_abort then
+        archive_upload_abort:abort()
+    end
+end
+
 function archive_upload(): ()
     local api = State.api
     local service_id = ctx.selected_service or ""
@@ -1178,26 +1190,32 @@ function archive_upload(): ()
         return
     end
 
-    ctx.service_action_message = "lendo zip…"
-    local read = fetch("file://" .. path, { response = "base64" })
-    if not read.ok then
-        ctx.service_action_message = "erro ao ler zip: "
-            .. tostring(read.error)
-        toast {
-            message = tostring(ctx.service_action_message),
-            kind = "error",
-        }
-        return
-    end
-
-    ctx.service_action_message = "enviando zip…"
+    -- O motor lê o zip do disco ao enviar (`body_file`): nada de ler o arquivo
+    -- inteiro para o Lua nem de base64. O progresso alimenta a barra da aba.
     local filename = path:match("([^/\\]+)$") or "archive.zip"
+    archive_upload_abort = abort_controller()
+    ctx.archive_upload_percent = 0
+    ctx.archive_upload_active = "true"
+    ctx.service_action_message = "enviando zip…"
     local upload_archive_ok, upload_archive_response =
-        api:upload_archive(service_id, filename, read.body)
+        api:upload_archive(service_id, filename, path, {
+            signal = archive_upload_abort,
+            on_progress = function(progress: any): ()
+                local percent = (progress.fraction or 0) * 100
+                ctx.archive_upload_percent = percent
+                ctx.service_action_message =
+                    `enviando zip… {math.floor(percent)}%`
+            end,
+        })
+    archive_upload_abort = nil
+    ctx.archive_upload_active = "false"
+
     if upload_archive_ok and upload_archive_response.Service then
         ctx.service_action_message = "zip enviado"
         toast { message = tostring("Zip enviado"), kind = "success" }
         M.fetch_service_detail(service_id)
+    elseif upload_archive_response == "cancelado" then
+        ctx.service_action_message = "envio cancelado"
     else
         ctx.service_action_message = "erro: "
             .. tostring(upload_archive_response)

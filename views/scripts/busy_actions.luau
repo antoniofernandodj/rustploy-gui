@@ -7,6 +7,7 @@
 return {
     "advanced_save",
     "archive_upload",
+    "archive_upload_cancel",
     "cancel",
     "cancel_project_edit",
     "compose_cancel",
@@ -134,6 +135,7 @@ return {
     "stop_delete_service",
     "submit_project",
     "update_app_apply",
+    "update_app_cancel",
     "update_apply",
     "update_check_now",
     "update_rollback",

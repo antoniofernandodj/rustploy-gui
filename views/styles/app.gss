@@ -49,6 +49,7 @@
     --surface: #0D1117;   /* painéis / sidebar / inputs */
     --raised:  #161B22;   /* cards / cabeçalho de tabela / linha arrastada */
     --border:  #21262D;   /* bordas + botões ghost/sutis */
+    --border-hover: #2D333B; /* o mesmo, com o ponteiro em cima */
     --text:    #E6EDF3;   /* texto/títulos mais claros */
     --text-2:  #C9D1D9;   /* valores/corpo */
     --muted:   #8B949E;   /* secundário */
@@ -140,6 +141,20 @@
 .btn--xs       { padding: 5 12; border-radius: 4 }
 /* `.btn-secondary` nunca teve regra (botão sem estilo); fica como marcador. */
 /* Ação em andamento (busy.luau liga `disabled = @busy_<ação>`): o botão apaga na hora. */
+/* Hover/pressionado com `transition` (glacier-ui 0.145, medido numa janela real): a cor sobe em
+   rampa em vez de saltar. A transição vale só para botões de cor SÓLIDA (ghost, secundário,
+   barra de título, abas); um gradiente de paradas diferentes troca de uma vez — por isso os
+   botões preenchidos clareiam para a parada de cima (`--*-a`) sem rampa. */
+.btn           { transition: all 150ms ease-out; }
+.btn--primary:hover { background: var(--green-a); }
+.btn--danger:hover  { background: var(--danger-a); }
+.btn--blue:hover    { background: var(--blue-a); }
+.btn--ghost:hover   { background: var(--border-hover); }
+.titlebar__btn         { transition: all 150ms ease-out; }
+.titlebar__btn:hover   { background: var(--border-hover); }
+.titlebar__btn--close:hover { background: var(--danger); text-color: var(--text); }
+.tabs__tab             { transition: all 150ms ease-out; }
+.tabs__tab:hover       { background: var(--raised); }
 .btn:disabled          { text-color: var(--faint); }
 .btn--primary:disabled { color: var(--border); }
 .btn--danger:disabled  { color: var(--border); }

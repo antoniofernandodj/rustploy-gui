@@ -38,12 +38,22 @@ component {
     }
   }
 
+  progressbar(if = @archive_upload_active, equals = true, :value = archive_upload_percent)
+
   row(class = env__add) {
     button(
       class = "btn btn--primary",
       on_click = archive_upload,
       disabled = @busy_archive_upload,
       text = "Enviar zip",
+    )
+
+    button(
+      class = btn-secondary,
+      on_click = archive_upload_cancel,
+      if = @archive_upload_active,
+      equals = true,
+      text = "Cancelar",
     )
 
     button(

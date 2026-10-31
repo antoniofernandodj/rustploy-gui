@@ -1665,9 +1665,9 @@ dependencies = [
 
 [[package]]
 name = "glacier-ui"
-version = "0.142.0"
+version = "0.145.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9317d19a7fabb22cf183b2c2880d107cda4efe5c1233ab09baca3b23eac4d27a"
+checksum = "ca022f79a28b9da612a20820147bbf555c3d7ce2599c654bbf28bbd26fda591b"
 dependencies = [
  "base64",
  "console_error_panic_hook",
@@ -1686,6 +1686,7 @@ dependencies = [
  "log",
  "mlua",
  "notify-rust",
+ "pulldown-cmark",
  "regex",
  "rfd",
  "roxmltree 0.21.1",
@@ -3883,6 +3884,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulldown-cmark"
+version = "0.13.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3db2be46835f013dd3f4fa7f5f7402c537787b54ebb6fe2b94bbdd7e2669bb7b"
+dependencies = [
+ "bitflags 2.13.2",
+ "memchr",
+ "unicase",
+]
+
+[[package]]
 name = "pulp"
 version = "0.22.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4356,7 +4368,7 @@ dependencies = [
 
 [[package]]
 name = "rustploy-gui"
-version = "0.1.32"
+version = "0.1.33"
 dependencies = [
  "anyhow",
  "chrono",
@@ -5278,6 +5290,12 @@ dependencies = [
  "tempfile",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "unicase"
+version = "2.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "357cc3acc6a036009fd6c973ed009037c732d60d0b4f6c673e9041497482a28f"
 
 [[package]]
 name = "unicode-bidi"

@@ -33,7 +33,140 @@ declare function viewport(): Viewport
 
 -- HTTP, ou leitura de arquivo local quando a URL começa com `file://`
 -- (glacier-ui 0.49+): devolve o mesmo FetchResult, com o conteúdo no `body`.
+-- `opts`: method, headers, body, body_base64, body_file (caminho: o corpo é o conteúdo cru do arquivo), timeout (ms), response ("base64"),
+-- `max_redirects` (segue até N redirecionamentos; padrão 0), `max_bytes` (teto do corpo da resposta),
+-- `cookies` (false = ignora o jar), `signal` (um `abort_controller()`),
+-- `on_progress` (function(p: FetchProgress): envio e recebimento, ver abaixo),
+-- `multipart` ({ fields = {…}, files = { { name, path, filename?, content_type? } } }).
+-- `phase` é "upload" (corpo do pedido) ou "download" (corpo da resposta); `total` é o
+-- tamanho do corpo enviado / o Content-Length da resposta (nil se não houver).
+export type FetchProgress = { phase: string, done: number, total: number?, fraction: number? }
+
 declare function fetch(url: string, opts: any?): FetchResult
+
+-- Cancelamento: `fetch(url, { signal = ctl })` termina com `ok = false`,
+-- `error = "cancelado"` quando `ctl:abort()` é chamado.
+export type AbortController = {
+    abort: (self: AbortController) -> (),
+    aborted: (self: AbortController) -> boolean,
+}
+declare function abort_controller(): AbortController
+
+-- Esvazia o jar de cookies (do host dado, ou de todos sem argumento).
+declare function clear_cookies(host: string?): ()
+
+-- Baixa um recurso remoto direto para um arquivo local, em bytes crus (sem
+-- passar pelo texto/UTF-8 do `fetch`, que corromperia um binário). `body` do
+-- retorno vem sempre vazio — o conteúdo foi para `path`, não para a resposta.
+-- É o caminho certo para cachear uma imagem remota e exibi-la com
+-- `<image source="{path}">`.
+declare function download_file(url: string, path: string, opts: any?): FetchResult
+
+-- ── http: cliente HTTP reutilizável sobre `fetch` ─────────────────────────
+-- `http(base_url?, opts?)` devolve um objeto com base_url / headers / query /
+-- timeout / retries de base, interceptors de requisição e resposta, e error
+-- handlers. Todo método de chamada SUSPENDE, como o `fetch` cru.
+
+export type HttpResponse = {
+    ok: boolean,
+    status: number,
+    body: string,
+    error: string,
+    -- Corpo já decodificado, ou `nil` se não era JSON.
+    json: any,
+    -- `{ method, url }` da chamada que produziu esta resposta.
+    request: { method: string, url: string },
+}
+
+export type HttpRequest = {
+    method: string,
+    path: string,
+    headers: { [string]: any },
+    query: { [string]: any },
+    body: any,
+    timeout: number?,
+}
+
+export type HttpError = {
+    status: number,
+    error: string,
+    url: string,
+    method: string,
+    attempt: number,
+    body: string,
+}
+
+export type HttpOptions = {
+    headers: { [string]: any }?,
+    query: { [string]: any }?,
+    timeout: number?, -- ms, por requisição
+    retries: number?, -- tentativas EXTRAS em falha de rede / 429 / 5xx
+    retry_on: ((res: HttpResponse) -> boolean)?, -- sobrescreve o critério padrão
+    cookies: boolean?, -- false = este cliente ignora o jar de cookies
+}
+
+export type HttpRequestSpec = {
+    method: string?,
+    path: string?,
+    url: string?, -- apelido de `path`; uma URL absoluta ignora a base_url
+    headers: { [string]: any }?,
+    query: { [string]: any }?,
+    body: any,
+    body_file: string?, -- caminho: o corpo é o conteúdo cru do arquivo (sem base64)
+    timeout: number?,
+    cookies: boolean?, -- false = esta chamada ignora o jar
+    signal: AbortController?, -- cancela a chamada (e ela não é repetida)
+    on_progress: ((p: FetchProgress) -> ())?, -- envio/recebimento (~20x/s)
+    -- multipart/form-data; o Content-Type (com o boundary) é do motor
+    multipart: { fields: { [string]: any }?, files: { { name: string, path: string, filename: string?, content_type: string? } }? }?,
+}
+
+export type HttpClient = {
+    base_url: string,
+    headers: { [string]: any },
+    query: { [string]: any },
+    timeout: number?,
+    retries: number,
+
+    set_cookies: (self: HttpClient, on: boolean) -> HttpClient,
+    clear_cookies: (self: HttpClient) -> HttpClient,
+    set_base_url: (self: HttpClient, u: string) -> HttpClient,
+    set_header: (self: HttpClient, k: string, v: any) -> HttpClient,
+    set_headers: (self: HttpClient, t: { [string]: any }) -> HttpClient,
+    remove_header: (self: HttpClient, k: string) -> HttpClient,
+    set_query: (self: HttpClient, k: string, v: any) -> HttpClient,
+    set_timeout: (self: HttpClient, ms: number?) -> HttpClient,
+    set_retries: (self: HttpClient, n: number) -> HttpClient,
+    set_retry_on: (self: HttpClient, fn: (res: HttpResponse) -> boolean) -> HttpClient,
+
+    on_request: (self: HttpClient, fn: (req: HttpRequest) -> HttpRequest?) -> HttpClient,
+    on_response: (self: HttpClient, fn: (res: HttpResponse) -> HttpResponse?) -> HttpClient,
+    on_error: (self: HttpClient, fn: (err: HttpError) -> ()) -> HttpClient,
+
+    extend: (self: HttpClient, base_path: string?, opts: HttpOptions?) -> HttpClient,
+
+    request: (self: HttpClient, spec: HttpRequestSpec) -> HttpResponse,
+    get: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
+    delete: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
+    head: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
+    options: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
+    -- O método HTTP QUERY (RFC 10008): seguro e idempotente, com a consulta no corpo.
+    query: (self: HttpClient, path: string, body: any, spec: HttpRequestSpec?) -> HttpResponse,
+    post: (self: HttpClient, path: string, body: any?, spec: HttpRequestSpec?) -> HttpResponse,
+    put: (self: HttpClient, path: string, body: any?, spec: HttpRequestSpec?) -> HttpResponse,
+    patch: (self: HttpClient, path: string, body: any?, spec: HttpRequestSpec?) -> HttpResponse,
+}
+
+declare function http(base_url: string?, opts: HttpOptions?): HttpClient
+
+-- Timers (glacier-ui 0.62+)
+export type Timer = {
+    id: number,
+    cancel: (self: Timer) -> any,
+}
+
+declare function after(ms: number, callback: (() -> ()) | string): Timer
+declare function every(ms: number, callback: (() -> ()) | string): Timer
 -- Escrita de arquivo local (glacier-ui 0.49+), contraparte do
 -- `fetch("file://…")`. Devolve `true` no sucesso, ou `false, mensagem` na
 -- falha.
@@ -189,11 +322,23 @@ export type AppUpdatePlan = {
 declare app_update: {
     info: () -> AppUpdateInfo,
     plan: (release_json: string) -> (AppUpdatePlan?, string?),
-    install: (
+    -- Baixa (com progresso), autentica (pkexec) e instala numa thread; volta na hora.
+    install_start: (
         deb_url: string,
         signature_url: string,
         deb_name: string
-    ) -> (boolean, string),
+    ) -> (boolean, string?),
+    -- `ok`/`message` só aparecem depois do fim; `total`/`percent` só com Content-Length.
+    install_status: () -> {
+        running: boolean,
+        phase: string,
+        done: number,
+        total: number?,
+        percent: number?,
+        ok: boolean?,
+        message: string?,
+    },
+    install_cancel: () -> (),
     restart: () -> string?,
     -- Windows: o resultado da troca feita antes desta janela abrir (`nil` se não houve).
     last_result: () -> (boolean?, string?),

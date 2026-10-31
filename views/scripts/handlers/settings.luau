@@ -784,6 +784,8 @@ function M.update_app_check(): ()
     end
     local info = native.info()
     ctx.update_app_current_version = info.version
+    ctx.update_app_running = ctx.update_app_running or "false"
+    ctx.update_app_percent = ctx.update_app_percent or 0
     ctx.update_app_can_update = info.can_update and "true" or "false"
     ctx.update_app_install_kind = info.install_kind
     ctx.update_app_manual_command = info.os == "windows"
@@ -834,41 +836,30 @@ function M.update_app_check(): ()
         or "O app está na versão mais recente."
 end
 
--- Baixa o pacote, pede a senha (pkexec) e instala; ao fim reabre o app. A janela fica sem
--- responder enquanto isso (download + senha + instalação): a confirmação avisa.
-function update_app_apply(): ()
+-- Acompanha a instalação que o Rust faz numa thread (`app_update.install_start`): atualiza a
+-- barra e a mensagem a cada 250 ms e, no fim, reabre o app (ou mostra a causa da falha).
+local function update_app_poll(is_zip: boolean): ()
     local native = app_update
-    if not native or ctx.update_app_deb_url == "" then
+    if not native then
         return
     end
-    local is_zip = ctx.update_app_install_kind == "zip"
-    local confirmed = confirm {
-        title = "Atualizar o app?",
-        message = "O app baixa a versão "
-            .. ctx.update_app_latest_version
-            .. (
-                is_zip
-                    and ", confere a assinatura e fecha para trocar os arquivos; depois reabre. "
-                or ", pede a senha de administrador e a instala; depois reabre. "
-            )
-            .. "Esta janela pode ficar sem responder por alguns instantes. "
-            .. "Só um pacote assinado pelo projeto é instalado.",
-        confirm_label = "Atualizar",
-        destructive = true,
-    }
-    if not confirmed then
+    local status = native.install_status()
+    if status.running then
+        ctx.update_app_percent = status.percent or 0
+        ctx.update_app_message = if status.percent
+            then `{status.phase}… {math.floor(status.percent)}%`
+            else `{status.phase}…`
+        after(250, function(): ()
+            update_app_poll(is_zip)
+        end)
         return
     end
-    ctx.update_app_message = "atualizando…"
-    local install_ok, install_message = native.install(
-        ctx.update_app_deb_url,
-        ctx.update_app_signature_url,
-        ctx.update_app_deb_name
-    )
-    if not install_ok then
+
+    ctx.update_app_running = "false"
+    if not status.ok then
         ctx.update_app_message = "A atualização do app falhou: "
-            .. tostring(install_message)
-        toast { message = tostring(install_message), kind = "error" }
+            .. tostring(status.message)
+        toast { message = tostring(status.message), kind = "error" }
         return
     end
     ctx.update_app_message = is_zip
@@ -884,6 +875,50 @@ function update_app_apply(): ()
                 .. ". Abra o Rustploy de novo."
             )
     end
+end
+
+-- Cancela o download em andamento (depois dele, a senha e a instalação não se cancelam).
+function update_app_cancel(): ()
+    if app_update then
+        app_update.install_cancel()
+    end
+end
+
+-- Baixa o pacote, pede a senha (pkexec) e instala; ao fim reabre o app. Tudo roda numa thread
+-- do app: a janela continua respondendo e a barra mostra o download.
+function update_app_apply(): ()
+    local native = app_update
+    if not native or ctx.update_app_deb_url == "" then
+        return
+    end
+    local is_zip = ctx.update_app_install_kind == "zip"
+    local confirmed = confirm {
+        title = "Atualizar o app?",
+        message = "O app baixa a versão "
+            .. ctx.update_app_latest_version
+            .. (is_zip and ", confere a assinatura e fecha para trocar os arquivos; depois reabre. " or ", pede a senha de administrador e a instala; depois reabre. ")
+            .. "Só um pacote assinado pelo projeto é instalado.",
+        confirm_label = "Atualizar",
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    ctx.update_app_message = "atualizando…"
+    ctx.update_app_percent = 0
+    local started, start_error = native.install_start(
+        ctx.update_app_deb_url,
+        ctx.update_app_signature_url,
+        ctx.update_app_deb_name
+    )
+    if not started then
+        ctx.update_app_message = "A atualização do app falhou: "
+            .. tostring(start_error)
+        toast { message = tostring(start_error), kind = "error" }
+        return
+    end
+    ctx.update_app_running = "true"
+    update_app_poll(is_zip)
 end
 
 -- Texto do que o daemon sabe sobre a atualização em curso ou a última tentativa

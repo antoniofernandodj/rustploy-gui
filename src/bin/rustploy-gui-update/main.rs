@@ -27,8 +27,18 @@
 //! portátil pelo zip assinado da release e reabre o app (`portable.rs`).
 
 // Sem janela de console no Windows: o app o roda em segundo plano.
-#![cfg_attr(windows, windows_subsystem = "windows")] #[cfg(unix)] mod helper;
+#![cfg_attr(windows, windows_subsystem = "windows")]
+#[cfg(unix)]
+mod helper;
 // Compilado também nos testes do Linux: a troca da pasta é só `std::fs` e dá para testar aqui.
-#[cfg(any(windows, test))] #[cfg_attr(not(windows), allow(dead_code))] mod portable;
-#[cfg(unix)] fn main() -> std::process::ExitCode { helper::run() }
-#[cfg(windows)] fn main() -> std::process::ExitCode { portable::run() }
+#[cfg(any(windows, test))]
+#[cfg_attr(not(windows), allow(dead_code))]
+mod portable;
+#[cfg(unix)]
+fn main() -> std::process::ExitCode {
+    helper::run()
+}
+#[cfg(windows)]
+fn main() -> std::process::ExitCode {
+    portable::run()
+}
