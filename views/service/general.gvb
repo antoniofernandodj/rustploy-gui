@@ -20,13 +20,12 @@ component {
       }
 
       form(
-        class = form-panel,
         if = @service_loading,
         not_equals = true,
         name = service_rename,
         on_submit = save_service_name,
         on_validation_error = service_rename_show_validation_errors,
-        spacing = 6,
+        class = "form-panel form-panel--tight",
       ) {
         text("NOME DO SERVIÇO", class = u-label-cap)
 
@@ -53,11 +52,11 @@ component {
       }
 
       form(
-        class = form-panel,
         if = @service_loading,
         not_equals = true,
         name = general,
         on_submit = general_save,
+        class = form-panel,
       ) {
         // Serviços Compose (bancos/brokers) editam o YAML direto; não têm
         // provider Git/Registry.

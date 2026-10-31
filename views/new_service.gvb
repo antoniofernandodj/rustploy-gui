@@ -281,7 +281,7 @@ component {
 
     // ── Application ─────────────────────────────────────────────────────
     if @new_service_step == "app_form" {
-      form(name = new_service_app, on_submit = new_service_create, width = fill) {
+      form(name = new_service_app, on_submit = new_service_create, class = form) {
         column(class = form-panel) {
           text("NOVA APPLICATION", class = u-label-cap)
           text("NOME", class = u-label-cap)
@@ -336,7 +336,7 @@ component {
 
     // ── Compose ─────────────────────────────────────────────────────────
     if @new_service_step == "compose_form" {
-      form(name = new_service_compose, on_submit = new_service_create, width = fill) {
+      form(name = new_service_compose, on_submit = new_service_create, class = form) {
         column(class = form-panel) {
           text("NOVA COMPOSE STACK", class = u-label-cap)
           text("NOME", class = u-label-cap)
@@ -391,7 +391,7 @@ component {
     // ── Database (form do banco escolhido) ──────────────────────────────
     if @new_service_step == "db_form" {
       scrollable(direction = vertical, class = u-fill-all) {
-        form(name = new_service_database, on_submit = new_service_create, width = fill) {
+        form(name = new_service_database, on_submit = new_service_create, class = form) {
           column(class = form-panel) {
             text("NOVA @new_service_database_label", class = u-label-cap)
             text("NOME", class = u-label-cap)
@@ -530,7 +530,7 @@ component {
     // ── Template: configuração ───────────────────────────────────────────
     if @new_service_step == "template_form" {
       scrollable(direction = vertical, class = u-fill-all) {
-        form(name = new_service_template, on_submit = new_service_create, width = fill) {
+        form(name = new_service_template, on_submit = new_service_create, class = form) {
           column(class = form-panel) {
             text("@new_service_template_name — CONFIGURAR", class = u-label-cap)
             text("NOME DO SERVIÇO", class = u-label-cap)

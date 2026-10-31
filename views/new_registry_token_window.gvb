@@ -43,8 +43,7 @@ screen(title = "Novo token — Rustploy") {
             name = new_registry_token_form,
             on_submit = new_registry_token_create,
             on_validation_error = new_registry_token_show_validation_errors,
-            width = fill,
-            spacing = 10,
+            class = "form form--gap-10",
           ) {
             text("NOME", class = field__label)
 

@@ -1,6 +1,6 @@
 // Web Server (default)
 component {
-  form(name = settings, on_submit = settings_save, width = fill) {
+  form(name = settings, on_submit = settings_save, class = form) {
     scrollable(direction = vertical, class = u-fill-all) {
       column(class = form-panel) {
         text("URL PÚBLICA DA API", class = u-label-cap)

@@ -36,7 +36,7 @@ component {
         }
       }
 
-      form(name = login, on_submit = connect, spacing = 16, width = fill) {
+      form(name = login, on_submit = connect, class = "form form--gap-16") {
         column(class = field) {
           row(class = field__row) {
             text("CONNECTION TOKEN", class = "field__label u-fill")

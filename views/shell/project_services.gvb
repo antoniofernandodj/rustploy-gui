@@ -57,8 +57,7 @@ component {
             name = edit_project,
             on_submit = save_project_edit,
             on_validation_error = project_edit_show_validation_errors,
-            spacing = 6,
-            width = fill,
+            class = "form form--gap-6",
           ) {
             input(
               class = field__input,

@@ -37,8 +37,7 @@ screen(title = "Novo projeto — Rustploy") {
         name = new_project_form,
         on_submit = submit_project,
         on_validation_error = new_project_show_validation_errors,
-        width = fill,
-        spacing = 14,
+        class = "form form--gap-14",
       ) {
         column(class = field) {
           text("NOME", class = field__label)

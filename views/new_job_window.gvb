@@ -118,8 +118,7 @@ screen(title = "Novo job — Rustploy") {
           form(
             name = new_job_form,
             on_submit = new_job_create,
-            width = fill,
-            spacing = 10,
+            class = "form form--gap-10",
           ) {
             text("NOME", class = field__label)
 

@@ -10,9 +10,9 @@ component {
   }
 
   form(
-    class = form-panel,
     name = healthcheck,
     on_submit = healthcheck_save,
+    class = form-panel,
   ) {
     text("KIND", class = u-label-cap)
 

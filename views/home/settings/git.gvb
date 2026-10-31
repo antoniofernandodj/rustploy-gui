@@ -80,8 +80,7 @@ component {
       form(
         name = git_provider,
         on_submit = git_provider_connect,
-        spacing = 10,
-        width = fill,
+        class = "form form--gap-10",
       ) {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {

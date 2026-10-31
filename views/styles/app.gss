@@ -264,6 +264,17 @@
    padding: 24;
    spacing: 10;
 }
+/* O mesmo painel com os campos mais juntos (o formulário de renomear). */
+.form-panel--tight { spacing: 6; }
+
+/* Formulário sem painel: ocupa a largura do pai; o espaço entre os campos vem
+   do modificador. Antes era `width`/`spacing` inline em cada `form(...)`. */
+.form        { width: fill; }
+.form--gap-6  { spacing: 6; }
+.form--gap-8  { spacing: 8; }
+.form--gap-10 { spacing: 10; }
+.form--gap-14 { spacing: 14; }
+.form--gap-16 { spacing: 16; }
 /* Ponto colorido do state-cell/rp-badge — compartilhado; o rótulo e a paleta
    (`state-cell--<kind>`) moram no <style> do state_cell.gv. */
 .status-dot { size: 11; }

@@ -28,8 +28,7 @@ component {
       name = env_add,
       on_submit = env_add,
       on_validation_error = env_show_validation_errors,
-      width = fill,
-      spacing = 8,
+      class = "form form--gap-8",
     ) {
       row(class = env__add) {
         input(
