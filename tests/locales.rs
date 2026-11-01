@@ -2,7 +2,7 @@
 //!
 //! Duas famílias de chave convivem: a **semântica** do markup (`{t('docker_images.no_images')}`,
 //! sempre com ponto e sem espaço) e o **texto de origem** do Luau (`i18n.tr("Remover tag?")`, o
-//! próprio texto é a chave). Este teste guarda a primeira: toda chave usada num `.gvb` existe nos
+//! próprio texto é a chave). Este teste guarda a primeira: toda chave usada num `.gv` existe nos
 //! dois idiomas, e nenhuma chave semântica sobra sem uso. Para a segunda não há o que conferir —
 //! um texto sem entrada só aparece no idioma em que foi escrito, de propósito.
 
@@ -19,12 +19,12 @@ fn read_catalog(name: &str) -> BTreeMap<String, String> {
         .unwrap_or_else(|error| panic!("{}: JSON inválido: {error}", path.display()))
 }
 
-fn gvb_files(directory: &Path, out: &mut Vec<PathBuf>) {
+fn gv_files(directory: &Path, out: &mut Vec<PathBuf>) {
     for entry in std::fs::read_dir(directory).expect("ler views/").flatten() {
         let path = entry.path();
         if path.is_dir() {
-            gvb_files(&path, out);
-        } else if path.extension().is_some_and(|extension| extension == "gvb") {
+            gv_files(&path, out);
+        } else if path.extension().is_some_and(|extension| extension == "gv") {
             out.push(path);
         }
     }
@@ -33,13 +33,13 @@ fn gvb_files(directory: &Path, out: &mut Vec<PathBuf>) {
 /// Toda chave de `{t('chave'…)}` escrita nas views.
 fn keys_used_in_views() -> BTreeSet<String> {
     let mut files = Vec::new();
-    gvb_files(
+    gv_files(
         &Path::new(env!("CARGO_MANIFEST_DIR")).join("views"),
         &mut files,
     );
     let mut keys = BTreeSet::new();
     for file in files {
-        let text = std::fs::read_to_string(&file).expect("ler .gvb");
+        let text = std::fs::read_to_string(&file).expect("ler .gv");
         let mut rest = text.as_str();
         while let Some(start) = rest.find("{t('") {
             let after = &rest[start + 4..];

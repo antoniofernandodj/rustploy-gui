@@ -101,7 +101,7 @@ function init(): ()
     ctx.new_job_kind = "manual"
     ctx.new_job_hours = "6"
     -- Uma chave só, "HH:MM": quem edita o horário agora é o <timeedit> do
-    -- .gvb. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
+    -- .gv. `unpack_recurrence` segue devolvendo hora/minuto separados (é o
     -- formato do daemon) e format.hour_minute_join/hour_minute_split fazem a
     -- ponte.
     ctx.new_job_time = "03:00"

@@ -1,0 +1,39 @@
+// Linha do catálogo de templates de aplicação: logo à esquerda (vetor ou
+// raster conforme logo_kind), nome + descrição, e o botão "Escolher" à direita.
+component {
+  props {
+    prop(name = name)
+    prop(name = description)
+    prop(name = logo)
+    prop(name = logo_kind)
+    prop(name = action)
+  }
+
+  resources {
+    style """
+    .tpl-row          { width: fill; padding: 12 0; align_y: center; spacing: 14; }
+    .tpl-row__logo-box { width: 34; height: 34; align_x: center; align_y: center; }
+    .tpl-row__logo    { width: 30; height: 30; }
+    """
+  }
+
+  row(class = tpl-row) {
+    column(class = tpl-row__logo-box) {
+      svg(class = tpl-row__logo, src = @logo, if = @logo_kind, equals = svg)
+      image(class = tpl-row__logo, src = @logo, if = @logo_kind, equals = img)
+    }
+
+    column(class = page-head__titles) {
+      text("@name", class = env__key)
+
+      text(
+        "@description",
+        class = u-muted,
+        if = @description,
+        not_equals = "",
+      )
+    }
+
+    button(class = "btn btn--primary", on_click = @action, text = "{t('template_row.choose')}")
+  }
+}

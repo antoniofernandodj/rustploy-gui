@@ -1,5 +1,5 @@
 //! O que o Luau não alcança: o manifesto do `app(...)` (título, tamanho e fontes
-//! das janelas), a estrutura dos arquivos `.gvb`, o escopo da avaliação e a
+//! das janelas), a estrutura dos arquivos `.gv`, o escopo da avaliação e a
 //! construção dos widgets do iced.
 //!
 //! O resto do que antes morava aqui — as telas sobem, mostram o texto e o botão
@@ -15,8 +15,8 @@ fn boot() -> GlacierUI {
     let ws_root = std::path::Path::new(crate_dir);
     std::env::set_current_dir(ws_root).expect("cd workspace root");
     let mut m = GlacierUI::new();
-    m.register_app("views/app.gvb")
-        .expect("app.gvb + imports must register (includes app.gss parsing — an unknown property drops the whole sheet)");
+    m.register_app("views/app.gv")
+        .expect("app.gv + imports must register (includes app.gss parsing — an unknown property drops the whole sheet)");
     m.set_initial_screen("app");
     m
 }
@@ -28,15 +28,15 @@ fn cd_ws_root() {
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 }
 
-/// A janela "Novo projeto" (`new_project_form.gvb` + `new_project_window.luau`) é um motor à parte, aberto por `open_window`.
+/// A janela "Novo projeto" (`new_project_form.gv` + `new_project_window.luau`) é um motor à parte, aberto por `open_window`.
 #[test]
 fn new_project_form_window_renders() {
     cd_ws_root();
     let mut m = GlacierUI::new();
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
-    m.register_app_screen("views/app.gvb", "new_project")
-        .expect("new_project_form.gvb must register");
+    m.register_app_screen("views/app.gv", "new_project")
+        .expect("new_project_form.gv must register");
     m.set_initial_screen("new_project");
     m.reevaluate_all().expect("eval new_project_form");
     assert!(m.render("new_project").is_ok(), "render new_project_form");
@@ -151,7 +151,7 @@ fn every_screen_builds_iced_elements() {
         let mut c = GlacierUI::new();
         c.define_data("api_url", "http://localhost");
         c.define_data("api_token", "t");
-        c.register_app_screen("views/app.gvb", tela)
+        c.register_app_screen("views/app.gv", tela)
             .unwrap_or_else(|e| panic!("a tela {tela} deve registrar: {e}"));
         c.set_initial_screen(tela);
         c.reevaluate_all()
@@ -168,7 +168,7 @@ fn only_the_active_screen_is_evaluated() {
     for importado in ["Login", "Shell"] {
         assert!(
             m.is_registered(importado),
-            "{importado} deveria ter sido importado por app.gvb"
+            "{importado} deveria ter sido importado por app.gv"
         );
     }
     assert!(m.render("app").is_ok(), "a tela ativa renderiza");
@@ -182,7 +182,7 @@ fn only_the_active_screen_is_evaluated() {
 }
 
 /// Janela, título e tamanho (glacier-ui 0.117): a janela PRINCIPAL é do `app(...)`
-/// de `views/app.gvb` (tamanho, mínimo, moldura, ícone); o título é da `screen`
+/// de `views/app.gv` (tamanho, mínimo, moldura, ícone); o título é da `screen`
 /// (acompanha a navegação); e o tamanho de cada janela FILHA vai na chamada
 /// `open_window{ component = "…", size = "…" }` dos handlers, porque a `screen` é
 /// só conteúdo.
@@ -190,8 +190,8 @@ fn only_the_active_screen_is_evaluated() {
 fn windows_declare_title_and_size() {
     cd_ws_root();
     let mut m = GlacierUI::new();
-    m.register_app("views/app.gvb")
-        .expect("app.gvb deve registrar");
+    m.register_app("views/app.gv")
+        .expect("app.gv deve registrar");
     let janela = m
         .main_window_meta()
         .expect("o app declara a janela principal");
@@ -245,7 +245,7 @@ fn windows_declare_title_and_size() {
     ];
     for (tela, titulo, tamanho, handler) in filhas {
         let mut c = GlacierUI::new();
-        c.register_app_screen("views/app.gvb", tela)
+        c.register_app_screen("views/app.gv", tela)
             .unwrap_or_else(|e| panic!("a tela {tela} deve registrar: {e}"));
         let meta = c.current_screen_meta().cloned().unwrap_or_default();
         assert_eq!(meta.title.as_deref(), titulo, "título de {tela}");
@@ -269,11 +269,11 @@ fn windows_declare_title_and_size() {
 #[test]
 fn app_declares_fonts_and_daemon_settings() {
     cd_ws_root();
-    let src = std::fs::read_to_string("views/app.gvb").expect("ler app.gvb");
-    let xml = glacier_ui::gvb::desugar(&src).expect("desugar app.gvb");
-    let m = glacier_ui::parse_app_manifest(&xml, Some("views/app.gvb"))
-        .expect("app.gvb parseia")
-        .expect("app.gvb tem raiz app");
+    let src = std::fs::read_to_string("views/app.gv").expect("ler app.gv");
+    let xml = glacier_ui::gv::desugar(&src).expect("desugar app.gv");
+    let m = glacier_ui::parse_app_manifest(&xml, Some("views/app.gv"))
+        .expect("app.gv parseia")
+        .expect("app.gv tem raiz app");
     assert_eq!(m.app.font.as_deref(), Some("JetBrains Mono"));
     assert_eq!(m.app.antialiasing, Some(false));
     assert_eq!(m.app.toast_period, Some(250));
@@ -308,7 +308,7 @@ fn comments_outside(src: &str) -> String {
         .join("\n")
 }
 
-/// Todo `.gvb` abre com a casca certa: `app` no manifesto (`views/app.gvb`),
+/// Todo `.gv` abre com a casca certa: `app` no manifesto (`views/app.gv`),
 /// `screen` nas telas abertas em outra janela e `component` no resto.
 #[test]
 fn every_template_starts_with_a_header() {
@@ -319,7 +319,7 @@ fn every_template_starts_with_a_header() {
         let mut arquivos: Vec<_> = std::fs::read_dir(&dir)
             .unwrap_or_else(|e| panic!("ler {}: {e}", dir.display()))
             .map(|e| e.expect("entry").path())
-            .filter(|p| p.extension().is_some_and(|e| e == "gvb"))
+            .filter(|p| p.extension().is_some_and(|e| e == "gv"))
             .collect();
         arquivos.sort();
         for caminho in arquivos {
@@ -336,7 +336,7 @@ fn every_template_starts_with_a_header() {
             let e_component = primeira == "component";
             assert!(
                 e_app || e_screen || e_component,
-                "{}: todo .gvb começa com app (o manifesto), screen (uma tela) ou component \
+                "{}: todo .gv começa com app (o manifesto), screen (uma tela) ou component \
                  (o resto) — o motor aceita a forma sem cabeçalho, então ninguém além deste \
                  teste avisaria",
                 caminho.display()
@@ -347,8 +347,8 @@ fn every_template_starts_with_a_header() {
                 caminho.display()
             );
             assert!(
-                !e_app || caminho.file_name().is_some_and(|n| n == "app.gvb"),
-                "{}: só views/app.gvb é o manifesto (raiz app)",
+                !e_app || caminho.file_name().is_some_and(|n| n == "app.gv"),
+                "{}: só views/app.gv é o manifesto (raiz app)",
                 caminho.display()
             );
             vistos += 1;

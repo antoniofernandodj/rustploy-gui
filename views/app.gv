@@ -1,0 +1,112 @@
+// O app Rustploy: a raiz do arquivo é o `app(...)`, e as telas — a janela
+// principal e as cinco janelas auxiliares — são filhas dele (glacier-ui 0.117+).
+app(
+  id = rustploy,
+  single_instance = true,
+  remember_geometry = true,
+  size = "1280 820",
+  min_size = "640 680",
+  icon = "views/assets/rustploy.png",
+  decorations = false,
+  font = "JetBrains Mono",
+  application_id = "rustploy-gui",
+  antialiasing = false,
+  toast_period = 250,
+) {
+  // Declarações GLOBAIS: valem para todas as janelas (cada janela é um motor
+  // isolado e as carrega).
+  resources {
+    link(rel = theme, href = "views/styles/theme.json")
+    link(rel = stylesheet, href = "views/styles/app.gss")
+
+    // JetBrains Mono, embutida no binário de release (src/embedded.rs).
+    font(src = "assets/fonts/JetBrainsMono-Regular.ttf", family = "JetBrains Mono")
+    font(src = "assets/fonts/JetBrainsMono-Bold.ttf")
+
+    tray(icon = "views/assets/rustploy.png", tooltip = Rustploy) {
+      item(label = "Open Rustploy", on_click = tray:open)
+      check(label = Notifications, checked = @__notifications, on_click = notifications:toggle)
+      separator
+      item(label = "Quit Rustploy", on_click = tray:quit)
+    }
+  }
+
+  // A janela principal: mostra o Login ou o Shell (app conectado), com a
+  // titlebar customizada. Script: scripts/app.luau.
+  screen(name = app, initial = true, title = Rustploy) {
+    resources {
+      link(rel = import, href = login.gv, as = Login)
+      link(rel = import, href = shell.gv, as = Shell)
+
+      script(src = "scripts/app.luau")
+    }
+
+    column(class = screen) {
+      // ── Top edge + top corners (north / nw / ne) ───────────────────────────
+      row(class = resize__top) {
+        column(class = "resize__corner resize__corner--nw", on_press = window:resize:nw)
+        column(class = resize__edge-h, on_press = window:resize:n)
+        column(class = "resize__corner resize__corner--ne", on_press = window:resize:ne)
+      }
+
+      // ── Middle band: left edge | body | right edge (west / east) ────────────
+      row(class = resize__mid) {
+        column(class = resize__edge-v, on_press = window:resize:w)
+
+        column(class = resize__body) {
+          // ── Custom titlebar ───────────────────────────────────────────
+          row(class = titlebar) {
+            row(
+              class = titlebar__drag,
+              on_press = window:drag,
+              on_double_click = window:maximize,
+            ) {
+              text("●", class = titlebar__dot)
+              text("{t('common.rustploy')}", class = titlebar__title)
+            }
+
+            button(class = titlebar__btn, on_click = window:minimize, text = "—")
+            // Quadrado = maximizar; dois sobrepostos = restaurar (a convenção da
+            // barra nativa). O estado vem do daemon do glacier, a cada resize.
+            if @glacier_window_maximized {
+              button(class = titlebar__btn, on_click = window:maximize) {
+                container(class = titlebar__icon-box) {
+                  svg(class = titlebar__icon, src = "assets/icons/win_restore.svg")
+                }
+              }
+            } else {
+              button(class = titlebar__btn, on_click = window:maximize) {
+                container(class = titlebar__icon-box) {
+                  svg(class = titlebar__icon, src = "assets/icons/win_maximize.svg")
+                }
+              }
+            }
+            button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+          }
+
+          if @screen == "login" {
+            Login
+          } else {
+            Shell
+          }
+        }
+
+        column(class = resize__edge-v, on_press = window:resize:e)
+      }
+
+      // ── Bottom edge + bottom corners (south / sw / se) ──────────────────────
+      row(class = resize__bottom) {
+        column(class = "resize__corner resize__corner--sw", on_press = window:resize:sw)
+        column(class = resize__edge-h, on_press = window:resize:s)
+        column(class = "resize__corner resize__corner--se", on_press = window:resize:se)
+      }
+    }
+  }
+
+  screen(name = log, src = "log_window.gv")
+  screen(name = new_job, src = "new_job_window.gv")
+  screen(name = new_service, src = "new_service_window.gv")
+  screen(name = new_project, src = "new_project_form.gv")
+  screen(name = new_registry_token, src = "new_registry_token_window.gv")
+  screen(name = service_export, src = "service_export_window.gv")
+}

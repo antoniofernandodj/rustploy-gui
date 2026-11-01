@@ -1,0 +1,313 @@
+// Detalhe de um serviço: cabeçalho com ações (deploy, stop, reload) e as abas
+// General (fonte), Connection, Domains, Environment, Deployments, Logs e
+// Advanced.
+component {
+  resources {
+    link(rel = import, href = "service/logs.gv", as = ServiceLogsTab)
+    link(rel = import, href = "service/general.gv", as = ServiceGeneralTab)
+    link(rel = import, href = "service/connection.gv", as = ServiceConnectionTab)
+    link(rel = import, href = "service/environment.gv", as = ServiceEnvironmentTab)
+    link(rel = import, href = "service/domains.gv", as = ServiceDomainsTab)
+    link(rel = import, href = "service/migrar.gv", as = ServiceMigrarTab)
+    link(rel = import, href = "service/databases.gv", as = ServiceDatabasesTab)
+    link(rel = import, href = "service/deployments.gv", as = ServiceDeploymentsTab)
+    link(rel = import, href = "service/healthcheck.gv", as = ServiceHealthcheckTab)
+    link(rel = import, href = "service/advanced.gv", as = ServiceAdvancedTab)
+
+    style """
+      /* Cabeçalho + ações */
+      .service__head      { width: fill; align_y: start; }
+      .service__title-row { width: fill; spacing: 14; align_y: center; }
+      .service__title     { width: fill; }
+      /* Sub-linha de status (badge + timer) logo abaixo do nome. */
+      .service__substatus { spacing: 10; align_y: center; }
+      .service__actions   { spacing: 10; align_y: center; }
+      .service__panels    { width: fill; spacing: 14; }
+      .tabs__scroll       { width: fill; }
+      .tabs__main         { width: shrink; spacing: 4; }
+      /* Corpo: conteúdo da aba + painel lateral */
+      .service__body      { width: fill; height: fill; spacing: 20; }
+      .service__main      { width: fill; height: fill; spacing: 16; }
+      .service__aside     { width: 360; height: fill; spacing: 16; }
+      .service__err       { size: 13; color: var(--error); }
+      /* Deployments (lista + build log) */
+      .table__col-dep-id        { width: 130; }
+      .table__col-dep-start     { width: fill; }
+      .deployments__image       { size: 11; color: var(--faint); padding: 2 0 0 0; }
+      .deployments__wrap        { width: fill; height: fill; spacing: 8; }
+      .deployments__list-scroll { width: fill; height: 240; }
+      .deployments__actions     { spacing: 8; align_y: center; }
+      /* Logs (aba Logs = launcher da janela isolada; painel usado só p/ layout) */
+      .log-panel       { width: fill; height: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 14 16; spacing: 8; }
+      .log-panel__body { width: fill; spacing: 2; }
+      .log-panel__line { width: fill; spacing: 12; }
+      .log-panel__time { width: 76; size: 11; color: var(--faint); }
+      .log-panel__text { width: fill; size: 12; color: #9DA7B3; }
+      /* Painel lateral (o `--fill` troca só a altura e o respiro) */
+      .aside-panel        { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 18; spacing: 8; }
+      .aside-panel--fill  { height: fill; padding: 14 16; }
+      /* Responsivo: estreita o painel lateral e aperta o corpo (glacier-ui 0.9.0+). */
+      @media (max-width: 900) {
+        .service__aside { width: 240; }
+        .service__body  { spacing: 12; }
+      }
+      @media (max-width: 560) {
+        .service__aside { width: 170; }
+      }
+    """
+  }
+
+  column(class = content) {
+    // ── Header: nome + estado + ações ──────────────────────────────────
+    row(class = service__head) {
+      column(class = page-head__titles) {
+        row(class = service__title-row) {
+          button(
+            class = "btn btn--ghost",
+            on_click = open_project:@service_project_id,
+            disabled = @busy_open_project,
+            text = "‹ @service_project",
+          )
+
+          text("@service_name", class = "page-head__title service__title")
+        }
+
+        row(class = service__substatus) {
+          rp-badge(color = @service_status_color, label = @service_status_label)
+
+          rp-badge(if = @service_warm_visible, equals = true, color = @service_warm_color, label = "◐ @service_warm_label")
+
+          row(class = badge, if = @service_deploy_running, equals = true) {
+            text("⏱", class = status-dot, color = #58A6FF)
+
+            text(
+              "@service_deploy_elapsed",
+              class = badge__label,
+              color = #58A6FF,
+            )
+          }
+        }
+
+        text(
+          "{t('service.cold', service_warm_reason=service_warm_reason)}",
+          if = @service_warm_reason,
+          not_equals = "",
+          class = u-muted,
+        )
+
+        text(
+          "@service_action_message",
+          if = @service_action_message,
+          not_equals = "",
+          class = u-muted,
+          color = @service_action_color,
+        )
+
+        row(class = "service__actions service__actions--compact") {
+          button(
+            class = "btn btn--primary",
+            on_click = service_deploy,
+            disabled = @busy_service_deploy,
+            text = "▶",
+            tooltip = "{t('service.deploy')}",
+          )
+
+          button(
+            class = "btn btn--blue btn--wide",
+            on_click = service_reload,
+            disabled = @busy_service_reload,
+            text = "⟳",
+            tooltip = "{t('service.reload')}",
+          )
+
+          button(
+            class = "btn btn--blue btn--wide",
+            on_click = service_rebuild,
+            disabled = @busy_service_rebuild,
+            text = "⚙",
+            tooltip = "{t('service.rebuild')}",
+          )
+
+          button(
+            class = "btn btn--danger",
+            on_click = service_stop,
+            disabled = @busy_service_stop,
+            text = "■",
+            tooltip = "{t('service.stop')}",
+          )
+
+          button(
+            if = @service_warm_visible,
+            equals = true,
+            class = "btn btn--ghost",
+            on_click = service_warm,
+            disabled = @busy_service_warm,
+            text = "◐",
+            tooltip = "{t('service.warm_builds_the_image_so')}",
+          )
+
+          button(
+            class = "btn btn--ghost",
+            on_click = open_export_window,
+            disabled = @busy_open_export_window,
+            text = "⇪",
+            tooltip = "{t('service.export_service')}",
+          )
+        }
+      }
+
+      row(class = "service__actions service__actions--full") {
+        button(class = "btn btn--primary", on_click = service_deploy, disabled = @busy_service_deploy, text = "{t('service.deploy')}")
+        button(class = "btn btn--blue btn--wide", on_click = service_reload, disabled = @busy_service_reload, text = "{t('service.reload')}")
+        button(class = "btn btn--blue btn--wide", on_click = service_rebuild, disabled = @busy_service_rebuild, text = "{t('service.rebuild')}")
+        button(class = "btn btn--danger", on_click = service_stop, disabled = @busy_service_stop, text = "{t('service.stop')}")
+        button(
+          if = @service_warm_visible,
+          equals = true,
+          class = "btn btn--ghost",
+          on_click = service_warm,
+          disabled = @busy_service_warm,
+          text = "{t('service.warm')}",
+        )
+        button(
+          class = "btn btn--ghost",
+          on_click = open_export_window,
+          disabled = @busy_open_export_window,
+          text = "{t('service.export_service')}",
+        )
+      }
+    }
+
+    // ── Abas ───────────────────────────────────────────────────────────
+    scroll(class = tabs__scroll, direction = horizontal) {
+      row(class = tabs__main) {
+        TabButton(
+          label = "{t('service.general')}",
+          current = @tab,
+          target = general,
+          action = tab:general,
+        )
+
+        TabButton(
+          label = "{t('service.connection')}",
+          current = @tab,
+          target = connection,
+          action = tab:connection,
+        )
+
+        TabButton(
+          label = "{t('service.environment')}",
+          current = @tab,
+          target = environment,
+          action = tab:environment,
+        )
+
+        TabButton(
+          label = "{t('service.domains')}",
+          current = @tab,
+          target = domains,
+          action = tab:domains,
+        )
+
+        TabButton(
+          label = "{t('common.deployments')}",
+          current = @tab,
+          target = deployments,
+          action = tab:deployments,
+        )
+
+        if @service_shared == "true" {
+          TabButton(
+            label = "{t('service.databases')}",
+            current = @tab,
+            target = databases,
+            action = tab:databases,
+          )
+        }
+
+        if @service_can_migrate == "true" {
+          TabButton(
+            label = "{t('common.migrate')}",
+            current = @tab,
+            target = migrar,
+            action = tab:migrar,
+          )
+        }
+
+        TabButton(
+          label = "{t('service.healthcheck')}",
+          current = @tab,
+          target = healthcheck,
+          action = tab:healthcheck,
+        )
+
+        TabButton(
+          label = "{t('service.logs')}",
+          current = @tab,
+          target = logs,
+          action = tab:logs,
+        )
+
+        TabButton(
+          label = "{t('service.advanced')}",
+          current = @tab,
+          target = advanced,
+          action = tab:advanced,
+        )
+      }
+    }
+
+    hr
+
+    // ── Corpo: conteúdo da aba + painel lateral ────────────────────────
+    row(class = service__body) {
+      column(class = service__main) {
+        text(
+          "@service_error",
+          if = @service_error,
+          not_equals = "",
+          class = service__err,
+        )
+        ServiceGeneralTab(if = @tab, equals = general)
+        ServiceConnectionTab(if = @tab, equals = connection)
+        ServiceEnvironmentTab(if = @tab, equals = environment)
+        ServiceDomainsTab(if = @tab, equals = domains)
+        ServiceMigrarTab(if = @tab, equals = migrar)
+        ServiceDatabasesTab(if = @tab, equals = databases)
+        ServiceDeploymentsTab(if = @tab, equals = deployments)
+        ServiceHealthcheckTab(if = @tab, equals = healthcheck)
+        ServiceLogsTab(if = @tab, equals = logs)
+        ServiceAdvancedTab(if = @tab, equals = advanced)
+      }
+
+      column(class = service__aside) {
+        column(class = aside-panel) {
+          text("{t('common.status')}", class = u-label-cap)
+          rp-badge(color = @service_status_color, label = @service_status_label)
+          text("{t('common.uptime')}", class = u-label-cap)
+          text("@daemon_uptime", class = kv-list__val)
+          text("{t('common.services')}", class = u-label-cap)
+          text("@services_label", class = kv-list__val)
+        }
+
+        column(class = "aside-panel aside-panel--fill") {
+          text("{t('service.logs_2')}", class = u-label-cap)
+
+          text(
+            "{t('service.runtime_and_build_logs_open')}",
+            class = u-muted,
+          )
+
+          row(class = env__add) {
+            button(
+              class = tabs__tab,
+              on_click = open_logs_window,
+              disabled = @busy_open_logs_window,
+              text = "{t('service.runtime_logs')}",
+            )
+          }
+        }
+      }
+    }
+  }
+}

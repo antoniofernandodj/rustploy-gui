@@ -1,0 +1,32 @@
+// Janela do wizard "Novo serviço": motor Glacier próprio, aberto por
+// open_window (handlers/wizard.luau → open_new_service_window), que semeia a
+// conexão + o projeto-alvo via open_window({ data = ...
+screen(title = "{t('new_service_window.new_service_rustploy')}") {
+  resources {
+    link(rel = import, href = new_service.gv, as = NewServiceWizard)
+
+    // Componentes que o corpo do wizard usa (o shell.gv os importava; num motor
+    // isolado precisamos reimportá-los).
+    link(rel = import, href = "components/picker_row.gv", as = PickerRow)
+    link(rel = import, href = "components/template_row.gv", as = TemplateRow)
+
+    script(src = "scripts/new_service_window.luau")
+  }
+
+  column(class = dialog__screen) {
+    row(class = titlebar) {
+      row(class = titlebar__drag, on_press = window:drag) {
+        text("●", class = titlebar__dot)
+        text("{t('new_service_window.new_service_rustploy')}", class = titlebar__title)
+      }
+
+      button(class = titlebar__btn, on_click = window:minimize, text = "—")
+      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+    }
+
+    // Corpo do wizard, rolável (os passos db_form/template_form são altos).
+    scrollable(class = dialog__body, direction = vertical) {
+      NewServiceWizard
+    }
+  }
+}

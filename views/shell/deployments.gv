@@ -1,0 +1,93 @@
+// Lista de deployments (view = deployments); importada por shell.gv.
+component {
+  resources {
+    component(name = SemDeployments) {
+      text("{t('deployments.no_deployment_yet')}", class = u-muted)
+    }
+  }
+
+  column(class = content) {
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        text("{t('common.deployments')}", class = page-head__title)
+
+        text(
+          "{t('deployments.real_time_status_of_services')}",
+          class = page-head__subtitle,
+        )
+      }
+
+      row(class = "page-head__stats page-head__stats--hide-lg") {
+        StatCard(label = "{t('common.status')}", value = @services_label, accent = 1)
+        StatCard(label = "{t('common.uptime')}", value = @daemon_uptime)
+      }
+
+      // Rótulo por extenso quando cabe; ícone + tooltip abaixo de 860px
+      // (alternância no app.gss, como as ações da tela de serviço).
+      button(
+        class = "btn btn--danger page-head__clear--full",
+        on_click = deployments_clear_finished,
+        disabled = @busy_deployments_clear_finished,
+        text = "{t('deployments.clean_stopped_failed')}",
+      )
+
+      button(
+        class = "btn btn--danger page-head__clear--compact",
+        on_click = deployments_clear_finished,
+        disabled = @busy_deployments_clear_finished,
+        text = "✕",
+        tooltip = "{t('deployments.clean_stopped_failed')}",
+      )
+    }
+
+    text(
+      "@deployments_message",
+      if = @deployments_message,
+      not_equals = "",
+      class = u-muted,
+    )
+
+    column(class = "panel panel--fill") {
+      tableview(
+        :items = deployments,
+        :sort = deployments_sort,
+        var = d,
+        header_class = "table__head table__head-cell",
+        row_class = "table__row table__cell table__row--divided",
+        class = u-fill-all,
+      ) {
+        tablecolumn(key = service, label = "{t('common.service')}", class = table__col-svc) {
+          TableLink(kind = service, id = @d.service_id, label = @d.service)
+        }
+
+        tablecolumn(key = project, label = "{t('common.project')}", class = table__col-proj) {
+          TableLink(kind = project, id = @d.project_id, label = @d.project)
+        }
+
+        tablecolumn(key = state_label, label = "{t('common.state')}", class = table__col-state) {
+          StateCell(kind = @d.state_kind, label = @d.state_label)
+        }
+
+        // Sem `key`: "2m 3s" não ordena como texto, e o valor cru não vem.
+        tablecolumn(label = "{t('common.duration')}", class = table__col-dur) {
+          text("@d.duration", class = table__cell)
+        }
+
+        tablecolumn(
+          key = start,
+          sort_key = start_iso,
+          label = "{t('common.start')}",
+          class = table__col-start,
+        ) {
+          text("@d.start", class = u-muted)
+        }
+
+        if @data_loading == "true" {
+          LoadingRow
+        } else {
+          SemDeployments
+        }
+      }
+    }
+  }
+}

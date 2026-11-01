@@ -14,7 +14,7 @@ fn main() -> iced::Result {
     #[cfg(debug_assertions)]
     {
         let (view_file, assets_env_var, installed_assets_dir) =
-            ("views/app.gvb", "RUSTPLOY_UI_ASSETS", "/usr/share/rustploy");
+            ("views/app.gv", "RUSTPLOY_UI_ASSETS", "/usr/share/rustploy");
         glacier_ui::locate_assets_and_chdir(view_file, assets_env_var, Some(installed_assets_dir));
     }
     app::run()

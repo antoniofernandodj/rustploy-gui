@@ -520,7 +520,7 @@ local function docker_cleanup_apply_config(config: any): ()
     ctx.docker_cleanup_kind = kind
     ctx.docker_cleanup_hours = hours
     -- Uma chave só, "HH:MM", porque quem edita agora é o <timeedit> em
-    -- home.gvb. `docker_cleanup_unpack_recurrence` continua devolvendo hora e
+    -- home.gv. `docker_cleanup_unpack_recurrence` continua devolvendo hora e
     -- minuto separados (é o formato do daemon); a junção acontece aqui, na
     -- fronteira.
     ctx.docker_cleanup_time = format.hour_minute_join(hour, minute)
@@ -562,7 +562,7 @@ end
 -- end
 
 -- Órfão desde que o seletor de dia da semana virou um <radiogroup> em
--- home.gvb: o builtin grava `docker_cleanup_weekday` sozinho, no update dele
+-- home.gv: o builtin grava `docker_cleanup_weekday` sozinho, no update dele
 -- em Rust, e ninguém mais dispara esta ação. Fica comentado porque volta a ser
 -- necessário se algum dia o grupo voltar a ser markup à mão (ex.: para
 -- recuperar a fileira de pílulas). function docker_cleanup_weekday(w: string):

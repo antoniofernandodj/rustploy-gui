@@ -5,7 +5,7 @@
 -- instante em que a sessão cai.
 
 local function nova(ctx_inicial)
-    local tela = component("views/app.gvb", ctx_inicial)
+    local tela = component("views/app.gv", ctx_inicial)
     tela:call("init")
     return tela
 end

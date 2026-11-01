@@ -1,0 +1,18 @@
+// Aba Logs do detalhe do serviço (importada por service.gv).
+component {
+  column(class = log-panel) {
+    text(
+      "{t('logs.runtime_logs_open_in_their_own')}",
+      class = u-muted,
+    )
+
+    row(class = env__add) {
+      button(
+        class = "btn btn--primary",
+        on_click = open_logs_window,
+        disabled = @busy_open_logs_window,
+        text = "{t('logs.open_logs_in_a_window')}",
+      )
+    }
+  }
+}

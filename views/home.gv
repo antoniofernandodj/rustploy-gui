@@ -1,0 +1,64 @@
+// Telas globais da sidebar, cada uma numa seção por valor de view: Monitoring,
+// Ingress, Deploy Engine, Docker (e Registry), Settings, Schedules e Suporte.
+component {
+  resources {
+    link(rel = import, href = "home/running.gv", as = HomeRunning)
+    link(rel = import, href = "home/monitoring.gv", as = HomeMonitoring)
+    link(rel = import, href = "home/ingress.gv", as = HomeIngress)
+    link(rel = import, href = "home/deploy_engine.gv", as = HomeDeployEngine)
+    link(rel = import, href = "home/docker.gv", as = HomeDocker)
+    link(rel = import, href = "home/settings.gv", as = HomeSettings)
+    link(rel = import, href = "home/schedules.gv", as = HomeSchedules)
+
+    style """
+      .table__col-icon  { width: 28; }
+      .table__col-act   { width: 120; align_x: end; text_align: end; }
+      .table__col-act-2 { width: 90; align_x: end; text_align: end; spacing: 8; }
+      .table__col-act-4 { width: 170; align_x: end; text_align: end; spacing: 8; }
+      /* Mesma linha de job acima, +1 controle (editar). */
+      .table__col-act-5 { width: 210; align_x: end; text_align: end; spacing: 8; }
+    """
+  }
+
+  column(class = content) {
+    // ── Em execução ────────────────────────────────────────────────────
+    if @view == "running" {
+      HomeRunning
+    }
+
+    // ── Monitoring ─────────────────────────────────────────────────────
+    if @view == "monitoring" {
+      HomeMonitoring
+    }
+
+    // ── Ingress ────────────────────────────────────────────────────────
+    if @view == "ingress" {
+      HomeIngress
+    }
+
+    // ── Deploy Engine ──────────────────────────────────────────────────
+    if @view == "deploy_engine" {
+      HomeDeployEngine
+    }
+
+    // ── Docker ─────────────────────────────────────────────────────────
+    if @view == "docker" {
+      HomeDocker
+    }
+
+    // ── Settings: sub-abas Web Server | Git ────────────────────────────
+    if @view == "settings" {
+      HomeSettings
+    }
+
+    // ── Schedules: jobs one-shot via docker-compose, de todos os projetos ──
+    if @view == "schedules" {
+      HomeSchedules
+    }
+
+    column(class = u-center-fill, if = @view, equals = support) {
+      text("{t('common.support')}", class = page-head__title)
+      text("{t('home.github_com_antoniofernandodj_rustploy')}", class = page-head__subtitle)
+    }
+  }
+}

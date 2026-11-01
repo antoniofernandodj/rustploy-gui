@@ -1,12 +1,12 @@
 # rustploy-gui por dentro
 
 Este documento explica o código do `rustploy-gui`: o **Rust** (`src/`, `build.rs`,
-`tests/`) e os **templates de markup** (`views/**/*.gvb`). Ele existe porque o código
+`tests/`) e os **templates de markup** (`views/**/*.gv`). Ele existe porque o código
 foi deliberadamente enxugado. No Rust, cada item tem **uma frase** de documentação (a que
-o `make index` usa como descrição) e nenhum comentário `//`. Nos `.gvb`, cada arquivo
+o `make index` usa como descrição) e nenhum comentário `//`. Nos `.gv`, cada arquivo
 guarda só a primeira frase do cabeçalho e comentários discretos de uma linha (divisores,
 rótulos). Tudo o que é *porquê*, *contexto* e *decisão descartada* mora aqui. Os nomes
-entre crases (`arquivo.rs::função`, `views/x.gvb`) apontam para onde cada assunto vive.
+entre crases (`arquivo.rs::função`, `views/x.gv`) apontam para onde cada assunto vive.
 
 Os assuntos, na ordem em que fazem sentido para quem chega agora:
 
@@ -15,7 +15,7 @@ Os assuntos, na ordem em que fazem sentido para quem chega agora:
 3. [A ponte do zip do Infra as Code](#3-a-ponte-do-zip-do-infra-as-code)
 4. [A API de agente (saiu do app)](#4-a-api-de-agente-saiu-do-app)
 5. [Os testes e o que cada um trava](#5-os-testes-e-o-que-cada-um-trava)
-6. [Os templates `.gvb` por dentro](#6-os-templates-gvb-por-dentro)
+6. [Os templates `.gv` por dentro](#6-os-templates-gv-por-dentro)
 
 Documentos relacionados: `docs/plano-chave-de-acesso-e-mcp.md` (login por chave
 e a API de agente no daemon) e `docs/plano-reforma-gui-glacier-0.102.md` (a reforma da UI).
@@ -25,7 +25,7 @@ e a API de agente no daemon) e `docs/plano-reforma-gui-glacier-0.102.md` (a refo
 ## 1. O que é este crate e o que ele não é
 
 O Rustploy GUI é um cliente desktop cuja interface é descrita em **templates de
-markup** (`views/**/*.gvb`) e renderizada pelo motor `glacier-ui` publicado. Toda
+markup** (`views/**/*.gv`) e renderizada pelo motor `glacier-ui` publicado. Toda
 a lógica de rede vive em **Luau** (`views/scripts/app.luau` e os módulos que ele
 carrega), falando HTTP/JSON e SSE com o daemon. O Rust é só a casca da janela:
 `src/main.rs` e `src/app/mod.rs`.
@@ -33,7 +33,7 @@ carrega), falando HTTP/JSON e SSE com o daemon. O Rust é só a casca da janela:
 ### O manifesto `app(...)`
 
 A configuração de janela, de aplicativo e as telas moram no **markup** de
-`views/app.gvb`, cuja raiz é o `app(...)` (glacier-ui 0.117+):
+`views/app.gv`, cuja raiz é o `app(...)` (glacier-ui 0.117+):
 
 - `id`, `single_instance` e `remember_geometry` — instância única, geometria
   lembrada e o diretório de dados do `storage` do Luau;
@@ -51,7 +51,7 @@ Sobra para o Rust só o que o markup não expressa:
 1. a **extensão Luau do `.zip`** (ver [seção 3](#3-a-ponte-do-zip-do-infra-as-code));
 2. a **fonte de assets embutida** em release (ver [seção 2](#2-onde-estão-os-assets)).
 
-O `.main_template("views/app.gvb")` carrega o manifesto. O caminho é relativo ao
+O `.main_template("views/app.gv")` carrega o manifesto. O caminho é relativo ao
 workspace, onde `assets::locate_and_chdir` deixa o diretório corrente. Um
 `.main(|motor| …)` só serviria para registrar um `impl Component` escrito em
 Rust, e este app não tem nenhum.
@@ -110,8 +110,8 @@ executável que rodou o comando (os arquivos vão embutidos no binário).
 
 Todo template, folha de estilo, ícone e logo de blueprint é referenciado por um
 caminho **relativo ao diretório corrente do processo** — tanto do Rust
-(`views/styles/app.gss`, `views/app.gvb`, `assets/blueprint-logos/<id>/<logo>`)
-quanto de *dentro* dos próprios templates (`import … from="views/service.gvb"`,
+(`views/styles/app.gss`, `views/app.gv`, `assets/blueprint-logos/<id>/<logo>`)
+quanto de *dentro* dos próprios templates (`import … from="views/service.gv"`,
 `theme "views/styles/theme.json"`, `Svg "assets/icons/…"`).
 
 Em vez de reescrever cada literal, a solução tem duas metades, uma por modo de
@@ -136,7 +136,7 @@ A ordem de resolução:
 4. `SYSTEM_PREFIX` (`/usr/share/rustploy`) — o layout do pacote Debian (ver a
    metadata `deb` no `Cargo.toml`).
 
-O teste de validade é a existência de `views/app.gvb` (`MARKER`), o arquivo que
+O teste de validade é a existência de `views/app.gv` (`MARKER`), o arquivo que
 precisa existir em qualquer base válida. A função é *best-effort*: se nenhum
 candidato servir, o diretório corrente fica como está e o app mostra um erro de
 "stylesheet/template não encontrado", que é o sinal mais claro possível.
@@ -155,7 +155,7 @@ diretório corrente antes do modo standalone), roteados por prefixo:
 
 | prefixo de runtime | árvore embutida |
 |---|---|
-| `views/…` | `VIEWS` — `.gvb`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau` (resolvidos por `require`/`<script src>`) |
+| `views/…` | `VIEWS` — `.gv`, `styles/*.gss`, `styles/theme.json`, `scripts/**/*.luau` (resolvidos por `require`/`<script src>`) |
 | `assets/icons/…` | `ICONS` — ícones SVG referenciados por `<svg src="assets/icons/…">` |
 | `assets/blueprint-logos/…` | `BLUEPRINTS` — logos dos templates, via o `{logo}` data-driven do catálogo do daemon (`<id>/<arquivo>`) |
 | `assets/fonts/…` | `FONTS` — as fontes declaradas com `font(src = …)` no `app(...)` (JetBrains Mono) |
@@ -195,7 +195,7 @@ O build script faz duas coisas.
   o resto da pasta — `docker-compose.yml`, `template.toml`, `.md` — é do daemon e a
   GUI nunca o lê.
 - *Por que reduzir.* Os logos raster originais têm ~512×512 e aparecem a ~30px
-  (`template_row.gvb`). Sem redução, a GPU faria um *downscale* de ~17× por
+  (`template_row.gv`). Sem redução, a GPU faria um *downscale* de ~17× por
   quadro (serrilhado) e o binário carregaria ~12 MB de logo. Por isso os raster
   são reduzidos com **Lanczos3** para no máximo `LOGO_MAX_DIM` = **96px** na
   maior dimensão, preservando a proporção, e re-codificados como PNG. 96px cobre
@@ -330,7 +330,7 @@ conforme o que cada runner enxerga:
   `tests/handlers/connection.test.luau`.
 - **`tests/app_manifest.rs`** (`cargo test --test app_manifest`): o que o Luau não
   alcança — título e tamanho das janelas e as fontes (`app(...)`), a casca de cada
-  `.gvb`, a avaliação escopada, as regras do `<form>` de "Novo projeto", o `open` do
+  `.gv`, a avaliação escopada, as regras do `<form>` de "Novo projeto", o `open` do
   `<Reveal>` da gaveta e a **construção dos widgets do iced** de cada visão e janela.
   O Luau avalia o markup mas não desenha: um widget que o iced recusa só aparece aqui
   ou no `make run`.
@@ -342,12 +342,12 @@ Todo template parseia, toda tela/aba avalia e monta uma árvore de elementos `ic
 sem erro. Pega KDL malformado e propriedade `.gss` desconhecida — que derrubaria
 uma folha de estilo inteira — sem precisar de display. `boot` sobe o motor do jeito
 que o `main.rs` faria, mas da raiz do workspace para os caminhos de template
-resolverem; o `app.gvb` já linka o `app.gss` (`<link rel="stylesheet">`, global
+resolverem; o `app.gv` já linka o `app.gss` (`<link rel="stylesheet">`, global
 desde o glacier-ui 0.23), então `register_component` o pega sem um
 `load_stylesheet` à parte.
 
 **Janelas à parte.** "Novo projeto", "Novo job", "Logs" e o wizard "Novo serviço"
-são, cada uma, um motor isolado aberto por `open_window`; não passam pelo `app.gvb`,
+são, cada uma, um motor isolado aberto por `open_window`; não passam pelo `app.gv`,
 então cada teste as registra e renderiza por conta própria, **semeando** a conexão
 (e projetos/serviços já buscados) como `open_window({ data = … })` faria. O init do
 script real tenta o catálogo, mas o *fetch* suspende sem executor — por isso os
@@ -399,11 +399,11 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   não um nó `Text` filho; as quatro ações são as únicas a usar esses textos, então não
   há colisão com os ícones da sidebar (que são nós `<text>`, não botões).
 - **Avaliação escopada** (glacier 0.38+): só a tela ativa é construída, não todo
-  template registrado. Importa mais aqui que na média dos apps: o `app.gvb` importa a
+  template registrado. Importa mais aqui que na média dos apps: o `app.gv` importa a
   árvore inteira de views, e avaliar um template inlina recursivamente tudo o que ele
   usa — então a versão antiga reconstruía a UI completa uma vez **por template
   importado**, a cada tecla digitada e a cada linha de log vinda do SSE. O teste
-  trava o ganho: registrar o `app.gvb` e ativá-lo deve deixar exatamente **uma**
+  trava o ganho: registrar o `app.gv` e ativá-lo deve deixar exatamente **uma**
   árvore avaliada (as views importadas ficam registradas, mas só a tela ativa é
   avaliada; as demais são inlinadas dentro dela).
 - **Logout zera a RAM da sessão.** Nada do daemon anterior pode continuar no contexto
@@ -414,7 +414,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   conectada "do trivial ao sensível" e inspeciona o contexto — que deve voltar ao
   estado de boot, não ao da sessão.
 - **O item "Projects" não apaga nas sub-telas.** Regressão: ele perdia o fundo azul
-  ao entrar num projeto ou serviço, porque o `nav_item.gvb` comparava `{view}` contra
+  ao entrar num projeto ou serviço, porque o `nav_item.gv` comparava `{view}` contra
   um `target` de **uma** view só (`equals`) e `project_services`/`service` não são
   `"projects"`. A correção usa `one_of` (glacier-ui 0.57.8): `target="projects
   project_services service"` casa com qualquer das três. `nav-item--active` é a classe do
@@ -423,7 +423,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   `node.kind`, não o `node.background` genérico (esse é para containers/rows). O
   `on_click` chega **namespaceado** pelo componente que o hospeda (`namespace_action`,
   em `eval.rs` do glacier-ui): mesmo com o valor vindo de uma prop
-  (`action="nav_projects"` em `shell.gvb`), o botão vive dentro do template do
+  (`action="nav_projects"` em `shell.gv`), o botão vive dentro do template do
   `NavItem`, então o dispatch final é `NavItem::nav_projects`.
 - **Janela, título e tamanho** (glacier-ui 0.117). A janela **principal** é do
   `app(...)` (tamanho, mínimo, moldura, ícone); o título é da `screen` (acompanha a
@@ -437,20 +437,20 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   `antialiasing`, período dos toasts e `application_id`. Um atributo apagado por
   engano não quebra render nenhum — o app só passa a abrir sem a fonte e com MSAA
   ligado, em silêncio.
-- **Todo `.gvb` abre com a casca certa:** `app` no manifesto, `screen` nas telas
+- **Todo `.gv` abre com a casca certa:** `app` no manifesto, `screen` nas telas
   abertas em outra janela e `component` no resto. O teste precisa existir porque o
   glacier-ui aceita a forma sem cabeçalho (declarações soltas na raiz) por
   compatibilidade: nada no build reclamaria de um arquivo que voltasse a ela, e o que
   se perde é silencioso — numa tela, título e tamanho caem no padrão; num componente,
   some a fronteira entre declaração e layout. É **textual** de propósito (um
   `component` não declara nada por desenho, então só o texto diz em que forma o
-  arquivo está) e **varre o diretório** em vez de listar arquivos: o alvo é o `.gvb`
+  arquivo está) e **varre o diretório** em vez de listar arquivos: o alvo é o `.gv`
   que ainda não foi escrito. `comentarios_fora` remove `//` e `/* … */` para que "a
   primeira tag" seja a primeira de verdade (todo template abre com um comentário de
   cabeçalho). `views/` mistura manifesto, telas e views internas (`component`); só
   `views/components/` é homogêneo — nada ali é tela. Uma guarda impede o teste de
   passar vazio (um caminho errado tornaria tudo um *no-op*), com comparação frouxa
-  de propósito: acrescentar um `.gvb` não deve obrigar a editar o teste.
+  de propósito: acrescentar um `.gv` não deve obrigar a editar o teste.
 - **As grades de cards passam o item inteiro** ao componente via `spread="{c}"`
   (glacier-ui 0.62). Isso troca um atributo por campo por um só — e move a checagem
   do contrato para o **dado**: um campo que o `format/dashboard.luau` não emitir vira
@@ -491,17 +491,17 @@ bandeja (`tray`) **não** são traduzidos (o menu nativo é montado uma vez na s
 **Os testes** comparam o texto em inglês. Para um texto novo: ponha a chave nos dois `.json`
 (ou o `i18n.tr` no Luau), rode `glacier test` e `cargo test --test locales`.
 
-## 6. Os templates `.gvb` por dentro
+## 6. Os templates `.gv` por dentro
 
 Os templates descrevem a interface; o comportamento mora em Luau (`views/scripts/`).
-Esta seção reúne o que antes estava nos comentários dos `.gvb`, agrupado por assunto.
+Esta seção reúne o que antes estava nos comentários dos `.gv`, agrupado por assunto.
 A estrutura de arquivos (um roteador fino por tela, um arquivo por view ou aba) e as
 regras de divisão estão no `AGENTS.md`, em "Dividir um template grande em arquivos".
 
 ### 6.1 Regras que valem para todos os templates
 
 **Um só script, um só contexto.** Toda a lógica de rede e de estado (login, navegação,
-busca, stream SSE e ações) vive em Luau, no script que o `app.gvb` carrega
+busca, stream SSE e ações) vive em Luau, no script que o `app.gv` carrega
 (`scripts/app.luau`, sucessor de `app/root.rs` + `app/net/*`). É o único script ativo.
 Como o contexto do glacier é **global**, os templates importados (login, shell, home,
 service) só têm markup, e os handlers deles resolvem para as funções desse script.
@@ -588,7 +588,7 @@ compartilhado e responsivo (as regras de `@media`) vive em `app.gss`, não nos
 templates: cruzar arquivo com o inline deixaria a precedência ambígua. A cor de um estado
 vem da camada GSS, nunca de hex vindos do Rust.
 
-### 6.2 O manifesto (`views/app.gvb`)
+### 6.2 O manifesto (`views/app.gv`)
 
 A raiz do arquivo é o `app(...)` e as telas — a janela principal e as cinco auxiliares —
 são filhas dele (glacier-ui 0.117+).
@@ -619,11 +619,11 @@ são filhas dele (glacier-ui 0.117+).
   (`open_window("log", …)`), com o próprio script — o `init` delas não roda na principal.
   Os tamanhos estão nos handlers.
 
-### 6.3 O shell (`views/shell.gvb` e `views/shell/`)
+### 6.3 O shell (`views/shell.gv` e `views/shell/`)
 
 O shell é a casca do app conectado: sidebar, topbar e as views de projeto (Deployments,
 Projects, serviços de um projeto, detalhe de serviço); delega as telas globais ao
-`home.gvb`.
+`home.gv`.
 
 - **A sidebar é uma `<drawer>`** (glacier-ui 0.92+, Onda 2 da reforma,
   `docs/plano-reforma-gui-glacier-0.102.md`). Largura, padding e spacing vêm das props do
@@ -640,20 +640,20 @@ Projects, serviços de um projeto, detalhe de serviço); delega as telas globais
   `drawer`. Sai `drawer::toggle:menu`, que o dispatch roteia para o `<drawer>` (o alias
   minúsculo é um componente registrado).
 - **Detalhe de serviço e o wizard.** O wizard "Novo serviço" saiu do shell
-  (`view = new_service`): agora abre numa janela à parte (`new_service_window.gvb`),
+  (`view = new_service`): agora abre numa janela à parte (`new_service_window.gv`),
   disparada por `open_new_service_window`.
-- **Projects.** Criar projeto abre uma janela à parte (`new_project_form.gvb`, motor
+- **Projects.** Criar projeto abre uma janela à parte (`new_project_form.gv`, motor
   Glacier próprio); ao concluir, ela envia um `broadcast("project_created")` que o
   `on_broadcast` (`handlers/projects.luau`) recebe para atualizar a grade. Ver
   `open_new_project_window`.
-- **Projeto aberto (`project_services.gvb`).** Barra superior com *voltar* à esquerda e as
+- **Projeto aberto (`project_services.gv`).** Barra superior com *voltar* à esquerda e as
   ações do projeto empurradas para a extremidade direita (`hspacer` = `width: fill`); em
   modo de edição as ações somem (o form tem Salvar/Cancelar). A grade de serviços usa
   `virtualize` = a altura de **uma** fileira de cartões: só as fileiras visíveis são
   montadas e as de fora viram um vão do tamanho exato (glacier-ui 0.77, ver
   `PRIMITIVAS.md`). O valor é a altura do card; o `spacing: 10` da `.grid` o motor soma
   sozinho. Errar desalinha a barra de rolagem, não quebra.
-- **Aba Variáveis (`project_env.gvb`).** No modo *secret* o campo valor passa a receber o
+- **Aba Variáveis (`project_env.gv`).** No modo *secret* o campo valor passa a receber o
   **nome** de um secret do projeto (a referência, não o conteúdo), que o daemon decifra no
   deploy. Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar,
   reancoram na variável seguinte da nova ordem), mas sem delete — removem-se editando o
@@ -662,7 +662,7 @@ Projects, serviços de um projeto, detalhe de serviço); delega as telas globais
   chave mestre do servidor), então não há coluna de valor nem edição — sobrescrever é salvar
   de novo com o mesmo nome. Ver `handlers/secrets.luau` e `docs/secrets.md`.
 
-### 6.4 As telas globais (`views/home.gvb` e `views/home/`)
+### 6.4 As telas globais (`views/home.gv` e `views/home/`)
 
 Cada tela é uma seção por valor de `view`: Monitoring, Ingress, Deploy Engine, Docker (e
 Registry), Settings, Schedules e Suporte.
@@ -696,11 +696,11 @@ Registry), Settings, Schedules e Suporte.
     outros pares lista/count, a faria aparecer quando a busca só não achou nada, não quando o
     registry está genuinamente vazio), e o `fallback` distingue "registry vazio" de "busca sem
     resultado".
-- **CSS compartilhado das colunas de ação.** `align-x` só afeta como um container de
+- **CSS compartilhado das colunas de ação.** `align_x` só afeta como um container de
   linha/coluna posiciona seus **filhos**; não alinha o texto de um elemento dentro da própria
-  caixa (isso é `text-align`). Como a classe `.col_act` é reaproveitada no texto do cabeçalho e
-  no container dos botões, sem `text-align` o rótulo "AÇÃO" ficava colado à esquerda enquanto
-  os botões (`align-x: end`) ficavam colados à direita. `.col_act_2` é a linha de repositório
+  caixa (isso é `text_align`). Como a classe `.col_act` é reaproveitada no texto do cabeçalho e
+  no container dos botões, sem `text_align` o rótulo "AÇÃO" ficava colado à esquerda enquanto
+  os botões (`align_x: end`) ficavam colados à direita. `.col_act_2` é a linha de repositório
   do Registry (2 ícones: ver tags/remover, com tooltip), `.col_act_4` a de job em Schedules (4
   controles: rodar/logs/pausar-ativar/remover) e `.col_act_5` a mesma com um controle a mais
   (editar).
@@ -730,7 +730,7 @@ Registry), Settings, Schedules e Suporte.
     `docker_cleanup_time` é `"HH:MM"`; `format.hour_minute_join`/`format.hour_minute_split` fazem a ponte com o `{hour, minute}`
     que o daemon espera — o contrato HTTP não mudou.
 
-### 6.5 O detalhe do serviço (`views/service.gvb` e `views/service/`)
+### 6.5 O detalhe do serviço (`views/service.gv` e `views/service/`)
 
 O cabeçalho tem as ações (deploy, stop, reload), e as abas são General (fonte), Connection,
 Domains, Environment, Deployments, Logs e Advanced (mais Databases, Migrar e Healthcheck
@@ -780,7 +780,7 @@ conforme o serviço).
   conteúdo. `"…"` não interpreta `\n` e só aceitaria a quebra literal, com as linhas de
   continuação coladas na margem; `"""` dobra as linhas em espaços. O `l"""` (de *linhas*, não de
   *raw*) mantém as quebras, tira o recuo comum e continua interpolando `@nome`; o mesmo vale para
-  o placeholder do compose em `new_job_window.gvb`.
+  o placeholder do compose em `new_job_window.gv`.
 - **Environment.** Valem as regras de `scrollable` e do editor `.env` de [6.1](#61-regras-que-valem-para-todos-os-templates).
   Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar, reancoram na
   seguinte), mas sem delete; a classe da linha muda para `kv_row_drag` no item agarrado
@@ -812,7 +812,7 @@ conforme o serviço).
 ### 6.6 As janelas auxiliares
 
 Cada uma é um motor Glacier **isolado** e abre só a própria tela. O tema e o `app.gss` são
-declarações globais do `app` (`app.gvb`), que cada janela carrega. Todas são *borderless*
+declarações globais do `app` (`app.gv`), que cada janela carrega. Todas são *borderless*
 (`decorations = false`, como a principal): a titlebar é custom e as ações `window:*`
 (`drag`/`minimize`/`close`) são tratadas no runtime contra o id da janela; as de diálogo não têm
 *maximize*.
@@ -823,7 +823,7 @@ dentro: um `fetch` rodado no `init()` é descartado pelo motor (só ações desp
 executor), a mesma razão de `new_service_window.luau`. A `screen` é só conteúdo — o tamanho vai
 no `open_window{ size = … }`.
 
-- **Logs (`log_window.gvb`).** Janela de **logs ao vivo** (runtime ou build), aberta por
+- **Logs (`log_window.gv`).** Janela de **logs ao vivo** (runtime ou build), aberta por
   `handlers/services.luau` (`open_logs_window`/`open_build_logs_window`). É genérica: o script
   decide o tipo pelos dados semeados — `api_url`/`api_token`, `log_window_title`, `log_window_stream_url`
   (endpoint SSE dedicado) e `log_window_seed` (histórico inicial); ver `scripts/log_window.luau`. O motivo
@@ -837,7 +837,7 @@ no `open_window{ size = … }`.
   scroll). O botão ↓ rola até o fundo (`textarea_end:`) sem precisar arrastar a roda. O
   `textarea` do glacier-ui desenha a própria barra de rolagem (arraste o *thumb*, clique na
   trilha) e rola também por roda, teclado e pelos botões ↑/↓.
-- **Novo job (`new_job_window.gvb`).** Aberta por `handlers/jobs.luau` (`open_new_job_window`), que
+- **Novo job (`new_job_window.gv`).** Aberta por `handlers/jobs.luau` (`open_new_job_window`), que
   semeia a conexão + os catálogos de projetos/serviços já buscados pela janela principal. Passos:
   escolher projeto → escolher serviço gatilho (rede + env vars de base) → formulário (nome,
   compose, `main_service`, recorrência). Ao concluir emite `broadcast("job_created")` e fecha.
@@ -853,20 +853,20 @@ no `open_window{ size = … }`.
     `new_job_create`.
   - *Recorrência diária:* os pares HORA/MINUTO de texto livre viraram um `<timeedit>` só (chave
     `new_job_time`, `"HH:MM"`) — a mesma troca e o mesmo motivo da limpeza automática (ver 6.4).
-- **Novo projeto (`new_project_form.gvb`).** Aberta por `handlers/projects.luau`
+- **Novo projeto (`new_project_form.gv`).** Aberta por `handlers/projects.luau`
   (`open_new_project_window`). Ao concluir, o script (`scripts/new_project_window.luau`) emite
   `broadcast("project_created")` e chama `close_window()`. A validação é declarada no `<form>` (ver
   6.1).
-- **Novo token do registry (`new_registry_token_window.gvb`).** Aberta por
+- **Novo token do registry (`new_registry_token_window.gv`).** Aberta por
   `handlers/registry.luau` (`registry_open_token_window`), que semeia a conexão + o host do
   registry. Fluxo: formulário (nome + escopo pull/push) → `RegistryTokenCreate` → o segredo
   aparece em texto **uma vez**, com botão copiar. A janela **não** fecha sozinha (diferente da de
   job), porque o usuário precisa copiar antes de perder o valor. O
   `broadcast("registry_token_created")` dispara na hora da criação (não só ao fechar), para a
   lista da janela principal atualizar mesmo se o usuário nunca clicar em "Fechar".
-- **Novo serviço (`new_service_window.gvb` + `new_service.gvb`).** A janela é aberta por
+- **Novo serviço (`new_service_window.gv` + `new_service.gv`).** A janela é aberta por
   `handlers/wizard.luau` (`open_new_service_window`), que semeia a conexão + o projeto-alvo, e
-  reaproveita o corpo do wizard (`new_service.gvb`, importado como `<NewServiceWizard/>`); a
+  reaproveita o corpo do wizard (`new_service.gv`, importado como `<NewServiceWizard/>`); a
   lógica vem de `handlers/wizard.luau`, carregada pelo script de entrada. Ao criar, o wizard emite
   `broadcast("service_created")` e chama `close_window()`. O wizard espelha o fluxo do antigo
   remote-client (Application / Database / Compose / Template): tipo → formulário por tipo; o passo
@@ -902,7 +902,7 @@ props.
   lado; tinha virado uma `row` com `on_press` (o mesmo mecanismo de clique dos handles de
   resize/drag — qualquer nó com `on_press`/cursor vira um `mouse_area`), hack removido na 0.57.6
   (`<Button>` com filhos: um filho vira o conteúdo direto, mais de um vira uma `Row` implícita
-  respeitando `spacing`/`align-y` do próprio nó). O `tooltip="{label}"` (glacier-ui 0.37.5)
+  respeitando `spacing`/`align_y` do próprio nó). O `tooltip="{label}"` (glacier-ui 0.37.5)
   mostra o rótulo completo ao pairar o mouse; o *wrap* acontece depois do `mouse_area` em
   `widget.rs`, então o hover funciona na linha inteira, não só no ícone. A prop `view` **não**
   entra em `props`: ela vem do contexto global, não de quem instancia o item, e declarar só o
@@ -913,7 +913,7 @@ props.
   (rodar ou cancelar, aquecer, ver logs, pausar ou ativar, editar, remover). A linha de job tinha
   seis botões e não cabia; agora ela mostra o estado de aquecimento e este botão. É um `<popup>`
   do glacier (um painel centrado sobre a janela, com Esc e clique fora fechando) dentro do
-  componente, instanciado uma vez por linha em `shell/project_jobs.gvb` e em `home/schedules.gvb`.
+  componente, instanciado uma vez por linha em `shell/project_jobs.gv` e em `home/schedules.gv`.
   O estado de aberto/fechado fica numa chave por linha, `job_actions_open_<job_id>`: o `value` do
   popup é interpolado com o laço (`process_tpl` no eval), e fechar é zerar a chave
   (`close_job_actions` em `handlers/jobs.luau`, que zera todas porque `job_run_cancel` e
@@ -958,4 +958,4 @@ props.
   que mantém a coluna de texto alinhada. A origem da imagem vem no atributo `src` (interpolado do
   `{logo}`): o parser lê o *source* de `<svg>`/`<image>` só de atributo, nunca do conteúdo entre as
   tags. A descrição só é renderizada quando existe — uma linha vazia empurraria o nome para cima e
-  o desalinharia do logo (`align-y: center` da linha).
+  o desalinharia do logo (`align_y: center` da linha).

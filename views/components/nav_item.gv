@@ -1,0 +1,49 @@
+// Item de navegação da sidebar: ícone (sempre visível) + rótulo (some abaixo de
+// 900px de largura — ver @media abaixo, espelhando o breakpoint em que a
+// sidebar encolhe no shell.gv).
+component {
+  props {
+    prop(name = label)
+    prop(name = icon)
+    prop(name = target)
+    prop(name = action)
+    // "true" mostra um ponto ao lado do rótulo (ex.: há versão nova em Settings).
+    prop(name = badge, default = "false")
+  }
+
+  resources {
+    style """
+    /* Bloco `nav-item`: o modificador `--active` na raiz recolore os filhos pelo
+       combinador `>`, em vez de cada filho levar um par de classes _on/_off. */
+    .nav-item         { width: fill; padding: 11 14; spacing: 10; align_y: center; color: var(--surface); cursor: pointer; }
+    .nav-item--active { color: var(--blue); }
+    .nav-item__icon   { size: 14; color: var(--faint); }
+    .nav-item__label  { color: var(--muted); }
+    .nav-item__badge  { size: 10; color: var(--green); }
+    .nav-item--active > .nav-item__icon  { color: var(--text); }
+    .nav-item--active > .nav-item__label { color: var(--text); }
+    """
+  }
+
+  button(
+    class = "nav-item nav-item--active",
+    if = @view,
+    one_of = @target,
+    on_click = @action,
+    tooltip = @label,
+  ) {
+    text("@icon", class = nav-item__icon)
+    text("@label", class = nav-item__label)
+    if @badge == "true" {
+      text("●", class = nav-item__badge)
+    }
+  }
+
+  button(class = nav-item, else, on_click = @action, tooltip = @label) {
+    text("@icon", class = nav-item__icon)
+    text("@label", class = nav-item__label)
+    if @badge == "true" {
+      text("●", class = nav-item__badge)
+    }
+  }
+}

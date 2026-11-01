@@ -11,7 +11,7 @@ pub(crate) fn run() -> iced::Result {
         .locale_json("en", include_str!("../../locales/en.json"))
         .locale_json("pt-BR", include_str!("../../locales/pt-BR.json"))
         .default_locale("en")
-        .main_template("views/app.gvb")
+        .main_template("views/app.gv")
         // `app_update`: a ponte nativa do "Atualizar app" (ver updater.rs).
         .lua_extension(updater::install_lua)
         .install_desktop("packaging/", "rustploy-gui");

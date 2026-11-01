@@ -1,0 +1,65 @@
+// Seção `monitoring` (view = monitoring) das telas globais; importada por home.gv.
+component {
+  resources {
+    // Vazio das listas Docker/Monitoring e dos repositórios do registry.
+    component(name = SemMetricas) {
+      text(
+        "{t('monitoring.no_metrics_yet_waiting_for_the')}",
+        class = u-muted,
+      )
+    }
+  }
+
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text("{t('common.monitoring')}", class = page-head__title)
+
+      text(
+        "{t('monitoring.host_and_per_container_resource')}",
+        class = page-head__subtitle,
+      )
+    }
+  }
+
+  row(class = "page-head__stats page-head__stats--hide-md") {
+    StatCard(label = "{t('common.cpu')}", value = @host_cpu)
+    StatCard(label = "{t('monitoring.memory')}", value = @host_memory, accent = 1)
+    StatCard(label = "{t('monitoring.disk')}", value = @host_disk)
+    StatCard(label = "{t('monitoring.load')}", value = @host_load)
+  }
+
+  column(class = "panel panel--fill") {
+    tableview(
+      :items = monitoring,
+      :sort = monitoring_sort,
+      var = m,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
+    ) {
+      tablecolumn(key = name, label = "{t('monitoring.container')}", class = table__col-svc) {
+        TableLink(kind = service, id = @m.service_id, label = @m.name)
+      }
+
+      tablecolumn(key = project, label = "{t('common.project')}", class = table__col-proj) {
+        TableLink(kind = project, id = @m.project_id, label = @m.project)
+      }
+      tablecolumn(key = cpu, sort_key = cpu_n, label = "{t('common.cpu')}", class = table__col-dur)
+      tablecolumn(key = mem, sort_key = mem_n, label = "{t('common.mem')}", class = table__col-dur)
+
+      tablecolumn(key = rx, sort_key = rx_n, label = "{t('monitoring.rx')}", class = table__col-dur) {
+        text("@m.rx", class = u-muted)
+      }
+
+      tablecolumn(key = tx, sort_key = tx_n, label = "{t('monitoring.tx')}", class = table__col-start) {
+        text("@m.tx", class = u-muted)
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      } else {
+        SemMetricas
+      }
+    }
+  }
+}

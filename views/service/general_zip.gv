@@ -1,0 +1,62 @@
+// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.gv.
+component {
+  text("{t('general_zip.zip_dockerfile')}", class = u-label-cap)
+
+  input(
+    class = field__input,
+    form_control = service_form_archive_path,
+    :value = service_form_archive_path,
+    on_change = field:service_form_archive_path,
+    placeholder = "{t('general_zip.path_to_app_zip')}",
+  )
+
+  text(
+    "{t('general_zip.the_zip_must_contain_a_dockerfile')}",
+    class = u-muted,
+  )
+
+  row(class = healthcheck__grid) {
+    column(class = healthcheck__field) {
+      text("{t('common.port')}", class = u-label-cap)
+
+      input(
+        class = field__input,
+        form_control = service_form_general_port,
+        :value = service_form_general_port,
+        on_change = field:service_form_general_port,
+        placeholder = 80,
+      )
+    }
+
+    column(class = healthcheck__field) {
+      text("{t('common.status')}", class = u-label-cap)
+      text("@service_action_message", class = u-muted)
+    }
+  }
+
+  progressbar(if = @archive_upload_active, equals = true, :value = archive_upload_percent)
+
+  row(class = env__add) {
+    button(
+      class = "btn btn--primary",
+      on_click = archive_upload,
+      disabled = @busy_archive_upload,
+      text = "{t('general_zip.upload_zip')}",
+    )
+
+    button(
+      class = btn-secondary,
+      on_click = archive_upload_cancel,
+      if = @archive_upload_active,
+      equals = true,
+      text = "{t('common.cancel')}",
+    )
+
+    button(
+      class = btn-secondary,
+      on_click = general_save,
+      disabled = @busy_general_save,
+      text = "{t('common.save_port')}",
+    )
+  }
+}

@@ -1,0 +1,96 @@
+// Seção `schedules` (view = schedules) das telas globais; importada por home.gv.
+component {
+  resources {
+    style """
+    .schedules__next-run { padding: 0 14 0 0; }
+    """
+
+    component(name = SemJobs) {
+      text("{t('common.no_jobs_registered_yet')}", class = u-muted)
+    }
+  }
+
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text("{t('common.schedules')}", class = page-head__title)
+
+      text(
+        "{t('schedules.one_shot_tasks_docker_compose_scheduled')}",
+        class = page-head__subtitle,
+      )
+    }
+
+    row(class = "page-head__stats page-head__stats--hide-md") {
+      StatCard(label = "{t('schedules.jobs')}", value = @jobs_count)
+    }
+
+    button(
+      class = "btn btn--primary",
+      on_click = open_new_job_window,
+      disabled = @busy_open_new_job_window,
+      text = "{t('common.new_job')}",
+    )
+  }
+
+  column(class = "panel panel--fill") {
+    tableview(
+      :items = jobs_summary,
+      :sort = jobs_sort,
+      var = j,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
+    ) {
+      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
+        text("@j.name", class = "table__cell table__cell--key")
+      }
+
+      tablecolumn(key = owner, label = "{t('schedules.project_trigger')}", class = table__col-proj)
+
+      tablecolumn(
+        key = last_run_label,
+        label = "{t('common.last_run')}",
+        class = table__col-state,
+      ) {
+        StateCell(kind = @j.last_run_kind, label = @j.last_run_label)
+      }
+
+      tablecolumn(key = recurrence, label = "{t('common.recurrence')}", class = table__col-dur) {
+        text("@j.recurrence", class = u-muted)
+      }
+
+      tablecolumn(
+        key = next_run_at,
+        label = "{t('schedules.next_run')}",
+        class = table__col-dur,
+      ) {
+        text("@j.next_run_at", class = "u-muted schedules__next-run")
+      }
+
+      tablecolumn(label = "{t('schedules.warm_up')}", class = table__col-state) {
+        StateCell(kind = @j.warm_kind, label = @j.warm_label)
+      }
+
+      tablecolumn(label = "{t('schedules.actions')}", class = table__col-act-2, align = right) {
+        row(class = table__col-act-2) {
+          JobActions(
+            job_id = @j.id,
+            job_name = @j.name_full,
+            running = @j.running,
+            enabled = @j.enabled,
+            enabled_label = @j.enabled_label,
+            last_run_id = @j.last_run_id,
+            is_warm = @j.is_warm,
+            is_warming = @j.is_warming,
+            warm_kind = @j.warm_kind,
+            warm_label = @j.warm_label,
+            warm_reason = @j.warm_reason,
+            warmed_at_label = @j.warmed_at_label,
+          )
+        }
+      }
+
+      SemJobs
+    }
+  }
+}

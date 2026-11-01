@@ -1,0 +1,180 @@
+// Projeto aberto (view = project_services): cabeçalho/edição, sub-abas e grade de
+// serviços; cada sub-aba pesada mora em seu arquivo.
+component {
+  resources {
+    link(rel = import, href = "project_env.gv", as = ProjectEnvTab)
+    link(rel = import, href = "project_secrets.gv", as = ProjectSecretsTab)
+    link(rel = import, href = "project_jobs.gv", as = ProjectJobsTab)
+
+    component(name = SemServicosNoProjeto) {
+      text("{t('project_services.no_service_in_this_project')}", class = u-muted)
+    }
+  }
+
+  column(class = content) {
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        row(class = proj-bar) {
+          button(
+            class = "btn btn--ghost",
+            on_click = nav_projects,
+            disabled = @busy_nav_projects,
+            text = "{t('project_services.projects')}",
+          )
+
+          column(class = u-fill)
+
+          if @editing_project != "true" {
+            flow(class = proj-bar__actions) {
+              button(
+                class = "btn btn--primary btn--sm",
+                on_click = open_new_service_window,
+                disabled = @busy_open_new_service_window,
+                text = "{t('project_services.new_service')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = edit_project_toggle,
+                disabled = @busy_edit_project_toggle,
+                text = "{t('project_services.edit_project')}",
+              )
+
+              if @project_can_delete == "1" {
+                button(
+                  class = "btn btn--danger btn--sm",
+                  on_click = delete_project:@selected_project_id,
+                  disabled = @busy_delete_project,
+                  text = "{t('project_services.remove_project')}",
+                )
+              }
+            }
+          }
+        }
+
+        if @editing_project == "true" {
+          form(
+            name = edit_project,
+            on_submit = save_project_edit,
+            on_validation_error = project_edit_show_validation_errors,
+            class = "form form--gap-6",
+          ) {
+            input(
+              class = field__input,
+              form_control = edit_project_name,
+              rules = required,
+              msg = "{t('common.enter_a_name')}",
+              placeholder = "{t('common.project_name')}",
+            )
+
+            text(
+              "@error_edit_project_name",
+              class = u-error,
+              if = @error_edit_project_name,
+              not_empty,
+            )
+
+            input(
+              class = field__input,
+              form_control = edit_project_description,
+              placeholder = "{t('project_services.description_optional')}",
+            )
+
+            row(class = env__add) {
+              button(type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary", text = "{t('common.save')}")
+
+              button(
+                class = "btn btn--ghost",
+                on_click = cancel_project_edit,
+                disabled = @busy_cancel_project_edit,
+                text = "{t('common.cancel')}",
+              )
+
+              text("@project_action_message", class = u-muted)
+            }
+          }
+        } else {
+          text("@project_name", class = page-head__title)
+          text("@project_description", class = page-head__subtitle)
+
+          text(
+            "@project_action_message",
+            if = @project_action_message,
+            not_equals = "",
+            class = u-muted,
+          )
+        }
+      }
+    }
+
+    // Sub-abas do projeto
+    scroll(class = tabs__scroll, direction = horizontal) {
+      row(class = tabs__main) {
+        TabButton(
+          label = "{t('project_services.services')}",
+          current = @project_tab,
+          target = services,
+          action = project_tab:services,
+        )
+
+        TabButton(
+          label = "{t('project_services.variables', project_env_count=project_env_count)}",
+          current = @project_tab,
+          target = env,
+          action = project_tab:env,
+        )
+
+        TabButton(
+          label = "{t('project_services.secrets', project_secrets_count=project_secrets_count)}",
+          current = @project_tab,
+          target = secrets,
+          action = project_tab:secrets,
+        )
+
+        TabButton(
+          label = "{t('project_services.jobs', project_jobs_count=project_jobs_count)}",
+          current = @project_tab,
+          target = jobs,
+          action = project_tab:jobs,
+        )
+      }
+    }
+
+    hr
+
+    if @project_loading == "true" {
+      LoadingRow
+    }
+
+    if @project_tab == "env" {
+      // ── Variáveis de ambiente do projeto ──────────────────────
+    ProjectEnvTab(if = @project_loading, not_equals = true)
+    }
+
+    if @project_tab == "secrets" {
+      // ── Secrets do projeto ──────────────────────────────────────
+    ProjectSecretsTab(if = @project_loading, not_equals = true)
+    }
+
+    if @project_tab == "jobs" {
+      ProjectJobsTab
+    }
+
+    if @project_tab == "services" {
+      scrollable(
+        if = @project_loading,
+        not_equals = true,
+        direction = vertical,
+        class = u-fill-all,
+      ) {
+        column(class = grid) {
+          each @project_services as r (fallback = SemServicosNoProjeto) {
+            row(class = grid__row) {
+              ServiceCard(:for_each = r.cards, var = c, spread = @c)
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,80 @@
+// Aba "Fila" do Deploy Engine; importada por deploy_engine.gv.
+component {
+  resources {
+    component(name = FilaVazia) {
+      text("{t('deploy_engine_fila.no_deploy_in_the_queue')}", class = empty-state)
+    }
+  }
+
+  column(class = "section section--fill") {
+    row(class = section__head) {
+      text("{t('deploy_engine_fila.queued', deploy_engine_queued_count=deploy_engine_queued_count)}", class = section__title)
+
+      button(
+        if = @deploy_engine_paused,
+        equals = true,
+        class = "btn btn--ghost btn--xs",
+        on_click = queue_toggle_pause,
+        disabled = @busy_queue_toggle_pause,
+        text = "{t('deploy_engine_fila.resume_queue')}",
+      )
+
+      button(
+        if = @deploy_engine_paused,
+        not_equals = true,
+        class = "btn btn--ghost btn--xs",
+        on_click = queue_toggle_pause,
+        disabled = @busy_queue_toggle_pause,
+        text = "{t('deploy_engine_fila.pause_queue')}",
+      )
+    }
+
+    column(class = section__body) {
+      text(
+        "{t('deploy_engine_fila.queue_paused_deploys_wait_until')}",
+        if = @deploy_engine_paused,
+        equals = true,
+        class = "banner banner--warn",
+      )
+    }
+
+    scrollable(direction = vertical, class = section__scroll) {
+      column(class = u-fill) {
+        template(
+          :for_each = deploy_engine_queued,
+          foreach_fallback = FilaVazia,
+          var = q,
+          on_reorder = queue_reorder,
+          reorder_key = deployment_id,
+        ) {
+          row(class = table__row) {
+            text("⋮", class = env__drag-handle, drag_handle = true)
+            row(class = table__col-svc, spacing = 6) {
+              text("@q.pos.", class = "table__cell table__cell--key")
+              TableLink(kind = service, id = @q.service_id, label = @q.service)
+            }
+            row(class = table__col-start) {
+              TableLink(kind = project, id = @q.project_id, label = @q.project)
+            }
+
+            button(
+              class = "btn btn--ghost btn--xs",
+              on_click = queue_promote:@q.deployment_id,
+              disabled = @busy_queue_promote,
+              text = "{t('deploy_engine_fila.top')}",
+            )
+
+            button(
+              class = env__del,
+              on_click = queue_cancel:@q.deployment_id,
+              disabled = @busy_queue_cancel,
+              text = "✕",
+            )
+          }
+
+          hr
+        }
+      }
+    }
+  }
+}

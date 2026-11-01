@@ -1,0 +1,385 @@
+// Janela "Novo job": motor Glacier próprio, aberto por open_window a partir
+// do app principal (handlers/jobs.luau → open_new_job_window), que semeia a
+// conexão + os catálogos de projetos/serviços já buscados pela janela
+// principal (open_window({ data = ...
+screen(title = "{t('new_job_window.new_job_rustploy')}") {
+  resources {
+    component(name = SemProjetosParaJob) {
+      text("{t('common.no_projects_yet')}", class = u-muted)
+    }
+
+    link(rel = import, href = "components/picker_row.gv", as = PickerRow)
+    link(rel = import, href = "components/tab_button.gv", as = TabButton)
+
+    script(src = "scripts/new_job_window.luau")
+  }
+
+  column(class = dialog__screen) {
+    row(class = titlebar) {
+      row(class = titlebar__drag, on_press = window:drag) {
+        text("●", class = titlebar__dot)
+        text("{t('new_job_window.new_job_rustploy')}", class = titlebar__title)
+      }
+
+      button(class = titlebar__btn, on_click = window:minimize, text = "—")
+      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+    }
+
+    scrollable(class = dialog__body, direction = vertical) {
+      column(class = form-panel) {
+        // Passo 1: escolher o projeto
+        if @new_job_step == "pick_project" {
+          text("{t('new_job_window.choose_the_project')}", class = u-label-cap)
+
+          text(
+            "{t('new_job_window.the_job_brings_up_its_own')}",
+            class = u-muted,
+          )
+
+          column(class = kv-list) {
+            each @new_job_projects as p (fallback = SemProjetosParaJob) {
+              PickerRow(
+                title = @p.name,
+                subtitle = "",
+                button_label = "{t('common.select')}",
+                action = new_job_pick_project:@p.id,
+              )
+            }
+          }
+
+          row(class = dialog__actions) {
+            column(class = u-fill)
+            button(class = "btn btn--ghost", on_click = cancel, disabled = @busy_cancel, text = "{t('common.cancel')}")
+          }
+        }
+
+        if @new_job_step == "pick_service" {
+          text(
+            "{t('new_job_window.trigger_service_optional', new_job_project_name=new_job_project_name)}",
+            class = u-label-cap,
+          )
+
+          text(
+            "{t('new_job_window.lends_base_env_vars_secrets_to')}",
+            class = u-muted,
+          )
+
+          row(class = env__add) {
+            button(
+              class = "btn btn--ghost",
+              on_click = new_job_pick_no_service,
+              disabled = @busy_new_job_pick_no_service,
+              text = "{t('new_job_window.none_standalone_job')}",
+            )
+          }
+
+          text(
+            "{t('new_job_window.this_project_has_no_services')}",
+            if = @new_job_services_filtered,
+            equals = "[]",
+            class = u-muted,
+          )
+
+          column(class = kv-list) {
+            PickerRow(
+              :for_each = new_job_services_filtered,
+              var = s,
+              title = @s.name,
+              subtitle = "",
+              button_label = "{t('common.select')}",
+              action = new_job_pick_service:@s.id,
+            )
+          }
+
+          row(class = dialog__actions) {
+            column(class = u-fill)
+            button(class = "btn btn--ghost", on_click = new_job_back, disabled = @busy_new_job_back, text = "{t('common.back')}")
+          }
+        }
+
+        if @new_job_step == "form" {
+          if @new_job_edit_id != "" {
+            text("{t('new_job_window.edit_job', new_job_name=new_job_name)}", class = u-label-cap)
+          } else {
+            text(
+              "{t('new_job_window.new_job', new_job_project_name=new_job_project_name, new_job_service_name=new_job_service_name)}",
+              class = u-label-cap,
+            )
+          }
+
+          form(
+            name = new_job_form,
+            on_submit = new_job_create,
+            class = "form form--gap-10",
+          ) {
+            text("{t('common.name')}", class = field__label)
+
+            input(
+              class = dialog__input,
+              form_control = new_job_name,
+              :value = new_job_name,
+              on_change = field:new_job_name,
+              placeholder = "{t('new_job_window.e_g_backup_db')}",
+            )
+
+            text("{t('new_job_window.compose_source')}", class = u-label-cap)
+
+            scroll(class = tabs__scroll, direction = horizontal) {
+              row(class = tabs__main) {
+                TabButton(
+                  label = "{t('common.compose')}",
+                  current = @new_job_source,
+                  target = compose,
+                  action = new_job_source:compose,
+                )
+
+                TabButton(
+                  label = "{t('common.git')}",
+                  current = @new_job_source,
+                  target = git,
+                  action = new_job_source:git,
+                )
+              }
+            }
+
+            if @new_job_source == "compose" {
+              text("{t('new_job_window.docker_compose_yml')}", class = field__label)
+
+              textarea(
+                class = env__editor,
+                font = mono,
+                :value = new_job_compose,
+                placeholder = l"""
+                  services:
+                    job:
+                      image: busybox
+                      command: ["sh", "-c", "echo ok"]
+                """,
+              )
+            }
+
+            if @new_job_source == "git" {
+              text(
+                "{t('new_job_window.select_the_connected_account_the_repository')}",
+                class = u-muted,
+              )
+
+              row(class = busy-row, if = @new_job_git_message, not_equals = "") {
+                spinner(class = busy-row__spin, if = @new_job_git_busy)
+                text("@new_job_git_message", class = u-muted)
+              }
+
+              text("{t('new_job_window.git_account')}", class = field__label)
+
+              select(
+                class = form-select,
+                :options = new_job_git_providers,
+                :value = new_job_git_provider_id,
+                on_change = new_job_git_provider_pick,
+                placeholder = "{t('common.select_the_account')}",
+                label_field = display,
+                value_field = id,
+              )
+
+              text("{t('common.connect_accounts_in_settings_git')}", class = u-muted)
+              text("{t('common.repository')}", class = field__label)
+
+              select(
+                class = form-select,
+                :options = new_job_git_repos,
+                :value = new_job_git_repo,
+                on_change = new_job_git_repo_pick,
+                placeholder = "{t('common.select_the_repository')}",
+                label_field = full_name,
+                value_field = full_name,
+              )
+
+              text("{t('common.branch')}", class = field__label)
+
+              select(
+                class = form-select,
+                :options = new_job_git_branches,
+                :value = new_job_git_branch,
+                on_change = field:new_job_git_branch,
+                placeholder = "{t('common.select_the_branch')}",
+                label_field = name,
+                value_field = name,
+              )
+
+              text("{t('new_job_window.compose_path_in_the_repo')}", class = field__label)
+
+              input(
+                class = dialog__input,
+                form_control = new_job_compose_path,
+                :value = new_job_compose_path,
+                on_change = field:new_job_compose_path,
+                placeholder = "{t('new_job_window.docker_compose_yml_2')}",
+              )
+            }
+
+            text(
+              "{t('new_job_window.main_service_name_inside_the')}",
+              class = field__label,
+            )
+
+            input(
+              class = dialog__input,
+              form_control = new_job_main_service,
+              :value = new_job_main_service,
+              on_change = field:new_job_main_service,
+              placeholder = "{t('new_job_window.e_g_job')}",
+            )
+
+            text("{t('new_job_window.environment_variables_optional')}", class = field__label)
+
+            text(
+              "{t('new_job_window.they_override_the_project_s_trigger')}",
+              class = u-muted,
+            )
+
+            textarea(
+              class = env__editor,
+              font = mono,
+              :value = new_job_env_text,
+              placeholder = "{t('new_job_window.flow_myenv_test')}",
+            )
+
+            text("{t('common.recurrence')}", class = u-label-cap)
+
+            scroll(class = tabs__scroll, direction = horizontal) {
+              row(class = tabs__main) {
+                TabButton(
+                  label = "{t('new_job_window.manual')}",
+                  current = @new_job_kind,
+                  target = manual,
+                  action = new_job_kind:manual,
+                )
+
+                TabButton(
+                  label = "{t('new_job_window.interval')}",
+                  current = @new_job_kind,
+                  target = interval,
+                  action = new_job_kind:interval,
+                )
+
+                TabButton(
+                  label = "{t('new_job_window.daily')}",
+                  current = @new_job_kind,
+                  target = daily,
+                  action = new_job_kind:daily,
+                )
+
+                TabButton(
+                  label = "{t('new_job_window.weekly')}",
+                  current = @new_job_kind,
+                  target = weekly,
+                  action = new_job_kind:weekly,
+                )
+              }
+            }
+
+            if @new_job_kind == "interval" {
+              text("{t('new_job_window.every_how_many_hours')}", class = field__label)
+
+              // Teto de 168 = uma semana, igual ao da limpeza automática em
+              // home.gv. Acima disso existe a recorrência "Semanal".
+              spinbox(
+                field_class = field__spin,
+                form_control = new_job_hours,
+                :value = new_job_hours,
+                min = 1,
+                max = 168,
+                width = 90,
+                placeholder = 6,
+              )
+            }
+
+            if @new_job_kind == "daily" {
+              row(class = env__add) {
+                column(class = field) {
+                  text("{t('common.time')}", class = field__label)
+                  timeedit(:value = new_job_time)
+                }
+              }
+            }
+
+            if @new_job_kind == "weekly" {
+              text("{t('new_job_window.day_of_the_week')}", class = field__label)
+
+              // Mesma troca de home.gv: sete <TabButton> + handler viraram um
+              // <radiogroup>, que grava `new_job_weekday` sozinho.
+              scroll(class = tabs__scroll, direction = horizontal) {
+                row(class = tabs__main) {
+                  radiogroup(
+                    :value = new_job_weekday,
+                    :items = weekdays,
+                    layout = row,
+                  )
+                }
+              }
+
+              row(class = env__add) {
+                column(class = field) {
+                  text("{t('common.time')}", class = field__label)
+                  timeedit(:value = new_job_time)
+                }
+              }
+            }
+
+            text(
+              "@new_job_error",
+              if = @new_job_error,
+              not_equals = "",
+              class = u-error,
+            )
+
+            row(class = busy-row, if = @new_job_message, not_equals = "") {
+              spinner(class = busy-row__spin, if = @new_job_busy)
+              text("@new_job_message", class = u-muted)
+            }
+
+            row(class = dialog__actions) {
+              column(class = u-fill)
+
+              button(
+                class = "btn btn--ghost",
+                if = @new_job_edit_id,
+                not_equals = "",
+                on_click = new_job_back,
+                disabled = @busy_new_job_back,
+                text = "{t('common.close')}",
+              )
+
+              button(
+                class = "btn btn--ghost",
+                if = @new_job_edit_id,
+                equals = "",
+                on_click = new_job_back,
+                disabled = @busy_new_job_back,
+                text = "{t('common.back')}",
+              )
+
+              button(
+                class = "btn btn--primary",
+                if = @new_job_edit_id,
+                not_equals = "",
+                on_click = new_job_create,
+                disabled = @busy_new_job_create,
+                text = "{t('common.save')}",
+              )
+
+              button(
+                class = "btn btn--primary",
+                if = @new_job_edit_id,
+                equals = "",
+                on_click = new_job_create,
+                disabled = @busy_new_job_create,
+                text = "{t('new_job_window.create_job')}",
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}

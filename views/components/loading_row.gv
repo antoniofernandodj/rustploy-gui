@@ -1,0 +1,26 @@
+// Linha "Carregando dados…" com spinner.
+component {
+  props {
+    prop(name = note, default = "")
+  }
+
+  resources {
+    style """
+    .loading-row        { spacing: 9; align_y: center; padding: 8; }
+    .loading-row__spin  { width: 16; height: 16; color: var(--spin); }
+    .loading-row__note  { size: 13; color: var(--muted); }
+    """
+  }
+
+  row(class = loading-row) {
+    spinner(class = loading-row__spin)
+    text("@note", class = loading-row__note, if = @note, not_equals = "")
+
+    text(
+      "{t('loading_row.loading_data')}",
+      class = loading-row__note,
+      if = @note,
+      equals = "",
+    )
+  }
+}

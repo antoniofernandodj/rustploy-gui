@@ -1,0 +1,560 @@
+// Wizard "Novo serviço" (view=new_service): tipo → formulário por tipo,
+// espelhando o fluxo do antigo remote-client (Application / Database /
+// Compose / Template).
+component {
+  resources {
+    component(name = SemTemplates) {
+      text("{t('new_service.no_template_found')}", class = u-muted)
+    }
+  }
+
+  column(class = content) {
+    row(class = page-head) {
+      column(class = page-head__titles) {
+        text("{t('new_service.new_service', project_name=project_name)}", class = page-head__title)
+
+        text(
+          "{t('new_service.choose_the_type_and_configure')}",
+          class = page-head__subtitle,
+        )
+      }
+
+      row(class = env__add) {
+        button(class = "btn btn--ghost", on_click = new_service_back, disabled = @busy_new_service_back, text = "{t('common.back')}")
+        button(class = "btn btn--ghost", on_click = new_service_cancel, disabled = @busy_new_service_cancel, text = "{t('common.cancel')}")
+      }
+    }
+
+    row(class = busy-row, if = @new_service_message, not_equals = "") {
+      spinner(class = busy-row__spin, if = @new_service_busy)
+      text("@new_service_message", class = u-warn)
+    }
+
+    // ── Passo 1: tipo de serviço ────────────────────────────────────────
+    if @new_service_step == "pick_type" {
+      column(class = form-panel) {
+        text("{t('new_service.choose_the_service_type')}", class = u-label-cap)
+
+        column(class = kv-list) {
+          PickerRow(
+            title = "{t('new_service.application')}",
+            subtitle = "{t('new_service.web_app_via_git_or')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:application,
+          )
+
+          PickerRow(
+            title = "{t('new_service.database')}",
+            subtitle = "{t('new_service.managed_database')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:database,
+          )
+
+          PickerRow(
+            title = "{t('new_service.broker')}",
+            subtitle = "{t('new_service.messaging_kafka_rabbitmq_nats')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:broker,
+          )
+
+          PickerRow(
+            title = "{t('common.compose')}",
+            subtitle = "{t('new_service.docker_compose_stack')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:compose,
+          )
+
+          PickerRow(
+            title = "{t('new_service.template')}",
+            subtitle = "{t('new_service.from_a_preset')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:template,
+          )
+
+          PickerRow(
+            title = "{t('new_service.import')}",
+            subtitle = "{t('new_service.recreate_a_service_exported_from')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:import,
+          )
+        }
+      }
+    }
+
+    // ── Importar serviço exportado (handlers/bundle_import.luau) ────────
+    if @new_service_step == "import_form" {
+      column(class = form-panel) {
+        text("{t('new_service.import_exported_service')}", class = u-label-cap)
+
+        text(
+          "{t('new_service.the_service_is_created_in_the', project_name=project_name)}",
+          class = u-muted,
+        )
+
+        text("@import_error", class = u-error, if = @import_error, not_equals = "")
+        text("@import_message", class = u-warn, if = @import_message, not_equals = "")
+
+        if @import_report == "true" {
+          row(class = env__add) {
+            text("{t('new_service.package', import_file=import_file)}", class = u-muted)
+            button(
+              class = "btn btn--ghost",
+              on_click = import_clear,
+              disabled = @busy_import_clear,
+              text = "{t('new_service.change_package')}",
+            )
+          }
+
+          text("{t('new_service.new_service_name')}", class = u-label-cap)
+          input(class = field__input, :value = import_name, on_change = field:import_name, placeholder = "{t('new_service.name')}")
+
+          text(
+            "{t('new_service.a_service_with_that_name')}",
+            class = u-error,
+            if = @import_conflict,
+            equals = true,
+          )
+
+          if @import_has_warnings == "true" {
+            text("{t('new_service.warning')}", class = u-label-cap)
+            column(class = kv-list) {
+              template(:for_each = import_warnings, var = w) {
+                text("@w.text", class = u-muted)
+              }
+            }
+          }
+
+          if @import_has_service_missing == "true" {
+            text("{t('new_service.service_variables_with_no_value')}", class = u-label-cap)
+            text("{t('new_service.fill_in_the_value_after')}", class = u-muted)
+            textarea(class = env__editor, font = mono, :value = import_service_text)
+          }
+
+          if @import_has_project_missing == "true" {
+            text("{t('new_service.project_variables_with_no_value')}", class = u-label-cap)
+            text("{t('new_service.fill_in_the_value_after')}", class = u-muted)
+            textarea(class = env__editor, font = mono, :value = import_project_text)
+          }
+
+          if @import_has_secret_missing == "true" {
+            text("{t('new_service.secrets_this_project_does_not')}", class = u-label-cap)
+            text(
+              "{t('new_service.enter_the_value_to_create')}",
+              class = u-muted,
+            )
+            textarea(class = env__editor, font = mono, :value = import_secret_text)
+          }
+
+          if @import_missing_provider != "" {
+            text("{t('new_service.git_provider_does_not_exist', import_missing_provider=import_missing_provider)}", class = u-label-cap)
+            text("{t('new_service.choose_a_provider_from_this')}", class = u-muted)
+            column(class = kv-list) {
+              template(:for_each = import_providers, var = p) {
+                button(
+                  class = "btn btn--ghost",
+                  on_click = import_use_provider:@p.id,
+                  disabled = @busy_import_use_provider,
+                  text = "@p.mark  @p.label",
+                )
+              }
+            }
+          }
+
+          if @import_has_project_env == "true" {
+            text("{t('new_service.project_variables_brought_along')}", class = u-label-cap)
+            text("{t('new_service.nothing_in_the_project_is')}", class = u-muted)
+            column(class = kv-list) {
+              template(:for_each = import_project_env, var = v) {
+                row(class = kv-list__row) {
+                  text("@v.key", class = env__key)
+                  text("@v.info", class = u-muted)
+                  if @v.can_choose == "true" {
+                    button(
+                      class = "btn btn--ghost",
+                      on_click = import_choice:@v.key,
+                      disabled = @busy_import_choice,
+                      text = "@v.choice",
+                    )
+                  } else {
+                    text("{t('new_service.already_identical_nothing_to_do')}", class = u-muted)
+                  }
+                }
+              }
+            }
+          }
+
+          checkbox(
+            :checked = import_drop_domains,
+            on_toggle = field:import_drop_domains,
+            label = "{t('new_service.do_not_bring_the_domains')}",
+          )
+
+          checkbox(
+            :checked = import_deploy,
+            on_toggle = field:import_deploy,
+            label = "{t('new_service.deploy_right_after_creating')}",
+          )
+
+          row(class = env__add) {
+            button(
+              class = "btn btn--primary",
+              on_click = import_create,
+              disabled = @busy_import_create,
+              text = "{t('new_service.create_service')}",
+            )
+            button(
+              class = "btn btn--blue btn--wide",
+              on_click = import_analyze,
+              disabled = @busy_import_analyze,
+              text = "{t('new_service.refresh_analysis')}",
+            )
+          }
+        } else {
+          button(
+            class = "btn btn--blue btn--wide",
+            on_click = import_pick_file,
+            disabled = @busy_import_pick_file,
+            text = "{t('new_service.choose_file')}",
+          )
+
+          text("{t('new_service.or_paste_the_package_text')}", class = u-label-cap)
+          textarea(
+            class = env__editor,
+            font = mono,
+            :value = import_text,
+            placeholder = l"""
+              apiVersion: rustploy/v1
+              kind: Service
+              …
+            """,
+          )
+
+          button(
+            class = "btn btn--primary",
+            on_click = import_analyze,
+            disabled = @busy_import_analyze,
+            text = "{t('new_service.analyze')}",
+          )
+        }
+      }
+    }
+
+    // ── Passo 2 (Database): escolha do banco ───────────────────────────
+    if @new_service_step == "pick_db" {
+      column(class = form-panel) {
+        text("{t('new_service.choose_the_database')}", class = u-label-cap)
+
+        column(class = kv-list) {
+          PickerRow(
+            :for_each = new_service_databases,
+            var = d,
+            title = @d.label,
+            subtitle = @d.image,
+            button_label = "{t('common.select')}",
+            action = new_service_database:@d.id,
+          )
+        }
+      }
+    }
+
+    // ── Passo 2 (Broker): escolha do broker ────────────────────────────
+    if @new_service_step == "pick_broker" {
+      column(class = form-panel) {
+        text("{t('new_service.choose_the_broker')}", class = u-label-cap)
+
+        column(class = kv-list) {
+          PickerRow(
+            :for_each = new_service_brokers,
+            var = b,
+            title = @b.label,
+            subtitle = @b.image,
+            button_label = "{t('common.select')}",
+            action = new_service_broker:@b.id,
+          )
+        }
+      }
+    }
+
+    // ── Application ─────────────────────────────────────────────────────
+    if @new_service_step == "app_form" {
+      form(name = new_service_app, on_submit = new_service_create, class = form) {
+        column(class = form-panel) {
+          text("{t('new_service.new_application')}", class = u-label-cap)
+          text("{t('common.name')}", class = u-label-cap)
+
+          input(
+            placeholder = "{t('new_service.my_app')}",
+            class = field__input,
+            form_control = new_service_name,
+            :value = new_service_name,
+            on_change = field:new_service_name,
+          )
+
+          text(
+            "@error_new_service_name",
+            if = @error_new_service_name,
+            not_equals = "",
+            class = u-error,
+          )
+
+          text(
+            "{t('new_service.app_name_optional_used_in')}",
+            class = u-label-cap,
+          )
+
+          input(
+            placeholder = "{t('common.optional')}",
+            class = field__input,
+            form_control = new_service_app_name,
+            :value = new_service_app_name,
+            on_change = field:new_service_app_name,
+          )
+
+          text(
+            "{t('new_service.configure_the_source_git_or_image')}",
+            class = u-muted,
+          )
+
+          row(class = env__add) {
+            button(
+              class = "btn btn--primary",
+              on_click = new_service_create,
+              disabled = @busy_new_service_create,
+              text = "{t('new_service.create_application')}",
+            )
+          }
+        }
+      }
+    }
+
+    // ── Compose ─────────────────────────────────────────────────────────
+    if @new_service_step == "compose_form" {
+      form(name = new_service_compose, on_submit = new_service_create, class = form) {
+        column(class = form-panel) {
+          text("{t('new_service.new_compose_stack')}", class = u-label-cap)
+          text("{t('common.name')}", class = u-label-cap)
+
+          input(
+            placeholder = "{t('new_service.my_stack')}",
+            class = field__input,
+            form_control = new_service_name,
+            :value = new_service_name,
+            on_change = field:new_service_name,
+          )
+
+          text(
+            "@error_new_service_name",
+            if = @error_new_service_name,
+            not_equals = "",
+            class = u-error,
+          )
+
+          text(
+            "{t('new_service.app_name_optional_used_in')}",
+            class = u-label-cap,
+          )
+
+          input(
+            placeholder = "{t('common.optional')}",
+            class = field__input,
+            form_control = new_service_app_name,
+            :value = new_service_app_name,
+            on_change = field:new_service_app_name,
+          )
+
+          text(
+            "{t('new_service.configure_the_compose_file_inside_the')}",
+            class = u-muted,
+          )
+
+          row(class = env__add) {
+            button(
+              class = "btn btn--primary",
+              on_click = new_service_create,
+              disabled = @busy_new_service_create,
+              text = "{t('new_service.create_compose_stack')}",
+            )
+          }
+        }
+      }
+    }
+
+    // ── Database (form do banco escolhido) ──────────────────────────────
+    if @new_service_step == "db_form" {
+      scrollable(direction = vertical, class = u-fill-all) {
+        form(name = new_service_database, on_submit = new_service_create, class = form) {
+          column(class = form-panel) {
+            text("{t('new_service.new', new_service_database_label=new_service_database_label)}", class = u-label-cap)
+            text("{t('common.name')}", class = u-label-cap)
+
+            input(
+              placeholder = "{t('new_service.my_database')}",
+              class = field__input,
+              form_control = new_service_name,
+              :value = new_service_name,
+              on_change = field:new_service_name,
+            )
+
+            text(
+              "@error_new_service_name",
+              if = @error_new_service_name,
+              not_equals = "",
+              class = u-error,
+            )
+
+            if @new_service_database_has_dbname == "true" {
+              text("{t('new_service.database_name')}", class = u-label-cap)
+
+              input(
+                placeholder = "{t('new_service.app')}",
+                class = field__input,
+                form_control = new_service_database_name,
+                :value = new_service_database_name,
+                on_change = field:new_service_database_name,
+              )
+            }
+
+            if @new_service_database_has_user == "true" {
+              text("{t('new_service.user')}", class = u-label-cap)
+
+              input(
+                placeholder = "{t('new_service.user_2')}",
+                class = field__input,
+                form_control = new_service_database_user,
+                :value = new_service_database_user,
+                on_change = field:new_service_database_user,
+              )
+            }
+
+            text("{t('new_service.password_generated_you_can_change')}", class = u-label-cap)
+
+            input(
+              placeholder = "{t('new_service.empty_no_password_redis_only')}",
+              class = field__input,
+              form_control = new_service_database_password,
+              :value = new_service_database_password,
+              on_change = field:new_service_database_password,
+            )
+
+            if @new_service_database_has_rootpw == "true" {
+              text(
+                "{t('new_service.root_password_generated_you_can')}",
+                class = u-label-cap,
+              )
+
+              input(
+                placeholder = "",
+                class = field__input,
+                form_control = new_service_database_root_password,
+                :value = new_service_database_root_password,
+                on_change = field:new_service_database_root_password,
+              )
+            }
+
+            checkbox(
+              label = "{t('new_service.use_replica_sets')}",
+              if = @new_service_database_has_replica,
+              equals = true,
+              :checked = new_service_use_replica,
+              on_toggle = field:new_service_use_replica,
+            )
+
+            checkbox(
+              label = "{t('new_service.generate_an_external_connection_url')}",
+              :checked = new_service_expose_external,
+              on_toggle = field:new_service_expose_external,
+            )
+
+            text(
+              "{t('new_service.the_service_will_be_reachable_from')}",
+              if = @new_service_expose_external,
+              equals = true,
+              class = u-muted,
+            )
+
+            text("{t('new_service.docker_image')}", class = u-label-cap)
+
+            row(class = kv-list__row) {
+              text("@new_service_image", class = "kv-list__val kv-list__val--compact")
+            }
+
+            row(class = env__add) {
+              button(
+                class = "btn btn--primary",
+                on_click = new_service_create,
+                disabled = @busy_new_service_create,
+                text = "{t('new_service.create', new_service_database_label=new_service_database_label)}",
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // ── Template: catálogo ───────────────────────────────────────────────
+    if @new_service_step == "pick_template" {
+      column(class = env) {
+        column(class = healthcheck__field) {
+          text("{t('new_service.search')}", class = u-label-cap)
+
+          input(
+            placeholder = "{t('new_service.search_templates')}",
+            class = field__input,
+            :value = new_service_template_search,
+            on_change = new_service_template_search,
+          )
+        }
+
+        scrollable(direction = vertical, class = u-fill-all) {
+          column(class = kv-list) {
+            each @new_service_templates as t (fallback = SemTemplates) {
+              TemplateRow(spread = @t, action = new_service_pick_template:@t.id)
+            }
+          }
+        }
+      }
+    }
+
+    // ── Template: configuração ───────────────────────────────────────────
+    if @new_service_step == "template_form" {
+      scrollable(direction = vertical, class = u-fill-all) {
+        form(name = new_service_template, on_submit = new_service_create, class = form) {
+          column(class = form-panel) {
+            text("{t('new_service.configure', new_service_template_name=new_service_template_name)}", class = u-label-cap)
+            text("{t('common.service_name')}", class = u-label-cap)
+
+            input(
+              placeholder = @new_service_template_name,
+              class = field__input,
+              form_control = new_service_name,
+              :value = new_service_name,
+              on_change = field:new_service_name,
+            )
+
+            template(:for_each = new_service_template_vars, var = v) {
+              column(class = healthcheck__field) {
+                text("@v.label", class = u-label-cap)
+
+                input(
+                  placeholder = @v.placeholder,
+                  class = field__input,
+                  :value = new_service_template_variable_value_@v.idx,
+                  on_change = field:new_service_template_variable_value_@v.idx,
+                )
+              }
+            }
+
+            row(class = env__add) {
+              button(
+                class = "btn btn--primary",
+                on_click = new_service_create,
+                disabled = @busy_new_service_create,
+                text = "{t('new_service.create_2', new_service_template_name=new_service_template_name)}",
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}

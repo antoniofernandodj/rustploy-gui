@@ -1,0 +1,50 @@
+// Seção `settings` (view = settings) das telas globais; importada por home.gv.
+component {
+  resources {
+    link(rel = import, href = "settings/web.gv", as = SettingsWebTab)
+    link(rel = import, href = "settings/git.gv", as = SettingsGitTab)
+    link(rel = import, href = "settings/iac.gv", as = SettingsIacTab)
+    link(rel = import, href = "settings/maintenance.gv", as = SettingsMaintenanceTab)
+    link(rel = import, href = "settings/updates.gv", as = SettingsUpdatesTab)
+  }
+
+  row(class = page-head) {
+    column(class = page-head__titles) {
+      text("{t('common.settings')}", class = page-head__title)
+
+      text(
+        "{t('settings.daemon_web_server_https_and')}",
+        class = page-head__subtitle,
+      )
+    }
+  }
+
+  scroll(class = tabs__scroll, direction = horizontal) {
+    tabbar(
+      :value = settings_tab, active = @settings_tab, :items = settings_tabs,
+      tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14, active_bold = false,
+    )
+  }
+
+  hr
+
+  if @settings_tab == "web" {
+    SettingsWebTab
+  }
+
+  if @settings_tab == "git" {
+    SettingsGitTab
+  }
+
+  if @settings_tab == "iac" {
+    SettingsIacTab
+  }
+
+  if @settings_tab == "maintenance" {
+    SettingsMaintenanceTab
+  }
+
+  if @settings_tab == "updates" {
+    SettingsUpdatesTab
+  }
+}

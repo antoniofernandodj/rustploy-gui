@@ -1,0 +1,87 @@
+// Volumes — Rustploy só usa bind mounts, então volumes nomeados aqui são
+// sempre externos ao Rustploy (criados manualmente ou por VOLUME da imagem).
+component {
+  resources {
+    component(name = SemVolumes) {
+      text("{t('docker_volumes.no_volumes')}", class = u-muted)
+    }
+  }
+
+  column(class = "panel panel--fill") {
+    row(class = env__head) {
+      text("{t('docker_volumes.volume_s', docker_volumes_count=docker_volumes_count)}", class = "u-muted u-fill")
+
+      // O filtro mora em format.docker_volumes — ver images.gv.
+      checkbox(
+        :checked = docker_volumes_only_used,
+        on_toggle = docker_only_used:docker_volumes_only_used,
+        label = "{t('common.in_use_only')}",
+      )
+
+      checkbox(
+        :checked = docker_prune_all_volumes,
+        on_toggle = field:docker_prune_all_volumes,
+        label = "{t('docker_volumes.a_clean_everything_not_just')}",
+      )
+
+      button(
+        class = "btn btn--danger",
+        on_click = docker_prune_volumes,
+        disabled = @busy_docker_prune_volumes,
+        text = "{t('common.clean_unused')}",
+      )
+    }
+
+    text(
+      "@docker_message",
+      if = @docker_message,
+      not_equals = "",
+      class = u-muted,
+    )
+
+    tableview(
+      :items = docker_volumes,
+      :sort = docker_volumes_sort,
+      var = v,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
+    ) {
+      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
+        text("@v.name", class = "table__cell table__cell--key")
+      }
+
+      tablecolumn(key = driver, label = "{t('common.driver')}", class = table__col-proj)
+
+      tablecolumn(
+        key = size,
+        sort_key = size_bytes,
+        label = "{t('common.size')}",
+        class = table__col-dur,
+      ) {
+        text("@v.size", class = u-muted)
+      }
+
+      tablecolumn(key = in_use_label, label = "{t('common.usage')}", class = table__col-state) {
+        StateCell(kind = @v.in_use_kind, label = @v.in_use_label)
+      }
+
+      tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+        button(
+          if = @v.in_use_label,
+          equals = "SEM USO",
+          class = "btn btn--danger btn--xs",
+          on_click = docker_remove_volume:@v.name_full,
+          disabled = @busy_docker_remove_volume,
+          text = "{t('common.remove')}",
+        )
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      } else {
+        SemVolumes
+      }
+    }
+  }
+}

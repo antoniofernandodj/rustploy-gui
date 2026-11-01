@@ -1,0 +1,118 @@
+// General (source / build, editável)
+component {
+  resources {
+    link(rel = import, href = "general_compose.gv", as = GeneralCompose)
+    link(rel = import, href = "general_git.gv", as = GeneralGit)
+    link(rel = import, href = "general_zip.gv", as = GeneralZip)
+    link(rel = import, href = "general_gitea.gv", as = GeneralGitea)
+  }
+
+  scrollable(
+    direction = vertical,
+    class = u-fill-all,
+  ) {
+    // O scrollable só renderiza o PRIMEIRO filho: os forms ficam numa coluna.
+    column(width = fill, spacing = 12) {
+      column(class = form-panel, if = @service_loading, equals = true) {
+        if @service_loading == "true" {
+          LoadingRow(note = "{t('general.loading_service_data')}")
+        }
+      }
+
+      form(
+        if = @service_loading,
+        not_equals = true,
+        name = service_rename,
+        on_submit = save_service_name,
+        on_validation_error = service_rename_show_validation_errors,
+        class = "form-panel form-panel--tight",
+      ) {
+        text("{t('common.service_name')}", class = u-label-cap)
+
+        row(class = env__add) {
+          input(
+            class = field__input,
+            form_control = edit_service_name,
+            rules = required,
+            msg = "{t('common.enter_a_name')}",
+            placeholder = "{t('general.service_name')}",
+          )
+
+          button(type = submit, disabled = @busy_save_service_name, class = "btn btn--primary", text = "{t('general.rename')}")
+        }
+
+        text(
+          "@error_edit_service_name",
+          class = u-error,
+          if = @error_edit_service_name,
+          not_empty,
+        )
+
+        text("@service_rename_note", class = u-muted)
+      }
+
+      form(
+        if = @service_loading,
+        not_equals = true,
+        name = general,
+        on_submit = general_save,
+        class = form-panel,
+      ) {
+        // Serviços Compose (bancos/brokers) editam o YAML direto; não têm
+        // provider Git/Registry.
+        if @service_source_kind == "Compose" {
+          GeneralCompose
+        }
+
+        // Provider Git/conta-conectada/Zip — apenas para serviços não-Compose.
+        if @service_source_kind != "Compose" {
+          text("{t('general.provider')}", class = u-label-cap)
+
+          scroll(class = tabs__scroll, direction = horizontal) {
+            row(class = tabs__main) {
+              TabButton(
+                label = "{t('common.git')}",
+                current = @provider_tab,
+                target = git,
+                action = select_provider_tab:git,
+              )
+
+              template(if = @gitea_providers, not_empty) {
+                TabButton(
+                  label = "{t('general.gitea_github')}",
+                  current = @provider_tab,
+                  target = gitea,
+                  action = select_provider_tab:gitea,
+                )
+              }
+
+              TabButton(
+                label = "{t('general.zip')}",
+                current = @provider_tab,
+                target = zip,
+                action = select_provider_tab:zip,
+              )
+            }
+          }
+
+          hr
+
+          // ── Sub-aba Git: form de URL/imagem crua ───────────────
+          if @provider_tab == "git" {
+            GeneralGit
+          }
+
+          // ── Sub-aba Zip: upload de arquivo local com Dockerfile na raiz ─
+          if @provider_tab == "zip" {
+            GeneralZip
+          }
+
+          // ── Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch ─
+          if @provider_tab == "gitea" {
+            GeneralGitea
+          }
+        }
+      }
+    }
+  }
+}

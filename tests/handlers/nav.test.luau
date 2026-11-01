@@ -2,7 +2,7 @@
 -- Navegação da sidebar, abas e busca (handlers/nav.luau), sem conexão.
 
 local function nova()
-    local tela = component("views/app.gvb")
+    local tela = component("views/app.gv")
     tela:call("init")
     return tela
 end

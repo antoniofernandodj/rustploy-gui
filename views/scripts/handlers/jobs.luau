@@ -130,7 +130,7 @@ end
 -- conexão atual + os catálogos de projetos/serviços JÁ BUSCADOS pelo snapshot
 -- (a janela filha não pode buscar no init — só ações despachadas rodam o
 -- fetch). Ao concluir, ela emite broadcast("job_created"), recebido por
--- on_broadcast em handlers/projects.luau. Ver views/new_job_window.gvb.
+-- on_broadcast em handlers/projects.luau. Ver views/new_job_window.gv.
 function open_new_job_window(): ()
     local snap = State.snap
     local projects = {}
@@ -264,7 +264,7 @@ function open_edit_job_window(job_id: string): ()
 end
 
 -- Logs da última execução de um job — mesma janela genérica de logs
--- (log_window.gvb/.luau) usada por runtime/build, agora apontando pro SSE
+-- (log_window.gv/.luau) usada por runtime/build, agora apontando pro SSE
 -- dedicado `/api/jobs/runs/<id>/logs` (ver Event::JobLogLine).
 function open_job_logs_window(job_run_id: string): ()
     close_job_actions()

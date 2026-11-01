@@ -3,7 +3,7 @@
 
    Aqui ficam apenas os seletores COMPARTILHADOS por mais de um template (mais
    alguns utilitários ainda sem uso). Seletores usados por um único template
-   moram no <style> desse próprio template — o glacier-ui escopa cada <style>
+   moram no style desse próprio template — o glacier-ui escopa cada style
    à subárvore do componente que o declara, então colocá-los junto do markup
    mantém o estilo perto de quem o usa. */
 
@@ -33,14 +33,14 @@
 
    Onde isto simplifica o app: um MODIFICADOR NA RAIZ do bloco recolore os
    filhos, em vez de cada filho carregar o seu par de classes de estado.
-     nav_item.gvb   .nav-item--active > .nav-item__icon     (era *_on / *_off ×3)
-     state_cell.gvb .state-cell--ok > text                  (a cor de ponto + rótulo)
+     nav_item.gv   .nav-item--active > .nav-item__icon     (era *_on / *_off ×3)
+     state_cell.gv .state-cell--ok > text                  (a cor de ponto + rótulo)
    Onde NÃO ajuda, e fica seletor simples de propósito: bloco cujo único estado é
    uma propriedade do próprio nó (`.btn--primary`, `.service__actions--full`) — um
    combinador só trocaria `.x` por `.y > .x` sem tirar nenhuma classe do markup. */
 
 /* ── Design tokens (glacier-ui 0.8.0+) ─────────────────────────────────────
-   Fonte única da paleta. Referenciados via var(--x) aqui e nos <style> dos
+   Fonte única da paleta. Referenciados via var(--x) aqui e nos style dos
    templates (var() é cross-sheet: esta :root global resolve em qualquer sheet
    com escopo). Trocar um tom aqui reflete no app inteiro. */
 
@@ -73,7 +73,7 @@
 .u-mono        { }
 .u-fill        { width: fill; }
 .u-fill-all    { width: fill; height: fill; }
-.u-center-fill { width: fill; height: fill; align-x: center; align-y: center; }
+.u-center-fill { width: fill; height: fill; align_x: center; align_y: center; }
 .u-align-y-end { alignY: end; }
 .u-muted       { size: 12; color: var(--muted); }
 .u-label-cap   { size: 11; bold: true; color: var(--faint); }
@@ -106,17 +106,17 @@
 .resize__corner--sw { cursor: resize-sw; }
 .resize__corner--se { cursor: resize-se; }
 
-.titlebar          { width: fill; height: 32; background: var(--surface); align-y: center; }
-.titlebar__drag    { width: fill; height: fill; align-y: center; padding: 0 0 0 16; spacing: 9; }
+.titlebar          { width: fill; height: 32; background: var(--surface); align_y: center; }
+.titlebar__drag    { width: fill; height: fill; align_y: center; padding: 0 0 0 16; spacing: 9; }
 .titlebar__dot     { size: 10; color: var(--blue); }
 .titlebar__title   { size: 12; bold: true; color: var(--muted); }
-.titlebar__btn     { width: 48; padding: 5 0; color: var(--border); text-align: center; }
+.titlebar__btn     { width: 48; padding: 5 0; color: var(--border); text_align: center; }
 .titlebar__btn--close { color: var(--danger); }
-.titlebar__icon-box { width: fill; height: 20.8; align-x: center; align-y: center; }  /* = altura de linha do "—" (16 × 1.3) */
+.titlebar__icon-box { width: fill; height: 20.8; align_x: center; align_y: center; }  /* = altura de linha do "—" (16 × 1.3) */
 .titlebar__icon    { width: 12; height: 12; color: var(--text); }
 
 /* ── Sidebar / top bar ────────────────────────────────────────────────── */
-/* O item de navegação (`.nav-item`) mora no <style> de nav_item.gv. O antigo
+/* O item de navegação (`.nav-item`) mora no style de nav_item.gv. O antigo
    `.nav_item` (botão-texto puro, sem ícone) ficou sem uso quando o componente
    passou a montar ícone+rótulo; mantido comentado, não removido (é
    reutilizável). */
@@ -124,22 +124,22 @@
 
 /* ── Tabs ─────────────────────────────────────────────────────────────── */
 .tabs               { width: fill; spacing: 4; }
-.tabs__tab          { color: var(--surface); padding: 9 16; border-radius: 5 }
+.tabs__tab          { color: var(--surface); padding: 9 16; border_radius: 5 }
 .tabs__tab--active  { color: var(--blue); }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 /* `.btn` é o bloco; a cor vem de um modificador (--primary/--danger/--ghost/
    --blue) e o tamanho de outro (--sm/--xs/--wide). Os de tamanho vêm DEPOIS
    dos de cor porque o `--ghost` fixa o padding. */
-.btn           { color: var(--border); padding: 11 20; border-radius: 5 }
+.btn           { color: var(--border); padding: 11 20; border_radius: 5 }
 /* `gradient` pinta o fundo do botão (glacier-ui 0.141+); `color` fica de base. */
 .btn--primary  { color: var(--green); gradient: var(--green-a) var(--green-b); }
 .btn--danger   { color: var(--danger); gradient: var(--danger-a) var(--danger-b); }
 .btn--ghost    { color: var(--border); padding: 11 18; }
 .btn--blue     { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
 .btn--wide     { padding: 11 22; }
-.btn--sm       { padding: 7 13; border-radius: 4; size: 12 }
-.btn--xs       { padding: 5 12; border-radius: 4 }
+.btn--sm       { padding: 7 13; border_radius: 4; size: 12 }
+.btn--xs       { padding: 5 12; border_radius: 4 }
 /* `.btn-secondary` nunca teve regra (botão sem estilo); fica como marcador. */
 /* Ação em andamento (busy.luau liga `disabled = @busy_<ação>`): o botão apaga na hora. */
 /* Hover/pressionado com `transition` (glacier-ui 0.145, medido numa janela real): a cor sobe em
@@ -153,12 +153,12 @@
 .btn--ghost:hover   { background: var(--border-hover); }
 .titlebar__btn         { transition: all 150ms ease-out; }
 .titlebar__btn:hover   { background: var(--border-hover); }
-.titlebar__btn--close:hover { background: var(--danger); text-color: var(--text); }
+.titlebar__btn--close:hover { background: var(--danger); text_color: var(--text); }
 .tabs__tab             { transition: all 150ms ease-out; }
 .tabs__tab:hover       { background: var(--raised); }
 /* A aba ativa é azul: o hover dela clareia o azul (e não cai no cinza da aba inativa). */
 .tabs__tab--active:hover { background: var(--blue-hover); }
-.btn:disabled          { text-color: var(--faint); }
+.btn:disabled          { text_color: var(--faint); }
 .btn--primary:disabled { color: var(--border); }
 .btn--danger:disabled  { color: var(--border); }
 .btn--blue:disabled    { color: var(--border); }
@@ -172,14 +172,14 @@
    (`--fill`) não arredonda — custa matemática por pixel nela toda para um
    detalhe de 7px que quase não se nota. Os cantos ficam nas caixas pequenas
    (cards, botões, abas), onde se veem e são baratos: `--round`. */
-.panel         { background: var(--surface); border-width: 1; border-color: var(--border); padding: 4; }
-.panel--round  { border-radius: 7; }
+.panel         { background: var(--surface); border_width: 1; border_color: var(--border); padding: 4; }
+.panel--round  { border_radius: 7; }
 .panel--fill   { width: fill; height: fill; }
-.card       { width: fill; background: var(--raised); border-radius: 6; border-width: 1; border-color: var(--border); padding: 18; spacing: 10; }
-.panel-pad  { width: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 18; spacing: 8; }
+.card       { width: fill; background: var(--raised); border_radius: 6; border_width: 1; border_color: var(--border); padding: 18; spacing: 10; }
+.panel-pad  { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 18; spacing: 8; }
 
 /* ── Typography / cabeçalho de página ─────────────────────────────────── */
-.page-head           { width: fill; align-y: start; }
+.page-head           { width: fill; align_y: start; }
 .page-head__titles   { width: fill; spacing: 6; }
 .page-head__title    { size: 30; bold: true; color: var(--text); }
 .page-head__subtitle { size: 13; color: var(--muted); }
@@ -192,10 +192,10 @@
    linha é o `.table__row` (padding) com o texto do `.table__cell` nas células
    sem corpo, e o border-color do `--divided` é o fio entre uma linha e a
    próxima (o antigo `hr`). */
-.table__head       { width: fill; padding: 14 18; background: var(--raised); border-radius: 5; spacing: 0; }
+.table__head       { width: fill; padding: 14 18; background: var(--raised); border_radius: 5; spacing: 0; }
 .table__head-cell  { size: 11; bold: true; color: var(--faint); }
-.table__row        { width: fill; padding: 13 18; spacing: 0; align-y: center; }
-.table__row--divided { border-color: var(--border); }
+.table__row        { width: fill; padding: 13 18; spacing: 0; align_y: center; }
+.table__row--divided { border_color: var(--border); }
 .table__cell       { size: 13; color: var(--text-2); }
 .table__cell--key  { bold: true; color: var(--accent); }
 .table__col-svc    { width: 240; }
@@ -211,7 +211,7 @@
    estourar). */
 .table__col-img    { width: 340; }
 
-.stepper               { width: fill; padding: 0 18 12 18; spacing: 14; align-y: center; }
+.stepper               { width: fill; padding: 0 18 12 18; spacing: 14; align_y: center; }
 .stepper__step         { size: 12; }
 .stepper__step--done    { color: var(--ok); }
 .stepper__step--current { color: var(--accent); bold: true; }
@@ -219,7 +219,7 @@
 .stepper__step--pending { color: var(--muted); }
 
 .detail        { width: 760; height: 480; padding: 14 18; spacing: 12; }
-.detail__head  { width: fill; align-y: center; }
+.detail__head  { width: fill; align_y: center; }
 .detail__title { width: fill; size: 14; bold: true; color: var(--text); }
 
 /* ── Seção de conteúdo (Deploy Engine) ────────────────────────────────────
@@ -229,13 +229,13 @@
    histórico (longo) — e empilhar três `.panel--fill` dava a cada um um terço
    da altura: três caixas enormes e vazias quando não há deploy nenhum. Aqui
    a altura vem do conteúdo (`shrink`) e só o histórico recebe `--fill`. */
-.section       { width: fill; height: shrink; background: var(--surface); border-radius: 7; border-width: 1; border-color: var(--border); }
+.section       { width: fill; height: shrink; background: var(--surface); border_radius: 7; border_width: 1; border_color: var(--border); }
 .section--fill { height: fill; }
 /* Cabeçalho da seção: título à esquerda, ação à direita. O `width: fill` no
    TÍTULO é o que empurra o botão — o iced não tem `justify-content`, e sem
    isso o botão encosta no rótulo (era o caso do "⏸ Pausar fila", que saía
    colado no "NA FILA (0)" em vez de ir para a borda direita). */
-.section__head   { width: fill; align-y: center; padding: 13 16; }
+.section__head   { width: fill; align_y: center; padding: 13 16; }
 .section__title  { width: fill; size: 11; bold: true; color: var(--faint); }
 /* Corpo: padding nas laterais e embaixo — o cabeçalho de tabela encosta no
    topo do corpo, como nas outras telas. */
@@ -243,24 +243,24 @@
 .section__scroll { width: fill; height: fill; padding: 0 6 6 6; }
 /* Vazio: centralizado e com respiro, em vez de uma frase solta no canto
    superior esquerdo de um painel de 300px de altura. */
-.empty-state   { width: fill; text-align: center; padding: 26 0; size: 12; color: var(--faint); }
+.empty-state   { width: fill; text_align: center; padding: 26 0; size: 12; color: var(--faint); }
 /* Só para a seção que recebe `--fill` (o histórico): sem isto o aviso de vazio
    fica encostado no topo de um card de várias centenas de pixels. É uma ROW
    de propósito — `align-y` centraliza no eixo cruzado, e numa column esse
    eixo é o horizontal, então lá a regra não teria efeito nenhum. */
-.empty-state__wrap { width: fill; height: fill; align-y: center; }
+.empty-state__wrap { width: fill; height: fill; align_y: center; }
 /* Aviso de fila pausada: faixa com a cor de alerta, não um texto cinza que
    se confunde com o estado vazio logo abaixo. */
-.banner        { width: fill; padding: 9 16; size: 12; background: var(--raised); border-radius: 5; }
+.banner        { width: fill; padding: 9 16; size: 12; background: var(--raised); border_radius: 5; }
 .banner--warn  { color: var(--warn); }
 
 .form-panel {
    width: fill;
    height: shrink;
-   max-width: 720;
+   max_width: 720;
    background: var(--surface);
-   border-radius: 7; border-width: 1;
-   border-color: var(--border);
+   border_radius: 7; border_width: 1;
+   border_color: var(--border);
    padding: 24;
    spacing: 10;
 }
@@ -276,49 +276,49 @@
 .form--gap-14 { spacing: 14; }
 .form--gap-16 { spacing: 16; }
 /* Ponto colorido do state-cell/rp-badge — compartilhado; o rótulo e a paleta
-   (`state-cell--<kind>`) moram no <style> do state_cell.gv. */
+   (`state-cell--<kind>`) moram no style do state_cell.gv. */
 .status-dot { size: 11; }
 
 /* ── Projects / service grid ──────────────────────────────────────────── */
 .grid          { width: fill; spacing: 16; }
-.running__head { width: fill; align-y: center; spacing: 12; }
+.running__head { width: fill; align_y: center; spacing: 12; }
 .running__projects { width: fill; spacing: 40; }
 .grid__row     { width: fill; spacing: 16; }
-.card__head    { width: fill; align-y: center; }
-.card__badges  { spacing: 8; align-y: center; }
+.card__head    { width: fill; align_y: center; }
+.card__badges  { spacing: 8; align_y: center; }
 .card__name    { width: fill; size: 16; bold: true; color: var(--text); }
-.badge         { spacing: 7; align-y: center; }
+.badge         { spacing: 7; align_y: center; }
 .badge__label  { size: 12; bold: true; }
 /* Ações do card (projeto e serviço): um botão cheio, no tamanho da coluna. */
-.card__action         { width: fill; color: var(--border); padding: 9 10; text-align: center; border-radius: 5 }
+.card__action         { width: fill; color: var(--border); padding: 9 10; text_align: center; border_radius: 5 }
 .card__action--auto   { width: shrink; padding: 9 14; }
 .card__action--open   { padding: 9 14; }
 .card__action--icon   { padding: 9 0; }
 .card__action--danger { color: var(--danger); }
 
 /* ── Service detail (compartilhado) ───────────────────────────────────── */
-.kv-list       { width: fill; background: var(--surface); border-radius: 6; border-width: 1; border-color: var(--border); padding: 8 18; spacing: 0; }
-.kv-list__row  { width: fill; padding: 12 0; align-y: center; }
+.kv-list       { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 8 18; spacing: 0; }
+.kv-list__row  { width: fill; padding: 12 0; align_y: center; }
 /* Linha agarrada durante o drag-and-drop (flag {var}.__dragging do
    glacier-ui): fundo elevado + borda de destaque enquanto o resto reflui. */
-.kv-list__row--dragging { padding: 12 10; background: var(--raised); border-radius: 4; border-width: 1; border-color: var(--accent); }
+.kv-list__row--dragging { padding: 12 10; background: var(--raised); border_radius: 4; border_width: 1; border_color: var(--accent); }
 .kv-list__key  { width: fill; size: 13; color: var(--muted); }
 .kv-list__val  { size: 16; bold: true; color: var(--text); }
 .kv-list__val--compact { size: 13; color: var(--text-2); }
-.form-select   { width: fill; padding: 12 14; background: var(--raised); border-radius: 4; border-width: 1; border-color: #30363D; color: var(--text-2); }
+.form-select   { width: fill; padding: 12 14; background: var(--raised); border_radius: 4; border_width: 1; border_color: #30363D; color: var(--text-2); }
 
 .env              { width: fill; height: fill; spacing: 10; }
 /* Aba inteira dentro de um scrollable (altura pelo conteúdo, não fill). */
 .env--flow        { width: fill; spacing: 10; }
 .tabs__scroll     { width: fill; }
 .tabs__main       { width: shrink; spacing: 4; }
-.env__head        { width: fill; align-y: center; }
-.env__add         { width: fill; spacing: 8; align-y: center; }
+.env__head        { width: fill; align_y: center; }
+.env__add         { width: fill; spacing: 8; align_y: center; }
 .env__input       { width: fill; padding: 9 12; }
 .env__drag-handle { color: var(--faint); padding: 0 6 0 0; cursor: grab; }
 .env__drag-handle--dragging { cursor: grabbing; }
-.env__del         { color: var(--danger); padding: 4 10; background: var(--border); border-radius: 4; }
-.env__del:disabled { color: var(--surface); text-color: var(--faint); }
+.env__del         { color: var(--danger); padding: 4 10; background: var(--border); border_radius: 4; }
+.env__del:disabled { color: var(--surface); text_color: var(--faint); }
 /* Respiro entre o botão ✕ e a chave da variável (evita que o vermelho encoste
    no texto). Usado nas linhas de env de serviço e de projeto. */
 .env__sep         { width: 10; }
@@ -329,7 +329,7 @@
    dividir espaço com os botões, que ficam na linha de baixo. */
 .webhook          { width: fill; spacing: 10; }
 .webhook__url     { width: fill; size: 13; bold: true; color: var(--text-2); font: mono; }
-.webhook__actions { spacing: 8; align-y: center; }
+.webhook__actions { spacing: 8; align_y: center; }
 .healthcheck__grid  { width: fill; spacing: 14; }
 .healthcheck__field { width: fill; spacing: 6; }
 
@@ -339,23 +339,23 @@
 .field__label   { size: 11; bold: true; color: var(--muted); }
 .field__input   { width: fill; padding: 13 14; }
 
-/* Campo de um <spinbox> (`field_class="field__spin"`). O `.field__input` (padding
+/* Campo de um spinbox (`field_class="field__spin"`). O `.field__input` (padding
    13 14 → ~44px de altura) desencontrava o campo dos degraus ▴▾, que somam
    ~30px (2 × ~1,3 × glyph_size 11 — ver o builtin SpinBox do glacier-ui). Um
-   padding menor casa a altura dos dois. Sem `width`: cada <spinbox> passa a
+   padding menor casa a altura dos dois. Sem `width`: cada spinbox passa a
    largura do campo pela prop `width=`. */
 .field__spin    { padding: 6 12; }
 
 /* Janelas auxiliares (novo projeto/job/serviço/token, exportar): a casca de
-   tela e o corpo rolável são os mesmos; o resto mora no <style> de cada janela. */
+   tela e o corpo rolável são os mesmos; o resto mora no style de cada janela. */
 .dialog__screen  { width: fill; height: fill; }
 .dialog__body    { width: fill; height: fill; }
 .dialog__input   { width: fill; }
-.dialog__actions { width: fill; spacing: 10; align-y: center; }
+.dialog__actions { width: fill; spacing: 10; align_y: center; }
 
 /* Linha "ocupado": spinner + texto de status enquanto um RPC está no ar. O
    spinner só aparece com a flag `*_busy` ligada; o texto acompanha o `*_msg`. */
-.busy-row         { spacing: 9; align-y: center; }
+.busy-row         { spacing: 9; align_y: center; }
 .busy-row__spin   { width: 15; height: 15; color: var(--spin); }
 
 /* Destaque de campo reprovado na validação declarada do form(...) (glacier-ui
@@ -370,7 +370,7 @@
 /* ── Responsivo (glacier-ui 0.9.0+) ────────────────────────────────────────
    O motor só ajusta PROPRIEDADES (não reestrutura Row↔Column nem esconde), então
    "mobile" aqui = modo compacto: menos padding, colunas/fontes menores conforme a
-   largura da janela encolhe. A sidebar/topbar têm os deles no <style> do shell. */
+   largura da janela encolhe. A sidebar/topbar têm os deles no style do shell. */
 
 /* StatCards ao lado do título (page-head): o Row não quebra linha nem clipa,
    então com muitos cards eles invadem o título bem antes dos 560 que escondem

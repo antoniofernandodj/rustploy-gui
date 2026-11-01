@@ -1,0 +1,108 @@
+// Tela de login: um campo, o token de conexão (base64 de host:porta::token),
+// com um select dos servidores lembrados (rótulo host:porta; escolher preenche
+// o campo) e, sob o campo, para onde o token aponta.
+component {
+  resources {
+    style """
+      .login           { width: fill; height: fill; align_x: center; align_y: center; }
+      .login__card     { width: fill; max_width: 460; align_x: start; background: var(--surface); border_radius: 4; border_width: 1; border_color: var(--border); padding: 32; spacing: 16; }
+      .login__head     { width: fill; spacing: 14; align_y: center; }
+      .login__brand    { width: fill; spacing: 6; align_x: start; }
+      .login__title    { size: 30; bold: true; color: #A9C7FF; }
+      .login__forget-row { width: fill; align_x: end; padding: 2 0; }
+      .login__forget-btn { size: 11; color: var(--border); padding: 5 12; border_radius: 4; }
+      .login__status   { spacing: 14; align_y: center; }
+      .login__language { spacing: 8; }
+      .login__connect  { width: fill; color: var(--spin); padding: 14; text_align: center; border_radius: 3; }
+    """
+  }
+
+  container(class = login) {
+    column(class = login__card) {
+      row(class = login__head) {
+        svg(
+          src = "assets/icons/terminal.svg",
+          color = #2F81F7,
+          width = 34,
+          height = 34,
+        )
+
+        column(class = login__brand) {
+          text("{t('common.rustploy')}", class = login__title)
+
+          text(
+            "{t('login.infrastructure_management_for_professional_teams')}",
+            class = page-head__subtitle,
+          )
+        }
+      }
+
+      form(name = login, on_submit = connect, class = "form form--gap-16") {
+        column(class = field) {
+          row(class = field__row) {
+            text("{t('login.connection_token')}", class = "field__label u-fill")
+            text("{t('login.secure')}", class = field__label)
+          }
+
+          select(
+            if = @saved_servers,
+            not_equals = "[]",
+            class = form-select,
+            :options = saved_servers,
+            :value = saved_server_choice,
+            on_change = choose_saved_server,
+            placeholder = "{t('login.saved_servers')}",
+            width = fill,
+          )
+
+          input(
+            class = field__input,
+            :value = access_key,
+            on_change = access_key_input,
+            on_submit = connect,
+            placeholder = "{t('login.paste_the_connection_token')}",
+            width = fill,
+          )
+
+          text(
+            "→ @access_key_target",
+            if = @access_key_target,
+            not_equals = "",
+            class = u-muted,
+          )
+
+          text(
+            "@error_access_key",
+            if = @error_access_key,
+            not_equals = "",
+            class = u-error,
+          )
+
+          row(class = login__forget-row) {
+            button(
+              class = login__forget-btn,
+              on_click = forget_server,
+              disabled = @busy_forget_server,
+              text = "{t('login.forget_this_server')}",
+            )
+          }
+        }
+
+        row(class = login__language) {
+          button(class = "{language_english_class}", on_click = language_select_english, text = English)
+          button(class = "{language_portuguese_class}", on_click = language_select_portuguese, text = Português)
+        }
+
+        button(class = login__connect, on_click = connect, disabled = @busy_connect, text = "{t('login.connect')}")
+      }
+
+      text("⚠ @error", if = @error, not_equals = "", class = u-error)
+      hr
+
+      row(class = login__status) {
+        text("●", class = u-ok, size = 10)
+        text("@status_line", class = u-muted)
+      }
+    }
+  }
+}

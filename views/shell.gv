@@ -1,0 +1,199 @@
+// Casca do app conectado: sidebar, topbar e as views de projeto (Deployments,
+// Projects, serviços de um projeto, detalhe de serviço); importa home.gv para
+// as telas globais.
+component {
+  resources {
+    // ── Imports ────────────────────────────────────────────────────
+    link(rel = import, href = "service.gv", as = ServiceDetail)
+    link(rel = import, href = "home.gv", as = HomeViews)
+    link(rel = import, href = "shell/deployments.gv", as = DeploymentsView)
+    link(rel = import, href = "shell/projects.gv", as = ProjectsView)
+    link(rel = import, href = "shell/project_services.gv", as = ProjectServicesView)
+    link(rel = import, href = "components/project_card.gv", as = ProjectCard)
+    link(rel = import, href = "components/service_card.gv", as = ServiceCard)
+    link(rel = import, href = "components/running_card.gv", as = RunningCard)
+    link(rel = import, href = "components/stat_card.gv", as = StatCard)
+    link(rel = import, href = "components/state_cell.gv", as = StateCell)
+    link(rel = import, href = "components/table_link.gv", as = TableLink)
+    link(rel = import, href = "components/job_actions.gv", as = JobActions)
+    link(rel = import, href = "components/badge.gv", as = rp-badge)
+    link(rel = import, href = "components/nav_item.gv", as = NavItem)
+    link(rel = import, href = "components/tab_button.gv", as = TabButton)
+    link(rel = import, href = "components/loading_row.gv", as = LoadingRow)
+    link(rel = import, href = "components/picker_row.gv", as = PickerRow)
+    link(rel = import, href = "components/template_row.gv", as = TemplateRow)
+
+    style """
+      .sidebar          { background: var(--surface); }
+      .brand            { spacing: 2; padding: 0 8 18 8; }
+      .brand__name      { size: 21; bold: true; color: var(--text); }
+      .brand__sub       { size: 11; color: var(--faint); }
+      .sidebar__section { size: 11; bold: true; color: var(--faint); padding: 16 8 6 8; }
+      .sidebar__spacer  { height: fill; }
+      .shell__main      { width: fill; height: fill; }
+      /* Top bar */
+      .topbar        { width: fill; padding: 18 28; spacing: 18; align_y: center; }
+      .topbar__menu  { color: var(--border); text_color: var(--text); padding: 9 13; border_radius: 5; }
+      .topbar__search { width: fill; padding: 11 14; }
+      .topbar__actions { spacing: 8; align_y: center; }
+      /* Ações do cabeçalho do projeto (variantes compactas, à direita) */
+      .proj-bar          { width: fill; align_y: center; }
+      .proj-bar__actions { spacing: 8; align_y: center; }
+      @media (max-width: 1100) {
+        .topbar__status { hidden: true; }
+      }
+
+      @media (max-width: 900) {
+        .topbar { padding: 12 16; spacing: 10; }
+      }
+
+      /* Com a sidebar aberta sobram ~350px de conteúdo aqui: a busca some antes
+         de espremer os botões de ação (ficava "Search d"). */
+      @media (max-width: 760) {
+        .topbar__search { hidden: true; }
+      }
+
+      @media (max-width: 560) {
+        .topbar__search { hidden: true; }
+        .topbar__status { hidden: true; }
+      }
+    """
+  }
+
+  row(class = screen) {
+    // ── Sidebar (gaveta) ─────────────────────────────────────────────────
+    drawer(
+      :value = menu,
+      open = @menu,
+      size = 264,
+      padding = "28 20",
+      spacing = 6,
+      panel_class = sidebar,
+    ) {
+      column(class = brand) {
+        text("{t('common.rustploy')}", class = brand__name)
+        text("{t('shell.production_cluster')}", class = brand__sub)
+      }
+
+      text("{t('shell.deployment_ops')}", class = sidebar__section)
+
+      NavItem(
+        label = "{t('common.running')}",
+        icon = "●",
+        target = running,
+        action = nav_running,
+      )
+
+      NavItem(
+        label = "{t('common.deployments')}",
+        icon = "▶",
+        target = deployments,
+        action = nav_deployments,
+      )
+
+      NavItem(
+        label = "{t('common.deploy_engine')}",
+        icon = "⚡",
+        target = deploy_engine,
+        action = nav_deploy_engine,
+      )
+
+      NavItem(
+        label = "{t('common.monitoring')}",
+        icon = "◔",
+        target = monitoring,
+        action = nav_monitoring,
+      )
+
+      NavItem(
+        label = "{t('common.schedules')}",
+        icon = "◫",
+        target = schedules,
+        action = nav_schedules,
+      )
+
+      NavItem(
+        label = "{t('common.ingress')}",
+        icon = "↦",
+        target = ingress,
+        action = nav_ingress,
+      )
+
+      NavItem(label = "{t('common.runtime')}", icon = "◉", target = docker, action = nav_docker)
+      text("{t('shell.management')}", class = sidebar__section)
+
+      NavItem(
+        label = "{t('shell.projects', projects_count=projects_count)}",
+        icon = "◧",
+        target = "projects project_services service",
+        action = nav_projects,
+      )
+
+      column(class = sidebar__spacer)
+      hr
+
+      NavItem(
+        label = "{t('common.settings')}",
+        icon = "⌥",
+        target = settings,
+        action = nav_settings,
+        badge = @update_is_available,
+      )
+
+      NavItem(
+        label = "{t('common.support')}",
+        icon = "◊",
+        target = support,
+        action = nav_support,
+      )
+    }
+
+    // ── Main column ────────────────────────────────────────────────────
+    column(class = shell__main) {
+      // Top bar
+      row(class = topbar) {
+        button(
+          class = topbar__menu,
+          text = "☰",
+          on_click = app:drawer::toggle:menu,
+          tooltip = "{t('shell.show_hide_the_menu')}",
+        )
+
+        input(
+          class = topbar__search,
+          :value = search,
+          on_change = search_changed,
+          placeholder = "{t('shell.search_deployments_nodes')}",
+        )
+
+        text(
+          "{t('shell.daemon_v', connected_server=connected_server, daemon_version=daemon_version)}",
+          class = "u-muted topbar__status",
+        )
+
+        flow(class = topbar__actions) {
+          button(class = "{language_english_class}", on_click = language_select_english, text = English)
+          button(class = "{language_portuguese_class}", on_click = language_select_portuguese, text = Português)
+          button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "{t('shell.stop_all')}")
+          button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = "{t('shell.disconnect')}")
+        }
+      }
+
+      hr
+
+      // Content
+      if @view == "deployments" {
+        DeploymentsView
+      } else if @view == "projects" {
+        ProjectsView
+      } else if @view == "project_services" {
+        ProjectServicesView
+      } else if @view == "service" {
+        // ── Service detail / demais views ────────────────────────────
+        ServiceDetail
+      } else {
+        HomeViews
+      }
+    }
+  }
+}

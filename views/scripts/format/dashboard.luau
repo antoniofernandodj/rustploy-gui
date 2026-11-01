@@ -53,7 +53,7 @@ local FILLER: GridCard = {
     id = "",
     name = "",
     project = "",
-    -- service_card.gvb
+    -- service_card.gv
     port = "",
     status_label = "",
     status_color = "",
@@ -68,7 +68,7 @@ local FILLER: GridCard = {
     container_name_full = "",
     container_id_full = "",
     container_extra = "",
-    -- project_card.gvb
+    -- project_card.gv
     description = "",
     service_count = "",
     running_count = "",

@@ -15,7 +15,7 @@ local function nova(ctx_inicial)
     for k, v in ctx_inicial or {} do
         semente[k] = v
     end
-    local tela = component("views/app.gvb", semente)
+    local tela = component("views/app.gv", semente)
     tela:call("init")
     return tela
 end

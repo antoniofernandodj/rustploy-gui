@@ -1,0 +1,82 @@
+// Networks — projeto reconhecido pela convenção rp_net_&lt;id curto&gt;.
+component {
+  resources {
+    component(name = SemNetworks) {
+      text("{t('docker_networks.no_networks')}", class = u-muted)
+    }
+  }
+
+  column(class = "panel panel--fill") {
+    row(class = env__head) {
+      text(
+        "{t('docker_networks.network_s', docker_networks_count=docker_networks_count)}",
+        class = "u-muted u-fill",
+      )
+
+      // O filtro mora em format.docker_networks — ver images.gv.
+      checkbox(
+        :checked = docker_networks_only_used,
+        on_toggle = docker_only_used:docker_networks_only_used,
+        label = "{t('common.in_use_only')}",
+      )
+
+      button(
+        class = "btn btn--danger",
+        on_click = docker_prune_networks,
+        disabled = @busy_docker_prune_networks,
+        text = "{t('common.clean_unused')}",
+      )
+    }
+
+    text(
+      "@docker_message",
+      if = @docker_message,
+      not_equals = "",
+      class = u-muted,
+    )
+
+    tableview(
+      :items = docker_networks,
+      :sort = docker_networks_sort,
+      var = n,
+      header_class = "table__head table__head-cell",
+      row_class = "table__row table__cell table__row--divided",
+      class = u-fill-all,
+    ) {
+      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
+        text("@n.name", class = "table__cell table__cell--key")
+      }
+
+      tablecolumn(key = project, label = "{t('common.project')}", class = table__col-proj)
+
+      tablecolumn(key = driver, label = "{t('common.driver')}", class = table__col-dur) {
+        text("@n.driver", class = u-muted)
+      }
+
+      tablecolumn(key = containers, label = "{t('common.containers')}", class = table__col-dur) {
+        text("@n.containers", class = u-muted)
+      }
+
+      tablecolumn(key = in_use_label, label = "{t('common.usage')}", class = table__col-state) {
+        StateCell(kind = @n.in_use_kind, label = @n.in_use_label)
+      }
+
+      tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+        button(
+          if = @n.in_use_label,
+          equals = "SEM USO",
+          class = "btn btn--danger btn--xs",
+          on_click = docker_remove_network:@n.id_full,
+          disabled = @busy_docker_remove_network,
+          text = "{t('common.remove')}",
+        )
+      }
+
+      if @data_loading == "true" {
+        LoadingRow
+      } else {
+        SemNetworks
+      }
+    }
+  }
+}

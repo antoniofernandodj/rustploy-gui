@@ -15,7 +15,7 @@
 
 -- O init do app pré-preencheria `access_key` com o servidor salvo da máquina.
 local function app(visao, extra)
-    local tela = component("views/app.gvb", { access_key = "x" })
+    local tela = component("views/app.gv", { access_key = "x" })
     tela:call("init")
     if visao then
         tela:set("screen", "shell")
@@ -72,18 +72,18 @@ local SEMANA = {
 --- o app e todos os imports carregam (uma view quebrada, mesmo não usada,
 --- falha aqui)
 function test_o_app_todo_carrega()
-    assert_renders("views/app.gvb")
+    assert_renders("views/app.gv")
 end
 
 --- cada janela auxiliar carrega por conta própria
 function test_cada_janela_auxiliar_carrega()
     each({
-        { "views/new_project_form.gvb" },
-        { "views/new_job_window.gvb" },
-        { "views/log_window.gvb" },
-        { "views/new_service_window.gvb" },
-        { "views/new_registry_token_window.gvb" },
-        { "views/service_export_window.gvb" },
+        { "views/new_project_form.gv" },
+        { "views/new_job_window.gv" },
+        { "views/log_window.gv" },
+        { "views/new_service_window.gv" },
+        { "views/new_registry_token_window.gv" },
+        { "views/service_export_window.gv" },
     }, function(caminho)
         assert_renders(caminho)
     end)
@@ -125,12 +125,12 @@ end
 
 --- janela Novo projeto
 function test_janela_novo_projeto_renderiza()
-    rende(janela("views/new_project_form.gvb"))
+    rende(janela("views/new_project_form.gv"))
 end
 
 --- janela Novo job, em cada passo e em cada tipo de recorrência
 function test_janela_novo_job_passos_e_recorrencias()
-    local tela = janela("views/new_job_window.gvb", {
+    local tela = janela("views/new_job_window.gv", {
         new_job_projects = { { id = "prj_1", name = "acme" } },
         new_job_services = {
             { id = "svc_1", name = "web", project_id = "prj_1" },
@@ -162,7 +162,7 @@ end
 
 --- janela de logs ao vivo
 function test_janela_de_logs_renderiza()
-    local tela = janela("views/log_window.gvb", {
+    local tela = janela("views/log_window.gv", {
         log_window_title = "Logs · api",
         log_window_stream_url = "/api/services/svc1/logs",
         log_window_seed = {
@@ -210,7 +210,7 @@ local function wizard(dados)
     for k, v in dados or {} do
         base[k] = v
     end
-    return janela("views/new_service_window.gvb", base)
+    return janela("views/new_service_window.gv", base)
 end
 
 --- wizard Novo serviço, em cada passo
@@ -274,7 +274,7 @@ end
 
 --- janela Exportar serviço: renderiza com o plano semeado
 function test_janela_exportar_servico_renderiza()
-    local tela = janela("views/service_export_window.gvb", {
+    local tela = janela("views/service_export_window.gv", {
         export_service_id = "svc_1",
         export_plan = {
             service_name = "api",

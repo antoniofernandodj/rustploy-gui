@@ -2,7 +2,7 @@
 
 use glacier_ui::{EmbeddedDirs, embed_dirs};
 
-/// Cada pasta sob o prefixo lógico que o markup usa: `views/` (templates `.gvb`,
+/// Cada pasta sob o prefixo lógico que o markup usa: `views/` (templates `.gv`,
 /// estilos e scripts Luau), `assets/icons/` (`<svg src=…>`), `assets/fonts/`
 /// (`font(src = …)`), os logos dos blueprints (preparados pelo `build.rs` em
 /// `$OUT_DIR`, via o `{logo}` do catálogo do daemon) e `packaging/` (`.desktop` e
@@ -29,7 +29,7 @@ mod tests {
     fn resolve_os_assets_referenciados() {
         let a = assets();
         for p in [
-            "views/app.gvb",
+            "views/app.gv",
             "views/styles/app.gss",
             "views/styles/theme.json",
             "views/scripts/app.luau",
@@ -46,8 +46,8 @@ mod tests {
             assert!(a.exists(p), "faltou embutir (binário): {p}");
             assert!(!a.read_bytes(p).unwrap().is_empty(), "vazio: {p}");
         }
-        assert!(!a.exists("views/nao_existe.gvb"));
-        assert!(a.read_to_string("views/nao_existe.gvb").is_err());
+        assert!(!a.exists("views/nao_existe.gv"));
+        assert!(a.read_to_string("views/nao_existe.gv").is_err());
     }
 
     /// Prova de ponta a ponta, headless (sem janela e **sem `chdir`**): o motor
@@ -59,7 +59,7 @@ mod tests {
         use std::sync::Arc;
         let mut motor = glacier_ui::GlacierUI::new().with_asset_source(Arc::new(assets()));
         motor
-            .register_app("views/app.gvb")
+            .register_app("views/app.gv")
             .expect("registrar o app a partir dos assets embutidos");
         assert!(
             motor.render_current().is_ok(),

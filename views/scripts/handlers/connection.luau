@@ -18,12 +18,12 @@ local Language = require("language")
 -- O login é UM campo: o token de conexão (endereço + token, ver
 -- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
 -- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
--- no `<select>` (login.gvb): cada item mostra o `host:porta`, e escolher um
+-- no `<select>` (login.gv): cada item mostra o `host:porta`, e escolher um
 -- preenche o campo com o token de conexão dele. O armazenamento continua
 -- `{url, token}` (o token é montado na hora de mostrar), então servidores
 -- salvos antes do login por token não se perdem. `storage` grava em
 -- `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida por
--- `app(id = rustploy)` de `views/app.gvb`).
+-- `app(id = rustploy)` de `views/app.gv`).
 local saved_servers: { { url: string, token: string } } = {}
 
 -- Publica `{label, value}` para o `<select>` de servidores salvos: o rótulo é
@@ -128,7 +128,7 @@ function init(): ()
     ctx.status_line = ctx.status_line or i18n.tr("pronto para conectar")
     ctx.error = ctx.error or ""
     ctx.search = ctx.search or ""
-    -- Sidebar-gaveta (<drawer> em shell.gvb): começa aberta; o ☰ da topbar
+    -- Sidebar-gaveta (<drawer> em shell.gv): começa aberta; o ☰ da topbar
     -- alterna via `drawer::toggle:menu`.
     ctx.menu = ctx.menu or "true"
     -- Checkboxes do Infra as Code (Settings → aba IaC): semeados aqui pra o
