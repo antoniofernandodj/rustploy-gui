@@ -306,6 +306,20 @@ function M.fetch_service_detail(service_id: string): ()
         format.env_dotenv_with_comments(spec.env_vars, spec.env_comments)
     ctx.service_env_text = dotenv
     ctx.service_env_text_original = dotenv
+    -- Secrets DESTE serviço (só os nomes; no deploy o de serviço vale antes do de projeto).
+    local service_secret_names: { string } = {}
+    local secret_list_ok, secret_list_response = api:rpc {
+        SecretList = { project_id = spec.project_id, service_id = service_id },
+    }
+    if
+        secret_list_ok
+        and type(secret_list_response) == "table"
+        and type(secret_list_response.SecretNames) == "table"
+    then
+        service_secret_names = secret_list_response.SecretNames
+    end
+    ctx.service_secrets = format.secret_rows(service_secret_names)
+    ctx.service_secrets_count = tostring(#service_secret_names)
     ctx.service_deployments = format.deployments_detail(deployments)
     ctx.service_deployments_count = tostring(#deployments)
     -- Webhook de deploy (aba Deployments). Só serviços Application (Git ou
@@ -1295,6 +1309,100 @@ function env_add(): ()
     end)
     ctx.env_new_key = ""
     ctx.env_new_value = ""
+end
+
+-- on_validation_error do form(name = service_secret_add) — nome e valor são `rules="required"`.
+function service_secret_add_show_validation_errors(_erros_json: string?): ()
+    toast { message = i18n.tr("Preencha nome e valor do secret"), kind = "warning" }
+end
+
+-- Cria (ou sobrescreve) um secret do SERVIÇO aberto. Write-only como o do projeto: o daemon só devolve
+-- os nomes. O novo valor vale no próximo deploy.
+function service_secret_add(): ()
+    local service_id = ctx.selected_service or ""
+    local project_id = ctx.service_project_id or ""
+    local api = State.api
+    if service_id == "" or project_id == "" or not api then
+        return
+    end
+    local name = Helpers.trim(ctx.service_secret_new_name)
+    local value = ctx.service_secret_new_value or ""
+    local secret_set_ok, secret_set_response = api:rpc_checked {
+        SecretSet = {
+            project_id = project_id,
+            service_id = service_id,
+            name = name,
+            value = value,
+        },
+    }
+    if secret_set_ok then
+        ctx.service_secret_new_name = ""
+        ctx.service_secret_new_value = ""
+        toast {
+            message = i18n.tr("Secret \"") .. name .. i18n.tr("\" salvo — vale no próximo deploy"),
+            kind = "success",
+        }
+        M.fetch_service_detail(service_id)
+    else
+        toast { message = tostring(secret_set_response), kind = "error" }
+    end
+end
+
+function service_secret_delete(name: string): ()
+    local service_id = ctx.selected_service or ""
+    local project_id = ctx.service_project_id or ""
+    local api = State.api
+    if service_id == "" or project_id == "" or name == "" or not api then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Remover secret?"),
+        message = i18n.tr("O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam \"")
+            .. name
+            .. i18n.tr("\" passarão a receber valor vazio no próximo deploy."),
+        confirm_label = i18n.tr("Remover secret"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    local secret_delete_ok, secret_delete_response = api:rpc_checked {
+        SecretDelete = { project_id = project_id, service_id = service_id, name = name },
+    }
+    if secret_delete_ok then
+        toast { message = tostring(i18n.tr("Secret removido")), kind = "success" }
+        M.fetch_service_detail(service_id)
+    else
+        toast { message = tostring(secret_delete_response), kind = "error" }
+    end
+end
+
+-- "→ secret" numa variável em claro: o valor passa a ser guardado cifrado e a variável vira uma
+-- referência ao secret (mesmo nome). O valor não muda, então nada precisa ser redigitado.
+function env_to_secret(key: string): ()
+    local service_id = ctx.selected_service or ""
+    local project_id = ctx.service_project_id or ""
+    local api = State.api
+    if service_id == "" or project_id == "" or key == "" or not api then
+        return
+    end
+    local move_ok, move_response = api:rpc_checked {
+        SecretMove = {
+            project_id = project_id,
+            service_id = service_id,
+            name = key,
+            op = "EnvToSecret",
+        },
+    }
+    if move_ok then
+        toast {
+            message = i18n.tr("Variável movida para secret: ") .. key,
+            kind = "success",
+        }
+        M.fetch_service_detail(service_id)
+    else
+        toast { message = tostring(move_response), kind = "error" }
+    end
 end
 
 function env_delete(key: string): ()

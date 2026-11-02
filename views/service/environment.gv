@@ -4,6 +4,10 @@ component {
     component(name = SemVariaveisDoServico) {
       text("{t('common.no_variables')}", class = u-muted)
     }
+
+    component(name = SemSecretsDoServico) {
+      text("{t('environment.no_service_secret')}", class = u-muted)
+    }
   }
 
   column(class = env) {
@@ -128,10 +132,84 @@ component {
                 text = "✕",
               )
 
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = env_to_secret:@e.key,
+                disabled = @busy_env_to_secret,
+                if = @e.kind,
+                equals = plain,
+                text = "🔒",
+                tooltip = "{t('environment.to_secret')}",
+              )
+
               text(class = env__sep)
               text("@e.key_display", class = env__key)
               text("@e.value", class = "kv-list__val kv-list__val--compact")
             }
+          }
+        }
+
+        // ── Secrets deste serviço (só nomes; o valor nunca volta do daemon) ──────────────────
+        hr
+
+        text(
+          "{t('environment.service_secrets', service_secrets_count=service_secrets_count)}",
+          class = u-label-cap,
+        )
+
+        text(
+          "{t('environment.service_secrets_hint')}",
+          class = "u-muted u-fill",
+        )
+
+        form(
+          name = service_secret_add,
+          on_submit = service_secret_add,
+          on_validation_error = service_secret_add_show_validation_errors,
+          class = "form form--gap-8",
+        ) {
+          row(class = env__add) {
+            input(
+              class = env__input,
+              form_control = service_secret_new_name,
+              rules = required,
+              msg = "{t('common.enter_a_name')}",
+              placeholder = "{t('common.name')}",
+            )
+          }
+
+          row(class = env__add) {
+            input(
+              class = env__input,
+              form_control = service_secret_new_value,
+              rules = required,
+              msg = "{t('project_secrets.enter_a_value')}",
+              placeholder = "{t('project_secrets.value_encrypted_on_save')}",
+            )
+          }
+
+          row {
+            button(
+              type = submit,
+              disabled = @busy_service_secret_add,
+              class = "btn btn--primary",
+              text = "{t('project_secrets.save_secret')}",
+            )
+          }
+        }
+
+        each @service_secrets as s (fallback = SemSecretsDoServico) {
+          row(class = kv-list__row) {
+            button(
+              class = env__del,
+              on_click = service_secret_delete:@s.name,
+              disabled = @busy_service_secret_delete,
+              text = "✕",
+            )
+
+            text(class = env__sep)
+            text("@s.name_display", class = env__key)
+            text("{t('project_secrets.encrypted')}", class = "kv-list__val kv-list__val--compact")
           }
         }
 

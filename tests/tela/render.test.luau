@@ -845,6 +845,23 @@ function test_servico_cada_aba()
     end)
 end
 
+--- aba Environment: secrets do serviço aparecem (nome + cadeado), com o botão "→ secret" nas variáveis em claro
+function test_servico_environment_secrets_do_servico()
+    local Format = require("format")
+    local tela = servico("environment")
+    seta(tela, {
+        service_secrets = Format.secret_rows({ "POSTGRES_PASSWORD", "API_TOKEN" }),
+        service_secrets_count = "2",
+    })
+    local textos = tela:texts()
+    assert_true(tem_trecho(textos, "POSTGRES_PASSWORD"), "nome do secret do serviço ausente")
+    assert_true(tem_trecho(textos, "API_TOKEN"), "segundo secret ausente")
+    assert_true(tem_trecho(tela:buttons(), "🔒"), "botão de mover para secret ausente")
+    -- sem secrets: o estado vazio aparece
+    seta(tela, { service_secrets = "[]", service_secrets_count = "0" })
+    assert_true(tem_trecho(tela:texts(), "No secret in this service yet."), "estado vazio ausente")
+end
+
 --- aba Geral: origem Git, zip e compose
 function test_servico_geral_por_origem()
     local tela = servico("general")
