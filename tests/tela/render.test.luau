@@ -641,6 +641,27 @@ function test_projeto_movimentos_entre_escopos()
     assert_true(tem_trecho(botoes_secrets, "↓"), "secret sem o botão → serviço")
 end
 
+--- projeto: secret escondido mostra 👁 e "encrypted"; revelado mostra o valor, 🙈 e copiar
+function test_projeto_secret_ver_valor()
+    local Format = require("format")
+    local tela = projeto()
+    seta(tela, {
+        project_tab = "secrets",
+        project_secrets = Format.secret_rows({ "TOKEN" }, "project", {}),
+        project_secrets_count = "1",
+    })
+    assert_true(tem_trecho(tela:buttons(), "👁"), "botão de ver valor ausente")
+    assert_true(not tem_trecho(tela:buttons(), "🙈"), "botão de esconder não devia aparecer")
+    assert_true(tem_trecho(tela:texts(), "encrypted"), "rótulo encrypted ausente")
+    seta(tela, {
+        project_secrets = Format.secret_rows({ "TOKEN" }, "project", { ["project:TOKEN"] = "valor-revelado" }),
+    })
+    assert_true(tem_trecho(tela:texts(), "valor-revelado"), "valor revelado ausente")
+    assert_true(tem_trecho(tela:buttons(), "🙈"), "botão de esconder ausente")
+    assert_true(tem_trecho(tela:buttons(), "📋"), "botão de copiar ausente")
+    assert_true(not tem_trecho(tela:buttons(), "👁"), "botão de ver não devia aparecer")
+end
+
 -- ── configurações ───────────────────────────────────────────────────────────
 
 --- Git: provedor OAuth e token

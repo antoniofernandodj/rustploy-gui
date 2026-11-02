@@ -190,3 +190,36 @@ function project_env_to_service(key: string): ()
     end
     project_move("EnvProjectToService", key, service_id, i18n.tr("Variável movida para o serviço: "))
 end
+
+-- ── Ver o valor de um secret do PROJETO ─────────────────────────────────────
+-- SecretReveal grava auditoria (quem, qual, quando; nunca o valor) e fica de fora do MCP.
+
+function secret_reveal(name: string): ()
+    local project_id = ctx.selected_project_id or ""
+    local api = State.api
+    if project_id == "" or name == "" or not api then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Ver o valor do secret?"),
+        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor)."),
+        confirm_label = i18n.tr("Ver valor"),
+    }
+    if not confirmed then
+        return
+    end
+    local reveal_ok, reveal_response = api:rpc {
+        SecretReveal = { project_id = project_id, name = name },
+    }
+    if not reveal_ok or type(reveal_response) ~= "table" or reveal_response.SecretValue == nil then
+        toast { message = tostring(reveal_response), kind = "error" }
+        return
+    end
+    State.revealed_secrets["project:" .. name] = reveal_response.SecretValue :: string
+    Stream.refresh_now()
+end
+
+function secret_hide(name: string): ()
+    State.revealed_secrets["project:" .. name] = nil
+    Stream.refresh_now()
+end

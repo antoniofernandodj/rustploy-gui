@@ -219,6 +219,7 @@ component {
         }
 
         each @service_secrets as s (fallback = SemSecretsDoServico) {
+          column(class = kv-list__block) {
           row(class = kv-list__row) {
             button(
               class = env__del,
@@ -243,8 +244,41 @@ component {
               tooltip = "{t('environment.secret_to_project')}",
             )
 
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = service_secret_reveal:@s.name,
+              disabled = @busy_service_secret_reveal,
+              if = @s.revealed,
+              equals = false,
+              text = "👁",
+              tooltip = "{t('environment.secret_reveal')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = service_secret_hide:@s.name,
+              if = @s.revealed,
+              equals = true,
+              text = "🙈",
+              tooltip = "{t('environment.secret_hide')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = secret_copy:@s.ref,
+              if = @s.revealed,
+              equals = true,
+              text = "📋",
+              tooltip = "{t('environment.secret_copy')}",
+            )
+
             text(class = env__sep)
             text("@s.name_display", class = env__key)
+          }
+
+          row(class = kv-list__row, if = @s.revealed, equals = true) {
+            text("@s.value", class = "kv-list__val")
+          }
           }
         }
 

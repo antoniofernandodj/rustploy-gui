@@ -134,7 +134,7 @@ local function update_open_project(): ()
     -- (ver http_api.rs::snapshot), nunca o valor. A mesma lista alimenta os
     -- chips de "usar secret" da aba Variáveis.
     local secrets = found_project.secrets or {}
-    ctx.project_secrets = format.secret_rows(secrets)
+    ctx.project_secrets = format.secret_rows(secrets, "project", State.revealed_secrets)
     ctx.project_secrets_count = tostring(#secrets)
 
     -- Aba "Jobs (N)": jobs deste projeto (filtrados do `msg.jobs` global —

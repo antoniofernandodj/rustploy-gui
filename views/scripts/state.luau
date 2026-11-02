@@ -50,6 +50,9 @@ export type State = {
     new_service_templates_all: { any },
     -- service_id → webhook revelado no painel "Em execução"
     running_revealed: { [string]: boolean },
+    -- "escopo:nome" → valor de um secret que o usuário pediu para ver (SecretReveal). Só em memória,
+    -- some ao trocar de projeto/serviço e ao desconectar; nunca vai para o ctx persistido.
+    revealed_secrets: { [string]: string },
     -- service_id → ServiceWarmStatus (snapshot)
     service_warm_by_id: { [string]: any },
     -- job_id → Job cru (do snapshot) — job_toggle precisa do
@@ -89,6 +92,7 @@ local shared_state: State = {
     },
     new_service_templates_all = {},
     running_revealed = {},
+    revealed_secrets = {},
     service_warm_by_id = {},
     jobs_by_id = {},
     jobs_inflight = {},

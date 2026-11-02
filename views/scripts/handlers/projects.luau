@@ -14,6 +14,7 @@ local History = require("history")
 -- Abrir a lista de serviços de um projeto (grade read-only via snapshot).
 function open_project(project_id: string): ()
     History.push()
+    State.revealed_secrets = {}
     ctx.selected_project_id = project_id
     ctx.view = "project_services"
     ctx.project_tab = "services"

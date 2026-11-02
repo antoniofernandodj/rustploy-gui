@@ -495,6 +495,7 @@ function disconnect(): ()
     History.clear()
     State.api = nil
     State.snap = nil
+    State.revealed_secrets = {}
     State.last_pairs = {}
     State.metrics_by_id = {}
     State.jobs_by_id = {}

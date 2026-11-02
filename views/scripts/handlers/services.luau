@@ -55,6 +55,7 @@ end
 -- UI; service_loading=true segura os Selects até tudo chegar.
 function open_service(service_id: string): ()
     History.push()
+    State.revealed_secrets = {}
     ctx.selected_service = service_id
     ctx.view = "service"
     ctx.tab = "general"
@@ -318,7 +319,8 @@ function M.fetch_service_detail(service_id: string): ()
     then
         service_secret_names = secret_list_response.SecretNames
     end
-    ctx.service_secrets = format.secret_rows(service_secret_names)
+    ctx.service_secrets =
+        format.secret_rows(service_secret_names, service_id, State.revealed_secrets)
     ctx.service_secrets_count = tostring(#service_secret_names)
     ctx.service_deployments = format.deployments_detail(deployments)
     ctx.service_deployments_count = tostring(#deployments)
@@ -1403,6 +1405,50 @@ function env_to_secret(key: string): ()
     else
         toast { message = tostring(move_response), kind = "error" }
     end
+end
+
+-- 👁 num secret do serviço: pede o valor ao daemon (SecretReveal, que grava auditoria: quem, qual,
+-- quando; nunca o valor) e o mostra na linha. Só em memória; 🙈 ou trocar de tela esconde.
+function service_secret_reveal(name: string): ()
+    local service_id = ctx.selected_service or ""
+    local project_id = ctx.service_project_id or ""
+    local api = State.api
+    if service_id == "" or project_id == "" or name == "" or not api then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Ver o valor do secret?"),
+        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor)."),
+        confirm_label = i18n.tr("Ver valor"),
+    }
+    if not confirmed then
+        return
+    end
+    local reveal_ok, reveal_response = api:rpc {
+        SecretReveal = { project_id = project_id, service_id = service_id, name = name },
+    }
+    if not reveal_ok or type(reveal_response) ~= "table" or reveal_response.SecretValue == nil then
+        toast { message = tostring(reveal_response), kind = "error" }
+        return
+    end
+    State.revealed_secrets[service_id .. ":" .. name] = reveal_response.SecretValue :: string
+    M.fetch_service_detail(service_id)
+end
+
+function service_secret_hide(name: string): ()
+    local service_id = ctx.selected_service or ""
+    State.revealed_secrets[service_id .. ":" .. name] = nil
+    M.fetch_service_detail(service_id)
+end
+
+-- Copia o valor já revelado (a chave é "escopo:nome", a mesma da linha).
+function secret_copy(ref: string): ()
+    local value = State.revealed_secrets[ref]
+    if value == nil then
+        return
+    end
+    copy(value)
+    toast { message = i18n.tr("Valor copiado para a área de transferência"), kind = "success" }
 end
 
 -- Move genérico (SecretMove) de uma coisa do SERVIÇO aberto; `done_message` é o aviso de sucesso.

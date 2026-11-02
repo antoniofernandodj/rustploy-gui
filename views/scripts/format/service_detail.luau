@@ -132,13 +132,23 @@ end
 -- Secrets do projeto como linhas JSON. Só nomes: o daemon nunca devolve o
 -- valor (o snapshot traz `projects[].secrets` como lista de strings), então a
 -- UI é write-only — cria/sobrescreve e apaga, sem nunca exibir o conteúdo.
-function M.secret_rows(names: { string }?): string
+function M.secret_rows(
+    names: { string }?,
+    scope: string?,
+    revealed: { [string]: string }?
+): string
     local rows = {}
     for _, name in ipairs(names or {}) do
-        table.insert(
-            rows,
-            { name = name, name_display = Util.ellipsis(name, ENV_KEY_MAX) }
-        )
+        -- `ref` identifica o secret no mapa de revelados ("projeto" ou o id do serviço, e o nome).
+        local ref = (scope or "project") .. ":" .. name
+        local value = revealed and revealed[ref]
+        table.insert(rows, {
+            name = name,
+            name_display = Util.ellipsis(name, ENV_KEY_MAX),
+            ref = ref,
+            revealed = value ~= nil and "true" or "false",
+            value = value or "",
+        })
     end
     return Util.encode_array(rows)
 end
