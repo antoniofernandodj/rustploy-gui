@@ -153,6 +153,44 @@ function M.secret_rows(
     return Util.encode_array(rows)
 end
 
+-- Dependências do serviço (`spec.depends_on`: ids de serviços do MESMO projeto) como linhas
+-- {id, name, index}. Um id que não resolve mais aparece como "(serviço removido…)", para dar para
+-- tirá-lo pela própria tela.
+function M.dependency_rows(spec: any, services: { any }?): string
+    local name_by_id = {}
+    for _, service in ipairs(services or {}) do
+        name_by_id[service.id] = service.spec and service.spec.name or service.id
+    end
+    local rows = {}
+    for position, dependency_id in ipairs(spec.depends_on or {}) do
+        table.insert(rows, {
+            id = dependency_id,
+            name = name_by_id[dependency_id]
+                or (i18n.tr("(serviço removido: ") .. tostring(dependency_id) .. ")"),
+            index = tostring(position),
+        })
+    end
+    return Util.encode_array(rows)
+end
+
+-- Serviços do projeto que ainda podem virar dependência: não o próprio, e nenhum que já esteja na lista.
+function M.dependency_options(spec: any, self_id: string, services: { any }?): string
+    local already = {}
+    for _, dependency_id in ipairs(spec.depends_on or {}) do
+        already[dependency_id] = true
+    end
+    local rows = {}
+    for _, service in ipairs(services or {}) do
+        if service.id ~= self_id and not already[service.id] then
+            table.insert(rows, {
+                id = service.id,
+                name = service.spec and service.spec.name or service.id,
+            })
+        end
+    end
+    return Util.encode_array(rows)
+end
+
 -- Env vars como linhas JSON, re-interleaving os comentários `# ...` ancorados
 -- (linha `__c<idx>`, idx = índice 0-based em env_comments).
 function M.env_json_with_comments(

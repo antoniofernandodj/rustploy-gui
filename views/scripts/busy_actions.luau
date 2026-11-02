@@ -19,6 +19,8 @@ return {
     "copy_webhook",
     "delete_deployment",
     "delete_project",
+    "dependency_add",
+    "dependency_delete",
     "deploy_engine_close_detail",
     "deploy_engine_open_detail",
     "deployment_logs",

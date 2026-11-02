@@ -384,6 +384,19 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.pre_deploy_available_jobs =
         format.pre_deploy_available(spec, project_jobs)
 
+    -- Dependências e religamento no boot (aba Advanced). Os candidatos são os outros serviços do projeto.
+    local project_service_list_ok, project_service_list_response =
+        api:rpc { ServiceList = { project_id = spec.project_id } }
+    local project_services = project_service_list_ok
+            and project_service_list_response.Services
+        or nil
+    ctx.service_dependencies = format.dependency_rows(spec, project_services)
+    ctx.service_dependency_options =
+        format.dependency_options(spec, service_id, project_services)
+    ctx.service_dependencies_count = tostring(#(spec.depends_on or {}))
+    ctx.service_form_dependency_add_id = ""
+    ctx.service_form_autostart = (spec.autostart ~= false) and "true" or "false"
+
     -- Provedores Gitea conectados (para o picker de conta).
     local git_provider_list_ok, git_provider_list_response =
         api:rpc("GitProviderList")
@@ -1037,6 +1050,42 @@ function advanced_save(): ()
         spec.replicas = math.floor(replicas)
         local run_command = Helpers.trim(ctx.service_form_run_command)
         spec.run_command = (run_command ~= "") and run_command or nil
+        spec.autostart = Helpers.is_true(ctx.service_form_autostart)
+    end)
+end
+
+-- Adiciona o serviço escolhido às dependências. O daemon valida (sem ciclo, só serviços do mesmo
+-- projeto) e a recusa aparece no toast de erro do with_spec.
+function dependency_add(): ()
+    local dependency_id = Helpers.trim(ctx.service_form_dependency_add_id)
+    if dependency_id == "" then
+        return
+    end
+    with_spec(function(spec: any): ()
+        local kept = json.array {}
+        local already = false
+        for _, existing_id in ipairs(spec.depends_on or {}) do
+            table.insert(kept, existing_id)
+            if existing_id == dependency_id then
+                already = true
+            end
+        end
+        if not already then
+            table.insert(kept, dependency_id)
+        end
+        spec.depends_on = kept
+    end)
+end
+
+function dependency_delete(dependency_id: string): ()
+    with_spec(function(spec: any): ()
+        local kept = json.array {}
+        for _, existing_id in ipairs(spec.depends_on or {}) do
+            if existing_id ~= dependency_id then
+                table.insert(kept, existing_id)
+            end
+        end
+        spec.depends_on = kept
     end)
 end
 

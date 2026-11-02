@@ -1,4 +1,10 @@
 component {
+  resources {
+    component(name = SemDependencias) {
+      text("{t('advanced.no_dependencies')}", class = u-muted)
+    }
+  }
+
   scrollable(
     direction = vertical,
     class = u-fill-all,
@@ -29,9 +35,64 @@ component {
 
         text("{t('advanced.current_run_args', service_run_args=service_run_args)}", class = u-muted)
 
+        toggle(
+          :checked = service_form_autostart,
+          on_toggle = field:service_form_autostart,
+          label = "{t('advanced.autostart')}",
+        )
+
+        text("{t('advanced.autostart_hint')}", class = u-muted)
+
         row(class = env__add) {
           button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "{t('common.save_2')}")
           text("@service_action_message", class = u-muted)
+        }
+      }
+
+      column(class = form-panel) {
+        text(
+          "{t('advanced.depends_on', service_dependencies_count=service_dependencies_count)}",
+          class = u-label-cap,
+        )
+
+        text("{t('advanced.depends_on_hint')}", class = u-muted)
+
+        column(class = kv-list, height = shrink) {
+          each @service_dependencies as d (fallback = SemDependencias) {
+            row(class = kv-list__row) {
+              button(
+                class = env__del,
+                on_click = dependency_delete:@d.id,
+                disabled = @busy_dependency_delete,
+                text = "✕",
+              )
+
+              text(class = env__sep)
+              text("@d.index.", class = env__key)
+              text("@d.name", class = "kv-list__val kv-list__val--compact")
+            }
+          }
+        }
+
+        text("{t('advanced.add_dependency')}", class = u-label-cap)
+
+        select(
+          class = form-select,
+          :options = service_dependency_options,
+          :value = service_form_dependency_add_id,
+          on_change = field:service_form_dependency_add_id,
+          placeholder = "{t('advanced.choose_service')}",
+          label_field = name,
+          value_field = id,
+        )
+
+        row(class = env__add) {
+          button(
+            class = "btn btn--primary",
+            on_click = dependency_add,
+            disabled = @busy_dependency_add,
+            text = "{t('advanced.add_dependency_button')}",
+          )
         }
       }
 

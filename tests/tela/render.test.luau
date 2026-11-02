@@ -907,6 +907,49 @@ function test_servico_environment_secrets_do_servico()
     assert_true(tem_trecho(tela:texts(), "No secret in this service yet."), "estado vazio ausente")
 end
 
+--- aba Advanced: dependências (lista, seletor e botão) e a caixa de religar no boot
+function test_servico_advanced_dependencias()
+    local Format = require("format")
+    local tela = servico("advanced")
+    local servicos = {
+        { id = "svc_db", spec = { name = "db" } },
+        { id = "svc_cache", spec = { name = "cache" } },
+        { id = "svc_api", spec = { name = "api" } },
+    }
+    local spec = { depends_on = { "svc_db" } }
+    seta(tela, {
+        service_dependencies = Format.dependency_rows(spec, servicos),
+        service_dependency_options = Format.dependency_options(spec, "svc_api", servicos),
+        service_dependencies_count = "1",
+        service_form_autostart = "true",
+    })
+    local textos = tela:texts()
+    assert_true(tem_trecho(textos, "db"), "dependência atual ausente")
+    assert_true(tem_trecho(tela:buttons(), "Add dependency"), "botão de adicionar dependência ausente")
+    -- sem dependências: o estado vazio aparece
+    seta(tela, {
+        service_dependencies = Format.dependency_rows({ depends_on = {} }, servicos),
+        service_dependencies_count = "0",
+    })
+    assert_true(tem_trecho(tela:texts(), "No dependencies."), "estado vazio ausente")
+end
+
+--- o formatter: o próprio serviço e as dependências já postas não entram como candidatos
+function test_dependencias_candidatos_e_removido()
+    local Format = require("format")
+    local servicos = {
+        { id = "a", spec = { name = "a" } },
+        { id = "b", spec = { name = "b" } },
+        { id = "c", spec = { name = "c" } },
+    }
+    local candidatos = json.decode(Format.dependency_options({ depends_on = { "b" } }, "a", servicos))
+    assert_eq(#candidatos, 1)
+    assert_eq(candidatos[1].id, "c")
+    -- id que sumiu aparece com rótulo próprio, para dar para remover
+    local linhas = json.decode(Format.dependency_rows({ depends_on = { "fantasma" } }, servicos))
+    assert_true(string.find(linhas[1].name, "fantasma", 1, true) ~= nil)
+end
+
 --- aba Geral: origem Git, zip e compose
 function test_servico_geral_por_origem()
     local tela = servico("general")

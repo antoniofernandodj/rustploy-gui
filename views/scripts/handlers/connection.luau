@@ -158,6 +158,11 @@ function init(): ()
         { id = "commit", label = i18n.tr("Só commit (local)") },
         { id = "sync", label = i18n.tr("Sincronizar") },
     }
+    ctx.service_dependencies = ctx.service_dependencies or "[]"
+    ctx.service_dependency_options = ctx.service_dependency_options or "[]"
+    ctx.service_dependencies_count = ctx.service_dependencies_count or "0"
+    ctx.service_form_dependency_add_id = ctx.service_form_dependency_add_id or ""
+    ctx.service_form_autostart = ctx.service_form_autostart or "true"
     ctx.project_service_options = ctx.project_service_options or "[]"
     ctx.move_target_service_id = ctx.move_target_service_id or ""
     ctx.state_git_form_mode = ctx.state_git_form_mode or "off"
