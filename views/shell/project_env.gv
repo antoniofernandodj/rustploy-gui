@@ -34,6 +34,20 @@ component {
       }
     }
 
+    row(class = env__add) {
+      text("{t('project_env.move_to_service')}", class = u-muted)
+
+      select(
+        class = form-select,
+        :options = project_service_options,
+        :value = move_target_service_id,
+        on_change = move_target_pick,
+        placeholder = "{t('project_env.choose_service')}",
+        label_field = display,
+        value_field = id,
+      )
+    }
+
     form(
       name = project_env_add,
       on_submit = project_env_add,
@@ -178,6 +192,36 @@ component {
                   on_click = project_env_delete:@e.key,
                   disabled = @busy_project_env_delete,
                   text = "✕",
+                )
+
+                button(
+                  class = "btn btn--ghost btn--sm",
+                  on_click = project_env_to_secret:@e.key,
+                  disabled = @busy_project_env_to_secret,
+                  if = @e.kind,
+                  equals = plain,
+                  text = "🔒",
+                  tooltip = "{t('environment.to_secret')}",
+                )
+
+                button(
+                  class = "btn btn--ghost btn--sm",
+                  on_click = project_env_to_service:@e.key,
+                  disabled = @busy_project_env_to_service,
+                  if = @e.kind,
+                  equals = plain,
+                  text = "↓",
+                  tooltip = "{t('project_env.env_to_service')}",
+                )
+
+                button(
+                  class = "btn btn--ghost btn--sm",
+                  on_click = project_secret_to_env:@e.secret_name,
+                  disabled = @busy_project_secret_to_env,
+                  if = @e.kind,
+                  equals = secret,
+                  text = "🔓",
+                  tooltip = "{t('environment.secret_to_env')}",
                 )
 
                 text(class = env__sep)

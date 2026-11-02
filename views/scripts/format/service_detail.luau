@@ -112,9 +112,10 @@ local ENV_KEY_MAX = 30
 local function env_var_row(env_var: EnvVar)
     local value: string
     local kind: string
+    local secret_name = ""
     if env_var.value and env_var.value.Secret ~= nil then
-        value, kind =
-            "🔒 secret:" .. (env_var.value.Secret :: string), "secret"
+        secret_name = env_var.value.Secret :: string
+        value, kind = "🔒 secret:" .. secret_name, "secret"
     else
         value, kind = (env_var.value and env_var.value.Plain) or "", "plain"
     end
@@ -123,6 +124,8 @@ local function env_var_row(env_var: EnvVar)
         key_display = Util.ellipsis(env_var.key, ENV_KEY_MAX),
         value = value,
         kind = kind,
+        -- Nome do secret que a variável referencia ("" se for em claro): o botão 🔓 usa.
+        secret_name = secret_name,
     }
 end
 

@@ -1405,6 +1405,71 @@ function env_to_secret(key: string): ()
     end
 end
 
+-- Move genérico (SecretMove) de uma coisa do SERVIÇO aberto; `done_message` é o aviso de sucesso.
+local function service_move(op: string, name: string, done_message: string): ()
+    local service_id = ctx.selected_service or ""
+    local project_id = ctx.service_project_id or ""
+    local api = State.api
+    if service_id == "" or project_id == "" or name == "" or not api then
+        return
+    end
+    local move_ok, move_response = api:rpc_checked {
+        SecretMove = {
+            project_id = project_id,
+            service_id = service_id,
+            name = name,
+            op = op,
+        },
+    }
+    if move_ok then
+        toast { message = done_message .. name, kind = "success" }
+        M.fetch_service_detail(service_id)
+    else
+        toast { message = tostring(move_response), kind = "error" }
+    end
+end
+
+-- 🔓 num secret do serviço (ou numa variável que aponta para um): volta a ser uma variável em
+-- claro do serviço. Cuidado: o valor passa a ficar visível na lista e no YAML do estado.
+function service_secret_to_env(name: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Voltar para variável em claro?"),
+        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado)."),
+        confirm_label = i18n.tr("Mover para variável"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    service_move("SecretToEnv", name, i18n.tr("Secret movido para variável: "))
+end
+
+-- ↑ secret do serviço → secret do projeto (todos os serviços do projeto passam a enxergá-lo).
+function service_secret_to_project(name: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Subir para o projeto?"),
+        message = i18n.tr("O secret \"") .. name .. i18n.tr("\" passa a valer para todos os serviços deste projeto."),
+        confirm_label = i18n.tr("Subir para o projeto"),
+    }
+    if not confirmed then
+        return
+    end
+    service_move("ServiceSecretToProject", name, i18n.tr("Secret movido para o projeto: "))
+end
+
+-- ↑ variável em claro do serviço → variável do projeto (todos os serviços herdam).
+function env_to_project(key: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Subir para o projeto?"),
+        message = i18n.tr("A variável \"") .. key .. i18n.tr("\" passa a valer para todos os serviços deste projeto."),
+        confirm_label = i18n.tr("Subir para o projeto"),
+    }
+    if not confirmed then
+        return
+    end
+    service_move("EnvServiceToProject", key, i18n.tr("Variável movida para o projeto: "))
+end
+
 function env_delete(key: string): ()
     with_spec(function(spec: any): ()
         local kept = json.array {}

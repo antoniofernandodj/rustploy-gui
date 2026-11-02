@@ -114,3 +114,79 @@ function project_env_secret_toggle(): ()
     ctx.project_env_new_is_secret = on and "false" or "true"
     ctx.project_env_new_value = ""
 end
+
+-- ── Movimentos (SecretMove) a partir do PROJETO ─────────────────────────────
+-- O destino dos "↓ para o serviço" é o serviço escolhido no <select> do topo da aba
+-- (ctx.move_target_service_id); os outros movimentos não precisam dele.
+
+function move_target_pick(service_id: string): ()
+    ctx.move_target_service_id = service_id or ""
+end
+
+local function project_move(op: string, name: string, service_id: string?, done_message: string): ()
+    local project_id = ctx.selected_project_id or ""
+    local api = State.api
+    if project_id == "" or name == "" or not api then
+        return
+    end
+    local move_ok, move_response = api:rpc_checked {
+        SecretMove = {
+            project_id = project_id,
+            service_id = service_id,
+            name = name,
+            op = op,
+        },
+    }
+    if move_ok then
+        toast { message = done_message .. name, kind = "success" }
+        Stream.refresh_now()
+    else
+        toast { message = tostring(move_response), kind = "error" }
+    end
+end
+
+-- Devolve o serviço de destino escolhido, ou avisa e devolve nil.
+local function target_service(): string?
+    local service_id = ctx.move_target_service_id or ""
+    if service_id == "" then
+        toast {
+            message = i18n.tr("Escolha antes o serviço de destino, no seletor do topo."),
+            kind = "warning",
+        }
+        return nil
+    end
+    return service_id
+end
+
+function project_env_to_secret(key: string): ()
+    project_move("EnvToSecret", key, nil, i18n.tr("Variável movida para secret: "))
+end
+
+function project_secret_to_env(name: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Voltar para variável em claro?"),
+        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado)."),
+        confirm_label = i18n.tr("Mover para variável"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    project_move("SecretToEnv", name, nil, i18n.tr("Secret movido para variável: "))
+end
+
+function project_secret_to_service(name: string): ()
+    local service_id = target_service()
+    if service_id == nil then
+        return
+    end
+    project_move("ProjectSecretToService", name, service_id, i18n.tr("Secret movido para o serviço: "))
+end
+
+function project_env_to_service(key: string): ()
+    local service_id = target_service()
+    if service_id == nil then
+        return
+    end
+    project_move("EnvProjectToService", key, service_id, i18n.tr("Variável movida para o serviço: "))
+end

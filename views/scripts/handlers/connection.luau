@@ -158,6 +158,8 @@ function init(): ()
         { id = "commit", label = i18n.tr("Só commit (local)") },
         { id = "sync", label = i18n.tr("Sincronizar") },
     }
+    ctx.project_service_options = ctx.project_service_options or "[]"
+    ctx.move_target_service_id = ctx.move_target_service_id or ""
     ctx.state_git_form_mode = ctx.state_git_form_mode or "off"
     ctx.state_git_form_remote = ctx.state_git_form_remote or ""
     ctx.state_git_form_branch = ctx.state_git_form_branch or "main"

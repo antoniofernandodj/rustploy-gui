@@ -619,6 +619,28 @@ function test_projeto_env_em_modo_secret_e_sem_secrets()
     end
 end
 
+--- projeto: botões de mover (🔒 ↓ nas variáveis em claro, 🔓 nas que apontam para secret e nos secrets)
+function test_projeto_movimentos_entre_escopos()
+    local tela = projeto()
+    seta(tela, {
+        project_tab = "env",
+        project_service_options = '[{"id":"svc1","display":"db"}]',
+        project_env = {
+            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "" },
+            { key = "B", key_display = "B", value = "🔒 secret:B", kind = "secret", secret_name = "B" },
+        },
+    })
+    local botoes = tela:buttons()
+    assert_true(tem_trecho(botoes, "🔒"), "variável em claro sem o botão → secret")
+    assert_true(tem_trecho(botoes, "↓"), "variável em claro sem o botão → serviço")
+    assert_true(tem_trecho(botoes, "🔓"), "variável que aponta para secret sem o botão → variável")
+    -- aba Secrets: 🔓 e ↓ em cada secret
+    tela:set("project_tab", "secrets")
+    local botoes_secrets = tela:buttons()
+    assert_true(tem_trecho(botoes_secrets, "🔓"), "secret sem o botão → variável")
+    assert_true(tem_trecho(botoes_secrets, "↓"), "secret sem o botão → serviço")
+end
+
 -- ── configurações ───────────────────────────────────────────────────────────
 
 --- Git: provedor OAuth e token
@@ -857,6 +879,8 @@ function test_servico_environment_secrets_do_servico()
     assert_true(tem_trecho(textos, "POSTGRES_PASSWORD"), "nome do secret do serviço ausente")
     assert_true(tem_trecho(textos, "API_TOKEN"), "segundo secret ausente")
     assert_true(tem_trecho(tela:buttons(), "🔒"), "botão de mover para secret ausente")
+    assert_true(tem_trecho(tela:buttons(), "↑"), "botão de subir para o projeto ausente")
+    assert_true(tem_trecho(tela:buttons(), "🔓"), "botão de voltar a variável ausente")
     -- sem secrets: o estado vazio aparece
     seta(tela, { service_secrets = "[]", service_secrets_count = "0" })
     assert_true(tem_trecho(tela:texts(), "No secret in this service yet."), "estado vazio ausente")

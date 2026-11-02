@@ -142,6 +142,26 @@ component {
                 tooltip = "{t('environment.to_secret')}",
               )
 
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = env_to_project:@e.key,
+                disabled = @busy_env_to_project,
+                if = @e.kind,
+                equals = plain,
+                text = "↑",
+                tooltip = "{t('environment.env_to_project')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = service_secret_to_env:@e.secret_name,
+                disabled = @busy_service_secret_to_env,
+                if = @e.kind,
+                equals = secret,
+                text = "🔓",
+                tooltip = "{t('environment.secret_to_env')}",
+              )
+
               text(class = env__sep)
               text("@e.key_display", class = env__key)
               text("@e.value", class = "kv-list__val kv-list__val--compact")
@@ -207,9 +227,24 @@ component {
               text = "✕",
             )
 
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = service_secret_to_env:@s.name,
+              disabled = @busy_service_secret_to_env,
+              text = "🔓",
+              tooltip = "{t('environment.secret_to_env')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = service_secret_to_project:@s.name,
+              disabled = @busy_service_secret_to_project,
+              text = "↑",
+              tooltip = "{t('environment.secret_to_project')}",
+            )
+
             text(class = env__sep)
             text("@s.name_display", class = env__key)
-            text("{t('project_secrets.encrypted')}", class = "kv-list__val kv-list__val--compact")
           }
         }
 

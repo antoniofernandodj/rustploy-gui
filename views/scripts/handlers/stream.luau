@@ -97,6 +97,22 @@ local function update_open_project(): ()
         State.metrics_by_id,
         State.search_term
     )
+    -- Destinos dos movimentos "↓ para o serviço" (abas Variáveis e Secrets do projeto).
+    local service_options = json.array {}
+    local target_still_valid = false
+    for _, last_pair in ipairs(project_pairs) do
+        table.insert(
+            service_options,
+            { id = last_pair.svc.id, display = last_pair.svc.spec.name }
+        )
+        if last_pair.svc.id == ctx.move_target_service_id then
+            target_still_valid = true
+        end
+    end
+    ctx.project_service_options = json.encode(service_options)
+    if not target_still_valid then
+        ctx.move_target_service_id = ""
+    end
     -- Variáveis de ambiente do projeto (aba "Variáveis (N)"). Sem isto, a aba
     -- nasce "Variáveis ()" até a primeira edição.
     local project_env_vars = found_project.env_vars or {}
