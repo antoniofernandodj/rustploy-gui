@@ -136,6 +136,24 @@ function docker_remove_container(container_id: string): ()
     )
 end
 
+-- Para um container ÓRFÃO ("removido no git"): o daemon recusa o que ainda pertence a um
+-- serviço do estado (um serviço se para pelo serviço; senão o watchdog o religa).
+-- Depois de parar, o botão Remover (docker_remove_container) fica disponível.
+function docker_stop_container(container_id: string): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    ctx.docker_message = i18n.tr("parando container…")
+    local rpc_ok, rpc_response = api:rpc_checked { StopContainer = { id = container_id } }
+    if rpc_ok then
+        ctx.docker_message = i18n.tr("parado")
+        Stream.refresh_now()
+    else
+        ctx.docker_message = i18n.tr("erro: ") .. tostring(rpc_response)
+    end
+end
+
 function docker_remove_image(image_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover imagem?"),

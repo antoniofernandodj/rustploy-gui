@@ -687,6 +687,55 @@ function test_configuracoes_manutencao()
     end
 end
 
+--- Sincronização com o git: desligada, ligada, pausada (divergência), commit recusado,
+--- removidos no git e auditoria de valores em claro
+function test_configuracoes_sincronizacao_git()
+    local StateGit = require("format/state_git")
+    local SHA = "da3da09aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    local tela = app("settings", { settings_tab = "gitsync", gitea_providers = "[]" })
+    rende(tela) -- desligada, sem snapshot ainda
+
+    -- ligada em modo sync, tudo certo
+    seta(tela, StateGit.context({
+        mode = "sync",
+        git_available = true,
+        recovery_configured = true,
+        last_commit = { sha = SHA, at = "2026-11-02T06:28:44Z", subject = "Atualiza projeto E2E" },
+        last_push_ok = true,
+        last_push_at = "2026-11-02T06:28:50Z",
+        last_fetch_at = "2026-11-02T06:29:00Z",
+    }, {}))
+    seta(tela, { state_git_form_mode = "sync" })
+    rende(tela)
+
+    -- pausada por divergência + commit recusado + removidos + auditoria
+    seta(tela, StateGit.context({
+        mode = "sync",
+        git_available = false,
+        recovery_configured = false,
+        ahead = 1,
+        behind = 1,
+        paused_reason = "o histórico divergiu",
+        incoming_rejected = { sha = SHA, reason = "traz 1 valor(es) em claro" },
+        removed_in_git = {
+            { id = "serviço:svc_web", kind = "serviço", name = "web", project = "E2E", sha = SHA, at = "2026-11-02T06:28:44Z" },
+        },
+    }, {
+        { definite = false, allowed = false, project = "E2E", scope = "projeto", what = "env PASSWORD_MIN_LENGTH" },
+        { definite = true, allowed = false, project = "E2E", scope = "serviço api", what = "token de webhook sem cifra" },
+    }))
+    rende(tela)
+    -- Os painéis abaixo do formulário (situação, divergência, removidos) são irmãos dentro do
+    -- scrollable: já sumiram em silêncio quando ficaram fora de uma coluna só.
+    local textos = tela:texts()
+    assert_true(tem_trecho(textos, "o histórico divergiu"), "painel de divergência ausente")
+    assert_true(tem_trecho(textos, "web"), "lista de removidos no git ausente")
+    for _, modo in { "off", "commit", "sync" } do
+        tela:set("state_git_form_mode", modo)
+        rende(tela)
+    end
+end
+
 --- Atualizações: sem consulta ainda, com versão nova e com erro do daemon
 function test_configuracoes_atualizacoes()
     local tela = app("settings", { settings_tab = "updates" })

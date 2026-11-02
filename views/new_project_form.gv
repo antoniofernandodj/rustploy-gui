@@ -16,11 +16,22 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("{t('new_project_form.new_project_rustploy')}", class = titlebar__title)
+        text(
+          "{t('new_project_form.new_project_rustploy')}",
+          class = titlebar__title
+        )
       }
 
-      button(class = titlebar__btn, on_click = window:minimize, text = "—")
-      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+      button(
+        class = titlebar__btn,
+        on_click = window:minimize,
+        text = "—"
+      )
+      button(
+        class = "titlebar__btn titlebar__btn--close",
+        on_click = window:close,
+        text = "✕"
+      )
     }
 
     column(class = dialog__wrap) {
@@ -59,7 +70,10 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
         }
 
         column(class = field) {
-          text("{t('new_project_form.description_optional')}", class = field__label)
+          text(
+            "{t('new_project_form.description_optional')}",
+            class = field__label
+          )
 
           input(
             class = dialog__input,
@@ -70,7 +84,12 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
 
         // Erros de rede/RPC (não de campo) e o status "criando…" — spinner
         // enquanto o RPC está no ar ({new_project_busy}).
-        text("@new_project_error", if = @new_project_error, not_equals = "", class = u-error)
+        text(
+          "@new_project_error",
+          if = @new_project_error,
+          not_equals = "",
+          class = u-error
+        )
 
         row(class = busy-row, if = @new_project_message, not_equals = "") {
           spinner(class = busy-row__spin, if = @new_project_busy)
@@ -79,8 +98,18 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
 
         row(class = dialog__actions) {
           column(class = u-fill)
-          button(class = "btn btn--ghost", on_click = cancel, disabled = @busy_cancel, text = "{t('common.cancel')}")
-          button(type = submit, disabled = @busy_submit_project, class = "btn btn--primary", text = "{t('new_project_form.create_project')}")
+          button(
+            class = "btn btn--ghost",
+            on_click = cancel,
+            disabled = @busy_cancel,
+            text = "{t('common.cancel')}"
+          )
+          button(
+            type = submit,
+            disabled = @busy_submit_project,
+            class = "btn btn--primary",
+            text = "{t('new_project_form.create_project')}"
+          )
         }
       }
     }

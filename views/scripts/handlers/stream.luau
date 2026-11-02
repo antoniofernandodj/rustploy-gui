@@ -202,8 +202,26 @@ local function apply_snapshot(snapshot: any): ()
         warm_by_id[warm.service_id] = warm
     end
     State.service_warm_by_id = warm_by_id
+    -- Sincronização do estado com o git: serviços com "mudança pendente de deploy"
+    -- (um commit externo mudou o declarado) e o resto da situação (aviso do topo,
+    -- tela Settings → Sync, órfãos). Ver format/state_git.luau.
+    local pending_by_id = format.state_git_pending_ids(snapshot.state_git)
     for _, last_pair in ipairs(State.last_pairs) do
         last_pair.warm = warm_by_id[last_pair.svc.id]
+        last_pair.pending_deploy = pending_by_id[last_pair.svc.id] == true
+    end
+    ctx.service_pending_deploy_visible = pending_by_id[ctx.service_id] == true and "true" or "false"
+    for key, value in pairs(format.state_git_context(snapshot.state_git, snapshot.infra_audit)) do
+        (ctx :: any)[key] = value
+    end
+    -- O formulário parte do que o daemon tem gravado, uma vez só (depois é do usuário).
+    if snapshot.state_git ~= nil and ctx.state_git_form_loaded ~= "true" then
+        local status = snapshot.state_git
+        ctx.state_git_form_mode = status.mode or "off"
+        ctx.state_git_form_remote = status.remote or ""
+        ctx.state_git_form_branch = status.branch or "main"
+        ctx.state_git_form_provider_id = status.provider_id or ""
+        ctx.state_git_form_loaded = "true"
     end
     -- Detalhe do serviço aberto: o selo acompanha o snapshot.
     local open_warm = warm_by_id[ctx.service_id]

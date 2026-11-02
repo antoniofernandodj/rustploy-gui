@@ -266,6 +266,8 @@
 }
 /* O mesmo painel com os campos mais juntos (o formulário de renomear). */
 .form-panel--tight { spacing: 6; }
+/* Pilha de painéis dentro de um scrollable (que só aceita um filho). */
+.form-stack { width: fill; height: shrink; spacing: 14; }
 
 /* Formulário sem painel: ocupa a largura do pai; o espaço entre os campos vem
    do modificador. Antes era `width`/`spacing` inline em cada `form(...)`. */

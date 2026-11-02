@@ -52,6 +52,16 @@ component {
       }
 
       tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+        // Só o container órfão ("removido no git") que ainda roda: para-se aqui e depois remove-se.
+        button(
+          if = @c.can_stop,
+          equals = 1,
+          class = "btn btn--danger btn--xs",
+          on_click = docker_stop_container:@c.id_full,
+          disabled = @busy_docker_stop_container,
+          text = "{t('docker_containers.stop')}",
+        )
+
         button(
           if = @c.can_remove,
           equals = 1,

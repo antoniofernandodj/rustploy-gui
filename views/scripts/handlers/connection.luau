@@ -147,8 +147,27 @@ function init(): ()
         { id = "git", label = "Git" },
         { id = "iac", label = "Infra as Code" },
         { id = "maintenance", label = i18n.tr("Manutenção") },
+        { id = "gitsync", label = i18n.tr("Sincronização") },
         { id = "updates", label = i18n.tr("Atualizações") },
     }
+    -- Aba Sincronização (estado de infra ↔ git). Os valores reais vêm no snapshot
+    -- (handlers/stream.luau); aqui só o formulário e os defaults, para o markup
+    -- nunca ler `nil`. Ver format/state_git.luau e handlers/state_git.luau.
+    ctx.state_git_form_modes = {
+        { id = "off", label = i18n.tr("Desligado") },
+        { id = "commit", label = i18n.tr("Só commit (local)") },
+        { id = "sync", label = i18n.tr("Sincronizar") },
+    }
+    ctx.state_git_form_mode = ctx.state_git_form_mode or "off"
+    ctx.state_git_form_remote = ctx.state_git_form_remote or ""
+    ctx.state_git_form_branch = ctx.state_git_form_branch or "main"
+    ctx.state_git_form_provider_id = ctx.state_git_form_provider_id or ""
+    ctx.state_git_form_loaded = ctx.state_git_form_loaded or "false"
+    ctx.state_git_message = ctx.state_git_message or ""
+    ctx.service_pending_deploy_visible = ctx.service_pending_deploy_visible or "false"
+    for key, value in pairs(format.state_git_context(nil, nil)) do
+        (ctx :: any)[key] = (ctx :: any)[key] or value
+    end
     -- Aba Atualizações (Command::CheckUpdate). Semeadas aqui para o markup
     -- nunca ler `nil`; `update_check` as preenche.
     ctx.update_current_version = ctx.update_current_version or ""

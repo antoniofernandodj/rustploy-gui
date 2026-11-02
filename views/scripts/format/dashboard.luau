@@ -12,6 +12,7 @@ type GridCard = Types.GridCard
 local Time = require("time")
 local Jobs = require("jobs")
 local Util = require("util")
+local StateGit = require("state_git")
 
 local M = {}
 
@@ -58,6 +59,7 @@ local FILLER: GridCard = {
     status_label = "",
     status_color = "",
     has_warm = "false",
+    has_pending = "false",
     warm_label = "",
     warm_color = "",
     warm_reason = "",
@@ -162,7 +164,8 @@ local function service_card(
     service: Types.Service,
     project_name: string,
     metrics: MetricsMap?,
-    warm: any?
+    warm: any?,
+    pending: boolean?
 )
     local status_label, status_color = Util.status_label_color(service.status)
     local cpu, mem = "—", "—"
@@ -179,6 +182,9 @@ local function service_card(
     end
     return {
         filler = "0",
+        -- "Mudança pendente de deploy": um commit do repositório mudou o serviço
+        -- (preenchido em handlers/stream.luau::apply_snapshot).
+        has_pending = pending and "true" or "false",
         has_warm = warm ~= nil and "true" or "false",
         warm_label = warm_label,
         warm_color = warm_color,
@@ -210,7 +216,7 @@ function M.services(
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
             table.insert(
                 rows,
-                service_card(pair.svc, pair.proj, metrics, pair.warm)
+                service_card(pair.svc, pair.proj, metrics, pair.warm, pair.pending_deploy)
             )
         end
     end
@@ -229,7 +235,7 @@ function M.service_rows(
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
             table.insert(
                 filtered,
-                service_card(pair.svc, pair.proj, metrics, pair.warm)
+                service_card(pair.svc, pair.proj, metrics, pair.warm, pair.pending_deploy)
             )
         end
     end
@@ -513,19 +519,14 @@ function M.docker_containers(containers: { any }?, term: string?): string
                 item.state,
                 item.project or "",
                 item.service or "",
+                item.removed_in_git or "",
             })
         then
             local label, kind = Util.container_state(item.state)
-            local owner: string
-            if item.project and item.service then
-                owner = tostring(item.project)
-                    .. " / "
-                    .. tostring(item.service)
-            elseif item.managed then
-                owner = "rustploy"
-            else
-                owner = "—"
-            end
+            -- O órfão ("removido no git": o serviço sumiu do estado por um commit
+            -- externo) é dito como tal; ver format/state_git.luau.
+            local owner = StateGit.container_owner(item)
+            local is_orphan = item.removed_in_git ~= nil and item.removed_in_git ~= ""
             -- A referência da imagem vira `sha256:<digest>` quando a tag
             -- original some (imagem removida/reconstruída) — sem espaços, não
             -- quebra linha e, sem truncar, estoura a coluna e sobrepõe as
@@ -543,6 +544,8 @@ function M.docker_containers(containers: { any }?, term: string?): string
                 state_label = label,
                 state_kind = kind,
                 can_remove = Util.container_stopped(item.state) and "1" or "0",
+                -- Só o órfão que ainda roda oferece "Parar" (depois, "Remover").
+                can_stop = (is_orphan and item.state == "running") and "1" or "0",
             })
         end
     end

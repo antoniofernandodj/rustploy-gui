@@ -7,6 +7,7 @@ component {
     prop(name = status_color)
     prop(name = status_label)
     prop(name = has_warm)
+    prop(name = has_pending, default = "false")
     prop(name = warm_label)
     prop(name = warm_color)
     prop(name = warm_reason)
@@ -44,6 +45,7 @@ component {
       }
 
       row(class = "card__badges u-align-y-end") {
+        rp-badge(if = @has_pending, equals = true, color = warn, label = "◆ {t('service_card.change_pending_deploy')}")
         rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
         rp-badge(color = @status_color, label = @status_label)
       }

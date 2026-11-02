@@ -62,6 +62,7 @@ export type ServicePair = {
     svc: Service,
     proj: string,
     warm: any?, -- ServiceWarmStatus do snapshot (nil = serviço sem build)
+    pending_deploy: boolean?, -- um commit externo (git) mudou o serviço; falta deploy
 }
 
 export type GridCard = { filler: string, [string]: any }

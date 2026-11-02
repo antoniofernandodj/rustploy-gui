@@ -5,6 +5,7 @@ component {
     link(rel = import, href = "settings/git.gv", as = SettingsGitTab)
     link(rel = import, href = "settings/iac.gv", as = SettingsIacTab)
     link(rel = import, href = "settings/maintenance.gv", as = SettingsMaintenanceTab)
+    link(rel = import, href = "settings/gitsync.gv", as = SettingsGitSyncTab)
     link(rel = import, href = "settings/updates.gv", as = SettingsUpdatesTab)
   }
 
@@ -42,6 +43,10 @@ component {
 
   if @settings_tab == "maintenance" {
     SettingsMaintenanceTab
+  }
+
+  if @settings_tab == "gitsync" {
+    SettingsGitSyncTab
   }
 
   if @settings_tab == "updates" {

@@ -63,6 +63,12 @@ function nav_settings(): ()
     end
 end
 
+-- Botão "Abrir" do aviso do topo da sincronização com o git.
+function state_git_open(): ()
+    goto_view("settings")
+    ctx.settings_tab = "gitsync"
+end
+
 function nav_support(): ()
     goto_view("support")
 end

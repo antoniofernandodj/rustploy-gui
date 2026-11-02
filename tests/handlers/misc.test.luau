@@ -161,13 +161,18 @@ function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
         string.find(tela:get("update_install_command"), "install.sh", 1, true)
             ~= nil
     )
-    -- Listas chegam no ctx como JSON: confere a aba e que ela é a última.
+    -- Listas chegam no ctx como JSON: confere a aba (a última) e a nova aba de sincronização.
     local abas = tela:get("settings_tabs")
     local ids = {}
     for id in string.gmatch(abas, '"id":"([a-z]+)"') do
         table.insert(ids, id)
     end
-    assert_eq(ids, { "web", "git", "iac", "maintenance", "updates" })
+    assert_eq(ids, { "web", "git", "iac", "maintenance", "gitsync", "updates" })
+    assert_eq(ids[#ids], "updates")
+    -- O formulário da sincronização nasce com padrões (o markup nunca lê `nil`).
+    assert_eq(tela:get("state_git_form_mode"), "off")
+    assert_eq(tela:get("state_git_form_branch"), "main")
+    assert_eq(tela:get("state_git_alert_message"), "")
 end
 
 --- verificar sem conexão não faz nada

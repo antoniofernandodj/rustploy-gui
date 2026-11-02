@@ -1,0 +1,221 @@
+// Settings → Sincronização: o estado de infra (projetos, serviços, jobs, secrets cifrados)
+// versionado num repositório git. Fases 6 e 7 de docs/plano-backup-estado-em-git.md. O
+// STATUS vem no snapshot (format/state_git.luau → ctx.state_git_*); a webui faz o mesmo em
+// `webui/index.html` (aba "Sync"): mude os dois juntos.
+component {
+  resources {
+    component(name = SemRemovidosNoGit) {
+      text("{t('settings_gitsync.nothing_removed')}", class = u-muted)
+    }
+    component(name = SemValoresEmClaro) {
+      text("{t('settings_gitsync.no_plaintext_value')}", class = u-muted)
+    }
+  }
+
+  scrollable(direction = vertical, class = u-fill-all) {
+    // O scrollable aceita um filho só: os painéis (situação, divergência, ...) vão dentro desta coluna.
+    column(class = form-stack) {
+    column(class = form-panel) {
+      text("{t('settings_gitsync.git_sync')}", class = u-label-cap)
+
+      text("{t('settings_gitsync.versions_the_state')}", class = u-muted)
+
+      text(
+        "{t('settings_gitsync.git_not_installed')}",
+        if = @state_git_git_missing,
+        equals = true,
+        class = u-error,
+      )
+
+      text(
+        "{t('settings_gitsync.no_recovery_recipient')}",
+        if = @state_git_recovery_missing,
+        equals = true,
+        class = u-muted,
+      )
+
+      text("{t('settings_gitsync.mode')}", class = u-label-cap)
+
+      scroll(class = tabs__scroll, direction = horizontal) {
+        tabbar(
+          :value = state_git_form_mode, active = @state_git_form_mode, :items = state_git_form_modes,
+          tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14, active_bold = false,
+        )
+      }
+
+      text("{t('settings_gitsync.commit_hint')}", if = @state_git_form_mode, equals = commit, class = u-muted)
+      text("{t('settings_gitsync.sync_hint')}", if = @state_git_form_mode, equals = sync, class = u-muted)
+
+      if @state_git_form_mode == "sync" {
+        text("{t('settings_gitsync.repository')}", class = u-label-cap)
+
+        form(name = state_git, on_submit = state_git_save, class = "form form--gap-8") {
+          input(
+            placeholder = "{t('settings_gitsync.repository_placeholder')}",
+            class = field__input,
+            form_control = state_git_form_remote,
+          )
+        }
+
+        text("{t('settings_gitsync.git_account')}", class = u-label-cap)
+
+        select(
+          class = form-select,
+          :options = gitea_providers,
+          :value = state_git_form_provider_id,
+          on_change = state_git_provider_pick,
+          placeholder = "{t('common.select_the_account')}",
+          label_field = display,
+          value_field = id,
+        )
+
+        text("{t('settings_gitsync.connect_accounts_hint')}", class = u-muted)
+      }
+
+      if @state_git_is_enabled == "true" {
+        text("{t('common.branch')}", class = u-label-cap)
+
+        form(name = state_git_branch, on_submit = state_git_save, class = "form form--gap-8") {
+          input(
+            placeholder = "main",
+            class = field__input,
+            form_control = state_git_form_branch,
+          )
+        }
+      }
+
+      row(class = env__add) {
+        button(class = "btn btn--primary", on_click = state_git_save, disabled = @busy_state_git_save, text = "{t('settings_gitsync.save_and_apply')}")
+
+        if @state_git_is_sync == "true" {
+          button(class = "btn btn--ghost", on_click = state_git_sync_now, disabled = @busy_state_git_sync_now, text = "{t('settings_gitsync.sync_now')}")
+        }
+
+        text("@state_git_message", class = u-muted)
+      }
+    }
+
+    // ── Situação ──────────────────────────────────────────────────────────────────────────
+    if @state_git_is_enabled == "true" {
+      column(class = form-panel) {
+        text("{t('settings_gitsync.status')}", class = u-label-cap)
+
+        row(class = kv-list__row) {
+          text("{t('settings_gitsync.last_commit')}", class = kv-list__key)
+          text("@state_git_last_commit_label", class = "kv-list__val kv-list__val--compact")
+        }
+
+        if @state_git_is_sync == "true" {
+          row(class = kv-list__row) {
+            text("{t('settings_gitsync.last_push')}", class = kv-list__key)
+            text("@state_git_last_push_label", class = "kv-list__val kv-list__val--compact")
+          }
+
+          row(class = kv-list__row) {
+            text("{t('settings_gitsync.last_check')}", class = kv-list__key)
+            text("@state_git_last_fetch_label", class = "kv-list__val kv-list__val--compact")
+          }
+
+          row(class = kv-list__row) {
+            text("{t('settings_gitsync.ahead_behind')}", class = kv-list__key)
+            text("@state_git_ahead_behind_label", class = "kv-list__val kv-list__val--compact")
+          }
+        }
+
+        text("@state_git_last_error", if = @state_git_last_error, not_equals = "", class = u-error)
+      }
+    }
+
+    // ── Divergência: o servidor não decide qual lado vence ───────────────────────────────
+    if @state_git_is_paused == "true" {
+      column(class = form-panel) {
+        text("{t('settings_gitsync.diverged_title')}", class = u-label-cap)
+        text("@state_git_paused_reason", class = u-error)
+        text("{t('settings_gitsync.diverged_explain')}", class = u-muted)
+
+        row(class = env__add) {
+          button(class = "btn btn--danger", on_click = state_git_resolve_remote, disabled = @busy_state_git_resolve_remote, text = "{t('settings_gitsync.use_repository')}")
+          button(class = "btn btn--danger", on_click = state_git_resolve_local, disabled = @busy_state_git_resolve_local, text = "{t('settings_gitsync.use_server')}")
+        }
+
+        text("{t('settings_gitsync.diverged_manual_hint')}", class = u-muted)
+
+        row(class = env__add) {
+          button(class = "btn btn--ghost", on_click = state_git_resume, disabled = @busy_state_git_resume, text = "{t('settings_gitsync.resume')}")
+        }
+      }
+    }
+
+    // ── Commit do repositório recusado ───────────────────────────────────────────────────
+    if @state_git_has_rejected == "true" {
+      column(class = form-panel) {
+        text("{t('settings_gitsync.rejected_title')}", class = u-label-cap)
+        text("@state_git_rejected_label", class = u-muted)
+        text("@state_git_rejected_reason", class = u-error)
+        text("{t('settings_gitsync.rejected_hint')}", class = u-muted)
+      }
+    }
+
+    // ── Removidos no git: o container, os volumes e os dados NÃO foram tocados ───────────
+    if @state_git_removed_count != "0" {
+      column(class = form-panel) {
+        text("{t('settings_gitsync.removed_title')}", class = u-label-cap)
+        text("{t('settings_gitsync.removed_explain')}", class = u-muted)
+
+        column(class = kv-list) {
+          each @state_git_removed as removal (fallback = SemRemovidosNoGit) {
+            row(class = kv-list__row) {
+              column(class = u-fill) {
+                text("@removal.name", class = env__key)
+                text("@removal.detail", class = u-muted)
+              }
+
+              button(
+                class = "btn btn--ghost btn--xs",
+                on_click = state_git_dismiss_removal:@removal.id,
+                disabled = @busy_state_git_dismiss_removal,
+                text = "{t('settings_gitsync.dismiss')}",
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // ── Auditoria: a trava para ligar (e para commitar) ──────────────────────────────────
+    column(class = form-panel) {
+      text("{t('settings_gitsync.plaintext_title', count=state_git_audit_count)}", class = u-label-cap)
+      text("{t('settings_gitsync.plaintext_explain')}", class = u-muted)
+
+      column(class = kv-list) {
+        each @state_git_audit as finding (fallback = SemValoresEmClaro) {
+          row(class = kv-list__row) {
+            column(class = u-fill) {
+              text("@finding.what", class = env__key)
+              text("@finding.detail", class = u-muted)
+            }
+
+            button(
+              if = @finding.can_allow,
+              equals = 1,
+              class = "btn btn--ghost btn--xs",
+              on_click = state_git_allow_finding:@finding.index,
+              disabled = @busy_state_git_allow_finding,
+              text = "{t('settings_gitsync.not_a_secret')}",
+            )
+
+            button(
+              if = @finding.can_block_again,
+              equals = 1,
+              class = "btn btn--ghost btn--xs",
+              on_click = state_git_block_again:@finding.index,
+              disabled = @busy_state_git_block_again,
+              text = "{t('settings_gitsync.block_again')}",
+            )
+          }
+        }
+      }
+    }
+    }
+  }
+}

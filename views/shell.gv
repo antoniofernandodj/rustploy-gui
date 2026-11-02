@@ -181,6 +181,15 @@ component {
 
       hr
 
+      // Aviso da sincronização do estado com o git: pausada (histórico divergiu), commit do
+      // repositório recusado ou commits suspensos por valor em claro (format/state_git.luau).
+      if @state_git_alert_message != "" {
+        row(class = "banner banner--warn") {
+          text("@state_git_alert_message", class = "u-warn u-fill")
+          button(class = "btn btn--ghost btn--xs", on_click = state_git_open, text = "{t('common.open')}")
+        }
+      }
+
       // Content
       if @view == "deployments" {
         DeploymentsView
