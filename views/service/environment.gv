@@ -130,13 +130,6 @@ component {
                 text = "✕",
               )
 
-              button(
-                class = "btn btn--ghost btn--sm",
-                on_click = service_env_rename_pick:@e.key,
-                text = "✏️",
-                tooltip = "{t('environment.rename')}",
-              )
-
               text(class = env__sep)
               text("@e.key_display", class = env__key)
               text("@e.value", class = "kv-list__val kv-list__val--compact")
@@ -164,6 +157,13 @@ component {
                 on_click = env_delete:@e.key,
                 disabled = @busy_env_delete,
                 text = "✕",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = service_env_rename_pick:@e.key,
+                text = "✏️",
+                tooltip = "{t('environment.rename')}",
               )
 
               button(
