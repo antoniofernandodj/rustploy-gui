@@ -58,6 +58,13 @@ component {
           )
 
           PickerRow(
+            title = "{t('new_service.storage')}",
+            subtitle = "{t('new_service.s3_compatible_rustfs_minio')}",
+            button_label = "{t('common.select')}",
+            action = new_service_kind:storage,
+          )
+
+          PickerRow(
             title = "{t('common.compose')}",
             subtitle = "{t('new_service.docker_compose_stack')}",
             button_label = "{t('common.select')}",
@@ -270,6 +277,24 @@ component {
             subtitle = @b.image,
             button_label = "{t('common.select')}",
             action = new_service_broker:@b.id,
+          )
+        }
+      }
+    }
+
+    // ── Passo 2 (Storage): escolha do storage S3 ───────────────────────
+    if @new_service_step == "pick_storage" {
+      column(class = form-panel) {
+        text("{t('new_service.choose_the_storage')}", class = u-label-cap)
+
+        column(class = kv-list) {
+          PickerRow(
+            :for_each = new_service_storages,
+            var = st,
+            title = @st.label,
+            subtitle = @st.image,
+            button_label = "{t('common.select')}",
+            action = new_service_storage:@st.id,
           )
         }
       }

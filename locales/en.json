@@ -1103,5 +1103,8 @@
   "rename.new_name": "New name",
   "rename.apply": "Rename",
   "Digite um nome novo, diferente do atual.": "Type a new name, different from the current one.",
-  "Renomeado: ": "Renamed: "
+  "Renomeado: ": "Renamed: ",
+  "new_service.storage": "Storage",
+  "new_service.s3_compatible_rustfs_minio": "S3-compatible object storage: RustFS, MinIO",
+  "new_service.choose_the_storage": "CHOOSE THE STORAGE"
 }

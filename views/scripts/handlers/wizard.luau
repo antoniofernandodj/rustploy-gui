@@ -15,6 +15,10 @@ local function new_service_is_broker(kind_id: string): boolean
     return kind_id == "kafka" or kind_id == "rabbitmq" or kind_id == "nats"
 end
 
+local function new_service_is_storage(kind_id: string): boolean
+    return kind_id == "rustfs" or kind_id == "minio"
+end
+
 -- Botão "+ Novo serviço" (cabeçalho do projeto): abre o wizard numa JANELA à
 -- parte (motor Glacier próprio). O catálogo (dbs/brokers/templates) é buscado
 -- AQUI e passado via `data` — buscar no init da janela NÃO funciona: o `init`
@@ -32,14 +36,16 @@ function open_new_service_window(start: string?): ()
     if project_id == "" or not api then
         return
     end
-    local databases_json, brokers, templates =
-        json.array({}), json.array({}), json.array({})
+    local databases_json, brokers, storages, templates =
+        json.array({}), json.array({}), json.array({}), json.array({})
     local wizard_catalog_ok, wizard_catalog_response =
         api:rpc { WizardCatalog = { search = "" } }
     if wizard_catalog_ok and wizard_catalog_response.WizardCatalog then
         databases_json = wizard_catalog_response.WizardCatalog.dbs
             or json.array({})
         brokers = wizard_catalog_response.WizardCatalog.brokers
+            or json.array({})
+        storages = wizard_catalog_response.WizardCatalog.storages
             or json.array({})
         templates = wizard_catalog_response.WizardCatalog.templates
             or json.array({})
@@ -57,6 +63,7 @@ function open_new_service_window(start: string?): ()
             new_service_start = start or "",
             new_service_databases = databases_json,
             new_service_brokers = brokers,
+            new_service_storages = storages,
             new_service_templates = templates,
         },
     }
@@ -74,6 +81,7 @@ function new_service_back(): ()
     if
         step == "pick_db"
         or step == "pick_broker"
+        or step == "pick_storage"
         or step == "app_form"
         or step == "compose_form"
         or step == "pick_template"
@@ -97,6 +105,8 @@ function new_service_kind(kind_choice: string): ()
         ctx.new_service_step = "pick_db"
     elseif kind_choice == "broker" then
         ctx.new_service_step = "pick_broker"
+    elseif kind_choice == "storage" then
+        ctx.new_service_step = "pick_storage"
     elseif kind_choice == "template" then
         ctx.new_service_step = "pick_template"
     elseif kind_choice == "import" then
@@ -136,6 +146,36 @@ function new_service_database(database_kind: string): ()
             ctx.new_service_database_has_replica = database_option.has_replica
                     and "true"
                 or "false"
+            ctx.new_service_name = ""
+            ctx.new_service_step = "db_form"
+            return
+        end
+    end
+end
+
+-- Storage escolhido (RustFS/MinIO): também compartilha o passo db_form. USER = access key;
+-- PASSWORD = secret key. Os dois vazios = o daemon gera e guarda como secret.
+function new_service_storage(storage_kind: string): ()
+    local json_decode_ok, storage_options =
+        Helpers.decode_list(ctx.new_service_storages)
+    if not json_decode_ok or type(storage_options) ~= "table" then
+        return
+    end
+    for _, storage_option in ipairs(storage_options) do
+        if storage_option.id == storage_kind then
+            ctx.new_service_database_kind = storage_kind
+            ctx.new_service_database_label = storage_option.label
+            ctx.new_service_image = storage_option.image
+            ctx.new_service_database_name = ""
+            ctx.new_service_database_user = storage_option.user or ""
+            ctx.new_service_database_password = ""
+            ctx.new_service_database_root_password = ""
+            ctx.new_service_use_replica = "false"
+            ctx.new_service_expose_external = "false"
+            ctx.new_service_database_has_dbname = "false"
+            ctx.new_service_database_has_user = "true"
+            ctx.new_service_database_has_rootpw = "false"
+            ctx.new_service_database_has_replica = "false"
             ctx.new_service_name = ""
             ctx.new_service_step = "db_form"
             return
@@ -230,6 +270,7 @@ function new_service_create(): ()
     elseif step == "db_form" then
         selected_template_id = ctx.new_service_database_kind or ""
         kind = new_service_is_broker(selected_template_id) and "broker"
+            or new_service_is_storage(selected_template_id) and "storage"
             or "database"
     elseif step == "template_form" then
         kind, selected_template_id =

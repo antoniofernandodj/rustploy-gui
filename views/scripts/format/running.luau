@@ -48,7 +48,11 @@ local function detail_line(service: any): string
         return tostring(service.repo_url or "")
     elseif service.kind == "registry" then
         return "imagem: " .. tostring(service.image or "")
-    elseif service.kind == "database" or service.kind == "broker" then
+    elseif
+        service.kind == "database"
+        or service.kind == "broker"
+        or service.kind == "storage"
+    then
         return string.format(
             i18n.tr("motor: %s · porta %s"),
             tostring(service.engine or "?"),
@@ -145,7 +149,8 @@ function M.running(
                 count_label = string.format(
                     "%d %s",
                     #services,
-                    #services == 1 and i18n.tr("serviço") or i18n.tr("serviços")
+                    #services == 1 and i18n.tr("serviço")
+                        or i18n.tr("serviços")
                 ),
                 rows = in_rows(services),
             })

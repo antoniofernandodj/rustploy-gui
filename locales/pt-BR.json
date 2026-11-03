@@ -667,5 +667,8 @@
   "environment.rename": "Renomear (o valor não muda)",
   "rename.label": "Renomear \"{rename_from}\" para:",
   "rename.new_name": "Novo nome",
-  "rename.apply": "Renomear"
+  "rename.apply": "Renomear",
+  "new_service.storage": "Storage",
+  "new_service.s3_compatible_rustfs_minio": "Armazenamento de objetos S3: RustFS, MinIO",
+  "new_service.choose_the_storage": "ESCOLHA O STORAGE"
 }
