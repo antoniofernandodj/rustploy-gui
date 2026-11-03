@@ -48,6 +48,33 @@ component {
       )
     }
 
+    if @rename_open == "project_env" {
+      row(class = env__add) {
+        text("{t('rename.label', rename_from=rename_from)}", class = u-muted)
+
+        input(
+          class = env__input,
+          form_control = rename_to,
+          :value = rename_to,
+          on_change = field:rename_to,
+          placeholder = "{t('rename.new_name')}",
+        )
+
+        button(
+          class = "btn btn--primary",
+          on_click = project_rename_apply,
+          disabled = @busy_project_rename_apply,
+          text = "{t('rename.apply')}",
+        )
+
+        button(
+          class = "btn btn--ghost",
+          on_click = rename_cancel,
+          text = "{t('common.cancel')}",
+        )
+      }
+    }
+
     form(
       name = project_env_add,
       on_submit = project_env_add,
@@ -192,6 +219,13 @@ component {
                   on_click = project_env_delete:@e.key,
                   disabled = @busy_project_env_delete,
                   text = "✕",
+                )
+
+                button(
+                  class = "btn btn--ghost btn--sm",
+                  on_click = project_env_rename_pick:@e.key,
+                  text = "✏️",
+                  tooltip = "{t('environment.rename')}",
                 )
 
                 button(

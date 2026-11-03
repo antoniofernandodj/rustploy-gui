@@ -34,7 +34,10 @@ end
 -- {error_project_secret_new_name} / {error_project_secret_new_value} e acende
 -- o :invalid. Aqui é só o aviso.
 function secret_add_show_validation_errors(_erros_json: string?): ()
-    toast { message = i18n.tr("Preencha nome e valor do secret"), kind = "warning" }
+    toast {
+        message = i18n.tr("Preencha nome e valor do secret"),
+        kind = "warning",
+    }
 end
 
 function secret_add(): ()
@@ -53,11 +56,13 @@ function secret_add(): ()
     if secret_set_ok then
         ctx.project_secret_new_name = ""
         ctx.project_secret_new_value = ""
-        local message = i18n.tr("Secret \"") .. name .. i18n.tr("\" criado")
+        local message = i18n.tr('Secret "') .. name .. i18n.tr('" criado')
         if replacing then
-            message = i18n.tr("Secret \"")
+            message = i18n.tr('Secret "')
                 .. name
-                .. i18n.tr("\" substituído — o novo valor vale no próximo deploy")
+                .. i18n.tr(
+                    '" substituído — o novo valor vale no próximo deploy'
+                )
         end
         toast { message = message, kind = "success" }
         Stream.refresh_now()
@@ -73,9 +78,11 @@ function secret_delete(name: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Remover secret?"),
-        message = i18n.tr("O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam \"")
+        message = i18n.tr(
+            'O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam "'
+        )
             .. name
-            .. i18n.tr("\" passarão a receber valor vazio no próximo deploy."),
+            .. i18n.tr('" passarão a receber valor vazio no próximo deploy.'),
         confirm_label = i18n.tr("Remover secret"),
         destructive = true,
     }
@@ -90,7 +97,10 @@ function secret_delete(name: string): ()
         SecretDelete = { project_id = project_id, name = name },
     }
     if secret_delete_ok then
-        toast { message = tostring(i18n.tr("Secret removido")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Secret removido")),
+            kind = "success",
+        }
         Stream.refresh_now()
     else
         toast { message = tostring(secret_delete_response), kind = "error" }
@@ -123,7 +133,12 @@ function move_target_pick(service_id: string): ()
     ctx.move_target_service_id = service_id or ""
 end
 
-local function project_move(op: string, name: string, service_id: string?, done_message: string): ()
+local function project_move(
+    op: string,
+    name: string,
+    service_id: string?,
+    done_message: string
+): ()
     local project_id = ctx.selected_project_id or ""
     local api = State.api
     if project_id == "" or name == "" or not api then
@@ -150,7 +165,9 @@ local function target_service(): string?
     local service_id = ctx.move_target_service_id or ""
     if service_id == "" then
         toast {
-            message = i18n.tr("Escolha antes o serviço de destino, no seletor do topo."),
+            message = i18n.tr(
+                "Escolha antes o serviço de destino, no seletor do topo."
+            ),
             kind = "warning",
         }
         return nil
@@ -159,20 +176,34 @@ local function target_service(): string?
 end
 
 function project_env_to_secret(key: string): ()
-    project_move("EnvToSecret", key, nil, i18n.tr("Variável movida para secret: "))
+    project_move(
+        "EnvToSecret",
+        key,
+        nil,
+        i18n.tr("Variável movida para secret: ")
+    )
 end
 
 function project_secret_to_env(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Voltar para variável em claro?"),
-        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado)."),
+        message = i18n.tr('O valor de "')
+            .. name
+            .. i18n.tr(
+                '" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado).'
+            ),
         confirm_label = i18n.tr("Mover para variável"),
         destructive = true,
     }
     if not confirmed then
         return
     end
-    project_move("SecretToEnv", name, nil, i18n.tr("Secret movido para variável: "))
+    project_move(
+        "SecretToEnv",
+        name,
+        nil,
+        i18n.tr("Secret movido para variável: ")
+    )
 end
 
 function project_secret_to_service(name: string): ()
@@ -180,7 +211,12 @@ function project_secret_to_service(name: string): ()
     if service_id == nil then
         return
     end
-    project_move("ProjectSecretToService", name, service_id, i18n.tr("Secret movido para o serviço: "))
+    project_move(
+        "ProjectSecretToService",
+        name,
+        service_id,
+        i18n.tr("Secret movido para o serviço: ")
+    )
 end
 
 function project_env_to_service(key: string): ()
@@ -188,7 +224,79 @@ function project_env_to_service(key: string): ()
     if service_id == nil then
         return
     end
-    project_move("EnvProjectToService", key, service_id, i18n.tr("Variável movida para o serviço: "))
+    project_move(
+        "EnvProjectToService",
+        key,
+        service_id,
+        i18n.tr("Variável movida para o serviço: ")
+    )
+end
+
+-- ── Renomear a chave de uma variável / o nome de um secret ──────────────────
+-- EnvKeyRename / SecretRename: o valor nunca passa pela tela (nem pelo agente). O ✏️ da linha só
+-- ARMA um mini-formulário (ctx.rename_open = "project_env" | "project_secret" | "service_env" |
+-- "service_secret"); quem grava é project_rename_apply / service_rename_apply.
+
+local function rename_pick(tag: string, name: string): ()
+    ctx.rename_open = tag
+    ctx.rename_from = name
+    ctx.rename_to = name
+end
+
+function project_env_rename_pick(key: string): ()
+    rename_pick("project_env", key)
+end
+
+function project_secret_rename_pick(name: string): ()
+    rename_pick("project_secret", name)
+end
+
+function service_env_rename_pick(key: string): ()
+    rename_pick("service_env", key)
+end
+
+function service_secret_rename_pick(name: string): ()
+    rename_pick("service_secret", name)
+end
+
+function rename_cancel(): ()
+    ctx.rename_open = ""
+    ctx.rename_from = ""
+    ctx.rename_to = ""
+end
+
+function project_rename_apply(): ()
+    local project_id = ctx.selected_project_id or ""
+    local api = State.api
+    local from = ctx.rename_from or ""
+    local to = Helpers.trim(ctx.rename_to)
+    if project_id == "" or from == "" or not api then
+        return
+    end
+    if to == "" or to == from then
+        toast {
+            message = i18n.tr("Digite um nome novo, diferente do atual."),
+            kind = "warning",
+        }
+        return
+    end
+    local body = { project_id = project_id, from = from, to = to }
+    local rename_ok, rename_response
+    if ctx.rename_open == "project_secret" then
+        rename_ok, rename_response = api:rpc_checked { SecretRename = body }
+    else
+        rename_ok, rename_response = api:rpc_checked { EnvKeyRename = body }
+    end
+    if rename_ok then
+        toast {
+            message = i18n.tr("Renomeado: ") .. from .. " → " .. to,
+            kind = "success",
+        }
+        rename_cancel()
+        Stream.refresh_now()
+    else
+        toast { message = tostring(rename_response), kind = "error" }
+    end
 end
 
 -- ── Ver o valor de um secret do PROJETO ─────────────────────────────────────
@@ -202,7 +310,11 @@ function secret_reveal(name: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Ver o valor do secret?"),
-        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor)."),
+        message = i18n.tr('O valor de "')
+            .. name
+            .. i18n.tr(
+                '" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor).'
+            ),
         confirm_label = i18n.tr("Ver valor"),
     }
     if not confirmed then
@@ -211,11 +323,16 @@ function secret_reveal(name: string): ()
     local reveal_ok, reveal_response = api:rpc {
         SecretReveal = { project_id = project_id, name = name },
     }
-    if not reveal_ok or type(reveal_response) ~= "table" or reveal_response.SecretValue == nil then
+    if
+        not reveal_ok
+        or type(reveal_response) ~= "table"
+        or reveal_response.SecretValue == nil
+    then
         toast { message = tostring(reveal_response), kind = "error" }
         return
     end
-    State.revealed_secrets["project:" .. name] = reveal_response.SecretValue :: string
+    State.revealed_secrets["project:" .. name] =
+        reveal_response.SecretValue :: string
     Stream.refresh_now()
 end
 

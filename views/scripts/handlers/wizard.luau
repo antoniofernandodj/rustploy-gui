@@ -8,18 +8,8 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 
-local NS_ALPHABET =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-math.randomseed(os.time())
-local function token_urlsafe(length: number): string
-    local characters = {}
-    for index = 1, length do
-        local alphabet_index = math.random(1, #NS_ALPHABET)
-        characters[index] =
-            string.sub(NS_ALPHABET, alphabet_index, alphabet_index)
-    end
-    return table.concat(characters)
-end
+-- A senha de banco/broker NÃO é gerada aqui: campo vazio = o daemon gera uma forte (
+-- /dev/urandom) e a guarda como secret. Antes era `math.random` semeado por `os.time()`.
 
 local function new_service_is_broker(kind_id: string): boolean
     return kind_id == "kafka" or kind_id == "rabbitmq" or kind_id == "nats"
@@ -130,8 +120,8 @@ function new_service_database(database_kind: string): ()
                     and "app"
                 or ""
             ctx.new_service_database_user = database_option.user or ""
-            ctx.new_service_database_password = token_urlsafe(22)
-            ctx.new_service_database_root_password = token_urlsafe(22)
+            ctx.new_service_database_password = ""
+            ctx.new_service_database_root_password = ""
             ctx.new_service_use_replica = "false"
             ctx.new_service_expose_external = "false"
             ctx.new_service_database_has_dbname = database_option.has_db_name
@@ -167,7 +157,7 @@ function new_service_broker(broker_kind: string): ()
             ctx.new_service_image = broker_option.image
             ctx.new_service_database_name = ""
             ctx.new_service_database_user = broker_option.user or ""
-            ctx.new_service_database_password = token_urlsafe(22)
+            ctx.new_service_database_password = ""
             ctx.new_service_database_root_password = ""
             ctx.new_service_use_replica = "false"
             ctx.new_service_expose_external = "false"
@@ -310,7 +300,8 @@ function new_service_create(): ()
         })
         close_window()
     else
-        ctx.new_service_message = wizard_create_ok and i18n.tr("resposta inesperada")
+        ctx.new_service_message = wizard_create_ok
+                and i18n.tr("resposta inesperada")
             or ("erro: " .. wizard_create_response)
         toast {
             message = tostring(

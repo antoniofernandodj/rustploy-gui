@@ -92,7 +92,8 @@ function M.fetch_service_detail(service_id: string): ()
         api:rpc { ServiceGet = { id = service_id } }
     if not service_get_ok or not service_get_response.Service then
         ctx.service_loading = "false"
-        ctx.service_error = service_get_ok and i18n.tr("serviço não encontrado")
+        ctx.service_error = service_get_ok
+                and i18n.tr("serviço não encontrado")
             or service_get_response
         return
     end
@@ -207,9 +208,13 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.edit_service_name = spec.name
     ctx.error_edit_service_name = ""
     if source_kind == "Compose" then
-        ctx.service_rename_note = i18n.tr("A stack e os volumes do Docker não mudam com o nome: os dados continuam os mesmos.")
+        ctx.service_rename_note = i18n.tr(
+            "A stack e os volumes do Docker não mudam com o nome: os dados continuam os mesmos."
+        )
     else
-        ctx.service_rename_note = i18n.tr("O hostname interno (rp_<nome>) só passa a valer no próximo deploy. Outros serviços que usam o nome antigo em variáveis de ambiente precisam ser atualizados.")
+        ctx.service_rename_note = i18n.tr(
+            "O hostname interno (rp_<nome>) só passa a valer no próximo deploy. Outros serviços que usam o nome antigo em variáveis de ambiente precisam ser atualizados."
+        )
     end
     ctx.service_project = project_name
     ctx.service_project_id = spec.project_id
@@ -319,8 +324,11 @@ function M.fetch_service_detail(service_id: string): ()
     then
         service_secret_names = secret_list_response.SecretNames
     end
-    ctx.service_secrets =
-        format.secret_rows(service_secret_names, service_id, State.revealed_secrets)
+    ctx.service_secrets = format.secret_rows(
+        service_secret_names,
+        service_id,
+        State.revealed_secrets
+    )
     ctx.service_secrets_count = tostring(#service_secret_names)
     ctx.service_deployments = format.deployments_detail(deployments)
     ctx.service_deployments_count = tostring(#deployments)
@@ -395,7 +403,8 @@ function M.fetch_service_detail(service_id: string): ()
         format.dependency_options(spec, service_id, project_services)
     ctx.service_dependencies_count = tostring(#(spec.depends_on or {}))
     ctx.service_form_dependency_add_id = ""
-    ctx.service_form_autostart = (spec.autostart ~= false) and "true" or "false"
+    ctx.service_form_autostart = (spec.autostart ~= false) and "true"
+        or "false"
 
     -- Provedores Gitea conectados (para o picker de conta).
     local git_provider_list_ok, git_provider_list_response =
@@ -478,7 +487,8 @@ local function with_spec(mutate: (spec: any) -> ()): ()
         toast { message = tostring("Salvo"), kind = "success" }
         M.fetch_service_detail(service_id)
     else
-        ctx.service_action_message = i18n.tr("erro: ") .. service_update_response
+        ctx.service_action_message = i18n.tr("erro: ")
+            .. service_update_response
         toast { message = tostring(service_update_response), kind = "error" }
     end
 end
@@ -582,7 +592,9 @@ function shared_disable(): ()
         and tonumber(ctx.service_shared_databases_count) > 0
     then
         toast {
-            message = i18n.tr("Remova os databases deste servidor antes de deixar de compartilhar"),
+            message = i18n.tr(
+                "Remova os databases deste servidor antes de deixar de compartilhar"
+            ),
             kind = "warning",
         }
         return
@@ -653,7 +665,9 @@ end
 function shared_database_delete(shared_database_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover database?"),
-        message = i18n.tr("O database e o usuário são apagados do servidor, com todos os dados. Ação irreversível."),
+        message = i18n.tr(
+            "O database e o usuário são apagados do servidor, com todos os dados. Ação irreversível."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -805,14 +819,18 @@ function migration_start(): ()
         or Helpers.trim(ctx.service_form_migration_database) == ""
     then
         toast {
-            message = i18n.tr("Escolha o database de destino e informe o de origem"),
+            message = i18n.tr(
+                "Escolha o database de destino e informe o de origem"
+            ),
             kind = "warning",
         }
         return
     end
     local confirmed = confirm {
         title = i18n.tr("Iniciar migração?"),
-        message = i18n.tr("Os serviços do projeto que usam este banco serão parados durante o dump/restore e subirão de novo no banco novo. O banco antigo é mantido (parado) para rollback."),
+        message = i18n.tr(
+            "Os serviços do projeto que usam este banco serão parados durante o dump/restore e subirão de novo no banco novo. O banco antigo é mantido (parado) para rollback."
+        ),
         confirm_label = i18n.tr("Migrar"),
     }
     if not confirmed then
@@ -831,7 +849,9 @@ function migration_start(): ()
         }
     if migration_start_ok then
         toast {
-            message = i18n.tr("Migração iniciada — use Atualizar para acompanhar"),
+            message = i18n.tr(
+                "Migração iniciada — use Atualizar para acompanhar"
+            ),
             kind = "success",
         }
         M.fetch_service_detail(ctx.selected_service)
@@ -843,7 +863,9 @@ end
 function migration_rollback(): ()
     local confirmed = confirm {
         title = i18n.tr("Reverter a migração?"),
-        message = i18n.tr("A app volta ao banco antigo. O que foi escrito no banco novo depois da migração se perde."),
+        message = i18n.tr(
+            "A app volta ao banco antigo. O que foi escrito no banco novo depois da migração se perde."
+        ),
         confirm_label = i18n.tr("Reverter"),
         destructive = true,
     }
@@ -868,7 +890,9 @@ end
 function migration_discard(): ()
     local confirmed = confirm {
         title = i18n.tr("Descartar o banco antigo?"),
-        message = i18n.tr("O serviço do banco antigo é removido, com os dados dele. Sem volta."),
+        message = i18n.tr(
+            "O serviço do banco antigo é removido, com os dados dele. Sem volta."
+        ),
         confirm_label = i18n.tr("Descartar"),
         destructive = true,
     }
@@ -1364,7 +1388,10 @@ end
 
 -- on_validation_error do form(name = service_secret_add) — nome e valor são `rules="required"`.
 function service_secret_add_show_validation_errors(_erros_json: string?): ()
-    toast { message = i18n.tr("Preencha nome e valor do secret"), kind = "warning" }
+    toast {
+        message = i18n.tr("Preencha nome e valor do secret"),
+        kind = "warning",
+    }
 end
 
 -- Cria (ou sobrescreve) um secret do SERVIÇO aberto. Write-only como o do projeto: o daemon só devolve
@@ -1390,7 +1417,9 @@ function service_secret_add(): ()
         ctx.service_secret_new_name = ""
         ctx.service_secret_new_value = ""
         toast {
-            message = i18n.tr("Secret \"") .. name .. i18n.tr("\" salvo — vale no próximo deploy"),
+            message = i18n.tr('Secret "') .. name .. i18n.tr(
+                '" salvo — vale no próximo deploy'
+            ),
             kind = "success",
         }
         M.fetch_service_detail(service_id)
@@ -1408,9 +1437,11 @@ function service_secret_delete(name: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Remover secret?"),
-        message = i18n.tr("O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam \"")
+        message = i18n.tr(
+            'O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam "'
+        )
             .. name
-            .. i18n.tr("\" passarão a receber valor vazio no próximo deploy."),
+            .. i18n.tr('" passarão a receber valor vazio no próximo deploy.'),
         confirm_label = i18n.tr("Remover secret"),
         destructive = true,
     }
@@ -1418,10 +1449,17 @@ function service_secret_delete(name: string): ()
         return
     end
     local secret_delete_ok, secret_delete_response = api:rpc_checked {
-        SecretDelete = { project_id = project_id, service_id = service_id, name = name },
+        SecretDelete = {
+            project_id = project_id,
+            service_id = service_id,
+            name = name,
+        },
     }
     if secret_delete_ok then
-        toast { message = tostring(i18n.tr("Secret removido")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Secret removido")),
+            kind = "success",
+        }
         M.fetch_service_detail(service_id)
     else
         toast { message = tostring(secret_delete_response), kind = "error" }
@@ -1467,20 +1505,33 @@ function service_secret_reveal(name: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Ver o valor do secret?"),
-        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor)."),
+        message = i18n.tr('O valor de "')
+            .. name
+            .. i18n.tr(
+                '" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor).'
+            ),
         confirm_label = i18n.tr("Ver valor"),
     }
     if not confirmed then
         return
     end
     local reveal_ok, reveal_response = api:rpc {
-        SecretReveal = { project_id = project_id, service_id = service_id, name = name },
+        SecretReveal = {
+            project_id = project_id,
+            service_id = service_id,
+            name = name,
+        },
     }
-    if not reveal_ok or type(reveal_response) ~= "table" or reveal_response.SecretValue == nil then
+    if
+        not reveal_ok
+        or type(reveal_response) ~= "table"
+        or reveal_response.SecretValue == nil
+    then
         toast { message = tostring(reveal_response), kind = "error" }
         return
     end
-    State.revealed_secrets[service_id .. ":" .. name] = reveal_response.SecretValue :: string
+    State.revealed_secrets[service_id .. ":" .. name] =
+        reveal_response.SecretValue :: string
     M.fetch_service_detail(service_id)
 end
 
@@ -1497,7 +1548,54 @@ function secret_copy(ref: string): ()
         return
     end
     copy(value)
-    toast { message = i18n.tr("Valor copiado para a área de transferência"), kind = "success" }
+    toast {
+        message = i18n.tr("Valor copiado para a área de transferência"),
+        kind = "success",
+    }
+end
+
+-- Grava o mini-formulário de renomear (armado por service_env_rename_pick / service_secret_rename_pick
+-- em handlers/secrets.luau) para a variável ou o secret do SERVIÇO aberto.
+function service_rename_apply(): ()
+    local service_id = ctx.selected_service or ""
+    local project_id = ctx.service_project_id or ""
+    local api = State.api
+    local from = ctx.rename_from or ""
+    local to = Helpers.trim(ctx.rename_to)
+    if service_id == "" or project_id == "" or from == "" or not api then
+        return
+    end
+    if to == "" or to == from then
+        toast {
+            message = i18n.tr("Digite um nome novo, diferente do atual."),
+            kind = "warning",
+        }
+        return
+    end
+    local body = {
+        project_id = project_id,
+        service_id = service_id,
+        from = from,
+        to = to,
+    }
+    local rename_ok, rename_response
+    if ctx.rename_open == "service_secret" then
+        rename_ok, rename_response = api:rpc_checked { SecretRename = body }
+    else
+        rename_ok, rename_response = api:rpc_checked { EnvKeyRename = body }
+    end
+    if rename_ok then
+        toast {
+            message = i18n.tr("Renomeado: ") .. from .. " → " .. to,
+            kind = "success",
+        }
+        ctx.rename_open = ""
+        ctx.rename_from = ""
+        ctx.rename_to = ""
+        M.fetch_service_detail(service_id)
+    else
+        toast { message = tostring(rename_response), kind = "error" }
+    end
 end
 
 -- Move genérico (SecretMove) de uma coisa do SERVIÇO aberto; `done_message` é o aviso de sucesso.
@@ -1529,40 +1627,64 @@ end
 function service_secret_to_env(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Voltar para variável em claro?"),
-        message = i18n.tr("O valor de \"") .. name .. i18n.tr("\" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado)."),
+        message = i18n.tr('O valor de "')
+            .. name
+            .. i18n.tr(
+                '" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado).'
+            ),
         confirm_label = i18n.tr("Mover para variável"),
         destructive = true,
     }
     if not confirmed then
         return
     end
-    service_move("SecretToEnv", name, i18n.tr("Secret movido para variável: "))
+    service_move(
+        "SecretToEnv",
+        name,
+        i18n.tr("Secret movido para variável: ")
+    )
 end
 
 -- ↑ secret do serviço → secret do projeto (todos os serviços do projeto passam a enxergá-lo).
 function service_secret_to_project(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Subir para o projeto?"),
-        message = i18n.tr("O secret \"") .. name .. i18n.tr("\" passa a valer para todos os serviços deste projeto."),
+        message = i18n.tr('O secret "')
+            .. name
+            .. i18n.tr(
+                '" passa a valer para todos os serviços deste projeto.'
+            ),
         confirm_label = i18n.tr("Subir para o projeto"),
     }
     if not confirmed then
         return
     end
-    service_move("ServiceSecretToProject", name, i18n.tr("Secret movido para o projeto: "))
+    service_move(
+        "ServiceSecretToProject",
+        name,
+        i18n.tr("Secret movido para o projeto: ")
+    )
 end
 
 -- ↑ variável em claro do serviço → variável do projeto (todos os serviços herdam).
 function env_to_project(key: string): ()
     local confirmed = confirm {
         title = i18n.tr("Subir para o projeto?"),
-        message = i18n.tr("A variável \"") .. key .. i18n.tr("\" passa a valer para todos os serviços deste projeto."),
+        message = i18n.tr('A variável "')
+            .. key
+            .. i18n.tr(
+                '" passa a valer para todos os serviços deste projeto.'
+            ),
         confirm_label = i18n.tr("Subir para o projeto"),
     }
     if not confirmed then
         return
     end
-    service_move("EnvServiceToProject", key, i18n.tr("Variável movida para o projeto: "))
+    service_move(
+        "EnvServiceToProject",
+        key,
+        i18n.tr("Variável movida para o projeto: ")
+    )
 end
 
 function env_delete(key: string): ()
@@ -1675,7 +1797,9 @@ end
 function delete_deployment(deployment_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover deployment?"),
-        message = i18n.tr("O registro do deployment e seus build logs serão removidos. Essa ação não pode ser desfeita."),
+        message = i18n.tr(
+            "O registro do deployment e seus build logs serão removidos. Essa ação não pode ser desfeita."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -1690,7 +1814,8 @@ function delete_deployment(deployment_id: string): ()
     end
     local deploy_delete_ok, deploy_delete_response =
         api:rpc_checked { DeployDelete = { deployment_id = deployment_id } }
-    ctx.service_action_message = deploy_delete_ok and i18n.tr("deployment removido")
+    ctx.service_action_message = deploy_delete_ok
+            and i18n.tr("deployment removido")
         or ("erro: " .. deploy_delete_response)
     if not deploy_delete_ok then
         toast { message = tostring(deploy_delete_response), kind = "error" }
@@ -1715,7 +1840,9 @@ end
 function regenerate_webhook(): ()
     local confirmed = confirm {
         title = i18n.tr("Regenerar token do webhook?"),
-        message = i18n.tr("A URL atual para de funcionar imediatamente. Você precisará recadastrá-la no provedor (GitHub, Gitea, Docker Hub…)."),
+        message = i18n.tr(
+            "A URL atual para de funcionar imediatamente. Você precisará recadastrá-la no provedor (GitHub, Gitea, Docker Hub…)."
+        ),
         confirm_label = i18n.tr("Regenerar"),
         destructive = true,
     }
@@ -1811,9 +1938,13 @@ local function start_deploy(requested_service_id: string?): ()
         ctx.service_deploy_elapsed = "0s"
         ctx.service_action_message = i18n.tr("deploy iniciado · ")
             .. tostring(deploy_start_response.Deployment.state)
-        toast { message = tostring(i18n.tr("Deploy iniciado")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Deploy iniciado")),
+            kind = "success",
+        }
     else
-        ctx.service_action_message = deploy_start_ok and i18n.tr("resposta inesperada")
+        ctx.service_action_message = deploy_start_ok
+                and i18n.tr("resposta inesperada")
             or ("erro: " .. deploy_start_response)
         ctx.service_action_color = "#F85149"
         toast {
@@ -1854,7 +1985,9 @@ end
 function service_stop(): ()
     local confirmed = confirm {
         title = i18n.tr("Parar serviço?"),
-        message = i18n.tr("O tráfego para este serviço será interrompido até um novo deploy."),
+        message = i18n.tr(
+            "O tráfego para este serviço será interrompido até um novo deploy."
+        ),
         confirm_label = i18n.tr("Parar"),
         destructive = true,
     }
@@ -1894,7 +2027,10 @@ function service_warm(): ()
             kind = "success",
         }
     else
-        toast { message = tostring(i18n.tr("Aquecimento iniciado")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Aquecimento iniciado")),
+            kind = "success",
+        }
     end
 end
 
@@ -2002,7 +2138,8 @@ function open_logs_window(): ()
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            log_window_title = i18n.tr("Logs · ") .. (ctx.service_name or service_id),
+            log_window_title = i18n.tr("Logs · ")
+                .. (ctx.service_name or service_id),
             log_window_stream_url = "/api/services/" .. service_id .. "/logs",
             log_window_seed = seed,
         },
