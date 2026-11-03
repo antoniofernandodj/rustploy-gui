@@ -140,6 +140,7 @@ function new_service_database(database_kind: string): ()
             ctx.new_service_database_has_user = database_option.has_user
                     and "true"
                 or "false"
+            ctx.new_service_database_has_password = "true"
             ctx.new_service_database_has_rootpw = database_option.has_rootpw
                     and "true"
                 or "false"
@@ -174,6 +175,7 @@ function new_service_storage(storage_kind: string): ()
             ctx.new_service_expose_external = "false"
             ctx.new_service_database_has_dbname = "false"
             ctx.new_service_database_has_user = "true"
+            ctx.new_service_database_has_password = "true"
             ctx.new_service_database_has_rootpw = "false"
             ctx.new_service_database_has_replica = "false"
             ctx.new_service_name = ""
@@ -205,6 +207,8 @@ function new_service_broker(broker_kind: string): ()
             ctx.new_service_database_has_user = broker_option.has_user
                     and "true"
                 or "false"
+            ctx.new_service_database_has_password =
+                ctx.new_service_database_has_user
             ctx.new_service_database_has_rootpw = "false"
             ctx.new_service_database_has_replica = "false"
             ctx.new_service_name = ""

@@ -451,15 +451,18 @@ component {
               )
             }
 
-            text("{t('new_service.password_generated_you_can_change')}", class = u-label-cap)
+            // Kafka e NATS não têm senha: o campo só aparece onde ela é usada (igual à webui).
+            if @new_service_database_has_password == "true" {
+              text("{t('new_service.password_generated_you_can_change')}", class = u-label-cap)
 
-            input(
-              placeholder = "{t('new_service.empty_no_password_redis_only')}",
-              class = field__input,
-              form_control = new_service_database_password,
-              :value = new_service_database_password,
-              on_change = field:new_service_database_password,
-            )
+              input(
+                placeholder = "{t('new_service.empty_no_password_redis_only')}",
+                class = field__input,
+                form_control = new_service_database_password,
+                :value = new_service_database_password,
+                on_change = field:new_service_database_password,
+              )
+            }
 
             if @new_service_database_has_rootpw == "true" {
               text(
