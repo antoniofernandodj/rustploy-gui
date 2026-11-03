@@ -210,6 +210,41 @@ component {
             equals = github,
             class = u-muted,
           )
+
+          text(
+            "{t('settings_git.github_pat_repository_access')}",
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
+          )
+
+          text(
+            "{t('settings_git.github_pat_required_permissions')}",
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
+          )
+
+          text(
+            "{t('settings_git.github_pat_future_permissions')}",
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
+          )
+
+          text(
+            "{t('settings_git.github_pat_avoid_permissions')}",
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
+          )
+
+          text(
+            "{t('settings_git.github_pat_classic_alternative')}",
+            if = @git_provider_kind,
+            equals = github,
+            class = u-muted,
+          )
         }
 
         row(class = env__add) {
