@@ -34,20 +34,49 @@ component {
           row_class = "table__row table__cell table__row--divided",
           class = u-fill-all,
         ) {
-          tablecolumn(label = " ", class = table__col-icon) {
-            text("@r.icon", class = table__cell)
+          tablecolumn(
+            label = " ",
+            class = table__col-icon
+          ) {
+            text(
+              "@r.icon",
+              class = table__cell
+            )
           }
 
-          tablecolumn(key = service, label = "{t('common.service')}", class = table__col-svc) {
-            TableLink(kind = service, id = @r.service_id, label = @r.service)
+          tablecolumn(
+            key = service,
+            label = "{t('common.service')}",
+            class = table__col-svc
+          ) {
+            TableLink(
+              kind = service,
+              id = @r.service_id,
+              label = @r.service
+            )
           }
 
-          tablecolumn(key = project, label = "{t('common.project')}", class = table__col-proj) {
-            TableLink(kind = project, id = @r.project_id, label = @r.project)
+          tablecolumn(
+            key = project,
+            label = "{t('common.project')}",
+            class = table__col-proj
+          ) {
+            TableLink(
+              kind = project,
+              id = @r.project_id,
+              label = @r.project
+            )
           }
 
-          tablecolumn(key = state_label, label = "{t('common.state')}", class = table__col-state) {
-            StateCell(kind = @r.state_kind, label = @r.state_label)
+          tablecolumn(
+            key = state_label,
+            label = "{t('common.state')}",
+            class = table__col-state
+          ) {
+            StateCell(
+              kind = @r.state_kind,
+              label = @r.state_label
+            )
           }
 
           tablecolumn(

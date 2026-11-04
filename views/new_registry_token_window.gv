@@ -24,15 +24,26 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
         text("{t('new_registry_token_window.new_token_rustploy')}", class = titlebar__title)
       }
 
-      button(class = titlebar__btn, on_click = window:minimize, text = "—")
-      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+      button(
+        class = titlebar__btn,
+        on_click = window:minimize,
+        text = "—"
+      )
+      button(
+        class = "titlebar__btn titlebar__btn--close",
+        on_click = window:close,
+        text = "✕"
+      )
     }
 
     scrollable(class = dialog__body, direction = vertical) {
       column(class = form-panel) {
         // Passo 1: formulário
         if @new_registry_token_step == "form" {
-          text("{t('new_registry_token_window.new_access_token_basic_auth')}", class = u-label-cap)
+          text(
+            "{t('new_registry_token_window.new_access_token_basic_auth')}",
+            class = u-label-cap
+          )
 
           text(
             "{t('new_registry_token_window.used_in_docker_login_push')}",
@@ -66,8 +77,13 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
 
             scroll(class = tabs__scroll, direction = horizontal) {
               tabbar(
-                :value = new_registry_token_scope, active = @new_registry_token_scope, :items = new_registry_token_scopes,
-                tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+                :value = new_registry_token_scope,
+                active = @new_registry_token_scope,
+                :items = new_registry_token_scopes,
+                tab_class = tabs__tab,
+                tab_active_class = "tabs__tab tabs__tab--active",
+                padding = "9 16",
+                size = 14,
               )
             }
 
@@ -78,7 +94,11 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
               class = u-error,
             )
 
-            row(class = busy-row, if = @new_registry_token_message, not_equals = "") {
+            row(
+              class = busy-row,
+              if = @new_registry_token_message,
+              not_equals = ""
+            ) {
               spinner(class = busy-row__spin, if = @new_registry_token_busy)
               text("@new_registry_token_message", class = u-muted)
             }
@@ -92,14 +112,22 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
                 text = "{t('common.cancel')}",
               )
 
-              button(type = submit, disabled = @busy_new_registry_token_create, class = "btn btn--primary", text = "{t('new_registry_token_window.create_token')}")
+              button(
+                type = submit,
+                disabled = @busy_new_registry_token_create,
+                class = "btn btn--primary",
+                text = "{t('new_registry_token_window.create_token')}"
+              )
             }
           }
         }
 
         // Passo 2: segredo exibido uma única vez
         if @new_registry_token_step == "reveal" {
-          text("{t('new_registry_token_window.token_created_copy_it_now')}", class = u-label-cap)
+          text(
+            "{t('new_registry_token_window.token_created_copy_it_now')}",
+            class = u-label-cap
+          )
 
           text(
             "{t('new_registry_token_window.the_secret_cannot_be_recovered_after')}",
@@ -107,8 +135,15 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
           )
 
           column(class = dialog__secret) {
-            text("{t('new_registry_token_window.docker_login_command')}", class = field__label)
-            text("@new_registry_token_login_command", class = "kv-list__val kv-list__val--compact")
+            text(
+              "{t('new_registry_token_window.docker_login_command')}",
+              class = field__label
+            )
+
+            text(
+              "@new_registry_token_login_command",
+              class = "kv-list__val kv-list__val--compact"
+            )
 
             row(class = dialog__actions) {
               column(class = u-fill)
@@ -123,7 +158,11 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
 
           row(class = dialog__actions) {
             column(class = u-fill)
-            button(class = "btn btn--primary", on_click = window:close, text = "{t('common.close')}")
+            button(
+              class = "btn btn--primary",
+              on_click = window:close,
+              text = "{t('common.close')}"
+            )
           }
         }
       }

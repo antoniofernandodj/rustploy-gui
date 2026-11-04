@@ -77,11 +77,18 @@ app(
             } else {
               button(class = titlebar__btn, on_click = window:maximize) {
                 container(class = titlebar__icon-box) {
-                  svg(class = titlebar__icon, src = "assets/icons/win_maximize.svg")
+                  svg(
+                    class = titlebar__icon,
+                    src = "assets/icons/win_maximize.svg"
+                  )
                 }
               }
             }
-            button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+            button(
+              class = "titlebar__btn titlebar__btn--close",
+              on_click = window:close,
+              text = "✕"
+            )
           }
 
           if @screen == "login" {

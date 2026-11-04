@@ -37,22 +37,49 @@ component {
       row_class = "table__row table__cell table__row--divided",
       class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
-        text("@c.name", class = "table__cell table__cell--key")
+      tablecolumn(
+        key = name,
+        label = "{t('common.name')}",
+        class = table__col-svc
+      ) {
+        text(
+          "@c.name",
+          class = "table__cell table__cell--key"
+        )
       }
 
-      tablecolumn(key = image, label = "{t('docker_containers.image')}", class = table__col-img)
+      tablecolumn(
+        key = image,
+        label = "{t('docker_containers.image')}",
+        class = table__col-img
+      )
 
-      tablecolumn(key = owner, label = "{t('docker_containers.owner')}", class = table__col-state) {
-        text("@c.owner", class = u-muted)
+      tablecolumn(
+        key = owner,
+        label = "{t('docker_containers.owner')}",
+        class = table__col-state
+      ) {
+        text(
+          "@c.owner",
+          class = u-muted
+        )
       }
 
-      tablecolumn(key = state_label, label = "{t('common.state')}", class = table__col-state) {
-        StateCell(kind = @c.state_kind, label = @c.state_label)
+      tablecolumn(
+        key = state_label,
+        label = "{t('common.state')}",
+        class = table__col-state
+      ) {
+        StateCell(
+          kind = @c.state_kind,
+          label = @c.state_label
+        )
       }
 
-      tablecolumn(label = "{t('common.action')}", class = table__col-act) {
-        // Só o container órfão ("removido no git") que ainda roda: para-se aqui e depois remove-se.
+      tablecolumn(
+        label = "{t('common.action')}", class = table__col-act) {
+        // Só o container órfão ("removido no git") que
+        // ainda roda: para-se aqui e depois remove-se.
         button(
           if = @c.can_stop,
           equals = 1,

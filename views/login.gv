@@ -89,11 +89,24 @@ component {
         }
 
         row(class = login__language) {
-          button(class = "{language_english_class}", on_click = language_select_english, text = English)
-          button(class = "{language_portuguese_class}", on_click = language_select_portuguese, text = Português)
+          button(
+            class = "{language_english_class}",
+            on_click = language_select_english,
+            text = English
+          )
+          button(
+            class = "{language_portuguese_class}",
+            on_click = language_select_portuguese,
+            text = Português
+          )
         }
 
-        button(class = login__connect, on_click = connect, disabled = @busy_connect, text = "{t('login.connect')}")
+        button(
+          class = login__connect,
+          on_click = connect,
+          disabled = @busy_connect,
+          text = "{t('login.connect')}"
+        )
       }
 
       text("⚠ @error", if = @error, not_equals = "", class = u-error)

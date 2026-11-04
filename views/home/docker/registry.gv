@@ -50,7 +50,11 @@ component {
       class = u-muted,
     )
 
-    column(class = "panel panel--fill", if = @registry_selected_repo, equals = "") {
+    column(
+      class = "panel panel--fill",
+      if = @registry_selected_repo,
+      equals = ""
+    ) {
       tableview(
         :items = registry_repos,
         :sort = registry_repos_sort,
@@ -59,21 +63,49 @@ component {
         row_class = "table__row table__cell table__row--divided",
         class = u-fill-all,
       ) {
-        tablecolumn(key = name, label = "{t('common.repository')}", class = table__col-svc) {
-          text("@r.name", class = "table__cell table__cell--key")
+        tablecolumn(
+          key = name,
+          label = "{t('common.repository')}",
+          class = table__col-svc
+        ) {
+          text(
+            "@r.name",
+            class = "table__cell table__cell--key"
+          )
         }
 
-        tablecolumn(key = tag_count, label = "{t('common.tags')}", class = table__col-proj)
+        tablecolumn(
+          key = tag_count,
+          label = "{t('common.tags')}",
+          class = table__col-proj)
 
-        tablecolumn(key = size, label = "{t('common.size')}", class = table__col-dur) {
-          text("@r.size", class = u-muted)
+        tablecolumn(
+          key = size,
+          label = "{t('common.size')}",
+          class = table__col-dur
+        ) {
+          text(
+            "@r.size",
+            class = u-muted
+          )
         }
 
-        tablecolumn(key = created, label = "{t('docker_registry.created')}", class = table__col-dur) {
-          text("@r.created", class = u-muted)
+        tablecolumn(
+          key = created,
+          label = "{t('docker_registry.created')}",
+          class = table__col-dur
+        ) {
+          text(
+            "@r.created",
+            class = u-muted
+          )
         }
 
-        tablecolumn(label = "{t('common.action')}", class = table__col-act-2, align = right) {
+        tablecolumn(
+          label = "{t('common.action')}",
+          class = table__col-act-2,
+          align = right
+        ) {
           row(class = table__col-act-2) {
             button(
               class = "btn btn--ghost btn--xs",
@@ -131,21 +163,47 @@ component {
           row_class = "table__row table__cell table__row--divided",
           width = fill,
         ) {
-          tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
-            text("@tk.name", class = "table__cell table__cell--key")
+          tablecolumn(
+            key = name,
+            label = "{t('common.name')}",
+            class = table__col-svc
+          ) {
+            text(
+              "@tk.name",
+              class = "table__cell table__cell--key")
           }
 
-          tablecolumn(key = scope, label = "{t('common.scope')}", class = table__col-proj)
+          tablecolumn(
+            key = scope,
+            label = "{t('common.scope')}",
+            class = table__col-proj
+          )
 
-          tablecolumn(key = created, label = "{t('docker_registry.created')}", class = table__col-dur) {
-            text("@tk.created", class = u-muted)
+          tablecolumn(
+            key = created,
+            label = "{t('docker_registry.created')}",
+            class = table__col-dur
+          ) {
+            text(
+              "@tk.created",
+              class = u-muted)
           }
 
-          tablecolumn(key = last_used, label = "{t('docker_registry.last_used')}", class = table__col-dur) {
-            text("@tk.last_used", class = u-muted)
+          tablecolumn(
+            key = last_used,
+            label = "{t('docker_registry.last_used')}",
+            class = table__col-dur
+          ) {
+            text(
+              "@tk.last_used",
+              class = u-muted
+            )
           }
 
-          tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+          tablecolumn(
+            label = "{t('common.action')}",
+            class = table__col-act
+          ) {
             button(
               class = env__del,
               on_click = registry_remove_token:@tk.name,
@@ -185,23 +243,45 @@ component {
         row_class = "table__row table__cell table__row--divided",
         class = u-fill-all,
       ) {
-        tablecolumn(key = tag, label = "{t('docker_registry.tag')}", class = table__col-svc) {
-          text("@t.tag", class = "table__cell table__cell--key")
+        tablecolumn(
+          key = tag,
+          label = "{t('docker_registry.tag')}",
+          class = table__col-svc
+        ) {
+          text(
+            "@t.tag",
+            class = "table__cell table__cell--key"
+          )
         }
 
-        tablecolumn(key = digest, label = "{t('docker_registry.digest')}", class = table__col-proj) {
+        tablecolumn(
+          key = digest,
+          label = "{t('docker_registry.digest')}",
+          class = table__col-proj
+        ) {
           text("@t.digest", class = u-muted)
         }
 
-        tablecolumn(key = size, label = "{t('common.size')}", class = table__col-dur) {
+        tablecolumn(
+          key = size,
+          label = "{t('common.size')}",
+          class = table__col-dur
+        ) {
           text("@t.size", class = u-muted)
         }
 
-        tablecolumn(key = updated, label = "{t('docker_registry.updated')}", class = table__col-dur) {
+        tablecolumn(
+          key = updated,
+          label = "{t('docker_registry.updated')}",
+          class = table__col-dur
+        ) {
           text("@t.updated", class = u-muted)
         }
 
-        tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+        tablecolumn(
+          label = "{t('common.action')}",
+          class = table__col-act
+        ) {
           button(
             class = "btn btn--danger btn--xs",
             on_click = registry_remove_tag:@t.tag,

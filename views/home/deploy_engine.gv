@@ -19,11 +19,30 @@ component {
     // 5 cards + valor largo (UPTIME) ao lado do título: deixa de caber
     // bem antes dos breakpoints gerais — some mais cedo (xl).
     row(class = "page-head__stats page-head__stats--hide-xl") {
-      StatCard(label = "{t('deploy_engine.active')}", value = @deploy_engine_active_count, accent = 1)
-      StatCard(label = "{t('deploy_engine.success_24h')}", value = @deploy_engine_success_24h)
-      StatCard(label = "{t('deploy_engine.failures_24h')}", value = @deploy_engine_failed_24h)
-      StatCard(label = "{t('deploy_engine.total_24h')}", value = @deploy_engine_total_24h)
-      StatCard(label = "{t('common.uptime')}", value = @deploy_engine_uptime)
+      StatCard(
+        label = "{t('deploy_engine.active')}",
+        value = @deploy_engine_active_count, accent = 1
+      )
+
+      StatCard(
+        label = "{t('deploy_engine.success_24h')}",
+        value = @deploy_engine_success_24h
+      )
+
+      StatCard(
+        label = "{t('deploy_engine.failures_24h')}",
+        value = @deploy_engine_failed_24h
+      )
+
+      StatCard(
+        label = "{t('deploy_engine.total_24h')}",
+        value = @deploy_engine_total_24h
+      )
+
+      StatCard(
+        label = "{t('common.uptime')}",
+        value = @deploy_engine_uptime
+      )
     }
   }
 
@@ -55,8 +74,6 @@ component {
   hr
 
   EngineFilaTab(if = @deploy_engine_tab, equals = fila)
-
   EngineExecutandoTab(if = @deploy_engine_tab, equals = executando)
-
   EngineHistoricoTab(if = @deploy_engine_tab, equals = historico)
 }

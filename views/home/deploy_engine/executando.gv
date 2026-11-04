@@ -17,11 +17,31 @@ component {
 
       column(class = section__body) {
         row(class = table__head, if = @deploy_engine_active, not_empty) {
-          text("{t('common.service')}", class = "table__head-cell table__col-svc")
-          text("{t('common.project')}", class = "table__head-cell table__col-proj")
-          text("{t('common.state')}", class = "table__head-cell table__col-state")
-          text("{t('deploy_engine_executando.total')}", class = "table__head-cell table__col-dur")
-          text("{t('deploy_engine_executando.phase')}", class = "table__head-cell table__col-start")
+          text(
+            "{t('common.service')}",
+            class = "table__head-cell table__col-svc"
+          )
+
+          text(
+            "{t('common.project')}",
+            class = "table__head-cell table__col-proj"
+          )
+
+          text(
+            "{t('common.state')}",
+            class = "table__head-cell table__col-state"
+          )
+
+          text(
+            "{t('deploy_engine_executando.total')}",
+            class = "table__head-cell table__col-dur"
+          )
+
+          text(
+            "{t('deploy_engine_executando.phase')}",
+            class = "table__head-cell table__col-start"
+          )
+
           text(class = "table__head-cell table__col-act")
         }
 
@@ -75,12 +95,24 @@ component {
       }
     }
 
-    popup(value = deploy_engine_detail_open, trigger = none, on_close = deploy_engine_close_detail) {
+    popup(
+      value = deploy_engine_detail_open,
+      trigger = none,
+      on_close = deploy_engine_close_detail
+    ) {
       column(class = "panel panel--round detail") {
         row(class = detail__head) {
-          text("{t('deploy_engine_executando.deploy', deploy_engine_detail_title=deploy_engine_detail_title)}", class = detail__title)
+          text(
+            "{t('deploy_engine_executando.deploy', deploy_engine_detail_title=deploy_engine_detail_title)}",
+            class = detail__title
+          )
 
-          button(class = "btn btn--ghost btn--xs", on_click = deploy_engine_close_detail, disabled = @busy_deploy_engine_close_detail, text = "{t('common.close')}")
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = deploy_engine_close_detail,
+            disabled = @busy_deploy_engine_close_detail,
+            text = "{t('common.close')}"
+          )
         }
 
         row(class = stepper) {
@@ -107,7 +139,10 @@ component {
             text("@d.dur", class = u-muted)
           }
 
-          tablecolumn(label = "{t('deploy_engine_executando.message')}", class = table__col-start) {
+          tablecolumn(
+            label = "{t('deploy_engine_executando.message')}",
+            class = table__col-start
+          ) {
             text("@d.msg", class = u-muted)
           }
         }

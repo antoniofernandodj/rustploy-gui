@@ -19,10 +19,22 @@ component {
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
-      StatCard(label = "{t('common.containers')}", value = @docker_containers_count)
-      StatCard(label = "{t('docker.images')}", value = @docker_images_count)
-      StatCard(label = "{t('docker.volumes')}", value = @docker_volumes_count)
-      StatCard(label = "{t('docker.networks')}", value = @docker_networks_count, accent = 1)
+      StatCard(
+        label = "{t('common.containers')}",
+        value = @docker_containers_count
+      )
+      StatCard(
+        label = "{t('docker.images')}",
+        value = @docker_images_count
+      )
+      StatCard(
+        label = "{t('docker.volumes')}",
+        value = @docker_volumes_count
+      )
+      StatCard(
+        label = "{t('docker.networks')}",
+        value = @docker_networks_count, accent = 1
+      )
     }
   }
 
@@ -68,12 +80,8 @@ component {
   hr
 
   DockerContainersTab(if = @docker_tab, equals = containers)
-
   DockerImagesTab(if = @docker_tab, equals = images)
-
   DockerVolumesTab(if = @docker_tab, equals = volumes)
-
   DockerNetworksTab(if = @docker_tab, equals = networks)
-
   DockerRegistryTab(if = @docker_tab, equals = registry)
 }

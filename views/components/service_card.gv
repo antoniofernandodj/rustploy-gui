@@ -45,9 +45,22 @@ component {
       }
 
       row(class = "card__badges u-align-y-end") {
-        rp-badge(if = @has_pending, equals = true, color = warn, label = "◆ {t('service_card.change_pending_deploy')}")
-        rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
-        rp-badge(color = @status_color, label = @status_label)
+        rp-badge(
+          if = @has_pending,
+          equals = true,
+          color = warn,
+          label = "◆ {t('service_card.change_pending_deploy')}"
+        )
+        rp-badge(
+          if = @has_warm,
+          equals = true,
+          color = @warm_color,
+          label = "◐ @warm_label"
+        )
+        rp-badge(
+          color = @status_color,
+          label = @status_label
+        )
       }
     }
 
@@ -61,7 +74,10 @@ component {
         tooltip = "{t('service_card.copy_name')}",
       )
 
-      text("{t('service_card.name', container_name=container_name)}", class = u-muted)
+      text(
+        "{t('service_card.name', container_name=container_name)}",
+        class = u-muted
+      )
     }
 
     row(class = card__container) {
@@ -74,7 +90,10 @@ component {
         tooltip = "{t('service_card.copy_id')}",
       )
 
-      text("{t('service_card.id', container_id=container_id)}", class = u-muted)
+      text(
+        "{t('service_card.id', container_id=container_id)}",
+        class = u-muted
+      )
 
       text(
         "{t('service_card.extra', container_extra=container_extra)}",
@@ -100,7 +119,12 @@ component {
 
     // Ações empilhadas: 3 botões numa linha só transbordam no tamanho mínimo
     // de janela (grade de 3 colunas).
-    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "{t('common.open')}")
+    button(
+      class = "card__action card__action--open",
+      on_click = open_service:@id,
+      disabled = @busy_open_service,
+      text = "{t('common.open')}"
+    )
 
     row(class = card__actions) {
       button(

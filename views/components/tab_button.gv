@@ -8,8 +8,16 @@ component {
   }
 
   if @current == "@target" {
-    button(class = "tabs__tab tabs__tab--active", on_click = @action, text = @label)
+    button(
+      class = "tabs__tab tabs__tab--active",
+      on_click = @action,
+      text = @label
+    )
   } else {
-    button(class = tabs__tab, on_click = @action, text = @label)
+    button(
+      class = tabs__tab,
+      on_click = @action,
+      text = @label
+    )
   }
 }

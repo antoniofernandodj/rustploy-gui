@@ -13,16 +13,30 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("{t('service_export_window.export_service_rustploy')}", class = titlebar__title)
+        text(
+          "{t('service_export_window.export_service_rustploy')}",
+          class = titlebar__title
+        )
       }
 
-      button(class = titlebar__btn, on_click = window:minimize, text = "—")
-      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+      button(
+        class = titlebar__btn,
+        on_click = window:minimize,
+        text = "—"
+      )
+      button(
+        class = "titlebar__btn titlebar__btn--close",
+        on_click = window:close,
+        text = "✕"
+      )
     }
 
     scrollable(class = dialog__body, direction = vertical) {
       column(class = form-panel) {
-        text("{t('service_export_window.export', export_service=export_service)}", class = u-label-cap)
+        text(
+          "{t('service_export_window.export', export_service=export_service)}",
+          class = u-label-cap
+        )
 
         text(
           "{t('service_export_window.generates_a_file_to_recreate_this')}",
@@ -32,10 +46,18 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
         if @export_blocked != "" {
           text("@export_blocked", class = u-error)
         } else {
-          text("{t('service_export_window.service_variables_all_of_them', export_service_count=export_service_count)}", class = u-label-cap)
-          text("@export_service_vars", class = u-muted)
-
-          text("{t('service_export_window.project_variables_tick_the_ones', export_project=export_project)}", class = u-label-cap)
+          text(
+            "{t('service_export_window.service_variables_all_of_them', export_service_count=export_service_count)}",
+            class = u-label-cap
+          )
+          text(
+            "@export_service_vars",
+            class = u-muted
+          )
+          text(
+            "{t('service_export_window.project_variables_tick_the_ones', export_project=export_project)}",
+            class = u-label-cap
+          )
 
           text(
             "{t('service_export_window.the_container_receives_all_of_the')}",
@@ -50,9 +72,20 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
                 disabled = @busy_export_suggested,
                 text = "{t('service_export_window.suggested')}",
               )
-              button(class = "btn btn--ghost", on_click = export_all, disabled = @busy_export_all, text = "{t('service_export_window.all')}")
-              button(class = "btn btn--ghost", on_click = export_none, disabled = @busy_export_none, text = "{t('service_export_window.none')}")
-              text("{t('service_export_window.ticked', export_picked_count=export_picked_count)}", class = u-muted)
+              button(
+                class = "btn btn--ghost",
+                on_click = export_all, disabled = @busy_export_all,
+                text = "{t('service_export_window.all')}"
+              )
+              button(
+                class = "btn btn--ghost",
+                on_click = export_none, disabled = @busy_export_none,
+                text = "{t('service_export_window.none')}"
+              )
+              text(
+                "{t('service_export_window.ticked', export_picked_count=export_picked_count)}",
+                class = u-muted
+              )
             }
 
             column(class = kv-list) {
@@ -69,7 +102,10 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
               }
             }
           } else {
-            text("{t('service_export_window.the_project_has_no_variables')}", class = u-muted)
+            text(
+              "{t('service_export_window.the_project_has_no_variables')}",
+              class = u-muted
+            )
           }
 
           checkbox(
@@ -107,8 +143,19 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
             )
           }
 
-          text("@export_message", class = u-muted, if = @export_message, not_equals = "")
-          text("@export_error", class = u-error, if = @export_error, not_equals = "")
+          text(
+            "@export_message",
+            class = u-muted,
+            if = @export_message,
+            not_equals = ""
+          )
+
+          text(
+            "@export_error",
+            class = u-error,
+            if = @export_error,
+            not_equals = ""
+          )
 
           if @export_yaml != "" {
             textarea(class = dialog__yaml, font = mono, :value = export_yaml)

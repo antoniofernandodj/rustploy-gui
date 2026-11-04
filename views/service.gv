@@ -75,12 +75,20 @@ component {
         row(class = service__substatus) {
           rp-badge(color = @service_status_color, label = @service_status_label)
 
-          rp-badge(if = @service_pending_deploy_visible, equals = true, color = warn, label = "◆ {t('service_card.change_pending_deploy')}")
-          rp-badge(if = @service_warm_visible, equals = true, color = @service_warm_color, label = "◐ @service_warm_label")
+          rp-badge(
+            if = @service_pending_deploy_visible,
+            equals = true,
+            color = warn,
+            label = "◆ {t('service_card.change_pending_deploy')}"
+          )
+          rp-badge(
+            if = @service_warm_visible,
+            equals = true, color = @service_warm_color,
+            label = "◐ @service_warm_label"
+          )
 
           row(class = badge, if = @service_deploy_running, equals = true) {
             text("⏱", class = status-dot, color = #58A6FF)
-
             text(
               "@service_deploy_elapsed",
               class = badge__label,
@@ -158,10 +166,34 @@ component {
       }
 
       row(class = "service__actions service__actions--full") {
-        button(class = "btn btn--primary", on_click = service_deploy, disabled = @busy_service_deploy, text = "{t('service.deploy')}")
-        button(class = "btn btn--blue btn--wide", on_click = service_reload, disabled = @busy_service_reload, text = "{t('service.reload')}")
-        button(class = "btn btn--blue btn--wide", on_click = service_rebuild, disabled = @busy_service_rebuild, text = "{t('service.rebuild')}")
-        button(class = "btn btn--danger", on_click = service_stop, disabled = @busy_service_stop, text = "{t('service.stop')}")
+        button(
+          class = "btn btn--primary",
+          on_click = service_deploy,
+          disabled = @busy_service_deploy,
+          text = "{t('service.deploy')}"
+        )
+
+        button(
+          class = "btn btn--blue btn--wide",
+          on_click = service_reload,
+          disabled = @busy_service_reload,
+          text = "{t('service.reload')}"
+        )
+
+        button(
+          class = "btn btn--blue btn--wide",
+          on_click = service_rebuild,
+          disabled = @busy_service_rebuild,
+          text = "{t('service.rebuild')}"
+        )
+
+        button(
+          class = "btn btn--danger",
+          on_click = service_stop,
+          disabled = @busy_service_stop,
+          text = "{t('service.stop')}"
+        )
+
         button(
           if = @service_warm_visible,
           equals = true,
@@ -170,6 +202,7 @@ component {
           disabled = @busy_service_warm,
           text = "{t('service.warm')}",
         )
+
         button(
           class = "btn btn--ghost",
           on_click = open_export_window,

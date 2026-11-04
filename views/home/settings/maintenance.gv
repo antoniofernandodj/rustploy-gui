@@ -21,12 +21,22 @@ component {
 
       scroll(class = tabs__scroll, direction = horizontal) {
         tabbar(
-          :value = docker_cleanup_kind, active = @docker_cleanup_kind, :items = docker_cleanup_kinds,
-          tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14, active_bold = false,
+          :value = docker_cleanup_kind,
+          active = @docker_cleanup_kind,
+          :items = docker_cleanup_kinds,
+          tab_class = tabs__tab,
+          tab_active_class = "tabs__tab tabs__tab--active",
+          padding = "9 16",
+          size = 14,
+          active_bold = false,
         )
       }
 
-      row(class = healthcheck__grid, if = @docker_cleanup_kind, equals = interval) {
+      row(
+        class = healthcheck__grid,
+        if = @docker_cleanup_kind,
+        equals = interval
+      ) {
         column(class = healthcheck__field) {
           text("{t('settings_maintenance.every_hours')}", class = u-label-cap)
 
@@ -44,7 +54,12 @@ component {
         }
       }
 
-      scroll(class = tabs__scroll, direction = horizontal, if = @docker_cleanup_kind, equals = weekly) {
+      scroll(
+        class = tabs__scroll,
+        direction = horizontal,
+        if = @docker_cleanup_kind,
+        equals = weekly
+      ) {
         row(class = tabs__main) {
           radiogroup(:value = docker_cleanup_weekday, :items = weekdays, layout = row)
         }
@@ -63,7 +78,10 @@ component {
       )
 
       hr
-      text("{t('settings_maintenance.what_to_clean')}", class = u-label-cap)
+      text(
+        "{t('settings_maintenance.what_to_clean')}",
+        class = u-label-cap
+      )
 
       checkbox(
         :checked = docker_cleanup_containers,
@@ -87,7 +105,10 @@ component {
 
       row(class = healthcheck__grid, if = @docker_cleanup_images, equals = true) {
         column(class = healthcheck__field) {
-          text("{t('settings_maintenance.only_images_created_more_than')}", class = u-label-cap)
+          text(
+            "{t('settings_maintenance.only_images_created_more_than')}",
+            class = u-label-cap
+          )
 
           spinbox(
             field_class = field__spin,
@@ -173,7 +194,11 @@ component {
       )
 
       row(class = env__add) {
-        button(class = "btn btn--primary", on_click = docker_cleanup_save, disabled = @busy_docker_cleanup_save, text = "{t('common.save')}")
+        button(
+          class = "btn btn--primary",
+          on_click = docker_cleanup_save,
+          disabled = @busy_docker_cleanup_save, text = "{t('common.save')}"
+        )
 
         button(
           class = tabs__tab,

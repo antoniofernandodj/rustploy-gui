@@ -20,8 +20,18 @@ component {
       }
 
       row(class = env__add) {
-        button(class = "btn btn--ghost", on_click = new_service_back, disabled = @busy_new_service_back, text = "{t('common.back')}")
-        button(class = "btn btn--ghost", on_click = new_service_cancel, disabled = @busy_new_service_cancel, text = "{t('common.cancel')}")
+        button(
+          class = "btn btn--ghost",
+          on_click = new_service_back,
+          disabled = @busy_new_service_back,
+          text = "{t('common.back')}"
+        )
+        button(
+          class = "btn btn--ghost",
+          on_click = new_service_cancel,
+          disabled = @busy_new_service_cancel,
+          text = "{t('common.cancel')}"
+        )
       }
     }
 
@@ -113,7 +123,12 @@ component {
           }
 
           text("{t('new_service.new_service_name')}", class = u-label-cap)
-          input(class = field__input, :value = import_name, on_change = field:import_name, placeholder = "{t('new_service.name')}")
+          input(
+            class = field__input,
+            :value = import_name,
+            on_change = field:import_name,
+            placeholder = "{t('new_service.name')}"
+          )
 
           text(
             "{t('new_service.a_service_with_that_name')}",
@@ -153,8 +168,14 @@ component {
           }
 
           if @import_missing_provider != "" {
-            text("{t('new_service.git_provider_does_not_exist', import_missing_provider=import_missing_provider)}", class = u-label-cap)
-            text("{t('new_service.choose_a_provider_from_this')}", class = u-muted)
+            text(
+              "{t('new_service.git_provider_does_not_exist', import_missing_provider=import_missing_provider)}",
+              class = u-label-cap
+            )
+            text(
+              "{t('new_service.choose_a_provider_from_this')}",
+              class = u-muted
+            )
             column(class = kv-list) {
               template(:for_each = import_providers, var = p) {
                 button(
@@ -409,7 +430,10 @@ component {
       scrollable(direction = vertical, class = u-fill-all) {
         form(name = new_service_database, on_submit = new_service_create, class = form) {
           column(class = form-panel) {
-            text("{t('new_service.new', new_service_database_label=new_service_database_label)}", class = u-label-cap)
+            text(
+              "{t('new_service.new', new_service_database_label=new_service_database_label)}",
+              class = u-label-cap
+            )
             text("{t('common.name')}", class = u-label-cap)
 
             input(
@@ -548,7 +572,10 @@ component {
       scrollable(direction = vertical, class = u-fill-all) {
         form(name = new_service_template, on_submit = new_service_create, class = form) {
           column(class = form-panel) {
-            text("{t('new_service.configure', new_service_template_name=new_service_template_name)}", class = u-label-cap)
+            text(
+              "{t('new_service.configure', new_service_template_name=new_service_template_name)}",
+              class = u-label-cap
+            )
             text("{t('common.service_name')}", class = u-label-cap)
 
             input(

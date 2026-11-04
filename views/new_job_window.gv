@@ -49,7 +49,12 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
           row(class = dialog__actions) {
             column(class = u-fill)
-            button(class = "btn btn--ghost", on_click = cancel, disabled = @busy_cancel, text = "{t('common.cancel')}")
+            button(
+              class = "btn btn--ghost",
+              on_click = cancel,
+              disabled = @busy_cancel,
+              text = "{t('common.cancel')}"
+            )
           }
         }
 
@@ -93,13 +98,21 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
           row(class = dialog__actions) {
             column(class = u-fill)
-            button(class = "btn btn--ghost", on_click = new_job_back, disabled = @busy_new_job_back, text = "{t('common.back')}")
+            button(
+              class = "btn btn--ghost",
+              on_click = new_job_back,
+              disabled = @busy_new_job_back,
+              text = "{t('common.back')}"
+            )
           }
         }
 
         if @new_job_step == "form" {
           if @new_job_edit_id != "" {
-            text("{t('new_job_window.edit_job', new_job_name=new_job_name)}", class = u-label-cap)
+            text(
+              "{t('new_job_window.edit_job', new_job_name=new_job_name)}",
+              class = u-label-cap
+            )
           } else {
             text(
               "{t('new_job_window.new_job', new_job_project_name=new_job_project_name, new_job_service_name=new_job_service_name)}",

@@ -119,7 +119,12 @@ component {
         action = nav_ingress,
       )
 
-      NavItem(label = "{t('common.runtime')}", icon = "◉", target = docker, action = nav_docker)
+      NavItem(
+        label = "{t('common.runtime')}",
+        icon = "◉",
+        target = docker,
+        action = nav_docker
+      )
       text("{t('shell.management')}", class = sidebar__section)
 
       NavItem(
@@ -172,10 +177,28 @@ component {
         )
 
         flow(class = topbar__actions) {
-          button(class = "{language_english_class}", on_click = language_select_english, text = English)
-          button(class = "{language_portuguese_class}", on_click = language_select_portuguese, text = Português)
-          button(class = "btn btn--danger", on_click = stop_all, disabled = @busy_stop_all, text = "{t('shell.stop_all')}")
-          button(class = "btn btn--ghost", on_click = disconnect, disabled = @busy_disconnect, text = "{t('shell.disconnect')}")
+          button(
+            class = "{language_english_class}",
+            on_click = language_select_english,
+            text = English
+          )
+          button(
+            class = "{language_portuguese_class}",
+            on_click = language_select_portuguese,
+            text = Português
+          )
+          button(
+            class = "btn btn--danger",
+            on_click = stop_all,
+            disabled = @busy_stop_all,
+            text = "{t('shell.stop_all')}"
+          )
+          button(
+            class = "btn btn--ghost",
+            on_click = disconnect,
+            disabled = @busy_disconnect,
+            text = "{t('shell.disconnect')}"
+          )
         }
       }
 
@@ -186,7 +209,11 @@ component {
       if @state_git_alert_message != "" {
         row(class = "banner banner--warn") {
           text("@state_git_alert_message", class = "u-warn u-fill")
-          button(class = "btn btn--ghost btn--xs", on_click = state_git_open, text = "{t('common.open')}")
+          button(
+            class = "btn btn--ghost btn--xs",
+            on_click = state_git_open,
+            text = "{t('common.open')}"
+          )
         }
       }
 

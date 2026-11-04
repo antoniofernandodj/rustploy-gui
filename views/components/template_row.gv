@@ -19,8 +19,16 @@ component {
 
   row(class = tpl-row) {
     column(class = tpl-row__logo-box) {
-      svg(class = tpl-row__logo, src = @logo, if = @logo_kind, equals = svg)
-      image(class = tpl-row__logo, src = @logo, if = @logo_kind, equals = img)
+      svg(
+        class = tpl-row__logo,
+        src = @logo,
+        if = @logo_kind, equals = svg
+      )
+      image(
+        class = tpl-row__logo,
+        src = @logo,
+        if = @logo_kind, equals = img
+      )
     }
 
     column(class = page-head__titles) {
@@ -34,6 +42,10 @@ component {
       )
     }
 
-    button(class = "btn btn--primary", on_click = @action, text = "{t('template_row.choose')}")
+    button(
+      class = "btn btn--primary",
+      on_click = @action,
+      text = "{t('template_row.choose')}"
+    )
   }
 }

@@ -42,7 +42,10 @@ component {
         text("{t('settings_web.claude_code')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("{t('settings_web.claude_mcp_add_rustploy_mcp')}", class = "kv-list__val kv-list__val--compact")
+          text(
+            "{t('settings_web.claude_mcp_add_rustploy_mcp')}",
+            class = "kv-list__val kv-list__val--compact"
+          )
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -54,7 +57,10 @@ component {
         text("{t('settings_web.codex_codex_config_toml')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("{t('settings_web.mcp_servers_rustploy_url_mcp')}", class = "kv-list__val kv-list__val--compact")
+          text(
+            "{t('settings_web.mcp_servers_rustploy_url_mcp')}",
+            class = "kv-list__val kv-list__val--compact"
+          )
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -66,7 +72,10 @@ component {
         text("{t('settings_web.gemini_cli')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("{t('settings_web.gemini_mcp_add_rustploy_mcp')}", class = "kv-list__val kv-list__val--compact")
+          text(
+            "{t('settings_web.gemini_mcp_add_rustploy_mcp')}",
+            class = "kv-list__val kv-list__val--compact"
+          )
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -120,7 +129,12 @@ component {
         )
 
         row(class = env__add) {
-          button(class = "btn btn--primary", on_click = settings_save, disabled = @busy_settings_save, text = "{t('common.save_2')}")
+          button(
+            class = "btn btn--primary",
+            on_click = settings_save,
+            disabled = @busy_settings_save,
+            text = "{t('common.save_2')}"
+          )
           text("@settings_message", class = u-muted)
         }
       }

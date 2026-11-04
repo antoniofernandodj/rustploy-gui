@@ -9,7 +9,10 @@ component {
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
-      text("{t('docker_volumes.volume_s', docker_volumes_count=docker_volumes_count)}", class = "u-muted u-fill")
+      text(
+        "{t('docker_volumes.volume_s', docker_volumes_count=docker_volumes_count)}",
+        class = "u-muted u-fill"
+      )
 
       // O filtro mora em format.docker_volumes — ver images.gv.
       checkbox(
@@ -47,11 +50,22 @@ component {
       row_class = "table__row table__cell table__row--divided",
       class = u-fill-all,
     ) {
-      tablecolumn(key = name, label = "{t('common.name')}", class = table__col-svc) {
-        text("@v.name", class = "table__cell table__cell--key")
+      tablecolumn(
+        key = name,
+        label = "{t('common.name')}",
+        class = table__col-svc
+      ) {
+        text(
+          "@v.name",
+          class = "table__cell table__cell--key"
+        )
       }
 
-      tablecolumn(key = driver, label = "{t('common.driver')}", class = table__col-proj)
+      tablecolumn(
+        key = driver,
+        label = "{t('common.driver')}",
+        class = table__col-proj
+      )
 
       tablecolumn(
         key = size,
@@ -59,14 +73,27 @@ component {
         label = "{t('common.size')}",
         class = table__col-dur,
       ) {
-        text("@v.size", class = u-muted)
+        text(
+          "@v.size",
+          class = u-muted
+        )
       }
 
-      tablecolumn(key = in_use_label, label = "{t('common.usage')}", class = table__col-state) {
-        StateCell(kind = @v.in_use_kind, label = @v.in_use_label)
+      tablecolumn(
+        key = in_use_label,
+        label = "{t('common.usage')}",
+        class = table__col-state
+      ) {
+        StateCell(
+          kind = @v.in_use_kind,
+          label = @v.in_use_label
+        )
       }
 
-      tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+      tablecolumn(
+        label = "{t('common.action')}",
+        class = table__col-act
+      ) {
         button(
           if = @v.in_use_label,
           equals = "SEM USO",

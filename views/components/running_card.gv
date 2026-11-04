@@ -35,8 +35,16 @@ component {
       }
 
       row(class = "card__badges") {
-        rp-badge(if = @has_warm, equals = true, color = @warm_color, label = "◐ @warm_label")
-        rp-badge(color = @status_color, label = @status_label)
+        rp-badge(
+          if = @has_warm,
+          equals = true,
+          color = @warm_color,
+          label = "◐ @warm_label"
+        )
+        rp-badge(
+          color = @status_color,
+          label = @status_label
+        )
       }
     }
 
@@ -86,7 +94,11 @@ component {
       )
     }
 
-    button(class = "card__action card__action--open", on_click = open_service:@id, disabled = @busy_open_service, text = "{t('running_card.open_service')}")
+    button(
+      class = "card__action card__action--open",
+      on_click = open_service:@id, disabled = @busy_open_service,
+      text = "{t('running_card.open_service')}"
+    )
 
     row(class = card__actions) {
       button(

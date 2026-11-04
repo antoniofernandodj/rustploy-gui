@@ -20,8 +20,14 @@ component {
     }
 
     row(class = page-head__stats) {
-      StatCard(label = "{t('ingress.routes')}", value = @ingress_count)
-      StatCard(label = "{t('ingress.host_ports')}", value = @host_ports_count)
+      StatCard(
+        label = "{t('ingress.routes')}",
+        value = @ingress_count
+      )
+      StatCard(
+        label = "{t('ingress.host_ports')}",
+        value = @host_ports_count
+      )
     }
   }
 
@@ -34,17 +40,33 @@ component {
       row_class = "table__row table__cell table__row--divided",
       class = u-fill-all,
     ) {
-      tablecolumn(key = domain, label = "{t('ingress.domain')}", class = table__col-svc) {
+      tablecolumn(
+        key = domain,
+        label = "{t('ingress.domain')}",
+        class = table__col-svc
+      ) {
         text("@i.domain", class = "table__cell table__cell--key")
       }
 
-      tablecolumn(key = service, label = "{t('common.service')}", class = table__col-proj) {
+      tablecolumn(
+        key = service,
+        label = "{t('common.service')}",
+        class = table__col-proj
+      ) {
         TableLink(kind = service, id = @i.service_id, label = @i.service)
       }
 
-      tablecolumn(key = upstream, label = "{t('ingress.upstream')}", class = table__col-dur)
+      tablecolumn(
+        key = upstream,
+        label = "{t('ingress.upstream')}",
+        class = table__col-dur
+      )
 
-      tablecolumn(key = tls, label = "{t('common.tls')}", class = table__col-start) {
+      tablecolumn(
+        key = tls,
+        label = "{t('common.tls')}",
+        class = table__col-start
+      ) {
         text("@i.tls", class = u-muted)
       }
 
@@ -67,14 +89,35 @@ component {
       row_class = "table__row table__cell table__row--divided",
       width = fill,
     ) {
-      tablecolumn(key = service, label = "{t('common.service')}", class = table__col-svc) {
-        TableLink(kind = service, id = @hp.service_id, label = @hp.service)
+      tablecolumn(
+        key = service,
+        label = "{t('common.service')}",
+        class = table__col-svc
+      ) {
+        TableLink(
+          kind = service,
+          id = @hp.service_id,
+          label = @hp.service
+        )
       }
 
-      tablecolumn(key = project, label = "{t('common.project')}", class = table__col-proj) {
-        TableLink(kind = project, id = @hp.project_id, label = @hp.project)
+      tablecolumn(
+        key = project,
+        label = "{t('common.project')}",
+        class = table__col-proj
+      ) {
+        TableLink(
+          kind = project,
+          id = @hp.project_id,
+          label = @hp.project
+        )
       }
-      tablecolumn(key = host_port, label = "{t('ingress.host_port')}", class = table__col-dur)
+
+      tablecolumn(
+        key = host_port,
+        label = "{t('ingress.host_port')}",
+        class = table__col-dur
+      )
 
       tablecolumn(
         key = container_port,

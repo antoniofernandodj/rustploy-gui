@@ -8,7 +8,10 @@ component {
 
   column(class = "section section--fill") {
     row(class = section__head) {
-      text("{t('deploy_engine_fila.queued', deploy_engine_queued_count=deploy_engine_queued_count)}", class = section__title)
+      text(
+        "{t('deploy_engine_fila.queued', deploy_engine_queued_count=deploy_engine_queued_count)}",
+        class = section__title
+      )
 
       button(
         if = @deploy_engine_paused,
