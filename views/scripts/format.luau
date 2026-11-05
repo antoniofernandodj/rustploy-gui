@@ -70,6 +70,7 @@ M.env_dotenv_with_comments = ServiceDetail.env_dotenv_with_comments
 M.logs_json = ServiceDetail.logs_json
 M.build_logs_json = ServiceDetail.build_logs_json
 M.join_log_lines = ServiceDetail.join_log_lines
+M.history_rows = ServiceDetail.history_rows
 M.deployments_detail = ServiceDetail.deployments_detail
 M.domains_json = ServiceDetail.domains_json
 M.safe_name = ServiceDetail.safe_name

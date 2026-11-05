@@ -606,3 +606,13 @@ function test_logs__history_rows_marca_a_troca_de_container()
     assert_eq(#rows2, 2)
     assert_eq(string.find(rows2[1].line, "aaaaaaaaaaaa", 1, true) ~= nil, true)
 end
+
+--- a fachada `format` reexporta history_rows (open_logs_window a chama por ela; faltou uma vez)
+function test_logs__a_fachada_format_exporta_history_rows()
+    local F = require("format")
+    assert_eq(type(F.history_rows), "function")
+    local rows = F.history_rows({
+        { timestamp = "2026-11-05T01:00:00Z", container_id = "aaaaaaaaaaaa1234", stream = "Stdout", line = "x" },
+    }, nil)
+    assert_eq(#rows, 1)
+end
