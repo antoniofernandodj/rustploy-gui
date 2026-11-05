@@ -84,6 +84,9 @@ local function git_provider_refresh_list(): ()
     end
 end
 
+-- Exposta para o nav: abrir Settings carrega a lista sem depender da aba Git.
+M.git_provider_refresh_list = git_provider_refresh_list
+
 function git_provider_refresh(): ()
     if not State.api then
         return

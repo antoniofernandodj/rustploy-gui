@@ -6,6 +6,7 @@ local State = require("../state")
 local Stream = require("stream")
 local Registry = require("registry")
 local History = require("history")
+local Settings = require("settings")
 
 local function goto_view(view: string): ()
     if (ctx.view or "") ~= view or (ctx.selected_service or "") ~= "" then
@@ -61,12 +62,15 @@ function nav_settings(): ()
     if (ctx.git_provider_mode or "") == "" then
         ctx.git_provider_mode = "oauth"
     end
+    -- Mesma ação do botão "Refresh git list": a aba Sync precisa da lista já carregada.
+    Settings.git_provider_refresh_list()
 end
 
 -- Botão "Abrir" do aviso do topo da sincronização com o git.
 function state_git_open(): ()
     goto_view("settings")
     ctx.settings_tab = "gitsync"
+    Settings.git_provider_refresh_list()
 end
 
 function nav_support(): ()
