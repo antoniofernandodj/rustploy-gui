@@ -119,13 +119,6 @@ function test_init__o_init_aponta_o_servidor_da_chave_semeada()
     assert_eq(tela:get("access_key_target"), "connects to zz-teste.invalid:1")
 end
 
---- os checkboxes de IaC nascem desmarcados
-function test_init__os_checkboxes_de_iac_nascem_desmarcados()
-    local tela = nova()
-    assert_eq(tela:get("manifest_prune"), "false")
-    assert_eq(tela:get("manifest_deploy"), "false")
-end
-
 --- digitar uma chave válida mostra o servidor e limpa o erro
 function test_campo_do_token__digitar_uma_chave_valida_mostra_o_servidor_e()
     local tela = nova()

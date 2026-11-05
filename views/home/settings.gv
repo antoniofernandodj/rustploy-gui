@@ -3,7 +3,6 @@ component {
   resources {
     link(rel = import, href = "settings/web.gv", as = SettingsWebTab)
     link(rel = import, href = "settings/git.gv", as = SettingsGitTab)
-    link(rel = import, href = "settings/iac.gv", as = SettingsIacTab)
     link(rel = import, href = "settings/maintenance.gv", as = SettingsMaintenanceTab)
     link(rel = import, href = "settings/gitsync.gv", as = SettingsGitSyncTab)
     link(rel = import, href = "settings/updates.gv", as = SettingsUpdatesTab)
@@ -41,10 +40,6 @@ component {
 
   if @settings_tab == "git" {
     SettingsGitTab
-  }
-
-  if @settings_tab == "iac" {
-    SettingsIacTab
   }
 
   if @settings_tab == "maintenance" {

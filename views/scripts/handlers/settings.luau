@@ -6,7 +6,6 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 local format = require("../format")
-local ManifestZip = require("../manifest_zip")
 local Stream = require("stream")
 
 local M = {}
@@ -209,55 +208,15 @@ function git_provider_delete(provider_id: string): ()
     git_provider_refresh_list()
 end
 
--- ── Settings → Infra as Code (export/import declarativo) ─────────────────
+-- ── Settings → Sincronização → Baixar a infra ────────────────────────────
 --
--- O manifesto é um `.zip` (um ARQUIVO) com exatamente dois membros na raiz:
---   • rustploy.yml       — projetos/serviços (env vars sempre como ${VAR})
---   • rustploy.vars.toml  — os valores reais das vars (aninhado por escopo)
--- Ler/gravar o zip é `zip_read`/`zip_write` do motor (glacier-ui 0.123+);
--- `ManifestZip` (manifest_zip.luau) só impõe o formato do
--- Rustploy. Exportar e importar usam os diálogos nativos do SO; o import
--- REJEITA um zip que não tenha exatamente um .yml e um .toml, sem mais nada.
+-- O daemon devolve os MESMOS arquivos que o `state_git` grava no repositório
+-- (`InfraFiles`: settings.yml, providers.yml, projects/<id>/project.yml…), com
+-- os secrets como ENC[age:…]. Aqui só viram um `.zip` (`zip_write` do motor,
+-- glacier-ui 0.123+) no caminho escolhido no diálogo nativo do SO. Não há
+-- importar: restaurar é pôr a árvore num repositório e sincronizar.
 
--- O corpo do export DEPOIS do diálogo — separado só para o `manifest_busy` ser
--- ligado/desligado em volta sem repetir o reset em cada early-return.
-local function do_export(api: any, zip_path: string): ()
-    ctx.manifest_export_message = i18n.tr("exportando…")
-    local manifest_export_all_ok, manifest_export_all_response =
-        api:rpc_checked("ManifestExportAll")
-    if
-        not manifest_export_all_ok
-        or type(manifest_export_all_response) ~= "table"
-        or not manifest_export_all_response.ManifestBundle
-    then
-        ctx.manifest_export_message = i18n.tr("erro: ")
-            .. tostring(manifest_export_all_response)
-        toast {
-            message = tostring(tostring(manifest_export_all_response)),
-            kind = "error",
-        }
-        return
-    end
-
-    local zip_write_ok, zip_write_error = ManifestZip.write(
-        zip_path,
-        manifest_export_all_response.ManifestBundle.yaml or "",
-        manifest_export_all_response.ManifestBundle.dotenv or ""
-    )
-    if not zip_write_ok then
-        ctx.manifest_export_message = i18n.tr("erro ao gravar o zip: ")
-            .. tostring(zip_write_error)
-        toast {
-            message = i18n.tr("Falha ao gravar o zip: ") .. tostring(zip_write_error),
-            kind = "error",
-        }
-        return
-    end
-    ctx.manifest_export_message = i18n.tr("salvo em ") .. zip_path
-    toast { message = i18n.tr("Infra as Code exportado"), kind = "success" }
-end
-
-function manifest_export(): ()
+function infra_download(): ()
     local api = State.api
     if not api then
         return
@@ -265,7 +224,7 @@ function manifest_export(): ()
 
     -- `save_file` (SUSPENDE): o usuário escolhe o caminho do .zip.
     local zip_path = save_file {
-        title = i18n.tr("Exportar Infra as Code"),
+        title = i18n.tr("Baixar a infra"),
         default_name = "rustploy-infra.zip",
         filters = { { name = "Zip", extensions = { "zip" } } },
     }
@@ -276,192 +235,36 @@ function manifest_export(): ()
         zip_path = zip_path .. ".zip"
     end
 
-    ctx.manifest_busy = "true"
-    do_export(api, zip_path)
-    ctx.manifest_busy = ""
-end
+    ctx.infra_download_message = i18n.tr("baixando…")
+    local infra_download_ok, infra_download_response =
+        api:rpc_checked("InfraDownload")
+    if
+        not infra_download_ok
+        or type(infra_download_response) ~= "table"
+        or not infra_download_response.InfraFiles
+    then
+        ctx.infra_download_message = i18n.tr("erro: ")
+            .. tostring(infra_download_response)
+        toast { message = tostring(infra_download_response), kind = "error" }
+        return
+    end
 
-local function do_import(
-    api: any,
-    yaml: string,
-    toml: string,
-    prune: boolean,
-    deploy: boolean
-): ()
-    ctx.manifest_has_missing = "false"
-    ctx.manifest_has_report = "false"
-    ctx.manifest_missing_vars = ""
-    ctx.manifest_report_lines = {}
-
-    ctx.manifest_import_message = i18n.tr("importando…")
-    local manifest_import_ok, manifest_import_response = api:rpc {
-        ManifestImport = {
-            yaml = yaml,
-            dotenv = toml,
-            prune = prune,
-            deploy = deploy,
-        },
-    }
-    if not manifest_import_ok then
-        ctx.manifest_import_message = i18n.tr("erro: ")
-            .. tostring(manifest_import_response)
+    local entries = {}
+    for _, file in ipairs(infra_download_response.InfraFiles) do
+        table.insert(entries, { name = file.path, text = file.content })
+    end
+    local zip_write_ok, zip_write_error = zip_write(zip_path, entries)
+    if not zip_write_ok then
+        ctx.infra_download_message = i18n.tr("erro ao gravar o zip: ")
+            .. tostring(zip_write_error)
         toast {
-            message = tostring(tostring(manifest_import_response)),
+            message = i18n.tr("Falha ao gravar o zip: ") .. tostring(zip_write_error),
             kind = "error",
         }
         return
     end
-
-    if
-        type(manifest_import_response) == "table"
-        and manifest_import_response.MissingEnvVars ~= nil
-    then
-        ctx.manifest_has_missing = "true"
-        ctx.manifest_missing_vars =
-            table.concat(manifest_import_response.MissingEnvVars, ", ")
-        ctx.manifest_import_message = i18n.tr("faltam variáveis — nada foi aplicado")
-        toast {
-            message = tostring(
-                i18n.tr("Faltam variáveis no TOML: ") .. ctx.manifest_missing_vars
-            ),
-            kind = "error",
-        }
-        return
-    end
-
-    if
-        type(manifest_import_response) == "table"
-        and manifest_import_response.Err ~= nil
-    then
-        ctx.manifest_import_message = i18n.tr("erro: ")
-            .. tostring(manifest_import_response.Err.code)
-            .. ": "
-            .. tostring(manifest_import_response.Err.message)
-        toast {
-            message = tostring(tostring(manifest_import_response.Err.message)),
-            kind = "error",
-        }
-        return
-    end
-
-    if
-        type(manifest_import_response) ~= "table"
-        or not manifest_import_response.ManifestReport
-    then
-        ctx.manifest_import_message = i18n.tr("resposta inesperada do daemon")
-        return
-    end
-
-    local lines = {}
-    for _, action in
-        ipairs(manifest_import_response.ManifestReport.actions or {})
-    do
-        table.insert(
-            lines,
-            "["
-                .. tostring(action.action)
-                .. "] "
-                .. tostring(action.kind)
-                .. " "
-                .. tostring(action.name)
-        )
-    end
-    -- O `ApplyReport` não tem lista própria de removidos: o prune aparece em
-    -- `actions` com o verbo `Deleted` (as chaves `pruned`/`removed` não
-    -- existem).
-    local pruned = {}
-    for _, action in
-        ipairs(manifest_import_response.ManifestReport.actions or {})
-    do
-        if action.action == "Deleted" then
-            table.insert(pruned, tostring(action.name))
-        end
-    end
-    if #pruned > 0 then
-        table.insert(
-            lines,
-            i18n.tr("removidos (prune): ") .. table.concat(pruned, ", ")
-        )
-    elseif prune then
-        table.insert(
-            lines,
-            i18n.tr("prune ligado — nenhum serviço ausente para remover")
-        )
-    end
-    if #(manifest_import_response.ManifestReport.deployed or {}) > 0 then
-        table.insert(
-            lines,
-            i18n.tr("deploy disparado: ")
-                .. table.concat(
-                    manifest_import_response.ManifestReport.deployed,
-                    ", "
-                )
-        )
-    elseif deploy then
-        table.insert(lines, i18n.tr("deploy ligado — nada mudou para disparar"))
-    end
-    ctx.manifest_report_lines = lines
-    ctx.manifest_has_report = "true"
-    ctx.manifest_import_message = i18n.tr("import concluído ✓")
-    toast { message = tostring(i18n.tr("Infra as Code importado")), kind = "success" }
-    Stream.refresh_now()
-end
-
-function manifest_import(): ()
-    local api = State.api
-    if not api then
-        return
-    end
-
-    -- `open_file` (SUSPENDE): o `.zip` do manifesto. `ManifestZip.read` extrai
-    -- e VALIDA — exatamente um .yml e um .toml na raiz, nada mais.
-    local zip_path = open_file {
-        title = i18n.tr("Importar Infra as Code (.zip)"),
-        filters = { { name = "Zip", extensions = { "zip" } } },
-    }
-    if not zip_path then
-        return
-    end
-
-    local zip_manifest = ManifestZip.read(zip_path)
-    if not zip_manifest.ok then
-        ctx.manifest_import_message = i18n.tr("zip inválido: ")
-            .. tostring(zip_manifest.error)
-        toast { message = tostring(zip_manifest.error), kind = "error" }
-        return
-    end
-
-    -- Lê os dois checkboxes AQUI e confirma o que vai acontecer — prune remove
-    -- serviços, então o usuário vê exatamente o que marcou antes de aplicar.
-    local prune = Helpers.is_true(ctx.manifest_prune)
-    local deploy = Helpers.is_true(ctx.manifest_deploy)
-    local confirmed = confirm {
-        title = i18n.tr("Aplicar este manifesto?"),
-        message = i18n.tr("Do zip: ")
-            .. tostring(zip_manifest.yaml and #zip_manifest.yaml or 0)
-            .. i18n.tr(" B de YAML + ")
-            .. tostring(zip_manifest.toml and #zip_manifest.toml or 0)
-            .. i18n.tr(" B de TOML.\n\n• Remover serviços ausentes (prune): ")
-            .. (prune and "SIM" or i18n.tr("não"))
-            .. i18n.tr("\n• Disparar deploy dos alterados: ")
-            .. (deploy and "SIM" or i18n.tr("não")),
-        confirm_label = i18n.tr("Aplicar"),
-        destructive = prune,
-    }
-    if not confirmed then
-        ctx.manifest_import_message = i18n.tr("cancelado")
-        return
-    end
-
-    ctx.manifest_busy = "true"
-    do_import(
-        api,
-        zip_manifest.yaml or "",
-        zip_manifest.toml or "",
-        prune,
-        deploy
-    )
-    ctx.manifest_busy = ""
+    ctx.infra_download_message = i18n.tr("salvo em ") .. zip_path
+    toast { message = i18n.tr("Infra baixada"), kind = "success" }
 end
 
 -- ── Settings → Manutenção (limpeza automática de Docker) ─────────────────

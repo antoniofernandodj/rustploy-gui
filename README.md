@@ -62,9 +62,8 @@ Rust, e este app não tem nenhum.
 janela fechar. Fechar a janela apenas recolhe o app para a bandeja; `run` só
 volta quando o app encerra de verdade. A ordem das peças importa:
 
-1. **Extensão Luau.** `lua_extension(manifest_zip::install)` registra
-   `manifest_zip_read`/`manifest_zip_write`, usadas pelo Infra as Code (Settings).
-   O motor tem `zip_dir`, mas não o inverso, e a camada Lua não abre um `.zip`.
+1. **Extensão Luau.** (Sem extensão de zip própria: o "Baixar infra" do Settings → Sincronização
+   usa `zip_write` do motor.)
 2. **Release.** Injeta-se a fonte de assets embutida: o motor passa a ler
    templates, estilos, scripts e binários de dentro do executável, e nada do
    disco. Em dev o daemon fica com o `DiskAssets` padrão (disco com hot-reload).

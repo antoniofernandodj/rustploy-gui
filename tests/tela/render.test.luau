@@ -682,24 +682,6 @@ function test_configuracoes_web()
     rende(tela)
 end
 
---- Infra as Code: manifesto exportado, variáveis faltando e relatório
-function test_configuracoes_iac()
-    local tela = app("settings", {
-        settings_tab = "iac",
-        manifest_has_export = "true",
-        manifest_yaml = "apiVersion: rustploy/v1\nprojects: []\n",
-        manifest_dotenv = '[project.acme.env]\nLOG_LEVEL = "info"\n',
-        manifest_has_missing = "true",
-        manifest_missing_vars = "DB_PASS, API_TOKEN",
-        manifest_has_report = "true",
-        manifest_report_lines = {
-            "[created] project acme",
-            "[updated] service acme/web",
-        },
-    })
-    rende(tela)
-end
-
 --- Manutenção: limpeza do Docker em cada recorrência
 function test_configuracoes_manutencao()
     local tela = app("settings", {

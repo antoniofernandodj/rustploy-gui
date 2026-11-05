@@ -133,8 +133,6 @@ function init(): ()
     ctx.menu = ctx.menu or "true"
     -- Checkboxes do Infra as Code (Settings → aba IaC): semeados aqui pra o
     -- estado ser determinístico e o `do_import` nunca ler `nil`.
-    ctx.manifest_prune = ctx.manifest_prune or "false"
-    ctx.manifest_deploy = ctx.manifest_deploy or "false"
     ctx.data_loading = "true"
     -- Coleção fixa do <radiogroup> de dia da semana (aba Manutenção). Semeada
     -- aqui, e não no docker_cleanup_apply_config, porque não depende da config
@@ -145,7 +143,6 @@ function init(): ()
     ctx.settings_tabs = {
         { id = "web", label = "Web Server" },
         { id = "git", label = "Git" },
-        { id = "iac", label = "Infra as Code" },
         { id = "maintenance", label = i18n.tr("Manutenção") },
         { id = "gitsync", label = i18n.tr("Sincronização") },
         { id = "updates", label = i18n.tr("Atualizações") },

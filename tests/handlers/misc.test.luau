@@ -167,7 +167,7 @@ function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
     for id in string.gmatch(abas, '"id":"([a-z]+)"') do
         table.insert(ids, id)
     end
-    assert_eq(ids, { "web", "git", "iac", "maintenance", "gitsync", "updates" })
+    assert_eq(ids, { "web", "git", "maintenance", "gitsync", "updates" })
     assert_eq(ids[#ids], "updates")
     -- O formulário da sincronização nasce com padrões (o markup nunca lê `nil`).
     assert_eq(tela:get("state_git_form_mode"), "off")

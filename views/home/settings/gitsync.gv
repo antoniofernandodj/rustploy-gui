@@ -293,6 +293,25 @@ component {
         }
       }
     }
+
+    // Baixar a infra: os mesmos arquivos que vão para o repositório (secrets cifrados).
+    // A webui tem o mesmo painel em `webui/index.html` (aba "Sync"): mude os dois juntos.
+    column(class = form-panel) {
+      text("{t('settings_gitsync.download_infra_title')}", class = u-label-cap)
+
+      text("{t('settings_gitsync.download_infra_help')}", class = u-muted)
+
+      row(class = busy-row) {
+        button(
+          class = "btn btn--primary",
+          on_click = infra_download,
+          disabled = @busy_infra_download,
+          text = "{t('settings_gitsync.download_infra')}",
+        )
+
+        text("@infra_download_message", class = u-muted)
+      }
+    }
     }
   }
 }
