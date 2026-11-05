@@ -1082,5 +1082,7 @@
   "settings_gitsync.download_infra": "Download infra",
   "Baixar a infra": "Download the infra",
   "baixando…": "downloading…",
-  "Infra baixada": "Infra downloaded"
+  "Infra baixada": "Infra downloaded",
+  "log_window.load_older": "Load earlier",
+  "— outro container: ": "— other container: "
 }

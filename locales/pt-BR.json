@@ -666,5 +666,6 @@
   "settings_gitsync.download_infra": "Baixar infra",
   "Baixar a infra": "Baixar a infra",
   "baixando…": "baixando…",
-  "Infra baixada": "Infra baixada"
+  "Infra baixada": "Infra baixada",
+  "log_window.load_older": "Carregar anteriores"
 }

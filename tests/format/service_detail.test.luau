@@ -587,3 +587,22 @@ function test_url_externa__o_host_sai_do_api_url_ou_host_quando_ele_falta()
     assert_eq(SD.external_url(nil, false, 1, "kafka", nil, {}), "<host>:1")
     assert_eq(SD.external_url(nil, false, 1, "kafka", "   ", {}), "<host>:1")
 end
+
+--- history_rows marca onde o container muda e devolve o último container
+function test_logs__history_rows_marca_a_troca_de_container()
+    local entradas = {
+        { timestamp = "2026-11-05T01:00:00Z", container_id = "aaaaaaaaaaaa1234", stream = "Stdout", line = "velho" },
+        { timestamp = "2026-11-05T02:00:00Z", container_id = "bbbbbbbbbbbb9999", stream = "Stderr", line = "novo" },
+    }
+    local rows, ultimo = SD.history_rows(entradas, nil)
+    assert_eq(#rows, 3)
+    assert_eq(rows[1].line, "velho")
+    assert_eq(string.find(rows[2].line, "bbbbbbbbbbbb", 1, true) ~= nil, true)
+    assert_eq(rows[3].line, "novo")
+    assert_eq(rows[3].stream, "Stderr")
+    assert_eq(ultimo, "bbbbbbbbbbbb")
+    -- encontro com o que já está na tela: container anterior diferente do primeiro
+    local rows2 = SD.history_rows({ entradas[1] }, "cccccccccccc")
+    assert_eq(#rows2, 2)
+    assert_eq(string.find(rows2[1].line, "aaaaaaaaaaaa", 1, true) ~= nil, true)
+end

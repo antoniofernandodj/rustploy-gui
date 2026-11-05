@@ -305,6 +305,38 @@ function M.join_log_lines(log_entries: { any }?): string
     return table.concat(out, "\n")
 end
 
+-- Linhas do log GUARDADO (`LogsHistory`: {timestamp, container_id, stream, line}, em ordem
+-- cronológica) → linhas da janela de logs, com um separador onde o container muda (o histórico
+-- atravessa deploys). `previous_container` = container da linha que vem logo antes (ao juntar com o
+-- que já está na tela); devolve também o container da última linha.
+function M.history_rows(
+    entries: { any }?,
+    previous_container: string?
+): ({ any }, string)
+    local rows: { any } = {}
+    local current = previous_container or ""
+    for _, entry in ipairs(entries or {}) do
+        local container = string.sub(tostring(entry.container_id or ""), 1, 12)
+        if container ~= "" and current ~= "" and container ~= current then
+            table.insert(rows, {
+                stream = "Stdout",
+                line = i18n.tr("— outro container: ") .. container .. " —",
+                timestamp = entry.timestamp,
+            })
+        end
+        if container ~= "" then
+            current = container
+        end
+        table.insert(rows, {
+            stream = entry.stream,
+            line = entry.line,
+            timestamp = entry.timestamp,
+            container = container,
+        })
+    end
+    return rows, current
+end
+
 -- Histórico de deployments de um serviço (aba Deployments).
 function M.deployments_detail(deployments: { any }?): string
     local rows = {}

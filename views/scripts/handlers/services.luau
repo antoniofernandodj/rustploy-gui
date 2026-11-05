@@ -2117,16 +2117,36 @@ function open_logs_window(): ()
         return
     end
     local seed = json.array({})
+    local has_more = false
+    local more_before = ""
     local api = State.api
     if api then
-        local logs_get_ok, logs_get_response = api:rpc {
-            LogsGet = {
-                service_id = service_id,
-                tail = 500,
-            },
+        -- Prefere o log GUARDADO (atravessa deploys e rollbacks, e dá "Carregar anteriores");
+        -- sem histórico (Compose, `[logs] enabled = false`), cai no log ao vivo do motor.
+        local history_ok, history_response = api:rpc {
+            LogsHistory = { service_id = service_id, limit = 500 },
         }
-        if logs_get_ok and logs_get_response.Logs then
-            seed = json.array(logs_get_response.Logs)
+        local history = history_ok
+                and type(history_response) == "table"
+                and history_response.LogsHistory
+            or nil
+        if history and #(history.entries or {}) > 0 then
+            local rows = format.history_rows(history.entries, nil)
+            seed = json.array(rows)
+            if history.next_before then
+                has_more = true
+                more_before = tostring(history.next_before)
+            end
+        else
+            local logs_get_ok, logs_get_response = api:rpc {
+                LogsGet = {
+                    service_id = service_id,
+                    tail = 500,
+                },
+            }
+            if logs_get_ok and logs_get_response.Logs then
+                seed = json.array(logs_get_response.Logs)
+            end
         end
     end
     open_window {
@@ -2142,6 +2162,9 @@ function open_logs_window(): ()
                 .. (ctx.service_name or service_id),
             log_window_stream_url = "/api/services/" .. service_id .. "/logs",
             log_window_seed = seed,
+            log_window_service_id = service_id,
+            log_window_has_more = has_more,
+            log_window_more_before = more_before,
         },
     }
 end

@@ -86,6 +86,14 @@ screen {
             )
 
             button(
+              if = @log_window_has_more,
+              equals = true,
+              class = tabs__tab,
+              on_click = log_window_load_older,
+              text = "{t('log_window.load_older')}",
+            )
+
+            button(
               class = tabs__tab,
               on_click = textarea_top:log_window_logs_text,
               text = "↑",
