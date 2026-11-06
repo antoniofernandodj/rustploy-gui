@@ -165,6 +165,12 @@ function init(): ()
     ctx.service_form_pre_deploy_check_add_job_id = ctx.service_form_pre_deploy_check_add_job_id or ""
     ctx.service_form_shared_database_project = ctx.service_form_shared_database_project or ""
     ctx.service_form_migration_destination = ctx.service_form_migration_destination or ""
+    -- Aba Logs: lista "Execuções anteriores" (handlers/services.luau).
+    ctx.log_executions = ctx.log_executions or "[]"
+    ctx.log_executions_visible = ctx.log_executions_visible or "false"
+    ctx.log_selected_none = ctx.log_selected_none or "true"
+    ctx.log_selected_count = ctx.log_selected_count or "0"
+    ctx.log_selected_label = ctx.log_selected_label or ""
     ctx.service_form_autostart = ctx.service_form_autostart or "true"
     ctx.project_service_options = ctx.project_service_options or "[]"
     ctx.move_target_service_id = ctx.move_target_service_id or ""

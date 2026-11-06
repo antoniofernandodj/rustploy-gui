@@ -671,5 +671,11 @@
   "— outro container: ": "— outro container: ",
   "settings_language.interface_language": "IDIOMA DA INTERFACE",
   "settings_language.choose_the_language_of_the_app": "Escolha o idioma do aplicativo. A escolha fica guardada.",
-  "Idioma": "Idioma"
+  "Idioma": "Idioma",
+  "logs.execution_logs": "Logs de execução",
+  "logs.previous_executions": "EXECUÇÕES ANTERIORES",
+  "logs.select_all": "Selecionar todas",
+  "logs.view_logs": "Ver logs",
+  "logs.delete": "Excluir",
+  "log_window.lines_past": "{log_window_count} linhas"
 }

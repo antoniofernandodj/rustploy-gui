@@ -616,3 +616,64 @@ function test_logs__a_fachada_format_exporta_history_rows()
     }, nil)
     assert_eq(#rows, 1)
 end
+
+--- lista "Execuções anteriores": resumo, desfecho com cor, parcial e seleção
+function test_logs__log_execution_rows_monta_a_lista_de_execucoes()
+    local rows = SD.log_execution_rows({
+        {
+            container_ids = { "old000000002" },
+            deployment_id = "dep_2",
+            image = "api:2",
+            started_at = "2026-11-05T10:00:00Z",
+            ended_at = "2026-11-05T11:00:00Z",
+            lines = 20,
+            bytes = 2048,
+            partial = false,
+            outcome = "Stopped",
+        },
+        {
+            container_ids = { "bad000000003" },
+            started_at = "2026-11-04T10:00:00Z",
+            ended_at = "2026-11-04T10:05:00Z",
+            lines = 5,
+            bytes = 500,
+            partial = true,
+            outcome = "Failed",
+        },
+    }, { bad000000003 = true })
+    assert_eq(#rows, 2)
+    assert_eq(rows[1].key, "old000000002")
+    assert_eq(rows[1].mark, "☐")
+    assert_eq(rows[1].selected, false)
+    assert_eq(string.find(rows[1].summary, "dep_2", 1, true) ~= nil, true)
+    assert_eq(string.find(rows[1].summary, "api:2", 1, true) ~= nil, true)
+    assert_eq(string.find(rows[1].summary, "20", 1, true) ~= nil, true)
+    assert_eq(rows[1].partial, "")
+    assert_eq(rows[1].outcome_color, "#8B949E")
+    -- sem deploy associado, falhou, parcial e marcada
+    assert_eq(rows[2].mark, "☑")
+    assert_eq(rows[2].selected, true)
+    assert_eq(rows[2].outcome_color, "#F85149")
+    assert_eq(rows[2].partial ~= "", true)
+    assert_eq(string.find(rows[2].range, "→", 1, true) ~= nil, true)
+end
+
+--- a data completa só entra nas linhas quando pedida (janela de uma execução passada)
+function test_logs__join_log_lines_com_data_completa()
+    local entries = {
+        { timestamp = "2026-11-05T10:00:00Z", line = "a" },
+    }
+    local so_hora = SD.join_log_lines(entries)
+    local com_data = SD.join_log_lines(entries, true)
+    assert_eq(string.find(so_hora, "/", 1, true), nil)
+    assert_eq(string.find(com_data, "/2026 ", 1, true) ~= nil, true)
+    assert_eq(string.sub(com_data, -2), " a")
+end
+
+--- a fachada `format` reexporta o que a aba Logs usa (o bug da 0.1.41: faltar aqui)
+function test_logs__a_fachada_format_exporta_log_execution_rows_e_date_time_full()
+    local F = require("format")
+    assert_eq(type(F.log_execution_rows), "function")
+    assert_eq(type(F.date_time_full), "function")
+    assert_eq(F.date_time_full(nil), "")
+end

@@ -80,8 +80,18 @@ screen {
         column(class = log-window__body) {
           row(class = log-window__head) {
             text("@log_window_title", class = log-window__title)
+            // Execução passada: só histórico, não há "ao vivo".
             text(
               "{t('log_window.lines_live', log_window_count=log_window_count)}",
+              if = @log_window_past,
+              not_equals = true,
+              class = log-window__count
+            )
+
+            text(
+              "{t('log_window.lines_past', log_window_count=log_window_count)}",
+              if = @log_window_past,
+              equals = true,
               class = log-window__count
             )
 

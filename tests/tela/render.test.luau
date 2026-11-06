@@ -1218,6 +1218,44 @@ end
 local ACOES_TEXTO = { "Deploy", "Reload", "Rebuild", "Stop" }
 local ACOES_ICONE = { "▶", "⟳", "⚙", "■" }
 
+--- aba Logs: a lista "Execuções anteriores" só aparece com execuções, e cada linha tem Ver logs / Excluir
+function test_servico_aba_logs_lista_execucoes_anteriores()
+    local SD = require("format/service_detail")
+    local tela = servico("logs")
+    -- sem execuções passadas: só o botão dos "Logs de execução"
+    seta(tela, { log_executions_visible = "false", log_executions = json.array({}) })
+    assert_has_button(tela, "Execution logs")
+    assert_no_button(tela, "View logs")
+    seta(tela, {
+        log_executions_visible = "true",
+        log_selected_none = "true",
+        log_selected_label = "Clear selected (0)",
+        log_executions = json.array(SD.log_execution_rows({
+            {
+                container_ids = { "old000000002" },
+                deployment_id = "dep_2",
+                started_at = "2026-11-05T10:00:00Z",
+                ended_at = "2026-11-05T11:00:00Z",
+                lines = 20,
+                bytes = 2048,
+                outcome = "Stopped",
+            },
+        }, {})),
+    })
+    assert_has_button(tela, "View logs")
+    assert_has_button(tela, "Delete")
+    assert_has_button(tela, "Select all")
+    assert_true(tem_trecho(tela:texts(), "dep_2"), "resumo da execução ausente")
+    -- sem seleção o "Limpar selecionados" fica travado
+    local travado = tela:find_all({ text = "Clear selected (0)" })
+    assert_eq(#travado, 1)
+    assert_eq(travado[1].attrs.disabled, true)
+    seta(tela, { log_selected_none = "false", log_selected_label = "Clear selected (1)" })
+    local livre = tela:find_all({ text = "Clear selected (1)" })
+    assert_eq(#livre, 1)
+    assert_eq(livre[1].attrs.disabled, false)
+end
+
 --- as ações do serviço viram ícones quando a janela estreita
 function test_acoes_do_servico_viram_icones_quando_estreito()
     local tela = app("service", { tab = "general" })

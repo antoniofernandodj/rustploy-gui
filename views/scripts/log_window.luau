@@ -42,8 +42,13 @@ local log_rows: { any } = {}
 
 -- Set COMPLETO do textarea a partir do buf (usado no seed e no corte). Mantém
 -- o fim com "\n" para os appends seguintes começarem em linha nova.
+-- Janela de uma execução PASSADA (`log_window_past`): cada linha leva a data completa.
+local function with_date(): boolean
+    return Helpers.is_true(ctx.log_window_past)
+end
+
 local function set_full(): ()
-    local text = format.join_log_lines(log_rows)
+    local text = format.join_log_lines(log_rows, with_date())
     ctx.log_window_logs_text = (#log_rows > 0) and (text .. "\n") or ""
     ctx.log_window_count = tostring(#log_rows)
 end
@@ -92,8 +97,18 @@ function log_window_load_older(): ()
         return
     end
     local client = Api.new(ctx.api_url or "", ctx.api_token)
+    -- Só os containers desta execução (a janela "Logs de execução" não mistura as anteriores).
+    local ids_ok, container_ids = Helpers.decode_list(ctx.log_window_container_ids)
+    if not ids_ok or type(container_ids) ~= "table" then
+        container_ids = {}
+    end
     local rpc_ok, response = client:rpc_checked {
-        LogsHistory = { service_id = service_id, before = before, limit = 500 },
+        LogsHistory = {
+            service_id = service_id,
+            before = before,
+            limit = 500,
+            container_ids = container_ids,
+        },
     }
     if not rpc_ok or type(response) ~= "table" or not response.LogsHistory then
         toast { message = tostring(response), kind = "error" }
@@ -147,6 +162,10 @@ end
 
 function init(): ()
     ctx.log_window_title = ctx.log_window_title or "Logs"
+    -- Só a janela de uma execução PASSADA liga isto (sem ao vivo, linhas com data).
+    if ctx.log_window_past == nil then
+        ctx.log_window_past = false
+    end
     -- "Carregar anteriores" só aparece quando o pai semeou a partir do log guardado e há mais atrás.
     if ctx.log_window_has_more == nil then
         ctx.log_window_has_more = false
@@ -164,6 +183,10 @@ function init(): ()
     -- Cada `data:` é um JSON auto-descritivo (kind). O endpoint dedicado manda
     -- lotes `bus_batch`; tratamos `bus` avulso por robustez.
 
+    -- Execução passada: só histórico, sem ao vivo (não há stream para seguir).
+    if with_date() or (ctx.log_window_stream_url or "") == "" then
+        return
+    end
     local sse_url = (ctx.api_url or "") .. (ctx.log_window_stream_url or "")
     sse(sse_url, {
         headers = Api.auth_headers(ctx.api_token),

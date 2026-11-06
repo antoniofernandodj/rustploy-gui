@@ -38,6 +38,11 @@ function M.date_day_month_hour_minute_second(iso_timestamp: string?): string
     return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm:SS")) or ""
 end
 
+-- "dd/mm/aaaa HH:MM:SS" local (log de uma execução antiga: a data importa).
+function M.date_time_full(iso_timestamp: string?): string
+    return date.format(date.to_local(iso_timestamp), "DD/MM/YYYY HH:mm:SS") or ""
+end
+
 -- Ns ou Mm Ns.
 function M.format_seconds(seconds: any): string
     local num_secs = math.floor(tonumber(seconds) or 0)

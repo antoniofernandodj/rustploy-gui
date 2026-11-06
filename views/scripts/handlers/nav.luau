@@ -7,6 +7,7 @@ local Stream = require("stream")
 local Registry = require("registry")
 local History = require("history")
 local Settings = require("settings")
+local Services = require("services")
 
 local function goto_view(view: string): ()
     if (ctx.view or "") ~= view or (ctx.selected_service or "") ~= "" then
@@ -114,6 +115,10 @@ end
 -- Abas do service detail e do healthcheck kind.
 function tab(tab_name: string): ()
     ctx.tab = tab_name
+    -- A lista "Execuções anteriores" da aba Logs nasce quando a aba abre.
+    if tab_name == "logs" then
+        Services.load_log_executions()
+    end
 end
 
 function select_provider_tab(tab_name: string): ()

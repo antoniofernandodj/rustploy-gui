@@ -20,6 +20,7 @@ local M = {}
 
 -- Tempo / números (format/time.luau)
 M.time_hms = Time.time_hms
+M.date_time_full = Time.date_time_full
 M.date_day_month_hour_minute = Time.date_day_month_hour_minute
 M.date_day_month_hour_minute_second = Time.date_day_month_hour_minute_second
 M.format_seconds = Time.format_seconds
@@ -71,6 +72,7 @@ M.logs_json = ServiceDetail.logs_json
 M.build_logs_json = ServiceDetail.build_logs_json
 M.join_log_lines = ServiceDetail.join_log_lines
 M.history_rows = ServiceDetail.history_rows
+M.log_execution_rows = ServiceDetail.log_execution_rows
 M.deployments_detail = ServiceDetail.deployments_detail
 M.domains_json = ServiceDetail.domains_json
 M.safe_name = ServiceDetail.safe_name

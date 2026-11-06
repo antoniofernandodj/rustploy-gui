@@ -292,17 +292,69 @@ M.build_logs_json = log_rows
 -- Junta linhas de log num blob de texto ("HH:MM:SS line") p/ o
 -- TextArea/copiar. Sem ANSI (mas sem cap de linhas: é o conteúdo completo p/
 -- copiar).
-function M.join_log_lines(log_entries: { any }?): string
+function M.join_log_lines(log_entries: { any }?, with_date: boolean?): string
     local out: { string } = {}
     for _, log_entry in ipairs(log_entries or {}) do
-        table.insert(
-            out,
-            Time.time_hms(log_entry.timestamp)
-                .. " "
-                .. Util.strip_ansi(log_entry.line)
-        )
+        local stamp = with_date and Time.date_time_full(log_entry.timestamp)
+            or Time.time_hms(log_entry.timestamp)
+        table.insert(out, stamp .. " " .. Util.strip_ansi(log_entry.line))
     end
     return table.concat(out, "\n")
+end
+
+-- Cor do desfecho do deploy de uma execução (lista "Execuções anteriores").
+local function execution_outcome(outcome: string?): (string, string)
+    local state = outcome or ""
+    if state == "Failed" or state == "RollingBack" then
+        return i18n.tr("Falhou"), "#F85149"
+    elseif state == "Stopped" or state == "Pruning" then
+        return i18n.tr("Substituída"), "#8B949E"
+    elseif state == "Live" then
+        return i18n.tr("Ativa"), "#3FB950"
+    elseif state ~= "" then
+        return state, "#8B949E"
+    end
+    return i18n.tr("sem deploy associado"), "#8B949E"
+end
+
+-- `LogsExecutions` → linhas da lista "Execuções anteriores" da aba Logs. `selected` = chaves
+-- marcadas para "Limpar selecionados". O texto do resumo já vem montado (a lista só mostra).
+function M.log_execution_rows(
+    executions: { any }?,
+    selected: { [string]: boolean }?
+): { any }
+    local rows: { any } = {}
+    for _, execution in ipairs(executions or {}) do
+        local key = tostring((execution.container_ids or {})[1] or "")
+        local label, color = execution_outcome(execution.outcome)
+        local parts: { string } = {}
+        if execution.deployment_id and execution.deployment_id ~= "" then
+            table.insert(parts, tostring(execution.deployment_id))
+        end
+        if execution.image and execution.image ~= "" then
+            table.insert(parts, tostring(execution.image))
+        end
+        table.insert(
+            parts,
+            tostring(execution.lines or 0) .. i18n.tr(" linhas")
+        )
+        table.insert(parts, Time.format_bytes(execution.bytes or 0))
+        local is_selected = selected ~= nil and selected[key] == true
+        table.insert(rows, {
+            key = key,
+            range = Time.date_time_full(execution.started_at)
+                .. " → "
+                .. Time.date_time_full(execution.ended_at),
+            summary = table.concat(parts, " · "),
+            outcome_label = label,
+            outcome_color = color,
+            partial = execution.partial == true and i18n.tr("parcial") or "",
+            bytes = execution.bytes or 0,
+            mark = is_selected and "☑" or "☐",
+            selected = is_selected,
+        })
+    end
+    return rows
 end
 
 -- Linhas do log GUARDADO (`LogsHistory`: {timestamp, container_id, stream, line}, em ordem

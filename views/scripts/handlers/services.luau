@@ -69,6 +69,8 @@ function open_service(service_id: string): ()
     ctx.selected_service = service_id
     ctx.view = "service"
     ctx.tab = "general"
+    -- A lista de execuções é do serviço anterior: limpa até a aba Logs recarregar.
+    M.reset_log_executions()
     ctx.service_error = ""
     ctx.deployment_selected = ""
     ctx.service_action_message = ""
@@ -2155,13 +2157,254 @@ function gitea_repo_pick(full_name: string): ()
     end
 end
 
--- Abre os logs ao vivo do serviço numa JANELA à parte (motor Glacier isolado e
--- leve — ver log_window.gv/.luau). Semeia a conexão, o serviço-alvo e um tail
--- FRESCO via open_window({data}); a janela abre sua própria SSE (endpoint
--- dedicado) e rola os logs sem o custo de reavaliar a árvore inteira do app
--- principal. Sendo uma ação despachada, o `fetch` do LogsGet aqui funciona (ao
--- contrário do init de uma janela) — pegamos o tail na hora para não haver vão
--- entre o que a principal tinha e o que a stream ao vivo passa a entregar.
+-- ── Logs por execução (aba Logs) ────────────────────────────────────────────
+-- Uma execução = um container. A janela "Logs de execução" mostra SÓ a atual (ou, com o serviço
+-- parado, a mais recente); as outras viram a lista "Execuções anteriores", com "Ver logs" (janela
+-- só dela, com data e hora), "Excluir" e "Limpar selecionados" (em lote).
+
+-- Execuções passadas do serviço aberto (cru, como veio do daemon), a que a janela ao vivo mostra
+-- (ids curtos de container) e as chaves marcadas na lista.
+local past_executions: { any } = {}
+local shown_container_ids: { string } = {}
+local selected_executions: { [string]: boolean } = {}
+
+local function render_log_executions(): ()
+    local selected_count = 0
+    for _ in pairs(selected_executions) do
+        selected_count += 1
+    end
+    ctx.log_executions = json.array(
+        format.log_execution_rows(past_executions, selected_executions)
+    )
+    ctx.log_executions_visible = #past_executions > 0 and "true" or "false"
+    ctx.log_selected_count = tostring(selected_count)
+    ctx.log_selected_none = selected_count == 0 and "true" or "false"
+    ctx.log_selected_label = i18n.tr("Limpar selecionados")
+        .. " ("
+        .. tostring(selected_count)
+        .. ")"
+end
+
+function M.reset_log_executions(): ()
+    past_executions = {}
+    shown_container_ids = {}
+    selected_executions = {}
+    render_log_executions()
+end
+
+-- Lê `LogsExecutions` e separa a execução "atual" (a que a janela ao vivo mostra) das passadas.
+function M.load_log_executions(): ()
+    local service_id = ctx.selected_service or ""
+    local api = State.api
+    past_executions = {}
+    shown_container_ids = {}
+    if service_id ~= "" and api then
+        local list_ok, list_response = api:rpc {
+            LogsExecutions = { service_id = service_id },
+        }
+        if
+            list_ok
+            and type(list_response) == "table"
+            and list_response.LogsExecutions
+        then
+            local executions = list_response.LogsExecutions :: { any }
+            local shown: any = nil
+            for _, execution in ipairs(executions) do
+                if execution.current then
+                    shown = execution
+                    break
+                end
+            end
+            shown = shown or executions[1]
+            if shown then
+                shown_container_ids = shown.container_ids or {}
+            end
+            for _, execution in ipairs(executions) do
+                if execution ~= shown then
+                    table.insert(past_executions, execution)
+                end
+            end
+        end
+    end
+    -- A seleção só vale para o que ainda existe (depois de excluir/limpar).
+    local still_there: { [string]: boolean } = {}
+    for _, execution in ipairs(past_executions) do
+        local key = tostring((execution.container_ids or {})[1] or "")
+        if selected_executions[key] then
+            still_there[key] = true
+        end
+    end
+    selected_executions = still_there
+    render_log_executions()
+end
+
+function log_exec_toggle(key: string): ()
+    if selected_executions[key] then
+        selected_executions[key] = nil
+    else
+        selected_executions[key] = true
+    end
+    render_log_executions()
+end
+
+function log_exec_toggle_all(): ()
+    local all_selected = true
+    for _, execution in ipairs(past_executions) do
+        local key = tostring((execution.container_ids or {})[1] or "")
+        if not selected_executions[key] then
+            all_selected = false
+        end
+    end
+    selected_executions = {}
+    if not all_selected then
+        for _, execution in ipairs(past_executions) do
+            local key = tostring((execution.container_ids or {})[1] or "")
+            selected_executions[key] = true
+        end
+    end
+    render_log_executions()
+end
+
+-- Janela só de uma execução passada: histórico daquela execução (com data e hora), sem ao vivo.
+function log_exec_open(key: string): ()
+    local service_id = ctx.selected_service or ""
+    local api = State.api
+    if service_id == "" or not api then
+        return
+    end
+    local target: any = nil
+    for _, execution in ipairs(past_executions) do
+        if tostring((execution.container_ids or {})[1] or "") == key then
+            target = execution
+            break
+        end
+    end
+    if not target then
+        return
+    end
+    local container_ids = target.container_ids or { key }
+    local history_ok, history_response = api:rpc_checked {
+        LogsHistory = {
+            service_id = service_id,
+            limit = 500,
+            container_ids = container_ids,
+        },
+    }
+    if
+        not history_ok
+        or type(history_response) ~= "table"
+        or not history_response.LogsHistory
+    then
+        toast { message = tostring(history_response), kind = "error" }
+        return
+    end
+    local history = history_response.LogsHistory
+    local rows = format.history_rows(history.entries, nil)
+    local more_before = history.next_before and tostring(history.next_before)
+        or ""
+    open_window {
+        component = "log",
+        size = "900 560",
+        decorations = false,
+        title = i18n.tr("Execução ")
+            .. format.date_time_full(target.started_at)
+            .. " — "
+            .. (ctx.service_name or service_id),
+        resizable = true,
+        data = {
+            api_url = ctx.api_url or "",
+            api_token = ctx.api_token or "",
+            log_window_title = i18n.tr("Logs · ")
+                .. (ctx.service_name or service_id)
+                .. " · "
+                .. format.date_time_full(target.started_at)
+                .. " → "
+                .. format.date_time_full(target.ended_at),
+            log_window_stream_url = "",
+            log_window_seed = json.array(rows),
+            log_window_service_id = service_id,
+            log_window_has_more = more_before ~= "",
+            log_window_more_before = more_before,
+            log_window_container_ids = json.array(container_ids),
+            log_window_past = true,
+        },
+    }
+end
+
+local function delete_log_executions(keys: { string }, message: string): ()
+    local service_id = ctx.selected_service or ""
+    local api = State.api
+    if service_id == "" or not api or #keys == 0 then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Excluir logs?"),
+        message = message,
+        confirm_label = i18n.tr("Excluir"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    local delete_ok, delete_response = api:rpc_checked {
+        LogsExecutionDelete = {
+            service_id = service_id,
+            container_ids = keys,
+        },
+    }
+    if
+        not delete_ok
+        or type(delete_response) ~= "table"
+        or not delete_response.LogsExecutionsDeleted
+    then
+        toast { message = tostring(delete_response), kind = "error" }
+        return
+    end
+    local done = delete_response.LogsExecutionsDeleted
+    toast {
+        message = tostring(done.deleted)
+            .. i18n.tr(" execução(ões) excluída(s) · ")
+            .. format.format_bytes(done.freed_bytes or 0)
+            .. i18n.tr(" liberados"),
+        kind = "success",
+    }
+    M.load_log_executions()
+end
+
+function log_exec_delete(key: string): ()
+    delete_log_executions(
+        { key },
+        i18n.tr(
+            "O log desta execução será excluído e não poderá ser recuperado."
+        )
+    )
+end
+
+function log_exec_delete_selected(): ()
+    local keys: { string } = {}
+    local total_bytes = 0
+    for _, execution in ipairs(past_executions) do
+        local key = tostring((execution.container_ids or {})[1] or "")
+        if selected_executions[key] then
+            table.insert(keys, key)
+            total_bytes += tonumber(execution.bytes) or 0
+        end
+    end
+    delete_log_executions(
+        keys,
+        tostring(#keys)
+            .. i18n.tr(" execução(ões) (")
+            .. format.format_bytes(total_bytes)
+            .. i18n.tr(") serão excluídas e não poderão ser recuperadas.")
+    )
+end
+
+-- Abre os "Logs de execução" — só a execução ATUAL (ou a mais recente, com o serviço parado) —
+-- numa JANELA à parte (motor Glacier isolado e leve — ver log_window.gv/.luau). Semeia a conexão,
+-- o serviço-alvo e o histórico FRESCO via open_window({data}); a janela abre sua própria SSE
+-- (endpoint dedicado) e rola os logs sem o custo de reavaliar a árvore inteira do app principal.
+-- Sendo uma ação despachada, o `fetch` aqui funciona (ao contrário do init de uma janela) — pegamos
+-- o histórico na hora para não haver vão entre o que existe e o que a stream ao vivo entrega.
 function open_logs_window(): ()
     local service_id = ctx.selected_service or ""
     if service_id == "" then
@@ -2171,11 +2414,18 @@ function open_logs_window(): ()
     local has_more = false
     local more_before = ""
     local api = State.api
+    -- Quais containers pertencem à execução atual (atualiza também a lista de passadas).
+    M.load_log_executions()
+    local container_ids = shown_container_ids
     if api then
-        -- Prefere o log GUARDADO (atravessa deploys e rollbacks, e dá "Carregar anteriores");
-        -- sem histórico (Compose, `[logs] enabled = false`), cai no log ao vivo do motor.
+        -- Prefere o log GUARDADO (só desta execução, e dá "Carregar anteriores"); sem histórico
+        -- (Compose, `[logs] enabled = false`), cai no log ao vivo do motor.
         local history_ok, history_response = api:rpc {
-            LogsHistory = { service_id = service_id, limit = 500 },
+            LogsHistory = {
+                service_id = service_id,
+                limit = 500,
+                container_ids = container_ids,
+            },
         }
         local history = history_ok
                 and type(history_response) == "table"
@@ -2216,6 +2466,8 @@ function open_logs_window(): ()
             log_window_service_id = service_id,
             log_window_has_more = has_more,
             log_window_more_before = more_before,
+            log_window_container_ids = json.array(container_ids),
+            log_window_past = false,
         },
     }
 end
