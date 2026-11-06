@@ -263,7 +263,7 @@ function M.fetch_service_detail(service_id: string): ()
         pr_domain,
         pr_tls,
         spec.host_port,
-        spec.db_kind,
+        spec.product,
         ctx.api_url,
         merged_env
     )
@@ -289,7 +289,7 @@ function M.fetch_service_detail(service_id: string): ()
                 )
             or nil
         ctx.service_internal_url = format.internal_url(
-            spec.db_kind,
+            spec.product,
             format.safe_name(spec.name),
             spec.port,
             compose_host
@@ -297,7 +297,7 @@ function M.fetch_service_detail(service_id: string): ()
     end
     ctx.service_internal_url_short =
         format.ellipsis(ctx.service_internal_url, 20)
-    ctx.service_database_kind = spec.db_kind or "—"
+    ctx.service_database_kind = spec.product or "—"
     M.load_shared_state(spec, service_id)
     M.load_migration_state(spec, service_id, project_env)
     ctx.service_healthcheck = format.healthcheck_summary(spec.healthcheck)
@@ -532,7 +532,7 @@ function M.load_shared_state(spec: any, service_id: string): ()
     if ctx.service_shared_database_projects == nil then
         ctx.service_shared_database_projects = json.array({})
     end
-    local kind = spec.db_kind and string.lower(spec.db_kind) or ""
+    local kind = spec.product and string.lower(spec.product) or ""
     local can_share = SHAREABLE[kind] == true and spec.source.Compose ~= nil
     ctx.service_can_share = can_share and "true" or "false"
     local shared = can_share and spec.shared ~= nil
@@ -730,7 +730,7 @@ function M.load_migration_state(
     project_env: { any }?
 ): ()
     local api = State.api
-    local kind = spec.db_kind and string.lower(spec.db_kind) or ""
+    local kind = spec.product and string.lower(spec.product) or ""
     local can_migrate = SHAREABLE[kind] == true
         and spec.source.Compose ~= nil
         and spec.shared == nil

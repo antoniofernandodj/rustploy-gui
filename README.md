@@ -294,7 +294,7 @@ precisa de uma raiz extra, adicionada por variável de ambiente dentro de um blo
   depende disso. O mesmo cálculo existe em JS (`webui/format.js::composeHost`), coberto
   pelo teste `renomear_servico_na_aba_general` do daemon; aqui é a metade Luau. Num
   Compose o nome do serviço (`meu_banco`) não aparece — vale a chave do YAML; numa
-  Application é `rp_<nome>`, e sem `db_kind` a GUI põe `http://` (a webui, hoje, não
+  Application é `rp_<nome>`, e sem `product` a GUI põe `http://` (a webui, hoje, não
   põe esquema nenhum — divergência anterior ao rename, não mexida aqui).
 - **`fmt_time`** existe desde que o arquivo deixou de fazer a aritmética de fuso à
   mão e passou a chamar o global `date` da glacier-ui 0.73. A conversão UTC → hora

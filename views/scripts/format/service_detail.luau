@@ -391,8 +391,8 @@ function M.safe_name(name: string): string
     return (slug:gsub("^_+", ""):gsub("_+$", ""))
 end
 
-local function internal_scheme(db_kind: string?): string?
-    local normalized_kind = db_kind and string.lower(db_kind) or nil
+local function internal_scheme(product: string?): string?
+    local normalized_kind = product and string.lower(product) or nil
     if normalized_kind == "postgres" or normalized_kind == "postgresql" then
         return "postgresql"
     elseif normalized_kind == "mysql" or normalized_kind == "mariadb" then
@@ -447,13 +447,13 @@ end
 -- `compose_host`: host do compose (ver `compose_host`) — para serviço Compose
 -- o hostname interno é a chave do YAML, não `rp_<nome>`.
 function M.internal_url(
-    db_kind: string?,
+    product: string?,
     safe: string,
     port: any,
     compose_host: string?
 ): string
     local host = (compose_host or ("rp_" .. safe)) .. ":" .. tostring(port)
-    local scheme = internal_scheme(db_kind)
+    local scheme = internal_scheme(product)
     if scheme then
         return scheme .. "://" .. host
     end
@@ -490,12 +490,12 @@ end
 
 -- Credenciais (database/user/password) de um serviço de banco/broker, lidas
 -- das env vars nas mesmas convenções que o wizard grava (ver shared::wizard).
--- Retorna nil em cada campo que não se aplica ao db_kind.
+-- Retorna nil em cada campo que não se aplica ao product.
 local function database_credentials(
-    db_kind: string?,
+    product: string?,
     vars: { EnvVar }?
 ): (string?, string?, string?)
-    local normalized_kind = db_kind and string.lower(db_kind) or nil
+    local normalized_kind = product and string.lower(product) or nil
     if normalized_kind == "postgres" or normalized_kind == "postgresql" then
         return env_plain(vars, "POSTGRES_DB"),
             env_plain(vars, "POSTGRES_USER"),
@@ -605,14 +605,14 @@ end
 --     mora no admin).
 --   • Sem esquema de banco (Kafka/serviço comum) → só `host:porta`.
 local function database_connection_url(
-    db_kind: string?,
+    product: string?,
     host: string,
     port: string,
     database: string?,
     user: string?,
     password: string?
 ): string
-    local normalized_kind = db_kind and string.lower(db_kind) or nil
+    local normalized_kind = product and string.lower(product) or nil
     local host_and_port = host .. ":" .. port
 
     if normalized_kind == "postgres" or normalized_kind == "postgresql" then
@@ -648,18 +648,18 @@ end
 
 -- Domínio HTTP tem prioridade (rota de ingress); na ausência dele, cai para o
 -- passthrough TCP (`host_port`) usando o host do daemon (`api_url` da sessão)
--- e a URL de conexão idiomática do `db_kind` (ver `database_connection_url`),
+-- e a URL de conexão idiomática do `product` (ver `database_connection_url`),
 -- com database
 -- + credenciais lidas das env vars.
 function M.external_url(
     domain: string?,
     tls: boolean,
     host_port: any,
-    db_kind: string?,
+    product: string?,
     api_url: string?,
     env_vars: { EnvVar }?
 ): string
-    local database, user, password = database_credentials(db_kind, env_vars)
+    local database, user, password = database_credentials(product, env_vars)
     if domain and domain:gsub("%s", "") ~= "" then
         local clean_domain = domain:gsub("/+$", "")
         return (tls and "https" or "http") .. "://" .. clean_domain
@@ -667,7 +667,7 @@ function M.external_url(
     if host_port and tostring(host_port) ~= "" then
         local host = url_host(api_url) or "<host>"
         return database_connection_url(
-            db_kind,
+            product,
             host,
             tostring(host_port),
             database,
