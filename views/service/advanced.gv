@@ -86,9 +86,20 @@ component {
           value_field = id,
         )
 
+        // Sem serviço escolhido (valor nulo do select) o botão fica travado.
         row(class = env__add) {
           button(
             class = "btn btn--primary",
+            if = @service_form_dependency_add_id,
+            equals = "",
+            disabled = true,
+            text = "{t('advanced.add_dependency_button')}",
+          )
+
+          button(
+            class = "btn btn--primary",
+            if = @service_form_dependency_add_id,
+            not_equals = "",
             on_click = dependency_add,
             disabled = @busy_dependency_add,
             text = "{t('advanced.add_dependency_button')}",
@@ -174,6 +185,16 @@ component {
         row(class = env__add) {
           button(
             class = "btn btn--primary",
+            if = @service_form_pre_deploy_check_add_job_id,
+            equals = "",
+            disabled = true,
+            text = "{t('advanced.add_to_the_queue_2')}",
+          )
+
+          button(
+            class = "btn btn--primary",
+            if = @service_form_pre_deploy_check_add_job_id,
+            not_equals = "",
             on_click = pre_deploy_check_add,
             disabled = @busy_pre_deploy_check_add,
             text = "{t('advanced.add_to_the_queue_2')}",

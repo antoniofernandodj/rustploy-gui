@@ -302,7 +302,7 @@
 
 /* ── Service detail (compartilhado) ───────────────────────────────────── */
 .kv-list       { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 8 18; spacing: 0; }
-.kv-list__row  { width: fill; padding: 12 0; align_y: center; }
+.kv-list__row  { width: fill; padding: 12 0; align_y: center; spacing: 6; }
 /* Linha agarrada durante o drag-and-drop (flag {var}.__dragging do
    glacier-ui): fundo elevado + borda de destaque enquanto o resto reflui. */
 .kv-list__row--dragging { padding: 12 10; background: var(--raised); border_radius: 4; border_width: 1; border_color: var(--accent); }

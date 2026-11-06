@@ -108,7 +108,6 @@ function test_shell_cada_visao__service()
         "service_can_migrate",
         "service_deploy_running",
         "service_error",
-        "service_name",
         "service_project",
         "service_project_id",
         "service_shared",

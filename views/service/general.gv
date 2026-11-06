@@ -22,38 +22,6 @@ component {
       form(
         if = @service_loading,
         not_equals = true,
-        name = service_rename,
-        on_submit = save_service_name,
-        on_validation_error = service_rename_show_validation_errors,
-        class = "form-panel form-panel--tight",
-      ) {
-        text("{t('common.service_name')}", class = u-label-cap)
-
-        row(class = env__add) {
-          input(
-            class = field__input,
-            form_control = edit_service_name,
-            rules = required,
-            msg = "{t('common.enter_a_name')}",
-            placeholder = "{t('general.service_name')}",
-          )
-
-          button(type = submit, disabled = @busy_save_service_name, class = "btn btn--primary", text = "{t('general.rename')}")
-        }
-
-        text(
-          "@error_edit_service_name",
-          class = u-error,
-          if = @error_edit_service_name,
-          not_empty,
-        )
-
-        text("@service_rename_note", class = u-muted)
-      }
-
-      form(
-        if = @service_loading,
-        not_equals = true,
         name = general,
         on_submit = general_save,
         class = form-panel,

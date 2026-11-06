@@ -160,6 +160,11 @@ function init(): ()
     ctx.service_dependency_options = ctx.service_dependency_options or "[]"
     ctx.service_dependencies_count = ctx.service_dependencies_count or "0"
     ctx.service_form_dependency_add_id = ctx.service_form_dependency_add_id or ""
+    -- Valor nulo dos selects: os botões ligados a eles (`if = @chave, empty`)
+    -- ficam travados até haver escolha; a chave precisa existir desde o início.
+    ctx.service_form_pre_deploy_check_add_job_id = ctx.service_form_pre_deploy_check_add_job_id or ""
+    ctx.service_form_shared_database_project = ctx.service_form_shared_database_project or ""
+    ctx.service_form_migration_destination = ctx.service_form_migration_destination or ""
     ctx.service_form_autostart = ctx.service_form_autostart or "true"
     ctx.project_service_options = ctx.project_service_options or "[]"
     ctx.move_target_service_id = ctx.move_target_service_id or ""

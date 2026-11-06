@@ -19,6 +19,12 @@ component {
       .service__head      { width: fill; align_y: start; }
       .service__title-row { width: fill; spacing: 14; align_y: center; }
       .service__title     { width: fill; }
+      /* Título editável: um input sem borda e sem fundo próprio, que parece o
+         título comum (mesmo tamanho/peso de .page-head__title). Só o hover/foco
+         tinge o fundo, como pista de que dá para editar. */
+      .service__title-input        { width: fill; size: 30; bold: true; color: var(--text); background: var(--bg); border_width: 0; padding: 0 6; }
+      .service__title-input:hover  { background: var(--surface); }
+      .service__title-input:focus  { background: var(--surface); }
       /* Sub-linha de status (badge + timer) logo abaixo do nome. */
       .service__substatus { spacing: 10; align_y: center; }
       .service__actions   { spacing: 10; align_y: center; }
@@ -69,7 +75,14 @@ component {
             text = "‹ @service_project",
           )
 
-          text("@service_name", class = "page-head__title service__title")
+          // Título = input sem borda: edita o nome in loco, sem botão (grava
+          // com debounce em service_title_change).
+          input(
+            class = "service__title-input",
+            :value = edit_service_name,
+            on_change = service_title_change,
+            placeholder = "{t('general.service_name')}",
+          )
         }
 
         row(class = service__substatus) {

@@ -98,7 +98,11 @@ local function update_open_project(): ()
         State.search_term
     )
     -- Destinos dos movimentos "↓ para o serviço" (abas Variáveis e Secrets do projeto).
-    local service_options = json.array {}
+    -- A primeira opção é o valor nulo (id vazio): selecionada, os botões ↓
+    -- ficam travados; qualquer serviço real os destrava.
+    local service_options = json.array {
+        { id = "", display = i18n.tr("escolha o serviço de destino") },
+    }
     local target_still_valid = false
     for _, last_pair in ipairs(project_pairs) do
         table.insert(

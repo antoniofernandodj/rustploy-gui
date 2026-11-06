@@ -13,6 +13,16 @@ local History = require("history")
 
 local M = {}
 
+-- Título editável do serviço (service.gv): cada tecla reinicia `title_save_timer`
+-- (debounce de 0,5 s antes de gravar) e `title_toast_timer` (o toast "Nome
+-- salvo" só sai depois de 2 s sem nenhuma gravação). Enquanto `title_save_timer`
+-- existe há texto digitado ainda não gravado: `fetch_service_detail` não pode
+-- sobrescrever o campo com o nome antigo do servidor.
+local TITLE_SAVE_DELAY_MS = 500
+local TITLE_TOAST_IDLE_MS = 2000
+local title_save_timer: any = nil
+local title_toast_timer: any = nil
+
 -- Fila efetiva de pré-deploy check: `pre_deploy_job_ids` quando não vazia,
 -- senão cai no `pre_deploy_job_id` legado (retrocompat) — mesmo idioma de
 -- `ServiceSpec::pre_deploy_checks` no lado Rust.
@@ -205,7 +215,9 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_name = spec.name
     -- Aba General → "Nome do serviço": campo do form de rename + o aviso do
     -- que o rename muda (ou não) para este tipo de serviço.
-    ctx.edit_service_name = spec.name
+    if title_save_timer == nil then
+        ctx.edit_service_name = spec.name
+    end
     ctx.error_edit_service_name = ""
     if source_kind == "Compose" then
         ctx.service_rename_note = i18n.tr(
@@ -458,7 +470,7 @@ end
 -- fetch do detalhe. As validações (campo vazio etc.) vivem nos handlers, antes
 -- de chamar with_spec; os closures só mutam o spec em lugar, sem retornar
 -- erro.
-local function with_spec(mutate: (spec: any) -> ()): ()
+local function with_spec(mutate: (spec: any) -> (), quiet: boolean?): ()
     local service_id = ctx.selected_service
     local api = State.api
     if not api or service_id == "" then
@@ -484,7 +496,9 @@ local function with_spec(mutate: (spec: any) -> ()): ()
     }
     if service_update_ok then
         ctx.service_action_message = i18n.tr("salvo")
-        toast { message = tostring("Salvo"), kind = "success" }
+        if not quiet then
+            toast { message = tostring("Salvo"), kind = "success" }
+        end
         M.fetch_service_detail(service_id)
     else
         ctx.service_action_message = i18n.tr("erro: ")
@@ -925,6 +939,43 @@ function service_rename_show_validation_errors(_erros_json: string?): ()
     toast { message = i18n.tr("Informe o nome do serviço"), kind = "warning" }
 end
 
+-- on_change do título do cabeçalho (input disfarçado de título). Não há botão:
+-- grava 0,5 s depois da última tecla, e só avisa (toast) quando passam 2 s sem
+-- nova gravação, para digitar não virar uma chuva de "Salvo".
+function service_title_change(value: string): ()
+    ctx.edit_service_name = value
+    if title_save_timer then
+        title_save_timer:cancel()
+    end
+    local service_id = ctx.selected_service
+    title_save_timer = after(TITLE_SAVE_DELAY_MS, function(): ()
+        title_save_timer = nil
+        local name = Helpers.trim(ctx.edit_service_name)
+        -- Saiu do serviço no meio do debounce, campo vazio ou nada mudou:
+        -- nada a gravar (vazio nunca é gravado; o campo volta ao nome real
+        -- no próximo fetch).
+        if
+            ctx.selected_service ~= service_id
+            or name == ""
+            or name == ctx.service_name
+        then
+            return
+        end
+        with_spec(function(spec: any): ()
+            spec.name = name
+        end, true)
+        if title_toast_timer then
+            title_toast_timer:cancel()
+        end
+        title_toast_timer = after(TITLE_TOAST_IDLE_MS, function(): ()
+            title_toast_timer = nil
+            toast { message = i18n.tr("Nome salvo"), kind = "success" }
+        end)
+    end)
+end
+
+-- (legado: o botão "Renomear" da aba General foi substituído pelo título
+-- editável acima; mantido por referência.)
 -- on_submit: só roda com a validação (rules="required") aprovada. Unicidade
 -- dentro do projeto é checada no daemon (a mensagem volta no toast).
 function save_service_name(): ()

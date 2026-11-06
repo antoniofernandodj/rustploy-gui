@@ -1257,3 +1257,23 @@ function test_acao_em_andamento_trava_o_botao()
         "ação suspensa no fetch deve manter o botão bloqueado"
     )
 end
+
+--- projeto: o ↓ de mover só destrava com um serviço de destino escolhido (a opção nula "escolha…" o trava)
+function test_projeto_mover_so_destrava_com_destino()
+    local tela = projeto()
+    seta(tela, {
+        project_tab = "env",
+        project_service_options = '[{"id":"","display":"escolha"},{"id":"svc1","display":"db"}]',
+        project_env = {
+            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "" },
+        },
+        move_target_service_id = "",
+    })
+    local travado = tela:find_all({ text = "↓" })
+    assert_eq(#travado, 1)
+    assert_eq(travado[1].attrs.disabled, true)
+    tela:set("move_target_service_id", "svc1")
+    local livre = tela:find_all({ text = "↓" })
+    assert_eq(#livre, 1)
+    assert_eq(livre[1].attrs.disabled, false)
+end

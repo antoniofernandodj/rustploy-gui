@@ -42,7 +42,6 @@ component {
         :options = project_service_options,
         :value = move_target_service_id,
         on_change = move_target_pick,
-        placeholder = "{t('project_env.choose_service')}",
         label_field = display,
         value_field = id,
       )
@@ -238,15 +237,26 @@ component {
                   tooltip = "{t('environment.to_secret')}",
                 )
 
-                button(
-                  class = "btn btn--ghost btn--sm",
-                  on_click = project_env_to_service:@e.key,
-                  disabled = @busy_project_env_to_service,
-                  if = @e.kind,
-                  equals = plain,
-                  text = "↓",
-                  tooltip = "{t('project_env.env_to_service')}",
-                )
+                template(if = @e.kind, equals = plain) {
+                  button(
+                    class = "btn btn--ghost btn--sm",
+                    if = @move_target_service_id,
+                    equals = "",
+                    disabled = true,
+                    text = "↓",
+                    tooltip = "{t('project_env.choose_service')}",
+                  )
+
+                  button(
+                    class = "btn btn--ghost btn--sm",
+                    on_click = project_env_to_service:@e.key,
+                    disabled = @busy_project_env_to_service,
+                    if = @move_target_service_id,
+                    not_equals = "",
+                    text = "↓",
+                    tooltip = "{t('project_env.env_to_service')}",
+                  )
+                }
 
                 button(
                   class = "btn btn--ghost btn--sm",

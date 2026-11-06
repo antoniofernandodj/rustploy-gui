@@ -127,7 +127,6 @@ return {
     "running_deploy",
     "running_toggle_reveal",
     "save_project_edit",
-    "save_service_name",
     "secret_add",
     "secret_copy",
     "secret_delete",

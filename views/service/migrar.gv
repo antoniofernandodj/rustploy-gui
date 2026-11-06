@@ -48,7 +48,22 @@ component {
       )
 
       row(class = env__add) {
-        button(class = "btn btn--primary", on_click = migration_start, disabled = @busy_migration_start, text = "{t('common.migrate')}")
+        button(
+          class = "btn btn--primary",
+          if = @service_form_migration_destination,
+          equals = "",
+          disabled = true,
+          text = "{t('common.migrate')}",
+        )
+
+        button(
+          class = "btn btn--primary",
+          if = @service_form_migration_destination,
+          not_equals = "",
+          on_click = migration_start,
+          disabled = @busy_migration_start,
+          text = "{t('common.migrate')}",
+        )
 
         button(
           class = "btn btn--ghost",
