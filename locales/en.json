@@ -1084,5 +1084,8 @@
   "baixando…": "downloading…",
   "Infra baixada": "Infra downloaded",
   "log_window.load_older": "Load earlier",
-  "— outro container: ": "— other container: "
+  "— outro container: ": "— other container: ",
+  "settings_language.interface_language": "INTERFACE LANGUAGE",
+  "settings_language.choose_the_language_of_the_app": "Choose the language of the app. The choice is remembered.",
+  "Idioma": "Language"
 }

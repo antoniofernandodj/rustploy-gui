@@ -1,0 +1,27 @@
+// Idioma: escolha do idioma da interface (antes ficava na barra do topo e no login).
+// Os botões chamam os mesmos handlers de handlers/language.luau.
+component {
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-panel) {
+      text("{t('settings_language.interface_language')}", class = u-label-cap)
+
+      text(
+        "{t('settings_language.choose_the_language_of_the_app')}",
+        class = u-muted,
+      )
+
+      row(class = login__language) {
+        button(
+          class = "{language_english_class}",
+          on_click = language_select_english,
+          text = English
+        )
+        button(
+          class = "{language_portuguese_class}",
+          on_click = language_select_portuguese,
+          text = Português
+        )
+      }
+    }
+  }
+}

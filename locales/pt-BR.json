@@ -668,5 +668,8 @@
   "baixando…": "baixando…",
   "Infra baixada": "Infra baixada",
   "log_window.load_older": "Carregar anteriores",
-  "— outro container: ": "— outro container: "
+  "— outro container: ": "— outro container: ",
+  "settings_language.interface_language": "IDIOMA DA INTERFACE",
+  "settings_language.choose_the_language_of_the_app": "Escolha o idioma do aplicativo. A escolha fica guardada.",
+  "Idioma": "Idioma"
 }

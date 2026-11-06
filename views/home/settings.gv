@@ -6,6 +6,7 @@ component {
     link(rel = import, href = "settings/maintenance.gv", as = SettingsMaintenanceTab)
     link(rel = import, href = "settings/gitsync.gv", as = SettingsGitSyncTab)
     link(rel = import, href = "settings/updates.gv", as = SettingsUpdatesTab)
+    link(rel = import, href = "settings/language.gv", as = SettingsLanguageTab)
   }
 
   row(class = page-head) {
@@ -52,5 +53,9 @@ component {
 
   if @settings_tab == "updates" {
     SettingsUpdatesTab
+  }
+
+  if @settings_tab == "language" {
+    SettingsLanguageTab
   }
 }

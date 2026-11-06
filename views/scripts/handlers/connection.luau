@@ -146,6 +146,7 @@ function init(): ()
         { id = "maintenance", label = i18n.tr("Manutenção") },
         { id = "gitsync", label = i18n.tr("Sincronização") },
         { id = "updates", label = i18n.tr("Atualizações") },
+        { id = "language", label = i18n.tr("Idioma") },
     }
     -- Aba Sincronização (estado de infra ↔ git). Os valores reais vêm no snapshot
     -- (handlers/stream.luau); aqui só o formulário e os defaults, para o markup
