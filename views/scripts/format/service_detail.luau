@@ -121,6 +121,9 @@ local function env_var_row(env_var: EnvVar)
     end
     return {
         key = env_var.key,
+        -- Ids da edição no lugar (`ctx.env_edit_id`): a linha compara o seu com o do contexto.
+        edit_key_id = "key:" .. env_var.key,
+        edit_value_id = "value:" .. env_var.key,
         key_display = Util.ellipsis(env_var.key, ENV_KEY_MAX),
         value = value,
         kind = kind,

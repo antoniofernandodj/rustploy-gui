@@ -172,6 +172,8 @@ function init(): ()
     ctx.log_selected_count = ctx.log_selected_count or "0"
     ctx.log_selected_label = ctx.log_selected_label or ""
     ctx.service_form_autostart = ctx.service_form_autostart or "true"
+    ctx.service_form_registry_auto_deploy = ctx.service_form_registry_auto_deploy
+        or "false"
     ctx.project_service_options = ctx.project_service_options or "[]"
     ctx.move_target_service_id = ctx.move_target_service_id or ""
     ctx.state_git_form_mode = ctx.state_git_form_mode or "off"

@@ -19,6 +19,20 @@ end
 -- "secret:NOME" no lugar do segredo. Um único ponto de verdade para os quatro
 -- call sites (env do serviço e do projeto, editor .env e campo valor) — foi a
 -- duplicação entre eles que deixou as sintaxes divergirem.
+-- O valor de uma env como o `EnvValueSet` espera, a partir do texto digitado na edição no lugar:
+-- `<secret:NOME>`/`secret:NOME` vira Secret; numa variável que JÁ era secret, qualquer texto é o
+-- nome do secret; o resto é Plain.
+function M.env_value_from_draft(draft: string?, was_secret: boolean): { [string]: string }
+    local ref = M.parse_secret_ref(draft)
+    if ref ~= nil then
+        return { Secret = ref }
+    end
+    if was_secret then
+        return { Secret = M.trim(draft) }
+    end
+    return { Plain = draft or "" }
+end
+
 function M.parse_secret_ref(text: string?): string?
     local trimmed = M.trim(text)
     local name = trimmed:match("^<secret:(.+)>$")

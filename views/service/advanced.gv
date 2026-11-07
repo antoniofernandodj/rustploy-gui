@@ -43,6 +43,16 @@ component {
 
         text("{t('advanced.autostart_hint')}", class = u-muted)
 
+        if @service_source_kind == "Registry" {
+          toggle(
+            :checked = service_form_registry_auto_deploy,
+            on_toggle = field:service_form_registry_auto_deploy,
+            label = "{t('advanced.registry_auto_deploy')}",
+          )
+
+          text("{t('advanced.registry_auto_deploy_hint')}", class = u-muted)
+        }
+
         row(class = env__add) {
           button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "{t('common.save_2')}")
           text("@service_action_message", class = u-muted)

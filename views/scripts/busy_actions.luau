@@ -44,6 +44,7 @@ return {
     "edit_project_toggle",
     "env_add",
     "env_delete",
+    "env_edit_apply",
     "env_export",
     "env_import",
     "env_text_cancel",

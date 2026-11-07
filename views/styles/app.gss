@@ -320,6 +320,12 @@
 .env__head        { width: fill; align_y: center; }
 .env__add         { width: fill; spacing: 8; align_y: center; }
 .env__input       { width: fill; padding: 9 12; }
+/* Edição no lugar de chave/valor: o campo some a borda e herda a cara do texto que substitui; só o
+   foco desenha um filete. O wrapper (form) tem a largura da célula que ele ocupa. */
+.env__edit        { width: fill; }
+.env__edit--key   { width: 230; }
+.env__inline      { width: fill; padding: 3 6; background: transparent; border_width: 0; font_size: 13; }
+.env__inline:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
 .env__drag-handle { color: var(--faint); padding: 0 6 0 0; cursor: grab; }
 .env__drag-handle--dragging { cursor: grabbing; }
 .env__del         { color: var(--danger); padding: 4 10; background: var(--border); border_radius: 4; }

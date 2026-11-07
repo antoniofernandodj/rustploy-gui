@@ -15,6 +15,7 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 local Stream = require("stream")
+local Services = require("services")
 
 -- Nomes atualmente conhecidos (do snapshot já renderizado), para saber se um
 -- SecretSet cria ou substitui — o daemon não distingue os dois casos.
@@ -296,6 +297,128 @@ function project_rename_apply(): ()
         Stream.refresh_now()
     else
         toast { message = tostring(rename_response), kind = "error" }
+    end
+end
+
+-- ── Edição no lugar da chave/valor de uma variável ──────────────────────────
+-- O ✏️ (chave) e o ✎ (valor) da linha trocam o texto dela por um campo, na própria posição da
+-- lista: nada é levado para um formulário no topo (numa lista grande ele ficava fora da tela).
+-- Enter ou ✓ grava; ✕ desiste. Chave: EnvKeyRename; valor: EnvValueSet (o valor nunca passa
+-- pela lista inteira, só a variável editada). `ctx.env_edit_id` é "key:NOME" | "value:NOME".
+
+local function env_row(raw: any, key: string): any?
+    local rows = raw
+    if type(raw) == "string" then
+        local ok, decoded = pcall(function()
+            return json.decode(raw)
+        end)
+        rows = ok and decoded or {}
+    end
+    for _, row in ipairs(rows or {}) do
+        if row.key == key then
+            return row
+        end
+    end
+    return nil
+end
+
+local function env_edit_start(scope: string, field: string, key: string): ()
+    local raw = (scope == "service") and ctx.service_env or ctx.project_env
+    local row = env_row(raw, key)
+    if row == nil then
+        return
+    end
+    local is_secret = row.kind == "secret"
+    local draft = key
+    if field == "value" then
+        -- Variável secret: o texto editável é a referência (`secret:NOME`), nunca o valor cifrado.
+        draft = is_secret and ("secret:" .. tostring(row.secret_name)) or tostring(row.value)
+    end
+    ctx.env_edit_scope = scope
+    ctx.env_edit_id = field .. ":" .. key
+    ctx.env_edit_draft = draft
+    ctx.env_edit_was_secret = is_secret and "true" or "false"
+end
+
+function env_edit_cancel(): ()
+    ctx.env_edit_id = ""
+    ctx.env_edit_draft = ""
+    ctx.env_edit_scope = ""
+    ctx.env_edit_was_secret = "false"
+end
+
+function project_env_edit_key(key: string): ()
+    env_edit_start("project", "key", key)
+end
+
+function project_env_edit_value(key: string): ()
+    env_edit_start("project", "value", key)
+end
+
+function service_env_edit_key(key: string): ()
+    env_edit_start("service", "key", key)
+end
+
+function service_env_edit_value(key: string): ()
+    env_edit_start("service", "value", key)
+end
+
+function env_edit_apply(): ()
+    local api = State.api
+    local id = ctx.env_edit_id or ""
+    local scope = ctx.env_edit_scope or ""
+    local field, key = id:match("^(%a+):(.+)$")
+    if not api or field == nil or key == nil then
+        return
+    end
+    local is_service = scope == "service"
+    local project_id = is_service and (ctx.service_project_id or "")
+        or (ctx.selected_project_id or "")
+    local service_id = is_service and (ctx.selected_service or "") or nil
+    if project_id == "" or (is_service and service_id == "") then
+        return
+    end
+    local draft = ctx.env_edit_draft or ""
+    local was_secret = Helpers.is_true(ctx.env_edit_was_secret)
+    local ok, response
+    if field == "key" then
+        local to = Helpers.trim(draft)
+        if to == "" or to == key then
+            env_edit_cancel()
+            return
+        end
+        ok, response = api:rpc_checked {
+            EnvKeyRename = {
+                project_id = project_id,
+                service_id = service_id,
+                from = key,
+                to = to,
+            },
+        }
+    else
+        ok, response = api:rpc_checked {
+            EnvValueSet = {
+                project_id = project_id,
+                service_id = service_id,
+                key = key,
+                value = Helpers.env_value_from_draft(draft, was_secret),
+            },
+        }
+    end
+    if ok then
+        toast {
+            message = (field == "key") and (i18n.tr("Renomeado: ") .. key)
+                or (i18n.tr("Valor salvo: ") .. key),
+            kind = "success",
+        }
+        env_edit_cancel()
+        if is_service then
+            Services.fetch_service_detail(service_id)
+        end
+        Stream.refresh_now()
+    else
+        -- Fica no modo de edição: o texto digitado não se perde numa recusa do daemon.
+        toast { message = tostring(response), kind = "error" }
     end
 end
 

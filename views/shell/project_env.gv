@@ -53,33 +53,6 @@ component {
       )
     }
 
-    if @rename_open == "project_env" {
-      row(class = env__add) {
-        text("{t('rename.label', rename_from=rename_from)}", class = u-muted)
-
-        input(
-          class = env__input,
-          form_control = rename_to,
-          :value = rename_to,
-          on_change = field:rename_to,
-          placeholder = "{t('rename.new_name')}",
-        )
-
-        button(
-          class = "btn btn--primary",
-          on_click = project_rename_apply,
-          disabled = @busy_project_rename_apply,
-          text = "{t('rename.apply')}",
-        )
-
-        button(
-          class = "btn btn--ghost",
-          on_click = rename_cancel,
-          text = "{t('common.cancel')}",
-        )
-      }
-    }
-
     form(
       name = project_env_add,
       on_submit = project_env_add,
@@ -234,9 +207,16 @@ component {
 
                 button(
                   class = "btn btn--ghost btn--sm",
-                  on_click = project_env_rename_pick:@e.key,
+                  on_click = project_env_edit_key:@e.key,
                   text = "✏️",
                   tooltip = "{t('environment.rename')}",
+                )
+
+                button(
+                  class = "btn btn--ghost btn--sm",
+                  on_click = project_env_edit_value:@e.key,
+                  text = "✎",
+                  tooltip = "{t('environment.edit_value')}",
                 )
 
                 button(
@@ -281,8 +261,29 @@ component {
                 )
 
                 text(class = env__sep)
-                text("@e.key_display", class = env__key)
-                text("@e.value", class = "kv-list__val kv-list__val--compact")
+                if @env_edit_id == @e.edit_key_id {
+                  form(name = project_env_edit, on_submit = env_edit_apply, class = "form env__edit env__edit--key") {
+                    row(class = env__add) {
+                      input(class = env__inline, form_control = env_edit_draft, autofocus = true)
+                      button(type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm", text = "✓")
+                      button(on_click = env_edit_cancel, class = "btn btn--ghost btn--sm", text = "✕")
+                    }
+                  }
+                } else {
+                  text("@e.key_display", class = env__key)
+                }
+
+                if @env_edit_id == @e.edit_value_id {
+                  form(name = project_env_edit_value, on_submit = env_edit_apply, class = "form env__edit env__edit--value") {
+                    row(class = env__add) {
+                      input(class = env__inline, form_control = env_edit_draft, autofocus = true)
+                      button(type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm", text = "✓")
+                      button(on_click = env_edit_cancel, class = "btn btn--ghost btn--sm", text = "✕")
+                    }
+                  }
+                } else {
+                  text("@e.value", class = "kv-list__val kv-list__val--compact")
+                }
               }
             }
           }

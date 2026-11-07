@@ -419,6 +419,9 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_form_dependency_add_id = ""
     ctx.service_form_autostart = (spec.autostart ~= false) and "true"
         or "false"
+    ctx.service_form_registry_auto_deploy = (spec.registry_auto_deploy == true)
+            and "true"
+        or "false"
 
     -- Provedores Gitea conectados (para o picker de conta).
     local git_provider_list_ok, git_provider_list_response =
@@ -1128,6 +1131,8 @@ function advanced_save(): ()
         local run_command = Helpers.trim(ctx.service_form_run_command)
         spec.run_command = (run_command ~= "") and run_command or nil
         spec.autostart = Helpers.is_true(ctx.service_form_autostart)
+        spec.registry_auto_deploy =
+            Helpers.is_true(ctx.service_form_registry_auto_deploy)
     end)
 end
 

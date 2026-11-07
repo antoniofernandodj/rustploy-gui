@@ -619,6 +619,30 @@ function test_projeto_env_em_modo_secret_e_sem_secrets()
     end
 end
 
+--- edição no lugar: a linha em edição ganha ✓ e ✕ no lugar do texto; as outras linhas seguem normais
+function test_projeto_edicao_no_lugar_da_chave_e_do_valor()
+    local tela = projeto()
+    seta(tela, {
+        project_tab = "env",
+        project_env = {
+            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "", edit_key_id = "key:A", edit_value_id = "value:A" },
+            { key = "B", key_display = "B", value = "y", kind = "plain", secret_name = "", edit_key_id = "key:B", edit_value_id = "value:B" },
+        },
+        env_edit_id = "",
+    })
+    local sem_edicao = tela:buttons()
+    assert_false(tem_trecho(sem_edicao, "✓"), "sem edição não há ✓")
+    assert_true(tem_trecho(sem_edicao, "✎"), "falta o botão de editar o valor")
+
+    for _, id in { "key:A", "value:B" } do
+        seta(tela, { env_edit_id = id, env_edit_draft = "novo" })
+        rende(tela)
+        local botoes = tela:buttons()
+        assert_true(tem_trecho(botoes, "✓"), "em edição falta o ✓ (" .. id .. ")")
+        assert_true(tem_trecho(botoes, "✕"), "em edição falta o ✕ (" .. id .. ")")
+    end
+end
+
 --- projeto: botões de mover (🔒 ↓ nas variáveis em claro, 🔓 nas que apontam para secret e nos secrets)
 function test_projeto_movimentos_entre_escopos()
     local tela = projeto()

@@ -183,3 +183,14 @@ function test_booleanos__is_false_nao_confunde_ausente_com_falso()
     assert_false(H.is_false(true))
     assert_false(H.is_false("true"))
 end
+
+--- o valor digitado na edição no lugar vira Plain ou Secret
+function test_env_value_from_draft__plain_secret_e_variavel_que_ja_era_secret()
+    assert_eq(H.env_value_from_draft("abc", false).Plain, "abc")
+    assert_eq(H.env_value_from_draft("", false).Plain, "")
+    assert_eq(H.env_value_from_draft("secret:DB_PASS", false).Secret, "DB_PASS")
+    assert_eq(H.env_value_from_draft("<secret:DB_PASS>", false).Secret, "DB_PASS")
+    -- numa variável que já era secret, o texto é o NOME do secret
+    assert_eq(H.env_value_from_draft("  OUTRO ", true).Secret, "OUTRO")
+    assert_nil(H.env_value_from_draft("secret:X", true).Plain)
+end
