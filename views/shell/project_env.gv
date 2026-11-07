@@ -6,7 +6,13 @@ component {
     }
   }
 
-  column(class = env, if = @project_loading, not_equals = true) {
+  scrollable(
+    direction = vertical,
+    class = u-fill-all,
+    if = @project_loading,
+    not_equals = true,
+  ) {
+  column(class = env--flow) {
     row(class = env__head) {
       text(
         "{t('project_env.inherited_by_all_services_of_this')}",
@@ -80,18 +86,16 @@ component {
       on_validation_error = project_env_show_validation_errors,
       class = "form form--gap-8",
     ) {
-      row(class = env__add) {
-        input(
-          class = env__input,
-          form_control = project_env_new_key,
-          rules = required,
-          msg = "{t('common.enter_the_key')}",
-          placeholder = "{t('common.key')}",
-        )
-      }
-
       if @project_env_new_is_secret == "true" {
         row(class = env__add) {
+          input(
+            class = env__input,
+            form_control = project_env_new_key,
+            rules = required,
+            msg = "{t('common.enter_the_key')}",
+            placeholder = "{t('common.key')}",
+          )
+
           input(
             class = env__input,
             form_control = project_env_new_value,
@@ -104,6 +108,8 @@ component {
             disabled = @busy_project_env_secret_toggle,
             text = "{t('project_env.use_secret')}",
           )
+
+          button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = "{t('common.add')}")
         }
 
         text(
@@ -129,6 +135,14 @@ component {
         row(class = env__add) {
           input(
             class = env__input,
+            form_control = project_env_new_key,
+            rules = required,
+            msg = "{t('common.enter_the_key')}",
+            placeholder = "{t('common.key')}",
+          )
+
+          input(
+            class = env__input,
             form_control = project_env_new_value,
             placeholder = "{t('common.value')}",
           )
@@ -139,11 +153,9 @@ component {
             disabled = @busy_project_env_secret_toggle,
             text = "{t('project_env.use_secret')}",
           )
-        }
-      }
 
-      row {
-        button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = "{t('common.add')}")
+          button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = "{t('common.add')}")
+        }
       }
     }
 
@@ -154,7 +166,7 @@ component {
       not_empty,
     )
 
-    scrollable(direction = vertical, class = u-fill-all) {
+    column(class = env--flow) {
       column(class = kv-list) {
         template(
           :for_each = project_env,
@@ -307,5 +319,6 @@ component {
         }
       }
     }
+  }
   }
 }
