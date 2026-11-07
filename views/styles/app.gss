@@ -313,7 +313,8 @@
 
 .env              { width: fill; height: fill; spacing: 10; }
 /* Aba inteira dentro de um scrollable (altura pelo conteúdo, não fill). */
-.env--flow        { width: fill; spacing: 10; }
+/* padding à direita: a barra de rolagem do scrollable fica por cima do conteúdo e cortava o último botão da linha. */
+.env--flow        { width: fill; spacing: 10; padding: 0 16 0 0; }
 .tabs__scroll     { width: fill; }
 .tabs__main       { width: shrink; spacing: 4; }
 .env__head        { width: fill; align_y: center; }
