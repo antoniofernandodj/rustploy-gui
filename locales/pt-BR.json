@@ -458,6 +458,7 @@
   "project_services.edit_project": "Editar projeto",
   "project_services.jobs": "Jobs ({project_jobs_count})",
   "project_services.new_service": "+ Novo serviço",
+  "project_services.deploy": "Deploy",
   "project_services.no_service_in_this_project": "Nenhum serviço neste projeto ainda.",
   "project_services.projects": "‹ Projetos",
   "project_services.remove_project": "Remover projeto",

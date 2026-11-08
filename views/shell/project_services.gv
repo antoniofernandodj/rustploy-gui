@@ -27,6 +27,13 @@ component {
           if @editing_project != "true" {
             flow(class = proj-bar__actions) {
               button(
+                class = "btn btn--ghost btn--sm",
+                on_click = project_deploy,
+                disabled = @busy_project_deploy,
+                text = "{t('project_services.deploy')}",
+              )
+
+              button(
                 class = "btn btn--primary btn--sm",
                 on_click = open_new_service_window,
                 disabled = @busy_open_new_service_window,

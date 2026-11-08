@@ -102,6 +102,7 @@ return {
     "open_service",
     "pre_deploy_check_add",
     "pre_deploy_check_delete",
+    "project_deploy",
     "project_env_add",
     "project_env_delete",
     "project_env_export",

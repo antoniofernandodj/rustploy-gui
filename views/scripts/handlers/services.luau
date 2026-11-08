@@ -1960,7 +1960,7 @@ end
 -- Deploy de um serviço (a partir de um card / detalhe). Arma deploy_track para
 -- o timer decorrido (atualizado pelo snapshot de 2s, via engine.active) e o
 -- desfecho (via evento bus DeployStateChanged, ver handlers/stream.luau).
-local function start_deploy(requested_service_id: string?): ()
+local function deploy_single(requested_service_id: string?): ()
     local service_id = (requested_service_id and requested_service_id ~= "")
             and requested_service_id
         or ctx.selected_service
@@ -2015,6 +2015,150 @@ local function start_deploy(requested_service_id: string?): ()
     end
     if ctx.selected_service == service_id then
         M.fetch_service_detail(service_id)
+    end
+end
+
+-- Texto da ordem do plano: "1. db  2. api" (uma linha por serviço, na ordem
+-- em que entram na fila).
+local function plan_order_text(items: {any}): string
+    local lines = {}
+    for index, item in ipairs(items) do
+        local suffix = ""
+        if item.status ~= "Queued" then
+            suffix = " (" .. tostring(item.status):lower() .. ")"
+        end
+        table.insert(
+            lines,
+            tostring(index) .. ". " .. tostring(item.service_name) .. suffix
+        )
+    end
+    return table.concat(lines, "\n")
+end
+
+-- Executa um comando em lote (DeployWithDependencies/ProjectDeploy) e avisa
+-- quantos serviços entraram na fila.
+local function run_batch(command: any): boolean
+    local api = State.api
+    if not api then
+        return false
+    end
+    local batch_ok, batch_response = api:rpc_checked(command)
+    if batch_ok and batch_response.DeployBatch then
+        local queued = 0
+        for _, item in ipairs(batch_response.DeployBatch) do
+            if item.status == "Queued" then
+                queued += 1
+            end
+        end
+        toast {
+            message = tostring(i18n.tr("Deploy na fila: ")) .. tostring(queued),
+            kind = "success",
+        }
+        return true
+    end
+    toast {
+        message = tostring(
+            batch_ok and i18n.tr("resposta inesperada do daemon")
+                or batch_response
+        ),
+        kind = "error",
+    }
+    return false
+end
+
+local function start_deploy(requested_service_id: string?): ()
+    local service_id = (requested_service_id and requested_service_id ~= "")
+            and requested_service_id
+        or ctx.selected_service
+    local api = State.api
+    if not api or not service_id or service_id == "" then
+        return
+    end
+    local plan_ok, plan_response = api:rpc_checked {
+        DeployWithDependenciesPlan = {
+            service_id = service_id,
+            skip_running = false,
+        },
+    }
+    -- Sem plano utilizável, ou sem dependências: o deploy simples de sempre.
+    if
+        not plan_ok
+        or not plan_response.DeployBatch
+        or #plan_response.DeployBatch <= 1
+    then
+        deploy_single(service_id)
+        return
+    end
+    local confirm_label = i18n.tr("Confirmar")
+    local only_label = i18n.tr("Só o serviço")
+    local reject_label = i18n.tr("Rejeitar")
+    local choice = prompt {
+        title = i18n.tr("Deploy com dependências"),
+        message = i18n.tr("Ordem em que entram na fila:")
+            .. "\n"
+            .. plan_order_text(plan_response.DeployBatch),
+        label = i18n.tr("Ação"),
+        kind = "item",
+        items = { confirm_label, only_label, reject_label },
+        confirm_label = i18n.tr("OK"),
+    }
+    if choice == confirm_label then
+        run_batch {
+            DeployWithDependencies = {
+                service_id = service_id,
+                skip_running = false,
+            },
+        }
+        if ctx.selected_service == service_id then
+            M.fetch_service_detail(service_id)
+        end
+    elseif choice == only_label then
+        deploy_single(service_id)
+    end
+end
+
+-- Botão "Deploy" do projeto: mostra a ordem de tudo e pede aceitar/rejeitar.
+function project_deploy(): ()
+    local api = State.api
+    local project_id = ctx.selected_project_id
+    if not api or not project_id or project_id == "" then
+        return
+    end
+    local plan_ok, plan_response = api:rpc_checked {
+        ProjectDeployPlan = {
+            project_id = project_id,
+            skip_running = false,
+        },
+    }
+    if not plan_ok or not plan_response.DeployBatch then
+        toast {
+            message = tostring(
+                plan_ok and i18n.tr("resposta inesperada do daemon")
+                    or plan_response
+            ),
+            kind = "error",
+        }
+        return
+    end
+    if #plan_response.DeployBatch == 0 then
+        toast { message = tostring(i18n.tr("Nada para deployar")), kind = "info" }
+        return
+    end
+    local accepted = confirm {
+        title = i18n.tr("Deploy do projeto"),
+        message = i18n.tr("Ordem em que entram na fila:")
+            .. "\n"
+            .. plan_order_text(plan_response.DeployBatch),
+        confirm_label = i18n.tr("Aceitar"),
+        cancel_label = i18n.tr("Rejeitar"),
+    }
+    if accepted then
+        run_batch {
+            ProjectDeploy = {
+                project_id = project_id,
+                skip_running = false,
+            },
+        }
     end
 end
 
