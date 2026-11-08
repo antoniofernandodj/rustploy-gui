@@ -28,6 +28,13 @@ component {
             flow(class = proj-bar__actions) {
               button(
                 class = "btn btn--ghost btn--sm",
+                on_click = open_services_reorder_window,
+                disabled = @busy_open_services_reorder_window,
+                text = "{t('project_services.reorder_services')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
                 on_click = project_deploy,
                 disabled = @busy_project_deploy,
                 text = "{t('project_services.deploy')}",

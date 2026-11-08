@@ -53,6 +53,41 @@ function open_new_project_window(): ()
     }
 end
 
+-- Abre a janela "Reordenar serviços" do projeto aberto, semeada com os serviços na
+-- ordem atual (a do snapshot, que já é a do `service_order` do project.yml). Ao
+-- gravar, a janela emite broadcast("services_reordered") — ver on_broadcast.
+function open_services_reorder_window(): ()
+    local project_id = ctx.selected_project_id or ""
+    local items = json.array {}
+    for _, last_pair in ipairs(State.last_pairs) do
+        if last_pair.svc.spec.project_id == project_id then
+            table.insert(items, {
+                id = last_pair.svc.id,
+                name = last_pair.svc.spec.name,
+            })
+        end
+    end
+    if project_id == "" or #items < 2 then
+        toast {
+            message = tostring(i18n.tr("Nada para reordenar")),
+            kind = "info",
+        }
+        return
+    end
+    open_window {
+        component = "services_reorder",
+        size = "440 560",
+        decorations = false,
+        resizable = false,
+        data = {
+            api_url = ctx.api_url or "",
+            api_token = ctx.api_token or "",
+            reorder_project_id = project_id,
+            reorder_items = json.encode(items),
+        },
+    }
+end
+
 -- Recebe mensagens de OUTRAS janelas (glacier broadcast). Em ambos os casos
 -- força um refresh imediato do snapshot (o card novo aparece na hora, sem
 -- esperar o próximo tick do SSE) e confirma num toast:
@@ -67,6 +102,12 @@ function on_broadcast(event: string, payload: any): ()
             message = tostring(
                 i18n.tr("Projeto \"") .. (name ~= "" and name or "projeto") .. i18n.tr("\" criado")
             ),
+            kind = "success",
+        }
+        Stream.refresh_now()
+    elseif event == "services_reordered" then
+        toast {
+            message = tostring(i18n.tr("Serviços reordenados")),
             kind = "success",
         }
         Stream.refresh_now()

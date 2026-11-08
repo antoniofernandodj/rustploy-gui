@@ -1,0 +1,89 @@
+// Janela "Reordenar serviços": motor Glacier próprio, aberto por open_window a partir do app principal (handlers/projects.luau).
+screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
+  resources {
+    script(src = "scripts/services_reorder_window.luau")
+  }
+
+  column(class = dialog__screen) {
+    row(class = titlebar) {
+      row(class = titlebar__drag, on_press = window:drag) {
+        text("●", class = titlebar__dot)
+        text(
+          "{t('services_reorder_window.reorder_services_rustploy')}",
+          class = titlebar__title
+        )
+      }
+
+      button(
+        class = titlebar__btn,
+        on_click = window:minimize,
+        text = "—"
+      )
+      button(
+        class = "titlebar__btn titlebar__btn--close",
+        on_click = window:close,
+        text = "✕"
+      )
+    }
+
+    column(class = dialog__body) {
+      column(class = form-panel) {
+        text(
+          "{t('services_reorder_window.drag_to_change_the_order_the')}",
+          class = u-muted
+        )
+
+        scrollable(direction = vertical, class = u-fill-all) {
+          column(class = kv-list, height = shrink) {
+            template(
+              :for_each = reorder_rows,
+              var = s,
+              on_reorder = services_reorder_drag,
+              reorder_key = id,
+            ) {
+              if @s.__dragging == "true" {
+                row(class = "kv-list__row kv-list__row--dragging") {
+                  text(
+                    "⋮",
+                    class = "env__drag-handle env__drag-handle--dragging",
+                    drag_handle = true,
+                  )
+
+                  text("@s.index.", class = env__key)
+                  text("@s.name", class = "kv-list__val kv-list__val--compact")
+                }
+              } else {
+                row(class = kv-list__row) {
+                  text(
+                    "⋮",
+                    class = env__drag-handle,
+                    drag_handle = true,
+                  )
+
+                  text("@s.index.", class = env__key)
+                  text("@s.name", class = "kv-list__val kv-list__val--compact")
+                }
+              }
+            }
+          }
+        }
+
+        text("@reorder_error", class = u-error, if = @reorder_error, not_empty)
+
+        row(class = dialog__actions) {
+          button(
+            class = "btn btn--primary",
+            on_click = services_reorder_apply,
+            disabled = @busy_services_reorder_apply,
+            text = "{t('services_reorder_window.reorder')}",
+          )
+          button(
+            class = "btn btn--ghost",
+            on_click = cancel,
+            text = "{t('services_reorder_window.cancel')}",
+          )
+        }
+      }
+    }
+  }
+}

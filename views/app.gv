@@ -116,4 +116,5 @@ app(
   screen(name = new_project, src = "new_project_form.gv")
   screen(name = new_registry_token, src = "new_registry_token_window.gv")
   screen(name = service_export, src = "service_export_window.gv")
+  screen(name = services_reorder, src = "services_reorder_window.gv")
 }

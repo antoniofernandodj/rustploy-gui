@@ -320,3 +320,49 @@ function test_janela_novo_servico__o_setter_field_existe_nesta_janela_digitar()
     tela:call("field", "new_service_name")
     assert_eq(tela:get("new_service_name"), "")
 end
+
+-- ── Reordenar serviços ──────────────────────────────────────────────────────
+
+local function reordenar()
+    return janela("views/services_reorder_window.gv", {
+        reorder_project_id = "prj-1",
+        reorder_items = json.encode({
+            { id = "a", name = "alfa" },
+            { id = "b", name = "beta" },
+            { id = "c", name = "gama" },
+        }),
+    })
+end
+
+local function ordem(tela)
+    local nomes = {}
+    for _, linha in json.decode(tela:get("reorder_rows") or "[]") do
+        table.insert(nomes, linha.name)
+    end
+    return table.concat(nomes, ",")
+end
+
+--- o init mostra os serviços na ordem recebida, numerados
+function test_janela_reordenar_servicos__o_init_mostra_a_ordem_recebida()
+    local tela = reordenar()
+    assert_eq(ordem(tela), "alfa,beta,gama")
+    local linhas_json = json.decode(tela:get("reorder_rows"))
+    assert_eq(linhas_json[3].index, "3")
+    assert_eq(tela:get("reorder_error"), "")
+end
+
+--- arrastar reescreve a ordem das linhas; o que o arraste não cita vai ao fim
+function test_janela_reordenar_servicos__arrastar_reescreve_a_ordem()
+    local tela = reordenar()
+    tela:call("services_reorder_drag", json.encode({ "c", "a", "b" }))
+    assert_eq(ordem(tela), "gama,alfa,beta")
+    tela:call("services_reorder_drag", json.encode({ "b" }))
+    assert_eq(ordem(tela), "beta,gama,alfa")
+end
+
+--- arraste com JSON inválido não mexe na ordem
+function test_janela_reordenar_servicos__json_invalido_nao_mexe_na_ordem()
+    local tela = reordenar()
+    tela:call("services_reorder_drag", "não é json")
+    assert_eq(ordem(tela), "alfa,beta,gama")
+end
