@@ -118,6 +118,8 @@ function tab(tab_name: string): ()
     -- A lista "Execuções anteriores" da aba Logs nasce quando a aba abre.
     if tab_name == "logs" then
         Services.load_log_executions()
+    elseif tab_name == "dados" then
+        Services.data_load()
     end
 end
 

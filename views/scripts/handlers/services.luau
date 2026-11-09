@@ -77,6 +77,7 @@ function open_service(service_id: string): ()
     ctx.service_action_color = "#8B949E"
     ctx.archive_upload_active = "false"
     ctx.archive_upload_percent = 0
+    M.data_reset()
     if State.deploy_track.service_id ~= service_id then
         ctx.service_deploy_running = "false"
         ctx.service_deploy_elapsed = ""
@@ -1353,6 +1354,154 @@ function archive_upload(): ()
             .. tostring(upload_archive_response)
         toast { message = tostring(upload_archive_response), kind = "error" }
     end
+end
+
+-- ── Dados do serviço (aba Dados) ────────────────────────────────────────
+
+function M.data_reset(): ()
+    ctx.data_parts_text = ""
+    ctx.data_blocked = ""
+    ctx.data_notes_text = ""
+    ctx.data_can_export = "false"
+    ctx.data_encrypt = "false"
+    ctx.data_file_name = ""
+    ctx.data_file_path = ""
+    ctx.data_preview_text = ""
+    ctx.data_result_text = ""
+    ctx.data_message = ""
+end
+
+--- Texto das partes do plano: uma por linha, `BD`/`VOL` na frente.
+function M.data_parts_text(parts: { any }): string
+    local lines: { string } = {}
+    for _, part in ipairs(parts or {}) do
+        local label = if part.kind == "database" then "BD " else "VOL "
+        table.insert(lines, label .. tostring(part.name))
+    end
+    return table.concat(lines, "\n")
+end
+
+--- Abre a aba: pede o plano (só metadados) e mostra o que um export levaria.
+function M.data_load(): ()
+    M.data_reset()
+    local api = State.api
+    local service_id = ctx.selected_service or ""
+    if not api or service_id == "" then
+        return
+    end
+    local ok, response = api:rpc_checked {
+        ServiceDataPlan = { service_id = service_id },
+    }
+    if not ok or type(response) ~= "table" or not response.ServiceDataPlan then
+        ctx.data_message = tostring(response)
+        return
+    end
+    local plan = response.ServiceDataPlan
+    ctx.data_parts_text = M.data_parts_text(plan.parts)
+    ctx.data_blocked = plan.blocked or ""
+    ctx.data_notes_text = table.concat(plan.notes or {}, "\n")
+    ctx.data_encrypt = plan.encrypt_default and "true" or "false"
+    ctx.data_can_export = (plan.blocked == nil and #(plan.parts or {}) > 0)
+            and "true"
+        or "false"
+end
+
+function data_export(): ()
+    local api = State.api
+    local service_id = ctx.selected_service or ""
+    if not api or service_id == "" then
+        return
+    end
+    local encrypt = Helpers.is_true(ctx.data_encrypt)
+    -- `save_file` (SUSPENDE): o usuário escolhe onde gravar.
+    local path = save_file {
+        title = i18n.tr("Salvar pacote de dados"),
+        default_name = if encrypt then "dados.rpdata.age" else "dados.rpdata",
+        filters = { { name = "Rustploy data", extensions = { "rpdata", "age" } } },
+    }
+    if not path then
+        return
+    end
+    ctx.data_message = i18n.tr("exportando…")
+    -- Volume comum: para o serviço durante a cópia (o banco ignora, o dump é no ar).
+    local ok, err = api:download_service_data(service_id, true, encrypt, path)
+    if ok then
+        ctx.data_message = i18n.tr("pacote de dados salvo em ") .. path
+        toast { message = ctx.data_message, kind = "success" }
+    else
+        ctx.data_message = i18n.tr("erro: ") .. tostring(err)
+        toast { message = tostring(err), kind = "error" }
+    end
+end
+
+function data_pick_file(): ()
+    local path = open_file {
+        title = i18n.tr("Escolher pacote de dados"),
+        filters = { { name = "Rustploy data", extensions = { "rpdata", "age" } } },
+    }
+    if not path then
+        return
+    end
+    ctx.data_file_path = path
+    ctx.data_file_name = path:match("([^/\\]+)$") or path
+    ctx.data_preview_text = ""
+    ctx.data_result_text = ""
+    ctx.data_message = ""
+end
+
+--- 1º passo: o daemon confere o pacote e diz o que seria substituído (nada muda).
+function data_preview(): ()
+    local api = State.api
+    local service_id = ctx.selected_service or ""
+    local path = ctx.data_file_path or ""
+    if not api or service_id == "" then
+        return
+    end
+    if path == "" then
+        ctx.data_message = i18n.tr("escolha um pacote primeiro")
+        return
+    end
+    ctx.data_message = i18n.tr("conferindo…")
+    local ok, report = api:upload_service_data(service_id, path, false)
+    if not ok then
+        ctx.data_message = i18n.tr("erro: ") .. tostring(report)
+        toast { message = tostring(report), kind = "error" }
+        return
+    end
+    ctx.data_message = ""
+    ctx.data_preview_text = table.concat(report.parts or {}, "\n")
+end
+
+--- 2º passo: confirmado, envia de novo e aplica.
+function data_confirm(): ()
+    local api = State.api
+    local service_id = ctx.selected_service or ""
+    local path = ctx.data_file_path or ""
+    if not api or service_id == "" or path == "" then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Substituir os dados?"),
+        message = i18n.tr(
+            "Isto SUBSTITUI os dados atuais do serviço. Clique de novo para confirmar."
+        ),
+        confirm_label = i18n.tr("Substituir"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    ctx.data_message = i18n.tr("importando…")
+    local ok, report = api:upload_service_data(service_id, path, true)
+    if not ok then
+        ctx.data_message = i18n.tr("erro: ") .. tostring(report)
+        toast { message = tostring(report), kind = "error" }
+        return
+    end
+    ctx.data_message = ""
+    ctx.data_preview_text = ""
+    ctx.data_result_text = table.concat(report.checks or {}, "\n")
+    toast { message = i18n.tr("dados importados"), kind = "success" }
 end
 
 -- ── Environment ──────────────────────────────────────────────────────────

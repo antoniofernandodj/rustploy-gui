@@ -9,6 +9,7 @@ component {
     link(rel = import, href = "service/environment.gv", as = ServiceEnvironmentTab)
     link(rel = import, href = "service/domains.gv", as = ServiceDomainsTab)
     link(rel = import, href = "service/migrar.gv", as = ServiceMigrarTab)
+    link(rel = import, href = "service/dados.gv", as = ServiceDadosTab)
     link(rel = import, href = "service/databases.gv", as = ServiceDatabasesTab)
     link(rel = import, href = "service/deployments.gv", as = ServiceDeploymentsTab)
     link(rel = import, href = "service/healthcheck.gv", as = ServiceHealthcheckTab)
@@ -282,6 +283,13 @@ component {
         }
 
         TabButton(
+          label = "{t('dados.tab')}",
+          current = @tab,
+          target = dados,
+          action = tab:dados,
+        )
+
+        TabButton(
           label = "{t('service.healthcheck')}",
           current = @tab,
           target = healthcheck,
@@ -320,6 +328,7 @@ component {
         ServiceEnvironmentTab(if = @tab, equals = environment)
         ServiceDomainsTab(if = @tab, equals = domains)
         ServiceMigrarTab(if = @tab, equals = migrar)
+        ServiceDadosTab(if = @tab, equals = dados)
         ServiceDatabasesTab(if = @tab, equals = databases)
         ServiceDeploymentsTab(if = @tab, equals = deployments)
         ServiceHealthcheckTab(if = @tab, equals = healthcheck)

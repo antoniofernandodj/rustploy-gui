@@ -1,0 +1,74 @@
+// Dados do serviço: exportar/importar os volumes (ou o dump do banco)
+component {
+  scrollable(
+    direction = vertical,
+    class = u-fill-all,
+  ) {
+    column(width = fill, spacing = 8, class = form-panel) {
+      text("{t('dados.title')}", class = u-label-cap)
+      text("{t('dados.intro')}", class = u-muted)
+
+      text("@data_blocked", if = @data_blocked, not_equals = "", class = u-muted)
+      text("@data_parts_text", if = @data_parts_text, not_equals = "", class = kv-list__val)
+      text("@data_notes_text", if = @data_notes_text, not_equals = "", class = u-muted)
+
+      checkbox(
+        if = @data_can_export,
+        equals = true,
+        :checked = data_encrypt,
+        on_toggle = field:data_encrypt,
+        label = "{t('dados.encrypt')}",
+      )
+
+      row(class = env__add) {
+        button(
+          class = "btn btn--primary",
+          if = @data_can_export,
+          equals = true,
+          on_click = data_export,
+          disabled = @busy_data_export,
+          text = "{t('dados.export')}",
+        )
+      }
+
+      text("{t('dados.import_title')}", class = u-label-cap)
+
+      row(class = env__add) {
+        button(
+          class = btn-secondary,
+          on_click = data_pick_file,
+          disabled = @busy_data_pick_file,
+          text = "{t('dados.pick_file')}",
+        )
+        text("@data_file_name", class = u-muted)
+      }
+
+      row(class = env__add) {
+        button(
+          class = btn-secondary,
+          if = @data_file_name,
+          not_equals = "",
+          on_click = data_preview,
+          disabled = @busy_data_preview,
+          text = "{t('dados.check')}",
+        )
+      }
+
+      column(spacing = 6, if = @data_preview_text, not_equals = "") {
+        text("{t('dados.will_replace')}", class = u-label-cap)
+        text("@data_preview_text", class = kv-list__val)
+        row(class = env__add) {
+          button(
+            class = "btn btn--primary",
+            on_click = data_confirm,
+            disabled = @busy_data_confirm,
+            text = "{t('dados.replace')}",
+          )
+        }
+      }
+
+      text("@data_result_text", if = @data_result_text, not_equals = "", class = u-muted)
+      text("@data_message", if = @data_message, not_equals = "", class = u-muted)
+    }
+  }
+}

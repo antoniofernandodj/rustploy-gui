@@ -179,6 +179,68 @@ function M:upload_archive(
     return true, decoded
 end
 
+--- Baixa o pacote de dados do serviço (`GET /api/services/<id>/data/export`) direto para `path`
+--- (bytes crus, sem passar pelo Lua). Só a chave mestra. `(true, nil)` ou `(false, mensagem)`.
+function M:download_service_data(
+    service_id: string,
+    stop: boolean,
+    encrypt: boolean,
+    path: string
+): (boolean, any)
+    local response = download_file(
+        self.base_url
+            .. "/api/services/"
+            .. service_id
+            .. "/data/export?stop="
+            .. (if stop then "true" else "false")
+            .. "&encrypt="
+            .. (if encrypt then "true" else "false"),
+        path,
+        {
+            headers = M.auth_headers(self.token),
+            timeout = M.UPLOAD_TIMEOUT_MS,
+        }
+    )
+    if not response.ok then
+        return false, M.failure_text(response)
+    end
+    return true, nil
+end
+
+--- Envia um `.rpdata` (`body_file`) para `POST /api/services/<id>/data/import`. Sem `confirm` só
+--- confere e devolve o que seria substituído; com `confirm` aplica. Retorna `(true, relatório)`.
+function M:upload_service_data(
+    service_id: string,
+    path: string,
+    confirm: boolean
+): (boolean, any)
+    local http_response = self.client:post(
+        "/api/services/"
+            .. service_id
+            .. "/data/import?confirm="
+            .. (if confirm then "true" else "false"),
+        nil,
+        {
+            headers = { ["Content-Type"] = "application/octet-stream" },
+            body_file = path,
+            timeout = M.UPLOAD_TIMEOUT_MS,
+        }
+    )
+    if not http_response.ok then
+        -- o daemon explica a recusa no corpo (texto puro)
+        local detail = http_response.body
+        if type(detail) == "string" and detail ~= "" then
+            return false, detail
+        end
+        return false, M.failure_text(http_response)
+    end
+    local json_decode_ok, decoded = decode_body(http_response.body)
+    if not json_decode_ok then
+        return false, i18n.tr("resposta inválida do daemon")
+    end
+    return true, decoded
+end
+
 --- Sonda `GET /api/version` (leitura pura: o cliente repete 1× sozinho numa
 --- falha de rede). Retorna a resposta crua do `http()` — quem chama olha
 --- `status`/`error`.

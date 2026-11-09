@@ -684,5 +684,15 @@
   "logs.select_all": "Selecionar todas",
   "logs.view_logs": "Ver logs",
   "logs.delete": "Excluir",
-  "log_window.lines_past": "{log_window_count} linhas"
+  "log_window.lines_past": "{log_window_count} linhas",
+  "dados.tab": "Dados",
+  "dados.title": "DADOS DO SERVIÇO",
+  "dados.intro": "Leva os dados deste serviço para um arquivo (.rpdata) e os traz de volta em outro serviço do mesmo tipo, aqui ou em outro servidor. A configuração do serviço vai à parte (Exportar serviço). Exige a chave mestra. Em volumes comuns, o serviço é parado durante a cópia e religado depois.",
+  "dados.export": "Exportar dados",
+  "dados.import_title": "IMPORTAR DADOS",
+  "dados.pick_file": "Escolher pacote…",
+  "dados.check": "Conferir pacote",
+  "dados.will_replace": "VAI SUBSTITUIR",
+  "dados.replace": "Substituir os dados",
+  "dados.encrypt": "Cifrar o pacote (age). Só abre num servidor com a mesma identidade ou a chave de recuperação."
 }
