@@ -21,7 +21,10 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("{t('new_registry_token_window.new_token_rustploy')}", class = titlebar__title)
+        text(
+          "{t('new_registry_token_window.new_token_rustploy')}",
+          class = titlebar__title
+        )
       }
 
       button(

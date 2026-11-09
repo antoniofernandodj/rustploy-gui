@@ -17,11 +17,22 @@ screen(title = "{t('new_service_window.new_service_rustploy')}") {
     row(class = titlebar) {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
-        text("{t('new_service_window.new_service_rustploy')}", class = titlebar__title)
+        text(
+          "{t('new_service_window.new_service_rustploy')}",
+          class = titlebar__title
+        )
       }
 
-      button(class = titlebar__btn, on_click = window:minimize, text = "—")
-      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+      button(
+        class = titlebar__btn,
+        on_click = window:minimize,
+        text = "—"
+      )
+      button(
+        class = "titlebar__btn titlebar__btn--close",
+        on_click = window:close,
+        text = "✕"
+      )
     }
 
     // Corpo do wizard, rolável (os passos db_form/template_form são altos).
