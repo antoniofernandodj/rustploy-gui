@@ -3,12 +3,12 @@
 // conexão + o projeto-alvo via open_window({ data = ...
 screen(title = "{t('new_service_window.new_service_rustploy')}") {
   resources {
-    link(rel = import, href = new_service.gv, as = NewServiceWizard)
+    link(rel = import, href = new_service.component.gv, as = NewServiceWizard)
 
-    // Componentes que o corpo do wizard usa (o shell.gv os importava; num motor
+    // Componentes que o corpo do wizard usa (o shell.component.gv os importava; num motor
     // isolado precisamos reimportá-los).
-    link(rel = import, href = "components/picker_row.gv", as = PickerRow)
-    link(rel = import, href = "components/template_row.gv", as = TemplateRow)
+    link(rel = import, href = "components/picker_row.component.gv", as = PickerRow)
+    link(rel = import, href = "components/template_row.component.gv", as = TemplateRow)
 
     script(src = "scripts/new_service_window.luau")
   }

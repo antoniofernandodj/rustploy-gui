@@ -3,7 +3,7 @@
 -- edição e a validação do formulário. Os testes de `new_job_create` só chegam
 -- até onde a validação recusa — passar dela dispararia o RPC (rede).
 
-local CAMINHO = "views/new_job_window.gv"
+local CAMINHO = "views/new_job_window.screen.gv"
 
 local function nova(ctx_inicial)
     local tela = component(CAMINHO, ctx_inicial)

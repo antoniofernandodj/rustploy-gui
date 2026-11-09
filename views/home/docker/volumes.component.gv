@@ -14,7 +14,7 @@ component {
         class = "u-muted u-fill"
       )
 
-      // O filtro mora em format.docker_volumes — ver images.gv.
+      // O filtro mora em format.docker_volumes — ver images.component.gv.
       checkbox(
         :checked = docker_volumes_only_used,
         on_toggle = docker_only_used:docker_volumes_only_used,

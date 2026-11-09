@@ -1,9 +1,9 @@
-// Seção `deploy_engine` (view = deploy_engine) das telas globais; importada por home.gv.
+// Seção `deploy_engine` (view = deploy_engine) das telas globais; importada por home.component.gv.
 component {
   resources {
-    link(rel = import, href = "deploy_engine/fila.gv", as = EngineFilaTab)
-    link(rel = import, href = "deploy_engine/executando.gv", as = EngineExecutandoTab)
-    link(rel = import, href = "deploy_engine/historico.gv", as = EngineHistoricoTab)
+    link(rel = import, href = "deploy_engine/fila.component.gv", as = EngineFilaTab)
+    link(rel = import, href = "deploy_engine/executando.component.gv", as = EngineExecutandoTab)
+    link(rel = import, href = "deploy_engine/historico.component.gv", as = EngineHistoricoTab)
   }
 
   row(class = page-head) {

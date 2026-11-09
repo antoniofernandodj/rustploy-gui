@@ -1,4 +1,4 @@
-// Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab == "git"` de general.gv.
+// Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab == "git"` de general.component.gv.
 component {
   text(
     "{t('general_git.source_repository_url_image')}",

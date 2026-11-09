@@ -1,4 +1,4 @@
-// Lista de projetos (view = projects); importada por shell.gv.
+// Lista de projetos (view = projects); importada por shell.component.gv.
 component {
   resources {
     component(name = SemProjetos) {

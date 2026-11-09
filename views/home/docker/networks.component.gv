@@ -13,7 +13,7 @@ component {
         class = "u-muted u-fill",
       )
 
-      // O filtro mora em format.docker_networks — ver images.gv.
+      // O filtro mora em format.docker_networks — ver images.component.gv.
       checkbox(
         :checked = docker_networks_only_used,
         on_toggle = docker_only_used:docker_networks_only_used,

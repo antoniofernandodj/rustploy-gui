@@ -23,7 +23,7 @@ local PLANO = {
 }
 
 local function exportar(plano)
-    return janela("views/service_export_window.gv", {
+    return janela("views/service_export_window.screen.gv", {
         export_plan = json.encode(plano or PLANO),
         export_service_id = "svc-1",
     })
@@ -106,7 +106,7 @@ end
 function test_janela_exportar_servico__plano_vazio_ou_ilegivel_nao_quebra_sem()
     for _, texto in { "{}", "isso não é json" } do
         local tela =
-            janela("views/service_export_window.gv", { export_plan = texto })
+            janela("views/service_export_window.screen.gv", { export_plan = texto })
         assert_eq(tela:get("export_service"), "")
         assert_eq(
             tela:get("export_service_vars"),
@@ -153,7 +153,7 @@ end
 --- o histórico semeado vira texto, uma linha por evento, terminado em \\n
 function test_janela_logs__o_historico_semeado_vira_texto_uma_linha_por()
     local tela =
-        janela("views/log_window.gv", { log_window_seed = semente(3) })
+        janela("views/log_window.screen.gv", { log_window_seed = semente(3) })
     assert_eq(tela:get("log_window_count"), "3")
     local texto = tela:get("log_window_logs_text") or ""
     assert_match(texto, "^%d%d:%d%d:%d%d linha 1\n")
@@ -167,7 +167,7 @@ end
 
 --- sem semente a janela abre vazia
 function test_janela_logs__sem_semente_a_janela_abre_vazia()
-    local tela = janela("views/log_window.gv")
+    local tela = janela("views/log_window.screen.gv")
     assert_eq(tela:get("log_window_count"), "0")
     assert_eq(tela:get("log_window_logs_text"), "")
 end
@@ -175,15 +175,15 @@ end
 --- semente ilegível é tratada como vazia
 function test_janela_logs__semente_ilegivel_e_tratada_como_vazia()
     local tela =
-        janela("views/log_window.gv", { log_window_seed = "não é json" })
+        janela("views/log_window.screen.gv", { log_window_seed = "não é json" })
     assert_eq(tela:get("log_window_count"), "0")
 end
 
 --- o título padrão é Logs, e o que o pai mandou vale
 function test_janela_logs__o_titulo_padrao_e_logs_e_o_que_o_pai_mandou_vale()
-    assert_eq(janela("views/log_window.gv"):get("log_window_title"), "Logs")
+    assert_eq(janela("views/log_window.screen.gv"):get("log_window_title"), "Logs")
     local com_titulo =
-        janela("views/log_window.gv", { log_window_title = "api · build" })
+        janela("views/log_window.screen.gv", { log_window_title = "api · build" })
     assert_eq(com_titulo:get("log_window_title"), "api · build")
 end
 
@@ -191,19 +191,19 @@ end
 
 --- o init zera mensagens e semeia os campos sem pisar no que veio
 function test_janela_novo_projeto__o_init_zera_mensagens_e_semeia_os_campos()
-    local tela = janela("views/new_project_form.gv")
+    local tela = janela("views/new_project_form.screen.gv")
     assert_eq(tela:get("new_project_name"), "")
     assert_eq(tela:get("new_project_description"), "")
     assert_eq(tela:get("new_project_error"), "")
     assert_eq(tela:get("new_project_message"), "")
     local preenchida =
-        janela("views/new_project_form.gv", { new_project_name = "loja" })
+        janela("views/new_project_form.screen.gv", { new_project_name = "loja" })
     assert_eq(preenchida:get("new_project_name"), "loja")
 end
 
 --- a falha de validação só avisa
 function test_janela_novo_projeto__a_falha_de_validacao_so_avisa()
-    local tela = janela("views/new_project_form.gv")
+    local tela = janela("views/new_project_form.screen.gv")
     tela:call("new_project_show_validation_errors", "[]")
     assert_eq(tela:toasts()[1].message, "Fix the highlighted fields")
     assert_eq(tela:toasts()[1].kind, "warning")
@@ -212,7 +212,7 @@ end
 --- criar sem a conexão semeada manda reabrir a janela
 function test_janela_novo_projeto__criar_sem_a_conexao_semeada_manda_reabrir()
     local tela =
-        janela("views/new_project_form.gv", { new_project_name = "loja" })
+        janela("views/new_project_form.screen.gv", { new_project_name = "loja" })
     tela:call("submit_project")
     assert_eq(
         tela:get("new_project_error"),
@@ -225,7 +225,7 @@ end
 
 --- o init abre no formulário com escopo de leitura
 function test_janela_novo_token_do_registry__o_init_abre_no_formulario_com()
-    local tela = janela("views/new_registry_token_window.gv")
+    local tela = janela("views/new_registry_token_window.screen.gv")
     assert_eq(tela:get("new_registry_token_step"), "form")
     assert_eq(tela:get("new_registry_token_scope"), "pull")
     assert_eq(tela:get("new_registry_token_name"), "")
@@ -235,7 +235,7 @@ end
 --- os escopos oferecidos são pull e push
 function test_janela_novo_token_do_registry__os_escopos_oferecidos_sao_pull_e()
     local escopos = json.decode(
-        janela("views/new_registry_token_window.gv"):get(
+        janela("views/new_registry_token_window.screen.gv"):get(
             "new_registry_token_scopes"
         ) or "[]"
     )
@@ -247,12 +247,12 @@ end
 --- o host do registry vem do pai, com um padrão local
 function test_janela_novo_token_do_registry__o_host_do_registry_vem_do_pai()
     assert_eq(
-        janela("views/new_registry_token_window.gv"):get("registry_host"),
+        janela("views/new_registry_token_window.screen.gv"):get("registry_host"),
         "127.0.0.1:5100"
     )
     assert_eq(
         janela(
-            "views/new_registry_token_window.gv",
+            "views/new_registry_token_window.screen.gv",
             { registry_host = "r.exemplo.com" }
         ):get("registry_host"),
         "r.exemplo.com"
@@ -261,7 +261,7 @@ end
 
 --- criar sem conexão e a falha de validação
 function test_janela_novo_token_do_registry__criar_sem_conexao_e_a_falha_de()
-    local tela = janela("views/new_registry_token_window.gv")
+    local tela = janela("views/new_registry_token_window.screen.gv")
     tela:call("new_registry_token_create")
     assert_eq(
         tela:get("new_registry_token_error"),
@@ -279,7 +279,7 @@ local function wizard(ctx_inicial)
     for k, v in ctx_inicial or {} do
         base[k] = v
     end
-    return janela("views/new_service_window.gv", base)
+    return janela("views/new_service_window.screen.gv", base)
 end
 
 --- abre escolhendo o tipo, com o formulário zerado
@@ -324,7 +324,7 @@ end
 -- ── Reordenar serviços ──────────────────────────────────────────────────────
 
 local function reordenar()
-    return janela("views/services_reorder_window.gv", {
+    return janela("views/services_reorder_window.screen.gv", {
         reorder_project_id = "prj-1",
         reorder_items = json.encode({
             { id = "a", name = "alfa" },

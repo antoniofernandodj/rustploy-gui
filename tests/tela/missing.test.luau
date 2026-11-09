@@ -187,19 +187,19 @@ end
 
 --- logs ao vivo
 function test_janelas_auxiliares__logs_ao_vivo()
-    confere(janela("views/log_window.gv"), MOTOR)
+    confere(janela("views/log_window.screen.gv"), MOTOR)
 end
 
 --- novo job
 function test_janelas_auxiliares__novo_job()
-    confere(janela("views/new_job_window.gv"), {})
+    confere(janela("views/new_job_window.screen.gv"), {})
 end
 
 --- novo serviço (com o projeto-alvo semeado pelo open_window)
 function test_janelas_auxiliares__novo_servico_com_o_projeto_alvo_semeado()
     confere(
         janela(
-            "views/new_service_window.gv",
+            "views/new_service_window.screen.gv",
             { project_name = "loja", new_service_templates = "[]" }
         ),
         {}
@@ -212,7 +212,7 @@ function test_janelas_auxiliares__novo_projeto()
     -- a descrição é opcional) — uma leitura interna, não esquecimento do app.
     -- error_new_project_name só existe depois de uma validação que falha.
     confere(
-        janela("views/new_project_form.gv"),
+        janela("views/new_project_form.screen.gv"),
         { "erro_new_project_description", "error_new_project_name" }
     )
 end
@@ -220,7 +220,7 @@ end
 --- novo token do registry
 function test_janelas_auxiliares__novo_token_do_registry()
     confere(
-        janela("views/new_registry_token_window.gv"),
+        janela("views/new_registry_token_window.screen.gv"),
         { "error_new_registry_token_name" }
     )
 end
@@ -228,7 +228,7 @@ end
 --- exportar serviço
 function test_janelas_auxiliares__exportar_servico()
     confere(
-        janela("views/service_export_window.gv", { export_plan = "{}" }),
+        janela("views/service_export_window.screen.gv", { export_plan = "{}" }),
         {}
     )
 end

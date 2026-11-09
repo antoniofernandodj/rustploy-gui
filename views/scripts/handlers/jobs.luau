@@ -130,7 +130,7 @@ end
 -- conexão atual + os catálogos de projetos/serviços JÁ BUSCADOS pelo snapshot
 -- (a janela filha não pode buscar no init — só ações despachadas rodam o
 -- fetch). Ao concluir, ela emite broadcast("job_created"), recebido por
--- on_broadcast em handlers/projects.luau. Ver views/new_job_window.gv.
+-- on_broadcast em handlers/projects.luau. Ver views/new_job_window.screen.gv.
 function open_new_job_window(): ()
     local snap = State.snap
     local projects = {}

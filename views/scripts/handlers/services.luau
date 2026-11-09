@@ -1,6 +1,6 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/services.luau — detalhe do serviço (service.gv): fetch completo,
+-- handlers/services.luau — detalhe do serviço (service.component.gv): fetch completo,
 -- mutações de spec/env, ciclo de vida (deploy/reload/stop), build logs de
 -- deployments, picker Gitea. Exporta `fetch_service_detail` para
 -- handlers/stream.luau reusar no desfecho de um deploy (evento bus
@@ -13,7 +13,7 @@ local History = require("history")
 
 local M = {}
 
--- Título editável do serviço (service.gv): cada tecla reinicia `title_save_timer`
+-- Título editável do serviço (service.component.gv): cada tecla reinicia `title_save_timer`
 -- (debounce de 0,5 s antes de gravar) e `title_toast_timer` (o toast "Nome
 -- salvo" só sai depois de 2 s sem nenhuma gravação). Enquanto `title_save_timer`
 -- existe há texto digitado ainda não gravado: `fetch_service_detail` não pode

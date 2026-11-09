@@ -39,7 +39,7 @@ end)
 -- a conexão atual (api_url/api_token) via `data` para que a janela chame
 -- ProjectCreate por conta própria; ao concluir, ela emite broadcast(
 -- "project_created"), recebido por `on_broadcast` abaixo. Ver
--- views/new_project_form.gv + scripts/new_project_window.luau.
+-- views/new_project_form.screen.gv + scripts/new_project_window.luau.
 function open_new_project_window(): ()
     open_window {
         component = "new_project",

@@ -28,7 +28,7 @@ fn cd_ws_root() {
     std::env::set_current_dir(ws_root).expect("cd workspace root");
 }
 
-/// A janela "Novo projeto" (`new_project_form.gv` + `new_project_window.luau`) é um motor à parte, aberto por `open_window`.
+/// A janela "Novo projeto" (`new_project_form.screen.gv` + `new_project_window.luau`) é um motor à parte, aberto por `open_window`.
 #[test]
 fn new_project_form_window_renders() {
     cd_ws_root();
@@ -36,7 +36,7 @@ fn new_project_form_window_renders() {
     m.define_data("api_url", "http://localhost");
     m.define_data("api_token", "t");
     m.register_app_screen("views/app.gv", "new_project")
-        .expect("new_project_form.gv must register");
+        .expect("new_project_form.screen.gv must register");
     m.set_initial_screen("new_project");
     m.reevaluate_all().expect("eval new_project_form");
     assert!(m.render("new_project").is_ok(), "render new_project_form");
@@ -349,6 +349,17 @@ fn every_template_starts_with_a_header() {
             assert!(
                 !e_app || caminho.file_name().is_some_and(|n| n == "app.gv"),
                 "{}: só views/app.gv é o manifesto (raiz app)",
+                caminho.display()
+            );
+            let nome = caminho.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            assert!(
+                !e_screen || nome.ends_with(".screen.gv"),
+                "{}: uma `screen` se chama `*.screen.gv`",
+                caminho.display()
+            );
+            assert!(
+                !e_component || nome.ends_with(".component.gv"),
+                "{}: um `component` se chama `*.component.gv`",
                 caminho.display()
             );
             vistos += 1;

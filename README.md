@@ -110,7 +110,7 @@ executável que rodou o comando (os arquivos vão embutidos no binário).
 Todo template, folha de estilo, ícone e logo de blueprint é referenciado por um
 caminho **relativo ao diretório corrente do processo** — tanto do Rust
 (`views/styles/app.gss`, `views/app.gv`, `assets/blueprint-logos/<id>/<logo>`)
-quanto de *dentro* dos próprios templates (`import … from="views/service.gv"`,
+quanto de *dentro* dos próprios templates (`import … from="views/service.component.gv"`,
 `theme "views/styles/theme.json"`, `Svg "assets/icons/…"`).
 
 Em vez de reescrever cada literal, a solução tem duas metades, uma por modo de
@@ -194,7 +194,7 @@ O build script faz duas coisas.
   o resto da pasta — `docker-compose.yml`, `template.toml`, `.md` — é do daemon e a
   GUI nunca o lê.
 - *Por que reduzir.* Os logos raster originais têm ~512×512 e aparecem a ~30px
-  (`template_row.gv`). Sem redução, a GPU faria um *downscale* de ~17× por
+  (`template_row.component.gv`). Sem redução, a GPU faria um *downscale* de ~17× por
   quadro (serrilhado) e o binário carregaria ~12 MB de logo. Por isso os raster
   são reduzidos com **Lanczos3** para no máximo `LOGO_MAX_DIM` = **96px** na
   maior dimensão, preservando a proporção, e re-codificados como PNG. 96px cobre
@@ -413,7 +413,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   conectada "do trivial ao sensível" e inspeciona o contexto — que deve voltar ao
   estado de boot, não ao da sessão.
 - **O item "Projects" não apaga nas sub-telas.** Regressão: ele perdia o fundo azul
-  ao entrar num projeto ou serviço, porque o `nav_item.gv` comparava `{view}` contra
+  ao entrar num projeto ou serviço, porque o `nav_item.component.gv` comparava `{view}` contra
   um `target` de **uma** view só (`equals`) e `project_services`/`service` não são
   `"projects"`. A correção usa `one_of` (glacier-ui 0.57.8): `target="projects
   project_services service"` casa com qualquer das três. `nav-item--active` é a classe do
@@ -422,7 +422,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
   `node.kind`, não o `node.background` genérico (esse é para containers/rows). O
   `on_click` chega **namespaceado** pelo componente que o hospeda (`namespace_action`,
   em `eval.rs` do glacier-ui): mesmo com o valor vindo de uma prop
-  (`action="nav_projects"` em `shell.gv`), o botão vive dentro do template do
+  (`action="nav_projects"` em `shell.component.gv`), o botão vive dentro do template do
   `NavItem`, então o dispatch final é `NavItem::nav_projects`.
 - **Janela, título e tamanho** (glacier-ui 0.117). A janela **principal** é do
   `app(...)` (tamanho, mínimo, moldura, ícone); o título é da `screen` (acompanha a
@@ -618,11 +618,11 @@ são filhas dele (glacier-ui 0.117+).
   (`open_window("log", …)`), com o próprio script — o `init` delas não roda na principal.
   Os tamanhos estão nos handlers.
 
-### 6.3 O shell (`views/shell.gv` e `views/shell/`)
+### 6.3 O shell (`views/shell.component.gv` e `views/shell/`)
 
 O shell é a casca do app conectado: sidebar, topbar e as views de projeto (Deployments,
 Projects, serviços de um projeto, detalhe de serviço); delega as telas globais ao
-`home.gv`.
+`home.component.gv`.
 
 - **A sidebar é uma `<drawer>`** (glacier-ui 0.92+, Onda 2 da reforma,
   `docs/plano-reforma-gui-glacier-0.102.md`). Largura, padding e spacing vêm das props do
@@ -639,20 +639,20 @@ Projects, serviços de um projeto, detalhe de serviço); delega as telas globais
   `drawer`. Sai `drawer::toggle:menu`, que o dispatch roteia para o `<drawer>` (o alias
   minúsculo é um componente registrado).
 - **Detalhe de serviço e o wizard.** O wizard "Novo serviço" saiu do shell
-  (`view = new_service`): agora abre numa janela à parte (`new_service_window.gv`),
+  (`view = new_service`): agora abre numa janela à parte (`new_service_window.screen.gv`),
   disparada por `open_new_service_window`.
-- **Projects.** Criar projeto abre uma janela à parte (`new_project_form.gv`, motor
+- **Projects.** Criar projeto abre uma janela à parte (`new_project_form.screen.gv`, motor
   Glacier próprio); ao concluir, ela envia um `broadcast("project_created")` que o
   `on_broadcast` (`handlers/projects.luau`) recebe para atualizar a grade. Ver
   `open_new_project_window`.
-- **Projeto aberto (`project_services.gv`).** Barra superior com *voltar* à esquerda e as
+- **Projeto aberto (`project_services.component.gv`).** Barra superior com *voltar* à esquerda e as
   ações do projeto empurradas para a extremidade direita (`hspacer` = `width: fill`); em
   modo de edição as ações somem (o form tem Salvar/Cancelar). A grade de serviços usa
   `virtualize` = a altura de **uma** fileira de cartões: só as fileiras visíveis são
   montadas e as de fora viram um vão do tamanho exato (glacier-ui 0.77, ver
   `PRIMITIVAS.md`). O valor é a altura do card; o `spacing: 10` da `.grid` o motor soma
   sozinho. Errar desalinha a barra de rolagem, não quebra.
-- **Aba Variáveis (`project_env.gv`).** No modo *secret* o campo valor passa a receber o
+- **Aba Variáveis (`project_env.component.gv`).** No modo *secret* o campo valor passa a receber o
   **nome** de um secret do projeto (a referência, não o conteúdo), que o daemon decifra no
   deploy. Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar,
   reancoram na variável seguinte da nova ordem), mas sem delete — removem-se editando o
@@ -661,7 +661,7 @@ Projects, serviços de um projeto, detalhe de serviço); delega as telas globais
   chave mestre do servidor), então não há coluna de valor nem edição — sobrescrever é salvar
   de novo com o mesmo nome. Ver `handlers/secrets.luau` e `docs/secrets.md`.
 
-### 6.4 As telas globais (`views/home.gv` e `views/home/`)
+### 6.4 As telas globais (`views/home.component.gv` e `views/home/`)
 
 Cada tela é uma seção por valor de `view`: Monitoring, Ingress, Deploy Engine, Docker (e
 Registry), Settings, Schedules e Suporte.
@@ -729,7 +729,7 @@ Registry), Settings, Schedules e Suporte.
     `docker_cleanup_time` é `"HH:MM"`; `format.hour_minute_join`/`format.hour_minute_split` fazem a ponte com o `{hour, minute}`
     que o daemon espera — o contrato HTTP não mudou.
 
-### 6.5 O detalhe do serviço (`views/service.gv` e `views/service/`)
+### 6.5 O detalhe do serviço (`views/service.component.gv` e `views/service/`)
 
 O cabeçalho tem as ações (deploy, stop, reload), e as abas são General (fonte), Connection,
 Domains, Environment, Deployments, Logs e Advanced (mais Databases, Migrar e Healthcheck
@@ -779,7 +779,7 @@ conforme o serviço).
   conteúdo. `"…"` não interpreta `\n` e só aceitaria a quebra literal, com as linhas de
   continuação coladas na margem; `"""` dobra as linhas em espaços. O `l"""` (de *linhas*, não de
   *raw*) mantém as quebras, tira o recuo comum e continua interpolando `@nome`; o mesmo vale para
-  o placeholder do compose em `new_job_window.gv`.
+  o placeholder do compose em `new_job_window.screen.gv`.
 - **Environment.** Valem as regras de `scrollable` e do editor `.env` de [6.1](#61-regras-que-valem-para-todos-os-templates).
   Os comentários (`# …`) do `.env` são arrastáveis como as variáveis (ao soltar, reancoram na
   seguinte), mas sem delete; a classe da linha muda para `kv_row_drag` no item agarrado
@@ -822,7 +822,7 @@ dentro: um `fetch` rodado no `init()` é descartado pelo motor (só ações desp
 executor), a mesma razão de `new_service_window.luau`. A `screen` é só conteúdo — o tamanho vai
 no `open_window{ size = … }`.
 
-- **Logs (`log_window.gv`).** Janela de **logs ao vivo** (runtime ou build), aberta por
+- **Logs (`log_window.screen.gv`).** Janela de **logs ao vivo** (runtime ou build), aberta por
   `handlers/services.luau` (`open_logs_window`/`open_build_logs_window`). É genérica: o script
   decide o tipo pelos dados semeados — `api_url`/`api_token`, `log_window_title`, `log_window_stream_url`
   (endpoint SSE dedicado) e `log_window_seed` (histórico inicial); ver `scripts/log_window.luau`. O motivo
@@ -836,7 +836,7 @@ no `open_window{ size = … }`.
   scroll). O botão ↓ rola até o fundo (`textarea_end:`) sem precisar arrastar a roda. O
   `textarea` do glacier-ui desenha a própria barra de rolagem (arraste o *thumb*, clique na
   trilha) e rola também por roda, teclado e pelos botões ↑/↓.
-- **Novo job (`new_job_window.gv`).** Aberta por `handlers/jobs.luau` (`open_new_job_window`), que
+- **Novo job (`new_job_window.screen.gv`).** Aberta por `handlers/jobs.luau` (`open_new_job_window`), que
   semeia a conexão + os catálogos de projetos/serviços já buscados pela janela principal. Passos:
   escolher projeto → escolher serviço gatilho (rede + env vars de base) → formulário (nome,
   compose, `main_service`, recorrência). Ao concluir emite `broadcast("job_created")` e fecha.
@@ -852,20 +852,20 @@ no `open_window{ size = … }`.
     `new_job_create`.
   - *Recorrência diária:* os pares HORA/MINUTO de texto livre viraram um `<timeedit>` só (chave
     `new_job_time`, `"HH:MM"`) — a mesma troca e o mesmo motivo da limpeza automática (ver 6.4).
-- **Novo projeto (`new_project_form.gv`).** Aberta por `handlers/projects.luau`
+- **Novo projeto (`new_project_form.screen.gv`).** Aberta por `handlers/projects.luau`
   (`open_new_project_window`). Ao concluir, o script (`scripts/new_project_window.luau`) emite
   `broadcast("project_created")` e chama `close_window()`. A validação é declarada no `<form>` (ver
   6.1).
-- **Novo token do registry (`new_registry_token_window.gv`).** Aberta por
+- **Novo token do registry (`new_registry_token_window.screen.gv`).** Aberta por
   `handlers/registry.luau` (`registry_open_token_window`), que semeia a conexão + o host do
   registry. Fluxo: formulário (nome + escopo pull/push) → `RegistryTokenCreate` → o segredo
   aparece em texto **uma vez**, com botão copiar. A janela **não** fecha sozinha (diferente da de
   job), porque o usuário precisa copiar antes de perder o valor. O
   `broadcast("registry_token_created")` dispara na hora da criação (não só ao fechar), para a
   lista da janela principal atualizar mesmo se o usuário nunca clicar em "Fechar".
-- **Novo serviço (`new_service_window.gv` + `new_service.gv`).** A janela é aberta por
+- **Novo serviço (`new_service_window.screen.gv` + `new_service.component.gv`).** A janela é aberta por
   `handlers/wizard.luau` (`open_new_service_window`), que semeia a conexão + o projeto-alvo, e
-  reaproveita o corpo do wizard (`new_service.gv`, importado como `<NewServiceWizard/>`); a
+  reaproveita o corpo do wizard (`new_service.component.gv`, importado como `<NewServiceWizard/>`); a
   lógica vem de `handlers/wizard.luau`, carregada pelo script de entrada. Ao criar, o wizard emite
   `broadcast("service_created")` e chama `close_window()`. O wizard espelha o fluxo do antigo
   remote-client (Application / Database / Compose / Template): tipo → formulário por tipo; o passo
@@ -912,7 +912,7 @@ props.
   (rodar ou cancelar, aquecer, ver logs, pausar ou ativar, editar, remover). A linha de job tinha
   seis botões e não cabia; agora ela mostra o estado de aquecimento e este botão. É um `<popup>`
   do glacier (um painel centrado sobre a janela, com Esc e clique fora fechando) dentro do
-  componente, instanciado uma vez por linha em `shell/project_jobs.gv` e em `home/schedules.gv`.
+  componente, instanciado uma vez por linha em `shell/project_jobs.component.gv` e em `home/schedules.component.gv`.
   O estado de aberto/fechado fica numa chave por linha, `job_actions_open_<job_id>`: o `value` do
   popup é interpolado com o laço (`process_tpl` no eval), e fechar é zerar a chave
   (`close_job_actions` em `handlers/jobs.luau`, que zera todas porque `job_run_cancel` e

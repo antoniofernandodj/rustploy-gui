@@ -27,7 +27,7 @@ end
 -- handler é uma ação despachada, então o `fetch` do WizardCatalog resolve
 -- normalmente e a janela abre depois, já com o catálogo. Ao criar, a janela
 -- envia broadcast("service_created") e se fecha (ver new_service_create).
--- Substitui o antigo fluxo inline (view=new_service), removido do shell.gv.
+-- Substitui o antigo fluxo inline (view=new_service), removido do shell.component.gv.
 -- `start` opcional ("import"): o ícone de importar do card de serviço abre o
 -- wizard direto no passo Importar (`open_new_service_window:import`).
 function open_new_service_window(start: string?): ()

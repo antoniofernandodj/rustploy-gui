@@ -2,9 +2,9 @@
 // serviços; cada sub-aba pesada mora em seu arquivo.
 component {
   resources {
-    link(rel = import, href = "project_env.gv", as = ProjectEnvTab)
-    link(rel = import, href = "project_secrets.gv", as = ProjectSecretsTab)
-    link(rel = import, href = "project_jobs.gv", as = ProjectJobsTab)
+    link(rel = import, href = "project_env.component.gv", as = ProjectEnvTab)
+    link(rel = import, href = "project_secrets.component.gv", as = ProjectSecretsTab)
+    link(rel = import, href = "project_jobs.component.gv", as = ProjectJobsTab)
 
     component(name = SemServicosNoProjeto) {
       text("{t('project_services.no_service_in_this_project')}", class = u-muted)

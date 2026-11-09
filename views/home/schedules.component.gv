@@ -1,4 +1,4 @@
-// Seção `schedules` (view = schedules) das telas globais; importada por home.gv.
+// Seção `schedules` (view = schedules) das telas globais; importada por home.component.gv.
 component {
   resources {
     style """

@@ -1,4 +1,4 @@
-// Aba "Fila" do Deploy Engine; importada por deploy_engine.gv.
+// Aba "Fila" do Deploy Engine; importada por deploy_engine.component.gv.
 component {
   resources {
     component(name = FilaVazia) {

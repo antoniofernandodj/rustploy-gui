@@ -1,4 +1,4 @@
-// Aba Logs do detalhe do serviço (importada por service.gv).
+// Aba Logs do detalhe do serviço (importada por service.component.gv).
 component {
   column(class = log-panel) {
     text(

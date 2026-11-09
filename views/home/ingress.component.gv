@@ -1,4 +1,4 @@
-// Seção `ingress` (view = ingress) das telas globais; importada por home.gv.
+// Seção `ingress` (view = ingress) das telas globais; importada por home.component.gv.
 component {
   resources {
     component(name = SemPortasDeHost) {

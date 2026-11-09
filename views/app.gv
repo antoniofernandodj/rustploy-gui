@@ -1,5 +1,3 @@
-// O app Rustploy: a raiz do arquivo é o `app(...)`, e as telas — a janela
-// principal e as cinco janelas auxiliares — são filhas dele (glacier-ui 0.117+).
 app(
   id = rustploy,
   single_instance = true,
@@ -13,8 +11,6 @@ app(
   antialiasing = false,
   toast_period = 250,
 ) {
-  // Declarações GLOBAIS: valem para todas as janelas (cada janela é um motor
-  // isolado e as carrega).
   resources {
     link(rel = theme, href = "views/styles/theme.json")
     link(rel = stylesheet, href = "views/styles/app.gss")
@@ -31,12 +27,10 @@ app(
     }
   }
 
-  // A janela principal: mostra o Login ou o Shell (app conectado), com a
-  // titlebar customizada. Script: scripts/app.luau.
   screen(name = app, initial = true, title = Rustploy) {
     resources {
-      link(rel = import, href = login.gv, as = Login)
-      link(rel = import, href = shell.gv, as = Shell)
+      link(rel = import, href = login.component.gv, as = Login)
+      link(rel = import, href = shell.component.gv, as = Shell)
 
       script(src = "scripts/app.luau")
     }
@@ -110,11 +104,11 @@ app(
     }
   }
 
-  screen(name = log, src = "log_window.gv")
-  screen(name = new_job, src = "new_job_window.gv")
-  screen(name = new_service, src = "new_service_window.gv")
-  screen(name = new_project, src = "new_project_form.gv")
-  screen(name = new_registry_token, src = "new_registry_token_window.gv")
-  screen(name = service_export, src = "service_export_window.gv")
-  screen(name = services_reorder, src = "services_reorder_window.gv")
+  screen(name = log, src = "log_window.screen.gv")
+  screen(name = new_job, src = "new_job_window.screen.gv")
+  screen(name = new_service, src = "new_service_window.screen.gv")
+  screen(name = new_project, src = "new_project_form.screen.gv")
+  screen(name = new_registry_token, src = "new_registry_token_window.screen.gv")
+  screen(name = service_export, src = "service_export_window.screen.gv")
+  screen(name = services_reorder, src = "services_reorder_window.screen.gv")
 }

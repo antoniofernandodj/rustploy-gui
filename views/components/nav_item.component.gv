@@ -1,6 +1,6 @@
 // Item de navegação da sidebar: ícone (sempre visível) + rótulo (some abaixo de
 // 900px de largura — ver @media abaixo, espelhando o breakpoint em que a
-// sidebar encolhe no shell.gv).
+// sidebar encolhe no shell.component.gv).
 component {
   props {
     prop(name = label)

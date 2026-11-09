@@ -78,12 +78,12 @@ end
 --- cada janela auxiliar carrega por conta própria
 function test_cada_janela_auxiliar_carrega()
     each({
-        { "views/new_project_form.gv" },
-        { "views/new_job_window.gv" },
-        { "views/log_window.gv" },
-        { "views/new_service_window.gv" },
-        { "views/new_registry_token_window.gv" },
-        { "views/service_export_window.gv" },
+        { "views/new_project_form.screen.gv" },
+        { "views/new_job_window.screen.gv" },
+        { "views/log_window.screen.gv" },
+        { "views/new_service_window.screen.gv" },
+        { "views/new_registry_token_window.screen.gv" },
+        { "views/service_export_window.screen.gv" },
     }, function(caminho)
         assert_renders(caminho)
     end)
@@ -125,12 +125,12 @@ end
 
 --- janela Novo projeto
 function test_janela_novo_projeto_renderiza()
-    rende(janela("views/new_project_form.gv"))
+    rende(janela("views/new_project_form.screen.gv"))
 end
 
 --- janela Novo job, em cada passo e em cada tipo de recorrência
 function test_janela_novo_job_passos_e_recorrencias()
-    local tela = janela("views/new_job_window.gv", {
+    local tela = janela("views/new_job_window.screen.gv", {
         new_job_projects = { { id = "prj_1", name = "acme" } },
         new_job_services = {
             { id = "svc_1", name = "web", project_id = "prj_1" },
@@ -162,7 +162,7 @@ end
 
 --- janela de logs ao vivo
 function test_janela_de_logs_renderiza()
-    local tela = janela("views/log_window.gv", {
+    local tela = janela("views/log_window.screen.gv", {
         log_window_title = "Logs · api",
         log_window_stream_url = "/api/services/svc1/logs",
         log_window_seed = {
@@ -210,7 +210,7 @@ local function wizard(dados)
     for k, v in dados or {} do
         base[k] = v
     end
-    return janela("views/new_service_window.gv", base)
+    return janela("views/new_service_window.screen.gv", base)
 end
 
 --- wizard Novo serviço, em cada passo
@@ -274,7 +274,7 @@ end
 
 --- janela Exportar serviço: renderiza com o plano semeado
 function test_janela_exportar_servico_renderiza()
-    local tela = janela("views/service_export_window.gv", {
+    local tela = janela("views/service_export_window.screen.gv", {
         export_service_id = "svc_1",
         export_plan = {
             service_name = "api",

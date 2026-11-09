@@ -1,4 +1,4 @@
-// Lista de deployments (view = deployments); importada por shell.gv.
+// Lista de deployments (view = deployments); importada por shell.component.gv.
 component {
   resources {
     component(name = SemDeployments) {

@@ -33,8 +33,8 @@
 
    Onde isto simplifica o app: um MODIFICADOR NA RAIZ do bloco recolore os
    filhos, em vez de cada filho carregar o seu par de classes de estado.
-     nav_item.gv   .nav-item--active > .nav-item__icon     (era *_on / *_off ×3)
-     state_cell.gv .state-cell--ok > text                  (a cor de ponto + rótulo)
+     nav_item.component.gv   .nav-item--active > .nav-item__icon     (era *_on / *_off ×3)
+     state_cell.component.gv .state-cell--ok > text                  (a cor de ponto + rótulo)
    Onde NÃO ajuda, e fica seletor simples de propósito: bloco cujo único estado é
    uma propriedade do próprio nó (`.btn--primary`, `.service__actions--full`) — um
    combinador só trocaria `.x` por `.y > .x` sem tirar nenhuma classe do markup. */
@@ -116,7 +116,7 @@
 .titlebar__icon    { width: 12; height: 12; color: var(--text); }
 
 /* ── Sidebar / top bar ────────────────────────────────────────────────── */
-/* O item de navegação (`.nav-item`) mora no style de nav_item.gv. O antigo
+/* O item de navegação (`.nav-item`) mora no style de nav_item.component.gv. O antigo
    `.nav_item` (botão-texto puro, sem ícone) ficou sem uso quando o componente
    passou a montar ícone+rótulo; mantido comentado, não removido (é
    reutilizável). */
@@ -280,7 +280,7 @@
 .form--gap-14 { spacing: 14; }
 .form--gap-16 { spacing: 16; }
 /* Ponto colorido do state-cell/rp-badge — compartilhado; o rótulo e a paleta
-   (`state-cell--<kind>`) moram no style do state_cell.gv. */
+   (`state-cell--<kind>`) moram no style do state_cell.component.gv. */
 .status-dot { size: 11; }
 
 /* ── Projects / service grid ──────────────────────────────────────────── */
@@ -335,7 +335,7 @@
 .env__sep         { width: 10; }
 .reorder__index   { size: 13; bold: true; color: var(--accent); width: 32; }
 .env__key         { size: 13; bold: true; color: var(--accent); width: 400; }
-/* Editor .env (textarea + toggle), compartilhado por service.gv e shell.gv. */
+/* Editor .env (textarea + toggle), compartilhado por service.component.gv e shell.component.gv. */
 .env__editor      { width: fill; height: 200; padding: 10 12; font: mono; }
 /* Webhook (aba Deployments): a URL ocupa a linha inteira — é longa demais para
    dividir espaço com os botões, que ficam na linha de baixo. */
@@ -401,7 +401,7 @@
      • >1240px  → `--full`: rótulos por extenso, À DIREITA do título
                   (mesma linha — há espaço de sobra).
      • ≤1240px  → `--compact`: ícones + tooltip, EMPILHADOS abaixo do
-                  título/status (dentro da coluna page-head__titles, ver service.gv).
+                  título/status (dentro da coluna page-head__titles, ver service.component.gv).
    O empilhamento (em vez de encolher na mesma linha) é o que garante que os
    botões nunca dividam linha com o nome quando aperta — antes eles transbordavam
    por cima de "Landing page"/"Running". Base: full visível, compacta oculta; o

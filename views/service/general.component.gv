@@ -1,10 +1,10 @@
 // General (source / build, editável)
 component {
   resources {
-    link(rel = import, href = "general_compose.gv", as = GeneralCompose)
-    link(rel = import, href = "general_git.gv", as = GeneralGit)
-    link(rel = import, href = "general_zip.gv", as = GeneralZip)
-    link(rel = import, href = "general_gitea.gv", as = GeneralGitea)
+    link(rel = import, href = "general_compose.component.gv", as = GeneralCompose)
+    link(rel = import, href = "general_git.component.gv", as = GeneralGit)
+    link(rel = import, href = "general_zip.component.gv", as = GeneralZip)
+    link(rel = import, href = "general_gitea.component.gv", as = GeneralGitea)
   }
 
   scrollable(

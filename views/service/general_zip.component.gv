@@ -1,4 +1,4 @@
-// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.gv.
+// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.component.gv.
 component {
   text("{t('general_zip.zip_dockerfile')}", class = u-label-cap)
 

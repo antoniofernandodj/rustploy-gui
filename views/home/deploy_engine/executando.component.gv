@@ -1,4 +1,4 @@
-// Aba "Executando" do Deploy Engine; importada por deploy_engine.gv.
+// Aba "Executando" do Deploy Engine; importada por deploy_engine.component.gv.
 component {
   resources {
     component(name = SemDeployAtivo) {

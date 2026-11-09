@@ -8,8 +8,8 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
       text("{t('common.no_projects_yet')}", class = u-muted)
     }
 
-    link(rel = import, href = "components/picker_row.gv", as = PickerRow)
-    link(rel = import, href = "components/tab_button.gv", as = TabButton)
+    link(rel = import, href = "components/picker_row.component.gv", as = PickerRow)
+    link(rel = import, href = "components/tab_button.component.gv", as = TabButton)
 
     script(src = "scripts/new_job_window.luau")
   }
@@ -295,7 +295,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               text("{t('new_job_window.every_how_many_hours')}", class = field__label)
 
               // Teto de 168 = uma semana, igual ao da limpeza automática em
-              // home.gv. Acima disso existe a recorrência "Semanal".
+              // home.component.gv. Acima disso existe a recorrência "Semanal".
               spinbox(
                 field_class = field__spin,
                 form_control = new_job_hours,
@@ -319,7 +319,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
             if @new_job_kind == "weekly" {
               text("{t('new_job_window.day_of_the_week')}", class = field__label)
 
-              // Mesma troca de home.gv: sete <TabButton> + handler viraram um
+              // Mesma troca de home.component.gv: sete <TabButton> + handler viraram um
               // <radiogroup>, que grava `new_job_weekday` sozinho.
               scroll(class = tabs__scroll, direction = horizontal) {
                 row(class = tabs__main) {

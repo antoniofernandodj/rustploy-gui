@@ -3,17 +3,17 @@
 // Advanced.
 component {
   resources {
-    link(rel = import, href = "service/logs.gv", as = ServiceLogsTab)
-    link(rel = import, href = "service/general.gv", as = ServiceGeneralTab)
-    link(rel = import, href = "service/connection.gv", as = ServiceConnectionTab)
-    link(rel = import, href = "service/environment.gv", as = ServiceEnvironmentTab)
-    link(rel = import, href = "service/domains.gv", as = ServiceDomainsTab)
-    link(rel = import, href = "service/migrar.gv", as = ServiceMigrarTab)
-    link(rel = import, href = "service/dados.gv", as = ServiceDadosTab)
-    link(rel = import, href = "service/databases.gv", as = ServiceDatabasesTab)
-    link(rel = import, href = "service/deployments.gv", as = ServiceDeploymentsTab)
-    link(rel = import, href = "service/healthcheck.gv", as = ServiceHealthcheckTab)
-    link(rel = import, href = "service/advanced.gv", as = ServiceAdvancedTab)
+    link(rel = import, href = "service/logs.component.gv", as = ServiceLogsTab)
+    link(rel = import, href = "service/general.component.gv", as = ServiceGeneralTab)
+    link(rel = import, href = "service/connection.component.gv", as = ServiceConnectionTab)
+    link(rel = import, href = "service/environment.component.gv", as = ServiceEnvironmentTab)
+    link(rel = import, href = "service/domains.component.gv", as = ServiceDomainsTab)
+    link(rel = import, href = "service/migrar.component.gv", as = ServiceMigrarTab)
+    link(rel = import, href = "service/dados.component.gv", as = ServiceDadosTab)
+    link(rel = import, href = "service/databases.component.gv", as = ServiceDatabasesTab)
+    link(rel = import, href = "service/deployments.component.gv", as = ServiceDeploymentsTab)
+    link(rel = import, href = "service/healthcheck.component.gv", as = ServiceHealthcheckTab)
+    link(rel = import, href = "service/advanced.component.gv", as = ServiceAdvancedTab)
 
     style """
       /* Cabeçalho + ações */

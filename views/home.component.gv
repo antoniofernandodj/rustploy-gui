@@ -2,13 +2,13 @@
 // Ingress, Deploy Engine, Docker (e Registry), Settings, Schedules e Suporte.
 component {
   resources {
-    link(rel = import, href = "home/running.gv", as = HomeRunning)
-    link(rel = import, href = "home/monitoring.gv", as = HomeMonitoring)
-    link(rel = import, href = "home/ingress.gv", as = HomeIngress)
-    link(rel = import, href = "home/deploy_engine.gv", as = HomeDeployEngine)
-    link(rel = import, href = "home/docker.gv", as = HomeDocker)
-    link(rel = import, href = "home/settings.gv", as = HomeSettings)
-    link(rel = import, href = "home/schedules.gv", as = HomeSchedules)
+    link(rel = import, href = "home/running.component.gv", as = HomeRunning)
+    link(rel = import, href = "home/monitoring.component.gv", as = HomeMonitoring)
+    link(rel = import, href = "home/ingress.component.gv", as = HomeIngress)
+    link(rel = import, href = "home/deploy_engine.component.gv", as = HomeDeployEngine)
+    link(rel = import, href = "home/docker.component.gv", as = HomeDocker)
+    link(rel = import, href = "home/settings.component.gv", as = HomeSettings)
+    link(rel = import, href = "home/schedules.component.gv", as = HomeSchedules)
 
     style """
       .table__col-icon  { width: 28; }

@@ -1,4 +1,4 @@
-// Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch; corpo do `if @provider_tab == "gitea"` de general.gv.
+// Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch; corpo do `if @provider_tab == "gitea"` de general.component.gv.
 component {
   text(
     "{t('general_gitea.select_the_connected_account_the_repository')}",

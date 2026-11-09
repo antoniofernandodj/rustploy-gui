@@ -1,4 +1,4 @@
-// Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @service_source_kind == "Compose"` de general.gv.
+// Editor do YAML de um serviço Compose (bancos/brokers); o corpo do `if @service_source_kind == "Compose"` de general.component.gv.
 component {
   text("{t('general_compose.docker_compose_yaml')}", class = u-label-cap)
 

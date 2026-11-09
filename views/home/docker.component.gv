@@ -1,11 +1,11 @@
-// Seção `docker` (view = docker) das telas globais; importada por home.gv.
+// Seção `docker` (view = docker) das telas globais; importada por home.component.gv.
 component {
   resources {
-    link(rel = import, href = "docker/containers.gv", as = DockerContainersTab)
-    link(rel = import, href = "docker/images.gv", as = DockerImagesTab)
-    link(rel = import, href = "docker/volumes.gv", as = DockerVolumesTab)
-    link(rel = import, href = "docker/networks.gv", as = DockerNetworksTab)
-    link(rel = import, href = "docker/registry.gv", as = DockerRegistryTab)
+    link(rel = import, href = "docker/containers.component.gv", as = DockerContainersTab)
+    link(rel = import, href = "docker/images.component.gv", as = DockerImagesTab)
+    link(rel = import, href = "docker/volumes.component.gv", as = DockerVolumesTab)
+    link(rel = import, href = "docker/networks.component.gv", as = DockerNetworksTab)
+    link(rel = import, href = "docker/registry.component.gv", as = DockerRegistryTab)
   }
 
   row(class = page-head) {
