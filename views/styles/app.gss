@@ -333,6 +333,7 @@
 /* Respiro entre o botão ✕ e a chave da variável (evita que o vermelho encoste
    no texto). Usado nas linhas de env de serviço e de projeto. */
 .env__sep         { width: 10; }
+.reorder__index   { size: 13; bold: true; color: var(--accent); width: 32; }
 .env__key         { size: 13; bold: true; color: var(--accent); width: 400; }
 /* Editor .env (textarea + toggle), compartilhado por service.gv e shell.gv. */
 .env__editor      { width: fill; height: 200; padding: 10 12; font: mono; }

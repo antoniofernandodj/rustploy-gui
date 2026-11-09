@@ -49,7 +49,7 @@ screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
                     drag_handle = true,
                   )
 
-                  text("@s.index.", class = env__key)
+                  text("@s.index.", class = reorder__index)
                   text("@s.name", class = "kv-list__val kv-list__val--compact")
                 }
               } else {
@@ -60,7 +60,7 @@ screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
                     drag_handle = true,
                   )
 
-                  text("@s.index.", class = env__key)
+                  text("@s.index.", class = reorder__index)
                   text("@s.name", class = "kv-list__val kv-list__val--compact")
                 }
               }
