@@ -339,6 +339,22 @@ local function apply_snapshot(snapshot: any): ()
             or "desabilitado"
         ctx.registry_storage_human =
             format.format_bytes(registry_status.storage_bytes or 0)
+        -- Retenção de tags: o estado salvo (usado na confirmação do GC) acompanha o
+        -- snapshot; o formulário parte dele uma vez só (depois é do usuário).
+        local retention = registry_status.retention
+        if retention then
+            ctx.registry_retention_saved_enabled =
+                tostring(retention.enabled == true)
+            ctx.registry_retention_saved_keep_last =
+                tostring(retention.keep_last or 10)
+            if ctx.registry_retention_form_loaded ~= "true" then
+                ctx.registry_retention_form_enabled =
+                    tostring(retention.enabled == true)
+                ctx.registry_retention_form_keep_last =
+                    tostring(retention.keep_last or 10)
+                ctx.registry_retention_form_loaded = "true"
+            end
+        end
     end
     ctx.registry_repos_count = tostring(#(snapshot.registry_repos or {}))
 

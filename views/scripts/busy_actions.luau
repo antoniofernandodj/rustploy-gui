@@ -133,6 +133,7 @@ return {
     "registry_remove_repo",
     "registry_remove_tag",
     "registry_remove_token",
+    "registry_retention_save",
     "rename_cancel",
     "running_deploy",
     "running_toggle_reveal",

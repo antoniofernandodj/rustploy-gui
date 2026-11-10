@@ -6,6 +6,7 @@
 -- docker CLI); esta tela não cria/edita nada.
 
 local State = require("../state")
+local Helpers = require("../helpers")
 local format = require("../format")
 local Stream = require("stream")
 
@@ -117,9 +118,19 @@ end
 -- Imagens taggeadas nunca são afetadas. Também roda sozinho 1x/dia no daemon.
 
 function registry_gc(): ()
+    local message = i18n.tr("Remove do disco blobs e manifests que nenhuma tag referencia (sobras de remoções e de tags republicadas) e uploads abandonados há mais de 24h. Imagens com tag não são afetadas.")
+    -- Com a retenção ligada o GC manual também a aplica: a confirmação tem de dizer.
+    if ctx.registry_retention_saved_enabled == "true" then
+        message = message
+            .. " "
+            .. string.format(
+                i18n.tr("A retenção de tags está ligada: as tags além das %s mais recentes de cada repositório também serão apagadas (menos as que um serviço usa)."),
+                tostring(ctx.registry_retention_saved_keep_last or "10")
+            )
+    end
     local confirmed = confirm {
         title = i18n.tr("Executar GC?"),
-        message = i18n.tr("Remove do disco blobs e manifests que nenhuma tag referencia (sobras de remoções e de tags republicadas) e uploads abandonados há mais de 24h. Imagens com tag não são afetadas."),
+        message = message,
         confirm_label = i18n.tr("Executar"),
         destructive = true,
     }
@@ -145,6 +156,36 @@ function registry_gc(): ()
         Stream.refresh_now()
     else
         ctx.registry_message = i18n.tr("erro: ") .. tostring(registry_gc_response)
+    end
+end
+
+-- Salva a política de retenção de tags (ligar/desligar e quantas manter). Roda
+-- antes de cada GC no daemon; nunca apaga a tag que um serviço usa.
+function registry_retention_save(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local keep_last = math.floor(
+        tonumber(Helpers.trim(ctx.registry_retention_form_keep_last)) or 0
+    )
+    if keep_last < 1 then
+        ctx.registry_message = i18n.tr("informe quantas tags manter (mínimo 1)")
+        return
+    end
+    local retention_set_ok, retention_set_response = api:rpc_checked {
+        RegistryRetentionSet = {
+            config = {
+                enabled = Helpers.is_true(ctx.registry_retention_form_enabled),
+                keep_last = keep_last,
+            },
+        },
+    }
+    if retention_set_ok then
+        ctx.registry_message = i18n.tr("retenção salva")
+        Stream.refresh_now()
+    else
+        ctx.registry_message = i18n.tr("erro: ") .. tostring(retention_set_response)
     end
 end
 
