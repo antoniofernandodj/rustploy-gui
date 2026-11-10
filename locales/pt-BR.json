@@ -195,7 +195,7 @@
   "docker_registry.no_repository_matches_the_search": "Nenhum repositório corresponde à busca.",
   "docker_registry.no_repository_yet_run_docker_push": "Nenhum repositório ainda. Faça `docker push` para o registry embutido.",
   "docker_registry.no_token_yet_without_a_token": "Nenhum token ainda. Sem token nenhum push/pull é autenticado — crie um antes de usar o registry.",
-  "docker_registry.registry_repository_ies": "Registry @registry_status_label · @registry_repos_count repositório(s) · @registry_storage_human",
+  "docker_registry.registry_repository_ies": "Registry {registry_status_label} · {registry_repos_count} repositório(s) · {registry_storage_human}",
   "docker_registry.revoke": "Revogar",
   "docker_registry.run_gc": "Executar GC",
   "docker_registry.retention_toggle": "Manter só as últimas tags de cada repositório",

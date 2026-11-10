@@ -343,16 +343,21 @@ local function apply_snapshot(snapshot: any): ()
         -- snapshot; o formulário parte dele uma vez só (depois é do usuário).
         local retention = registry_status.retention
         if retention then
+            local seen = tostring(retention.enabled == true)
+                .. "/"
+                .. tostring(retention.keep_last or 10)
             ctx.registry_retention_saved_enabled =
                 tostring(retention.enabled == true)
             ctx.registry_retention_saved_keep_last =
                 tostring(retention.keep_last or 10)
-            if ctx.registry_retention_form_loaded ~= "true" then
+            -- O formulário parte do servidor e o segue quando o salvo muda (outro
+            -- cliente, daemon reiniciado); enquanto o salvo é o mesmo, é do usuário.
+            if ctx.registry_retention_seen ~= seen then
                 ctx.registry_retention_form_enabled =
-                    tostring(retention.enabled == true)
+                    ctx.registry_retention_saved_enabled
                 ctx.registry_retention_form_keep_last =
-                    tostring(retention.keep_last or 10)
-                ctx.registry_retention_form_loaded = "true"
+                    ctx.registry_retention_saved_keep_last
+                ctx.registry_retention_seen = seen
             end
         end
     end

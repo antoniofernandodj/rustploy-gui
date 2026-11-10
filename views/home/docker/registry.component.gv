@@ -45,19 +45,22 @@ component {
 
     // Retenção de tags: só faz sentido com o registry ligado.
     column(class = form-panel, if = @registry_status_enabled, equals = true) {
-      row(class = env__head) {
-        toggle(
-          :checked = registry_retention_form_enabled,
-          on_toggle = field:registry_retention_form_enabled,
-          label = "{t('docker_registry.retention_toggle')}",
-        )
+      toggle(
+        :checked = registry_retention_form_enabled,
+        on_toggle = field:registry_retention_form_enabled,
+        label = "{t('docker_registry.retention_toggle')}",
+      )
 
+      row(class = env__add) {
         text("{t('docker_registry.retention_keep')}", class = u-label-cap)
 
-        input(
-          class = field__input,
+        spinbox(
+          field_class = field__spin,
+          form_control = registry_retention_form_keep_last,
           :value = registry_retention_form_keep_last,
-          on_change = field:registry_retention_form_keep_last,
+          min = 1,
+          max = 1000,
+          width = 90,
           placeholder = 10,
         )
 

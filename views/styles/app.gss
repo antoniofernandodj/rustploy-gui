@@ -318,6 +318,9 @@
 .tabs__scroll     { width: fill; }
 .tabs__main       { width: shrink; spacing: 4; }
 .env__head        { width: fill; align_y: center; }
+/* Barra de ferramentas de uma aba (texto + checkboxes + botão): sem espaço entre os itens, o rótulo de
+   um checkbox encosta no box do seguinte. */
+.env__toolbar     { width: fill; align_y: center; spacing: 16; }
 .env__add         { width: fill; spacing: 8; align_y: center; }
 .env__input       { width: fill; padding: 9 12; }
 /* Edição no lugar de chave/valor: o campo some a borda e herda a cara do texto que substitui; só o
