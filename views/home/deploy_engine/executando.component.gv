@@ -65,6 +65,8 @@ component {
                 text("@a.phase", class = "u-muted table__col-start")
 
                 button(
+                  if = @a.is_deploy,
+                  equals = true,
                   class = "btn btn--ghost btn--xs",
                   on_click = deploy_engine_open_detail:@a.service_id,
                   disabled = @busy_deploy_engine_open_detail,

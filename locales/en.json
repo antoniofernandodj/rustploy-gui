@@ -1163,5 +1163,7 @@
   "Isto SUBSTITUI os dados atuais do serviço. Clique de novo para confirmar.": "This REPLACES the service's current data. Click again to confirm.",
   "Substituir os dados?": "Replace the data?",
   "Substituir": "Replace",
-  "dados.encrypt": "Encrypt the package (age). It only opens on a server with the same identity or the recovery key."
+  "dados.encrypt": "Encrypt the package (age). It only opens on a server with the same identity or the recovery key.",
+  "aquecimento": "warm-up",
+  "job": "job"
 }

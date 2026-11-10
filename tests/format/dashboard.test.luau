@@ -724,6 +724,38 @@ function test_motor_de_deploy__a_fila_numera_de_1_e_guarda_o_id_para_cancelar()
     assert_eq(Dashboard.deploy_engine_queued({}), "[]")
 end
 
+--- job e aquecimento entram nas três listas, com o selo antes do nome; só deploy tem "Detalhes"
+function test_motor_de_deploy__job_e_aquecimento_levam_selo_nas_tres_listas()
+    local job = { kind = "Job", service_name = "limpeza", deployment_id = "jrun_1" }
+    local warm = { kind = "Warm", service_name = "limpeza", deployment_id = "jwarm_1" }
+
+    local fila = json.decode(Dashboard.deploy_engine_queued({
+        info("Pending", job),
+        info("Pending", warm),
+        info("Pending", { deployment_id = "dep_1" }),
+    }))
+    -- (o nome é truncado pela largura da coluna; o selo vem inteiro à frente)
+    assert_match(fila[1].service, "^%[job%]")
+    assert_match(fila[2].service, "^%[.+%]")
+    assert_ne(fila[1].service, fila[2].service, "job e aquecimento têm selos diferentes")
+    assert_eq(fila[3].service, "api", "deploy não leva selo")
+    assert_eq(fila[1].deployment_id, "jrun_1", "o id da execução serve a promover/cancelar")
+
+    local ativos = json.decode(Dashboard.deploy_engine_active({
+        info("ComposingUp", job),
+        info("BuildingImage"),
+    }))
+    assert_match(ativos[1].service, "^%[job%]")
+    assert_eq(ativos[1].is_deploy, "false")
+    assert_eq(ativos[2].is_deploy, "true", "deploy segue com o Detalhes")
+
+    local historico = json.decode(Dashboard.deploy_engine_recent({
+        info("Live", job),
+    }))
+    assert_match(historico[1].service, "^%[job%]")
+    assert_eq(historico[1].icon, "✓")
+end
+
 --- o histórico escolhe o ícone pelo resultado
 function test_motor_de_deploy__o_historico_escolhe_o_icone_pelo_resultado()
     local linhas = json.decode(Dashboard.deploy_engine_recent({

@@ -773,6 +773,18 @@ local function project_by_service_id(service_pairs: { ServicePair }?): { [string
     return map
 end
 
+-- A fila do Deploy Engine tem deploys, execuções de job e aquecimentos de job. Os dois últimos
+-- levam um selo antes do nome; só o deploy tem o detalhe por etapas.
+local function item_label(info: any, budget: number): string
+    local name = info.service_name
+    if info.kind == "Job" then
+        name = "[" .. i18n.tr("job") .. "] " .. name
+    elseif info.kind == "Warm" then
+        name = "[" .. i18n.tr("aquecimento") .. "] " .. name
+    end
+    return Util.ellipsis(name, budget)
+end
+
 -- Deploy Engine: "Executando agora".
 function M.deploy_engine_active(
     active: { any }?,
@@ -784,7 +796,8 @@ function M.deploy_engine_active(
     for _, info in ipairs(active or {}) do
         local label, _ = Util.state_label_color(info.state)
         table.insert(rows, {
-            service = Util.ellipsis(info.service_name, column_budgets.svc),
+            service = item_label(info, column_budgets.svc),
+            is_deploy = tostring(info.kind == nil or info.kind == "Deploy"),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
             project_id = project_by_service[info.service_id] or "",
             state_label = label,
@@ -813,7 +826,7 @@ function M.deploy_engine_queued(
             deployment_id = info.deployment_id,
             pos = tostring(index),
             service_id = info.service_id,
-            service = Util.ellipsis(info.service_name, column_budgets.svc),
+            service = item_label(info, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
             project_id = project_by_service[info.service_id] or "",
         })
@@ -840,7 +853,7 @@ function M.deploy_engine_recent(
         table.insert(rows, {
             icon = icon,
             service_id = info.service_id,
-            service = Util.ellipsis(info.service_name, column_budgets.svc),
+            service = item_label(info, column_budgets.svc),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
             project_id = project_by_service[info.service_id] or "",
             state_label = label,
