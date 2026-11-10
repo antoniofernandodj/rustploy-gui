@@ -5,6 +5,7 @@ component {
     link(rel = import, href = "general_git.component.gv", as = GeneralGit)
     link(rel = import, href = "general_zip.component.gv", as = GeneralZip)
     link(rel = import, href = "general_gitea.component.gv", as = GeneralGitea)
+    link(rel = import, href = "general_registry.component.gv", as = GeneralRegistry)
   }
 
   scrollable(
@@ -55,6 +56,13 @@ component {
               }
 
               TabButton(
+                label = "{t('general.registry')}",
+                current = @provider_tab,
+                target = registry,
+                action = select_provider_tab:registry,
+              )
+
+              TabButton(
                 label = "{t('general.zip')}",
                 current = @provider_tab,
                 target = zip,
@@ -73,6 +81,11 @@ component {
           // ── Sub-aba Zip: upload de arquivo local com Dockerfile na raiz ─
           if @provider_tab == "zip" {
             GeneralZip
+          }
+
+          // ── Sub-aba Registry: select de repositório/tag do registry embutido ─
+          if @provider_tab == "registry" {
+            GeneralRegistry
           }
 
           // ── Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch ─

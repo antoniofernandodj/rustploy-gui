@@ -59,6 +59,8 @@ local function rebuild_lists(): ()
         Helpers.is_true(ctx.docker_networks_only_used)
     )
     ctx.registry_repos = format.registry_repos(snap.registry_repos, term)
+    -- Lista do select da sub-aba Registry do serviço: sem o filtro de busca.
+    ctx.registry_picker_repos = format.registry_repos(snap.registry_repos, nil)
 end
 M.rebuild_lists = rebuild_lists
 
@@ -331,6 +333,7 @@ local function apply_snapshot(snapshot: any): ()
         )
                 and registry_status.domain
             or ("127.0.0.1:" .. tostring(registry_status.port))
+        ctx.registry_loopback = "127.0.0.1:" .. tostring(registry_status.port)
         ctx.registry_status_label = registry_status.enabled
                 and (i18n.tr("ativo em ") .. ctx.registry_host)
             or "desabilitado"

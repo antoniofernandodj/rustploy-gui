@@ -178,6 +178,7 @@ function M.fetch_service_detail(service_id: string): ()
         end
     elseif spec.source.Registry then
         source_fields.repo_url = spec.source.Registry.image or ""
+        provider_tab = "registry"
     elseif spec.source.Compose then
         compose_content = spec.source.Compose.content or ""
     end
@@ -396,6 +397,9 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_form_general_port = tostring(spec.port)
     ctx.provider_tab = provider_tab
     ctx.gitea_provider_id = gen_provider_id
+    registry_picker_load(
+        spec.source.Registry and spec.source.Registry.image or ""
+    )
 
     -- Jobs do projeto (aba Advanced → fila de pré-deploy check). Ver
     -- docs/plano-pre-deploy-gate.md.
@@ -1233,6 +1237,79 @@ function pre_deploy_check_reorder(reorder_json: string?): ()
     end)
 end
 
+-- ── Sub-aba Registry: select de repositório/tag do registry embutido ─────────
+
+-- Separa `host/repo:tag` em (repo, tag). O host (primeiro segmento com `.` ou
+-- `:`, ou `localhost`) é descartado: o select só conhece o nome do repositório.
+local function split_registry_image(image: string): (string, string)
+    local rest = image
+    local first, remainder = string.match(rest, "^([^/]+)/(.+)$")
+    if first and (string.find(first, "[%.:]") or first == "localhost") then
+        rest = remainder
+    end
+    local repo, tag = string.match(rest, "^(.+):([^:/]+)$")
+    if repo then
+        return repo, tag
+    end
+    return rest, ""
+end
+
+-- Imagem montada a partir da seleção; sempre pelo loopback do registry embutido
+-- (o mesmo endereço que o deploy reconhece sem depender de DNS/ACME).
+function registry_picker_image(): string
+    local repo = Helpers.trim(ctx.registry_picker_repo)
+    local tag = Helpers.trim(ctx.registry_picker_tag)
+    if repo == "" or tag == "" then
+        return ""
+    end
+    local host = ctx.registry_loopback or "127.0.0.1:5100"
+    return host .. "/" .. repo .. ":" .. tag
+end
+
+local function registry_picker_refresh_image(): ()
+    ctx.registry_picker_image = registry_picker_image()
+end
+
+local function registry_picker_fetch_tags(repo: string): ()
+    ctx.registry_picker_tags = json.array({})
+    local api = State.api
+    if not api or repo == "" then
+        return
+    end
+    ctx.registry_picker_busy = "true"
+    ctx.registry_picker_message = i18n.tr("carregando tags…")
+    local ok, response = api:rpc_checked { RegistryTagList = { repo = repo } }
+    ctx.registry_picker_busy = ""
+    if ok and response.RegistryTags then
+        ctx.registry_picker_tags = format.registry_tags(response.RegistryTags)
+        ctx.registry_picker_message = ""
+    else
+        ctx.registry_picker_message = i18n.tr("erro: ") .. tostring(response)
+    end
+end
+
+-- Chamada quando o serviço abre: preenche repo/tag a partir da imagem atual.
+function registry_picker_load(image: string): ()
+    local repo, tag = split_registry_image(image)
+    ctx.registry_picker_repo = repo
+    ctx.registry_picker_tag = tag
+    ctx.registry_picker_message = ""
+    registry_picker_fetch_tags(repo)
+    registry_picker_refresh_image()
+end
+
+function registry_picker_repo_pick(repo: string): ()
+    ctx.registry_picker_repo = repo or ""
+    ctx.registry_picker_tag = ""
+    registry_picker_fetch_tags(repo or "")
+    registry_picker_refresh_image()
+end
+
+function registry_picker_tag_pick(tag: string): ()
+    ctx.registry_picker_tag = tag or ""
+    registry_picker_refresh_image()
+end
+
 function general_save(): ()
     with_spec(function(spec: any): ()
         local port = tonumber(Helpers.trim(ctx.service_form_general_port))
@@ -1293,6 +1370,11 @@ function general_save(): ()
         }
         if spec.source.Compose then
             -- inalterado
+        elseif ctx.provider_tab == "registry" then
+            local image = registry_picker_image()
+            if image ~= "" then
+                spec.source = { Registry = { image = image } }
+            end
         elseif spec.source.Git or Helpers.looks_like_git_url(repo) then
             spec.source = git
         else
