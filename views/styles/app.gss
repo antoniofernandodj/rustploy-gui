@@ -309,6 +309,9 @@
 .kv-list__key  { width: fill; size: 13; color: var(--muted); }
 .kv-list__val  { size: 16; bold: true; color: var(--text); }
 .kv-list__val--compact { size: 13; color: var(--text-2); }
+/* Valor longo e sem espaços (URL, comando): ocupa o que sobra da linha e quebra ali, em vez de empurrar o botão para fora do painel. */
+.kv-list__val--wrap { width: fill; }
+.kv-list__key--fit { width: shrink; }
 .form-select   { width: fill; padding: 12 14; background: var(--raised); border_radius: 4; border_width: 1; border_color: #30363D; color: var(--text-2); }
 
 .env              { width: fill; height: fill; spacing: 10; }

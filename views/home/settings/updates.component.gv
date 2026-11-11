@@ -125,7 +125,7 @@ component {
         )
 
         row(class = kv-list__row) {
-          text("@update_install_command", class = "kv-list__val kv-list__val--compact")
+          text("@update_install_command", class = "kv-list__val kv-list__val--compact kv-list__val--wrap")
 
           button(
             class = "btn btn--ghost btn--xs",
@@ -135,8 +135,8 @@ component {
         }
 
         row(class = kv-list__row) {
-          text("{t('settings_updates.release_notes')}", class = kv-list__key)
-          text("@update_release_url", class = "kv-list__val kv-list__val--compact")
+          text("{t('settings_updates.release_notes')}", class = "kv-list__key kv-list__key--fit")
+          text("@update_release_url", class = "kv-list__val kv-list__val--compact kv-list__val--wrap")
 
           button(
             class = "btn btn--ghost btn--xs",
