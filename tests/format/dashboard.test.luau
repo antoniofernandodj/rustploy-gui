@@ -748,6 +748,10 @@ function test_motor_de_deploy__job_e_aquecimento_levam_selo_nas_tres_listas()
     assert_match(ativos[1].service, "^%[job%]")
     assert_eq(ativos[1].is_deploy, "false")
     assert_eq(ativos[2].is_deploy, "true", "deploy segue com o Detalhes")
+    assert_eq(#ativos[1].steps, 0, "job não tem a faixa de etapas do deploy")
+    assert_eq(#ativos[2].steps, 8, "deploy segue com a faixa")
+    assert_eq(ativos[1].state_label, "RUNNING", "job executa, não constrói")
+    assert_ne(ativos[2].state_label, "RUNNING")
 
     local historico = json.decode(Dashboard.deploy_engine_recent({
         info("Live", job),

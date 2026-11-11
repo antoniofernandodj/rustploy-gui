@@ -84,7 +84,7 @@ component {
                 )
               }
 
-              row(class = stepper) {
+              row(if = @a.is_deploy, equals = true, class = stepper) {
                 each @a.steps as st {
                   text("@st.text", class = "stepper__step stepper__step--@st.status")
                 }

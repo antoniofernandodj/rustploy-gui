@@ -794,15 +794,20 @@ function M.deploy_engine_active(
     local project_by_service = project_by_service_id(service_pairs)
     local rows = {}
     for _, info in ipairs(active or {}) do
+        local is_deploy = info.kind == nil or info.kind == "Deploy"
         local label, _ = Util.state_label_color(info.state)
+        if not is_deploy then
+            -- Job e aquecimento não passam pelas etapas do deploy.
+            label = i18n.tr("RUNNING")
+        end
         table.insert(rows, {
             service = item_label(info, column_budgets.svc),
-            is_deploy = tostring(info.kind == nil or info.kind == "Deploy"),
+            is_deploy = tostring(is_deploy),
             project = Util.ellipsis(info.project_name, column_budgets.proj),
             project_id = project_by_service[info.service_id] or "",
             state_label = label,
             state_kind = Util.state_kind(info.state),
-            steps = deploy_stepper(info),
+            steps = if is_deploy then deploy_stepper(info) else {},
             total = Time.format_seconds(info.elapsed_secs),
             phase = Time.format_seconds(info.current_state_secs),
             service_id = info.service_id,
