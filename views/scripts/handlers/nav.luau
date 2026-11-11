@@ -7,6 +7,8 @@ local Stream = require("stream")
 local Registry = require("registry")
 local History = require("history")
 local Settings = require("settings")
+local DataBackup = require("data_backup")
+local Recover = require("recover")
 local Services = require("services")
 
 local function goto_view(view: string): ()
@@ -65,6 +67,8 @@ function nav_settings(): ()
     end
     -- Mesma ação do botão "Refresh git list": a aba Sync precisa da lista já carregada.
     Settings.git_provider_refresh_list()
+    DataBackup.load()
+    Recover.load()
 end
 
 -- Botão "Abrir" do aviso do topo da sincronização com o git.

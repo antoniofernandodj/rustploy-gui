@@ -1,0 +1,105 @@
+// Settings → Recuperar: recuperar este servidor (git + chave de recuperação + backups no S3), Fase 4 de
+// docs/plano-backup-de-dados-para-s3.md. Handlers em handlers/recover.luau; a webui faz o mesmo em
+// `webui/index.html` (aba "Recuperar"): mude os dois juntos. A chave e o token só vivem no campo.
+component {
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-stack) {
+      column(class = form-panel) {
+        text("{t('settings_recover.title')}", class = u-label-cap)
+        text("{t('settings_recover.intro')}", class = u-muted)
+
+        // Formulário: só quando não há uma recuperação em curso (ou a última falhou).
+        column(spacing = 6, if = @recover_services_count, equals = 0) {
+          text("@recover_message", if = @recover_message, not_equals = "", class = u-muted)
+
+          text("{t('settings_recover.repository')}", class = u-label-cap)
+          input(
+            placeholder = "https://github.com/org/rustploy-estado.git",
+            class = field__input,
+            form_control = recover_remote,
+            :value = recover_remote,
+            on_change = field:recover_remote,
+          )
+
+          text("{t('settings_recover.token')}", class = u-label-cap)
+          input(
+            placeholder = "",
+            secure = true,
+            class = field__input,
+            form_control = recover_token,
+            :value = recover_token,
+            on_change = field:recover_token,
+          )
+
+          text("{t('settings_recover.branch')}", class = u-label-cap)
+          input(
+            placeholder = "main",
+            class = field__input,
+            form_control = recover_branch,
+            :value = recover_branch,
+            on_change = field:recover_branch,
+          )
+
+          text("{t('settings_recover.key')}", class = u-label-cap)
+          input(
+            placeholder = "AGE-SECRET-KEY-1…",
+            secure = true,
+            class = field__input,
+            form_control = recover_key,
+            :value = recover_key,
+            on_change = field:recover_key,
+          )
+
+          text("{t('settings_recover.key_hint')}", class = u-muted)
+
+          row(class = env__add) {
+            button(
+              class = "btn btn--primary",
+              on_click = recover_start,
+              disabled = @busy_recover_start,
+              text = "{t('settings_recover.restore_infra')}"
+            )
+          }
+        }
+
+        // Resumo e acompanhamento.
+        column(spacing = 6, if = @recover_services_count, not_equals = 0) {
+          text(
+            "{t('settings_recover.found', recover_projects=recover_projects)}",
+            class = u-label-cap,
+          )
+          text("@recover_destination_error", if = @recover_destination_error, not_equals = "", class = u-error)
+
+          each @recover_services as r {
+            row(class = kv-list__row) {
+              text("@r.kind", class = env__key)
+              text("@r.who", class = kv-list__val)
+              text("@r.backup", class = u-muted)
+              text("@r.step", class = u-muted)
+            }
+          }
+
+          text("{t('settings_recover.ready_hint')}", if = @recover_phase, equals = ready, class = u-muted)
+          text("{t('settings_recover.running')}", if = @recover_phase, equals = running, class = u-muted)
+          text("{t('settings_recover.done')}", if = @recover_phase, equals = done, class = u-muted)
+          text("@recover_message", if = @recover_message, not_equals = "", class = u-error)
+
+          row(class = env__add, if = @recover_phase, equals = ready) {
+            button(
+              class = "btn btn--primary",
+              on_click = recover_run,
+              disabled = @busy_recover_run,
+              text = "{t('settings_recover.restore_data')}"
+            )
+            button(
+              class = btn-secondary,
+              on_click = recover_cancel,
+              disabled = @busy_recover_cancel,
+              text = "{t('common.cancel')}"
+            )
+          }
+        }
+      }
+    }
+  }
+}

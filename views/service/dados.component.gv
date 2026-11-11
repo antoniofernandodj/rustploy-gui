@@ -31,6 +31,146 @@ component {
         )
       }
 
+      // ── Backup no S3 (Fase 2 de docs/plano-backup-de-dados-para-s3.md; handlers/service_backup.luau) ──
+      text("{t('dados.s3_backup_title')}", class = u-label-cap)
+      text("{t('dados.s3_backup_intro')}", class = u-muted)
+
+      text("@data_backup_blocked", if = @data_backup_blocked, not_equals = "", class = u-muted)
+      text("@data_backup_list_error", if = @data_backup_list_error, not_equals = "", class = u-error)
+
+      row(class = env__add, if = @data_backup_ready, equals = true) {
+        button(
+          class = "btn btn--primary",
+          if = @data_backup_blocked,
+          equals = "",
+          on_click = service_backup_now,
+          disabled = @data_backup_running,
+          text = "{t('dados.s3_backup_now')}",
+        )
+        button(
+          class = btn-secondary,
+          on_click = service_backup_refresh,
+          disabled = @busy_service_backup_refresh,
+          text = "{t('dados.s3_backup_refresh')}",
+        )
+      }
+
+      column(spacing = 6, if = @data_backup_ready, equals = true) {
+        text("{t('dados.s3_policy_title')}", class = u-label-cap)
+
+        toggle(
+          :checked = data_backup_enabled,
+          on_toggle = field:data_backup_enabled,
+          label = "{t('dados.s3_policy_enable')}",
+        )
+
+        column(spacing = 6, if = @data_backup_enabled, equals = true) {
+          scroll(class = tabs__scroll, direction = horizontal) {
+            tabbar(
+              :value = data_backup_kind,
+              active = @data_backup_kind,
+              :items = docker_cleanup_kinds,
+              tab_class = tabs__tab,
+              tab_active_class = "tabs__tab tabs__tab--active",
+              padding = "9 16",
+              size = 14,
+              active_bold = false,
+            )
+          }
+
+          row(class = env__add, if = @data_backup_kind, equals = interval) {
+            text("{t('dados.s3_policy_every')}", class = u-muted)
+            spinbox(
+              field_class = field__spin,
+              form_control = data_backup_hours,
+              :value = data_backup_hours,
+              min = 1,
+              max = 168,
+              width = 90,
+              placeholder = 6,
+            )
+            text("{t('dados.s3_policy_hours')}", class = u-muted)
+          }
+
+          scroll(class = tabs__scroll, direction = horizontal, if = @data_backup_kind, equals = weekly) {
+            row(class = tabs__main) {
+              radiogroup(:value = data_backup_weekday, :items = weekdays, layout = row)
+            }
+          }
+
+          row(class = env__add, if = @data_backup_kind, not_equals = interval) {
+            text("{t('dados.s3_policy_at_utc')}", class = u-muted)
+            timeedit(:value = data_backup_time)
+          }
+
+          row(class = env__add) {
+            text("{t('dados.s3_policy_keep')}", class = u-muted)
+            spinbox(
+              field_class = field__spin,
+              form_control = data_backup_keep,
+              :value = data_backup_keep,
+              min = 1,
+              max = 365,
+              width = 90,
+              placeholder = 7,
+            )
+          }
+
+          checkbox(
+            :checked = data_backup_stop,
+            on_toggle = field:data_backup_stop,
+            label = "{t('dados.s3_policy_stop')}",
+          )
+
+          text(
+            "{t('dados.s3_policy_next', data_backup_next=data_backup_next)}",
+            if = @data_backup_next,
+            not_equals = "",
+            class = u-muted,
+          )
+        }
+
+        row(class = env__add) {
+          button(
+            class = "btn btn--primary",
+            on_click = service_backup_policy_save,
+            disabled = @busy_service_backup_policy_save,
+            text = "{t('dados.s3_policy_save')}",
+          )
+        }
+      }
+
+      text("@data_backup_run_label", if = @data_backup_run_label, not_equals = "", class = u-muted)
+      text("@data_backup_checks", if = @data_backup_checks, not_equals = "", class = u-muted)
+
+      column(spacing = 4, if = @data_backups_count, not_equals = 0) {
+        each @data_backups as b {
+          row(class = kv-list__row) {
+            button(
+              class = "btn btn--danger btn--xs",
+              on_click = service_backup_delete:@b.key,
+              disabled = @busy_service_backup_delete,
+              text = "✕",
+            )
+            text("@b.when", class = kv-list__val)
+            text("@b.size", class = u-muted)
+            button(
+              class = "btn btn--ghost btn--xs",
+              on_click = service_backup_restore:@b.key,
+              disabled = @data_backup_running,
+              text = "{t('dados.s3_backup_restore')}",
+            )
+          }
+        }
+      }
+
+      text(
+        "{t('dados.s3_backup_none')}",
+        if = @data_backups_count,
+        equals = 0,
+        class = u-muted,
+      )
+
       text("{t('dados.import_title')}", class = u-label-cap)
 
       row(class = env__add) {

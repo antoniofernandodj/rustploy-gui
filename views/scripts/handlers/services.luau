@@ -10,6 +10,7 @@ local State = require("../state")
 local Helpers = require("../helpers")
 local format = require("../format")
 local History = require("history")
+local ServiceBackup = require("service_backup")
 
 local M = {}
 
@@ -1441,6 +1442,7 @@ end
 -- ── Dados do serviço (aba Dados) ────────────────────────────────────────
 
 function M.data_reset(): ()
+    ServiceBackup.reset()
     ctx.data_parts_text = ""
     ctx.data_blocked = ""
     ctx.data_notes_text = ""
@@ -1478,6 +1480,7 @@ function M.data_load(): ()
         ctx.data_message = tostring(response)
         return
     end
+    ServiceBackup.load(true)
     local plan = response.ServiceDataPlan
     ctx.data_parts_text = M.data_parts_text(plan.parts)
     ctx.data_blocked = plan.blocked or ""

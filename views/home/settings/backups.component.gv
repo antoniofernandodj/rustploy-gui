@@ -1,0 +1,131 @@
+// Settings → Backups: o destino S3 dos backups de dados dos serviços (plano em
+// docs/plano-backup-de-dados-para-s3.md, Fase 1). Handlers em handlers/data_backup.luau; a webui faz o
+// mesmo em `webui/index.html` (aba "Backups"): mude os dois juntos. A chave secreta nunca volta do
+// daemon: o campo fica vazio e, vazio, mantém a que já está gravada.
+component {
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-stack) {
+      column(class = form-panel) {
+        text("{t('settings_backups.s3_destination')}", class = u-label-cap)
+
+        text("{t('settings_backups.destination_hint')}", class = u-muted)
+
+        text(
+          "{t('settings_backups.no_recovery_recipient')}",
+          if = @backup_destination_recovery_missing,
+          equals = true,
+          class = u-error,
+        )
+
+        text("{t('settings_backups.endpoint')}", class = u-label-cap)
+
+        input(
+          placeholder = "https://s3.us-east-005.backblazeb2.com",
+          class = field__input,
+          form_control = backup_destination_endpoint,
+          :value = backup_destination_endpoint,
+          on_change = field:backup_destination_endpoint,
+        )
+
+        row(class = healthcheck__grid) {
+          column(class = healthcheck__field) {
+            text("{t('settings_backups.bucket')}", class = u-label-cap)
+
+            input(
+              placeholder = "meu-bucket",
+              class = field__input,
+              form_control = backup_destination_bucket,
+              :value = backup_destination_bucket,
+              on_change = field:backup_destination_bucket,
+            )
+          }
+
+          column(class = healthcheck__field) {
+            text("{t('settings_backups.region')}", class = u-label-cap)
+
+            input(
+              placeholder = "us-east-1",
+              class = field__input,
+              form_control = backup_destination_region,
+              :value = backup_destination_region,
+              on_change = field:backup_destination_region,
+            )
+          }
+        }
+
+        text("{t('settings_backups.folder')}", class = u-label-cap)
+
+        input(
+          placeholder = "rustploy/meu-servidor",
+          class = field__input,
+          form_control = backup_destination_prefix,
+          :value = backup_destination_prefix,
+          on_change = field:backup_destination_prefix,
+        )
+
+        toggle(
+          :checked = backup_destination_path_style,
+          on_toggle = field:backup_destination_path_style,
+          label = "{t('settings_backups.path_style')}",
+        )
+
+        text("{t('settings_backups.path_style_hint')}", class = u-muted)
+
+        text("{t('settings_backups.access_key')}", class = u-label-cap)
+
+        input(
+          placeholder = "",
+          class = field__input,
+          form_control = backup_destination_access_key,
+          :value = backup_destination_access_key,
+          on_change = field:backup_destination_access_key,
+        )
+
+        text("{t('settings_backups.secret_key')}", class = u-label-cap)
+
+        input(
+          placeholder = "{t('settings_backups.secret_key_placeholder')}",
+          secure = true,
+          class = field__input,
+          form_control = backup_destination_secret_key,
+          :value = backup_destination_secret_key,
+          on_change = field:backup_destination_secret_key,
+        )
+
+        text(
+          "{t('settings_backups.secret_key_saved')}",
+          if = @backup_destination_secret_set,
+          equals = true,
+          class = u-muted,
+        )
+
+        row(class = env__add) {
+          button(
+            class = "btn btn--primary",
+            on_click = backup_destination_save,
+            disabled = @busy_backup_destination_save,
+            text = "{t('common.save')}"
+          )
+
+          button(
+            class = "btn btn--ghost",
+            on_click = backup_destination_test,
+            disabled = @busy_backup_destination_test,
+            text = "{t('settings_backups.test_connection')}"
+          )
+
+          if @backup_destination_configured == "true" {
+            button(
+              class = "btn btn--danger",
+              on_click = backup_destination_clear,
+              disabled = @busy_backup_destination_clear,
+              text = "{t('common.remove')}"
+            )
+          }
+
+          text("@backup_destination_message", class = u-muted)
+        }
+      }
+    }
+  }
+}

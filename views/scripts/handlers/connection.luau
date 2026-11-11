@@ -145,6 +145,8 @@ function init(): ()
         { id = "git", label = "Git" },
         { id = "maintenance", label = i18n.tr("Manutenção") },
         { id = "gitsync", label = i18n.tr("Sincronização") },
+        { id = "backups", label = i18n.tr("Backups") },
+        { id = "recover", label = i18n.tr("Recuperar") },
         { id = "updates", label = i18n.tr("Atualizações") },
         { id = "language", label = i18n.tr("Idioma") },
     }
@@ -156,6 +158,48 @@ function init(): ()
         { id = "commit", label = i18n.tr("Só commit (local)") },
         { id = "sync", label = i18n.tr("Sincronizar") },
     }
+    -- Aba Dados → Backup no S3: a lista nasce vazia (o markup nunca lê `nil`); handlers/service_backup.luau.
+    ctx.data_backups = ctx.data_backups or json.array {}
+    ctx.data_backups_count = ctx.data_backups_count or "0"
+    ctx.data_backup_blocked = ctx.data_backup_blocked or ""
+    ctx.data_backup_list_error = ctx.data_backup_list_error or ""
+    ctx.data_backup_run_label = ctx.data_backup_run_label or ""
+    ctx.data_backup_checks = ctx.data_backup_checks or ""
+    ctx.data_backup_running = ctx.data_backup_running or "false"
+    ctx.data_backup_ready = ctx.data_backup_ready or "false"
+    ctx.data_backup_enabled = ctx.data_backup_enabled or "false"
+    ctx.data_backup_kind = ctx.data_backup_kind or "daily"
+    ctx.data_backup_hours = ctx.data_backup_hours or "6"
+    ctx.data_backup_time = ctx.data_backup_time or "03:00"
+    ctx.data_backup_weekday = ctx.data_backup_weekday or "0"
+    ctx.data_backup_keep = ctx.data_backup_keep or "7"
+    ctx.data_backup_stop = ctx.data_backup_stop or "true"
+    ctx.data_backup_next = ctx.data_backup_next or ""
+    -- Aba Recuperar (docs/plano-backup-de-dados-para-s3.md, Fase 4); handlers/recover.luau. A chave e o token
+    -- só moram no campo: o handler os apaga ao enviar.
+    ctx.recover_remote = ctx.recover_remote or ""
+    ctx.recover_token = ctx.recover_token or ""
+    ctx.recover_branch = ctx.recover_branch or ""
+    ctx.recover_key = ctx.recover_key or ""
+    ctx.recover_phase = ctx.recover_phase or "idle"
+    ctx.recover_projects = ctx.recover_projects or "0"
+    ctx.recover_destination_error = ctx.recover_destination_error or ""
+    ctx.recover_message = ctx.recover_message or ""
+    ctx.recover_services = ctx.recover_services or json.array {}
+    ctx.recover_services_count = ctx.recover_services_count or "0"
+    -- Aba Backups (destino S3 dos backups de dados): o formulário; os valores reais vêm de
+    -- `BackupDestinationGet` ao abrir Settings (handlers/data_backup.luau). A chave secreta nunca volta.
+    ctx.backup_destination_endpoint = ctx.backup_destination_endpoint or ""
+    ctx.backup_destination_region = ctx.backup_destination_region or "us-east-1"
+    ctx.backup_destination_bucket = ctx.backup_destination_bucket or ""
+    ctx.backup_destination_prefix = ctx.backup_destination_prefix or ""
+    ctx.backup_destination_path_style = ctx.backup_destination_path_style or "true"
+    ctx.backup_destination_access_key = ctx.backup_destination_access_key or ""
+    ctx.backup_destination_secret_key = ctx.backup_destination_secret_key or ""
+    ctx.backup_destination_configured = ctx.backup_destination_configured or "false"
+    ctx.backup_destination_secret_set = ctx.backup_destination_secret_set or "false"
+    ctx.backup_destination_recovery_missing = ctx.backup_destination_recovery_missing or "false"
+    ctx.backup_destination_message = ctx.backup_destination_message or ""
     ctx.service_dependencies = ctx.service_dependencies or "[]"
     ctx.service_dependency_options = ctx.service_dependency_options or "[]"
     ctx.service_dependencies_count = ctx.service_dependencies_count or "0"
