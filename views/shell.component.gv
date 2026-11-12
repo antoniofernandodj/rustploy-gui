@@ -9,6 +9,7 @@ component {
     link(rel = import, href = "shell/deployments.component.gv", as = DeploymentsView)
     link(rel = import, href = "shell/projects.component.gv", as = ProjectsView)
     link(rel = import, href = "shell/project_services.component.gv", as = ProjectServicesView)
+    link(rel = import, href = "shell/job_env.component.gv", as = JobEnvView)
     link(rel = import, href = "components/project_card.component.gv", as = ProjectCard)
     link(rel = import, href = "components/service_card.component.gv", as = ServiceCard)
     link(rel = import, href = "components/running_card.component.gv", as = RunningCard)
@@ -214,6 +215,8 @@ component {
         ProjectsView
       } else if @view == "project_services" {
         ProjectServicesView
+      } else if @view == "job_env" {
+        JobEnvView
       } else if @view == "service" {
         // ── Service detail / demais views ────────────────────────────
         ServiceDetail

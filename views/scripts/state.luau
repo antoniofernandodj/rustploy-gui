@@ -58,6 +58,9 @@ export type State = {
     -- job_id → Job cru (do snapshot) — job_toggle precisa do
     -- compose/name/main_service completos pra reenviar o JobUpdate.
     jobs_by_id: { [string]: any },
+    -- Job cru da tela "Variáveis e secrets do job" (handlers/job_env.luau), relido do daemon a cada
+    -- mudança: o JobUpdate das envs precisa dos demais campos.
+    job_env_raw: any,
     -- job_id → true entre o click em "Rodar agora" e o refresh_now() que
     -- confirma o novo job_run — trava double-click durante o round-trip da RPC
     -- (o botão só reflete `running` do snapshot DEPOIS disso).
@@ -95,6 +98,7 @@ local shared_state: State = {
     revealed_secrets = {},
     service_warm_by_id = {},
     jobs_by_id = {},
+    job_env_raw = nil,
     jobs_inflight = {},
     docker_cleanup_last_run_at_raw = nil,
     update_checked_at = "",

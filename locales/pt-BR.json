@@ -746,5 +746,12 @@
   "dados.s3_policy_keep": "Manter os últimos",
   "dados.s3_policy_stop": "Parar o serviço durante a cópia (recomendado)",
   "dados.s3_policy_next": "Próximo backup: {data_backup_next}",
-  "dados.s3_policy_save": "Salvar política"
+  "dados.s3_policy_save": "Salvar política",
+  "job_actions.variables": "🔑  Variáveis e secrets",
+  "job_env.title": "Variáveis e secrets · {job_env_name}",
+  "job_env.variable_s": "{job_env_count} variável(eis)",
+  "job_env.hint": "Para um valor sensível, use um secret: escreva <secret:NOME> ou secret:NOME como valor aqui ou no editor .env, ou use o 🔒 numa variável. O job enxerga primeiro os secrets dele, depois os do serviço gatilho e os do projeto.",
+  "job_env.job_secrets": "Secrets do job ({job_secrets_count})",
+  "job_env.job_secrets_hint": "Valores cifrados usados só por este job (valem antes de um secret do serviço gatilho ou do projeto com o mesmo nome). O valor real nunca volta para cá: salvar com um nome existente substitui, e vale na próxima execução.",
+  "job_env.no_job_secret": "Nenhum secret neste job ainda."
 }

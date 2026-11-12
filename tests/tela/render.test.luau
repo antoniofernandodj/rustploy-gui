@@ -1339,3 +1339,34 @@ function test_projeto_mover_so_destrava_com_destino()
     assert_eq(#livre, 1)
     assert_eq(livre[1].attrs.disabled, false)
 end
+
+-- ── variáveis e secrets de um job ───────────────────────────────────────────
+
+--- a tela do job avalia e mostra envs, secrets e os mesmos botões do serviço
+function test_job_env_tela()
+    local Format = require("format")
+    local tela = app("job_env", {
+        job_env_name = "backup",
+        job_env = Format.env_json_with_comments({
+            { key = "OLA", value = { Plain = "mundo" } },
+            { key = "TOKEN", value = { Secret = "TOKEN" } },
+        }, {}),
+        job_env_count = "2",
+        job_secrets = Format.secret_rows({ "TOKEN" }, "job:job_1"),
+        job_secrets_count = "1",
+    })
+    rende(tela)
+    local textos = tela:texts()
+    assert_true(tem_trecho(textos, "backup"), "nome do job ausente")
+    assert_true(tem_trecho(textos, "OLA"), "variável ausente")
+    assert_true(tem_trecho(textos, "TOKEN"), "secret ausente")
+    for _, botao in { "🔒", "↑", "🔓", "👁", "✏️", "✎" } do
+        assert_true(tem_trecho(tela:buttons(), botao), "botão " .. botao .. " ausente")
+    end
+    -- sem secrets: o estado vazio aparece
+    seta(tela, { job_secrets = "[]", job_secrets_count = "0" })
+    assert_true(tem_trecho(tela:texts(), "No secret in this job yet."), "estado vazio ausente")
+    -- editor .env aberto
+    seta(tela, { job_env_text_open = "true", job_env_text = "A=1" })
+    rende(tela)
+end

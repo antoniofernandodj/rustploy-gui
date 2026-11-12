@@ -434,6 +434,15 @@ function project_env_add(): ()
 end
 
 function project_env_delete(key: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Remover variável?"),
+        message = i18n.tr('A variável "') .. key .. i18n.tr('" será removida do projeto; os serviços e jobs deixam de herdá-la.'),
+        confirm_label = i18n.tr("Remover"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
     with_project_env(function(project_env_record: any): ()
         local kept = json.array {}
         for _, env_var in ipairs(project_env_record.env_vars) do
@@ -494,6 +503,15 @@ function project_env_import(): ()
     local vars, comments, errors = Helpers.parse_dotenv(ctx.project_env_text)
     if #errors > 0 then
         toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Substituir as variáveis?"),
+        message = i18n.tr('Todas as variáveis do projeto serão substituídas pelo texto do editor.'),
+        confirm_label = i18n.tr("Substituir"),
+        destructive = true,
+    }
+    if not confirmed then
         return
     end
     with_project_env(function(project_env_record: any): ()

@@ -24,6 +24,7 @@ require("handlers/service_backup")
 require("handlers/recover")
 require("handlers/registry")
 require("handlers/jobs")
+require("handlers/job_env")
 require("handlers/deploy_queue")
 require("handlers/bundle")
 

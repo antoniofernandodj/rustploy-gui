@@ -177,6 +177,14 @@ local function target_service(): string?
 end
 
 function project_env_to_secret(key: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Mover para secret?"),
+        message = i18n.tr('O valor de "') .. key .. i18n.tr('" passa a ser guardado cifrado.'),
+        confirm_label = i18n.tr("Mover para secret"),
+    }
+    if not confirmed then
+        return
+    end
     project_move(
         "EnvToSecret",
         key,
@@ -212,6 +220,14 @@ function project_secret_to_service(name: string): ()
     if service_id == nil then
         return
     end
+    local confirmed = confirm {
+        title = i18n.tr("Mover para o serviço?"),
+        message = i18n.tr('O secret "') .. name .. i18n.tr('" vai para o serviço escolhido; os outros serviços e jobs deixam de enxergá-lo.'),
+        confirm_label = i18n.tr("Mover para o serviço"),
+    }
+    if not confirmed then
+        return
+    end
     project_move(
         "ProjectSecretToService",
         name,
@@ -223,6 +239,14 @@ end
 function project_env_to_service(key: string): ()
     local service_id = target_service()
     if service_id == nil then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Mover para o serviço?"),
+        message = i18n.tr('A variável "') .. key .. i18n.tr('" vai para o serviço escolhido; os outros serviços e jobs deixam de herdá-la.'),
+        confirm_label = i18n.tr("Mover para o serviço"),
+    }
+    if not confirmed then
         return
     end
     project_move(

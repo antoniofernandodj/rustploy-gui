@@ -1,0 +1,391 @@
+// Tela "Variáveis e secrets do job" (view = job_env): as envs e os secrets de UM job, com os mesmos
+// botões da aba Environment do serviço. Importada por shell.component.gv; handlers em
+// scripts/handlers/job_env.luau.
+component {
+  resources {
+    component(name = SemVariaveisDoJob) {
+      text("{t('common.no_variables')}", class = u-muted)
+    }
+
+    component(name = SemSecretsDoJob) {
+      text("{t('job_env.no_job_secret')}", class = u-muted)
+    }
+  }
+
+  row(class = env__head) {
+    button(class = "btn btn--ghost btn--sm", on_click = job_env_back, text = "{t('common.back')}")
+    text("{t('job_env.title', job_env_name=job_env_name)}", class = "u-label-cap u-fill")
+  }
+
+  column(class = env) {
+    row(class = env__head) {
+      text("{t('job_env.variable_s', job_env_count=job_env_count)}", class = "u-muted u-fill")
+
+      if @job_env_text_open == "true" {
+        button(
+          class = "btn btn--blue btn--wide",
+          on_click = job_env_text_toggle,
+          disabled = @busy_job_env_text_toggle,
+          text = "{t('common.close')}",
+        )
+      } else {
+        button(class = tabs__tab, on_click = job_env_text_toggle, disabled = @busy_job_env_text_toggle, text = "{t('common.env')}")
+      }
+    }
+
+    form(
+      name = job_env_add,
+      on_submit = job_env_add,
+      on_validation_error = job_env_show_validation_errors,
+      class = "form form--gap-8",
+    ) {
+      row(class = env__add) {
+        input(
+          class = env__input,
+          form_control = job_env_new_key,
+          rules = required,
+          msg = "{t('common.enter_the_key')}",
+          placeholder = "{t('common.key')}",
+        )
+      }
+
+      row(class = env__add) {
+        input(
+          class = env__input,
+          form_control = job_env_new_value,
+          placeholder = "{t('common.value')}",
+        )
+      }
+
+      row(class = env__add) {
+        button(type = submit, disabled = @busy_job_env_add, class = "btn btn--primary", text = "{t('common.add')}")
+      }
+    }
+
+    text(
+      "{t('job_env.hint')}",
+      class = "u-muted u-fill",
+    )
+
+    text(
+      "@error_job_env_new_key",
+      if = @error_job_env_new_key,
+      not_equals = "",
+      class = u-error,
+    )
+
+    scrollable(direction = vertical, class = u-fill-all) {
+      column(class = kv-list) {
+        template(
+          :for_each = job_env,
+          var = e,
+          on_reorder = job_env_reorder,
+          reorder_key = key,
+          foreach_fallback = SemVariaveisDoJob,
+        ) {
+          if @e.__dragging == "true" {
+            row(class = "kv-list__row kv-list__row--dragging", if = @e.kind, equals = comment) {
+              text(
+                "⋮ ",
+                class = "env__drag-handle env__drag-handle--dragging",
+                drag_handle = true,
+              )
+
+              text("@e.value", class = u-muted)
+            }
+
+            row(class = "kv-list__row kv-list__row--dragging", else) {
+              text(
+                "⋮ ",
+                class = "env__drag-handle env__drag-handle--dragging",
+                drag_handle = true,
+              )
+
+              button(
+                class = env__del,
+                on_click = job_env_delete:@e.key,
+                disabled = @busy_job_env_delete,
+                text = "✕",
+              )
+
+              text(class = env__sep)
+              text("@e.key_display", class = env__key)
+              text("@e.value", class = "kv-list__val kv-list__val--compact")
+            }
+          } else {
+            row(class = kv-list__row, if = @e.kind, equals = comment) {
+              text(
+                "⋮ ",
+                class = env__drag-handle,
+                drag_handle = true,
+              )
+
+              text("@e.value", class = u-muted)
+            }
+
+            row(class = kv-list__row, else) {
+              text(
+                "⋮ ",
+                class = env__drag-handle,
+                drag_handle = true,
+              )
+
+              button(
+                class = env__del,
+                on_click = job_env_delete:@e.key,
+                disabled = @busy_job_env_delete,
+                text = "✕",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = job_env_edit_key:@e.key,
+                text = "✏️",
+                tooltip = "{t('environment.rename')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = job_env_edit_value:@e.key,
+                text = "✎",
+                tooltip = "{t('environment.edit_value')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = job_env_to_secret:@e.key,
+                disabled = @busy_job_env_to_secret,
+                if = @e.kind,
+                equals = plain,
+                text = "🔒",
+                tooltip = "{t('environment.to_secret')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = job_env_to_project:@e.key,
+                disabled = @busy_job_env_to_project,
+                if = @e.kind,
+                equals = plain,
+                text = "↑",
+                tooltip = "{t('environment.env_to_project')}",
+              )
+
+              button(
+                class = "btn btn--ghost btn--sm",
+                on_click = job_secret_to_env:@e.secret_name,
+                disabled = @busy_job_secret_to_env,
+                if = @e.kind,
+                equals = secret,
+                text = "🔓",
+                tooltip = "{t('environment.secret_to_env')}",
+              )
+
+              text(class = env__sep)
+              if @job_env_edit_id == @e.edit_key_id {
+                form(name = job_env_edit, on_submit = job_env_edit_apply, class = "form env__edit env__edit--key") {
+                  row(class = env__add) {
+                    input(class = env__inline, form_control = job_env_edit_draft, autofocus = true)
+                    button(type = submit, disabled = @busy_job_env_edit_apply, class = "btn btn--ghost btn--sm", text = "✓")
+                    button(on_click = job_env_edit_cancel, class = "btn btn--ghost btn--sm", text = "✕")
+                  }
+                }
+              } else {
+                text("@e.key_display", class = env__key)
+              }
+
+              if @job_env_edit_id == @e.edit_value_id {
+                form(name = job_env_edit_value, on_submit = job_env_edit_apply, class = "form env__edit env__edit--value") {
+                  row(class = env__add) {
+                    input(class = env__inline, form_control = job_env_edit_draft, autofocus = true)
+                    button(type = submit, disabled = @busy_job_env_edit_apply, class = "btn btn--ghost btn--sm", text = "✓")
+                    button(on_click = job_env_edit_cancel, class = "btn btn--ghost btn--sm", text = "✕")
+                  }
+                }
+              } else {
+                text("@e.value", class = "kv-list__val kv-list__val--compact")
+              }
+            }
+          }
+        }
+
+        // ── Secrets deste serviço (só nomes; o valor nunca volta do daemon) ──────────────────
+        hr
+
+        text(
+          "{t('job_env.job_secrets', job_secrets_count=job_secrets_count)}",
+          class = u-label-cap,
+        )
+
+        text(
+          "{t('job_env.job_secrets_hint')}",
+          class = "u-muted u-fill",
+        )
+
+        form(
+          name = job_secret_add,
+          on_submit = job_secret_add,
+          on_validation_error = job_secret_add_show_validation_errors,
+          class = "form form--gap-8",
+        ) {
+          row(class = env__add) {
+            input(
+              class = env__input,
+              form_control = job_secret_new_name,
+              rules = required,
+              msg = "{t('common.enter_a_name')}",
+              placeholder = "{t('common.name')}",
+            )
+          }
+
+          row(class = env__add) {
+            input(
+              class = env__input,
+              form_control = job_secret_new_value,
+              rules = required,
+              msg = "{t('project_secrets.enter_a_value')}",
+              placeholder = "{t('project_secrets.value_encrypted_on_save')}",
+            )
+          }
+
+          row {
+            button(
+              type = submit,
+              disabled = @busy_job_secret_add,
+              class = "btn btn--primary",
+              text = "{t('project_secrets.save_secret')}",
+            )
+          }
+        }
+
+        if @job_rename_open == "job_secret" {
+          row(class = env__add) {
+            text("{t('rename.label', rename_from=job_rename_from)}", class = u-muted)
+
+            input(
+              class = env__input,
+              form_control = job_rename_to,
+              :value = job_rename_to,
+              on_change = field:job_rename_to,
+              placeholder = "{t('rename.new_name')}",
+            )
+
+            button(
+              class = "btn btn--primary",
+              on_click = job_rename_apply,
+              disabled = @busy_job_rename_apply,
+              text = "{t('rename.apply')}",
+            )
+
+            button(
+              class = "btn btn--ghost",
+              on_click = job_rename_cancel,
+              text = "{t('common.cancel')}",
+            )
+          }
+        }
+
+        each @job_secrets as s (fallback = SemSecretsDoJob) {
+          column(class = kv-list__block) {
+          row(class = kv-list__row) {
+            button(
+              class = env__del,
+              on_click = job_secret_delete:@s.name,
+              disabled = @busy_job_secret_delete,
+              text = "✕",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = job_secret_rename_pick:@s.name,
+              text = "✏️",
+              tooltip = "{t('environment.rename')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = job_secret_to_env:@s.name,
+              disabled = @busy_job_secret_to_env,
+              text = "🔓",
+              tooltip = "{t('environment.secret_to_env')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = job_secret_to_project:@s.name,
+              disabled = @busy_job_secret_to_project,
+              text = "↑",
+              tooltip = "{t('environment.secret_to_project')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = job_secret_reveal:@s.name,
+              disabled = @busy_job_secret_reveal,
+              if = @s.revealed,
+              equals = false,
+              text = "👁",
+              tooltip = "{t('environment.secret_reveal')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = job_secret_hide:@s.name,
+              if = @s.revealed,
+              equals = true,
+              text = "🙈",
+              tooltip = "{t('environment.secret_hide')}",
+            )
+
+            button(
+              class = "btn btn--ghost btn--sm",
+              on_click = secret_copy:@s.ref,
+              if = @s.revealed,
+              equals = true,
+              text = "📋",
+              tooltip = "{t('environment.secret_copy')}",
+            )
+
+            text(class = env__sep)
+            text("@s.name_display", class = env__key)
+          }
+
+          row(class = kv-list__row, if = @s.revealed, equals = true) {
+            text("@s.value", class = "kv-list__val")
+          }
+          }
+        }
+
+        if @job_env_text_open == "true" {
+          text(
+            "{t('common.paste_edit_in_the_key')}",
+            class = u-muted,
+          )
+
+          textarea(
+            class = env__editor,
+            font = mono,
+            :value = job_env_text,
+            placeholder = "{t('common.key_value_comment')}",
+          )
+
+          row(class = env__add) {
+            button(
+              class = "btn btn--primary",
+              on_click = job_env_import,
+              disabled = @busy_job_env_import,
+              text = "{t('common.save')}",
+            )
+
+            button(
+              class = "btn btn--ghost",
+              on_click = job_env_text_cancel,
+              disabled = @busy_job_env_text_cancel,
+              text = "{t('common.cancel')}",
+            )
+          }
+        }
+      }
+    }
+  }
+}

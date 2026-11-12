@@ -115,6 +115,13 @@ component {
 
       button(
         class = "btn btn--ghost btn--sm job-actions__item",
+        on_click = job_env_open:@job_id,
+        disabled = @busy_job_env_open,
+        text = "{t('job_actions.variables')}",
+      )
+
+      button(
+        class = "btn btn--ghost btn--sm job-actions__item",
         on_click = open_edit_job_window:@job_id,
         disabled = @busy_open_edit_job_window,
         text = "{t('job_actions.edit')}",

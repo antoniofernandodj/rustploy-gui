@@ -1761,6 +1761,14 @@ end
 -- "→ secret" numa variável em claro: o valor passa a ser guardado cifrado e a variável vira uma
 -- referência ao secret (mesmo nome). O valor não muda, então nada precisa ser redigitado.
 function env_to_secret(key: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Mover para secret?"),
+        message = i18n.tr('O valor de "') .. key .. i18n.tr('" passa a ser guardado cifrado.'),
+        confirm_label = i18n.tr("Mover para secret"),
+    }
+    if not confirmed then
+        return
+    end
     local service_id = ctx.selected_service or ""
     local project_id = ctx.service_project_id or ""
     local api = State.api
@@ -1980,6 +1988,15 @@ function env_to_project(key: string): ()
 end
 
 function env_delete(key: string): ()
+    local confirmed = confirm {
+        title = i18n.tr("Remover variável?"),
+        message = i18n.tr('A variável "') .. key .. i18n.tr('" será removida deste serviço.'),
+        confirm_label = i18n.tr("Remover"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
     with_spec(function(spec: any): ()
         local kept = json.array {}
         for _, env_var in ipairs(spec.env_vars or {}) do
@@ -2003,6 +2020,15 @@ function env_import(): ()
     local _, _, errors = Helpers.parse_dotenv(text)
     if #errors > 0 then
         toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Substituir as variáveis?"),
+        message = i18n.tr('Todas as variáveis deste serviço serão substituídas pelo texto do editor.'),
+        confirm_label = i18n.tr("Substituir"),
+        destructive = true,
+    }
+    if not confirmed then
         return
     end
     with_spec(function(spec: any): ()
