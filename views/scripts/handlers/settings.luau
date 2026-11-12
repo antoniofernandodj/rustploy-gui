@@ -190,13 +190,59 @@ function git_provider_connect(): ()
     git_provider_refresh_list()
 end
 
+-- Quem (serviço ou job) ainda clona com esta conta, como "projeto/nome" — do snapshot. Sem a conta o
+-- próximo deploy deles falha no clone. O daemon também recusa a remoção (`InUse`) sem `force`.
+local function git_provider_users(provider_id: string): { string }
+    local snap: any = State.snap
+    local project_names: { [string]: string } = {}
+    for _, project in ipairs((snap and snap.projects) or {}) do
+        project_names[project.id] = project.name
+    end
+    local users: { string } = {}
+    for _, entry in ipairs((snap and snap.services) or {}) do
+        local spec = entry.service and entry.service.spec
+        local git = spec and spec.source and spec.source.Git
+        if git and git.provider_id == provider_id then
+            table.insert(users, tostring(entry.project_name) .. "/" .. tostring(spec.name))
+        end
+    end
+    for _, job in State.jobs_by_id do
+        if job.git_source and job.git_source.provider_id == provider_id then
+            table.insert(
+                users,
+                (project_names[job.project_id] or tostring(job.project_id)) .. "/" .. tostring(job.name) .. " (job)"
+            )
+        end
+    end
+    table.sort(users)
+    return users
+end
+
 function git_provider_delete(provider_id: string): ()
     local api = State.api
     if not api then
         return
     end
+    local users = git_provider_users(provider_id)
+    if #users > 0 then
+        local confirmed = confirm {
+            title = i18n.tr("Remover a conta Git?"),
+            message = i18n.tr("Esta conta é usada por ")
+                .. tostring(#users)
+                .. i18n.tr(" item(ns): ")
+                .. table.concat(users, ", ")
+                .. i18n.tr(
+                    ". Sem ela, eles deixam de conseguir clonar o repositório até serem reapontados para outra conta (aba General → Git de cada serviço)."
+                ),
+            confirm_label = i18n.tr("Remover mesmo assim"),
+            destructive = true,
+        }
+        if not confirmed then
+            return
+        end
+    end
     local git_provider_delete_ok, git_provider_delete_response =
-        api:rpc_checked { GitProviderDelete = { id = provider_id } }
+        api:rpc_checked { GitProviderDelete = { id = provider_id, force = #users > 0 } }
     ctx.git_provider_message = git_provider_delete_ok and i18n.tr("provider removido")
         or ("erro: " .. git_provider_delete_response)
     if not git_provider_delete_ok then

@@ -1277,5 +1277,10 @@
   "new_job_window.env_hint_create": "After you create the job, the next step lets you add its variables and secrets, with the same buttons as a service.",
   "new_job_window.open_env": "🔑  Variables and secrets",
   "new_job_window.done": "Done",
-  "new_job_window.job_created": "Job created. Add its variables and secrets below, or click Done."
+  "new_job_window.job_created": "Job created. Add its variables and secrets below, or click Done.",
+  "Remover a conta Git?": "Remove the Git account?",
+  "Esta conta é usada por ": "This account is used by ",
+  " item(ns): ": " item(s): ",
+  ". Sem ela, eles deixam de conseguir clonar o repositório até serem reapontados para outra conta (aba General → Git de cada serviço).": ". Without it they can no longer clone the repository until they are pointed to another account (each service's General → Git tab).",
+  "Remover mesmo assim": "Remove anyway"
 }
