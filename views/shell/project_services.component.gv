@@ -24,100 +24,62 @@ component {
 
           column(class = u-fill)
 
-          if @editing_project != "true" {
-            flow(class = proj-bar__actions) {
-              button(
-                "{t('project_services.reorder_services')}",
-                class = "btn btn--ghost btn--sm",
-                on_click = open_services_reorder_window,
-                disabled = @busy_open_services_reorder_window
-              )
+          flow(class = proj-bar__actions) {
+            button(
+              "{t('project_services.reorder_services')}",
+              class = "btn btn--ghost btn--sm",
+              on_click = open_services_reorder_window,
+              disabled = @busy_open_services_reorder_window
+            )
 
-              button(
-                "{t('project_services.deploy')}",
-                class = "btn btn--ghost btn--sm",
-                on_click = project_deploy,
-                disabled = @busy_project_deploy
-              )
+            button(
+              "{t('project_services.deploy')}",
+              class = "btn btn--ghost btn--sm",
+              on_click = project_deploy,
+              disabled = @busy_project_deploy
+            )
 
-              button(
-                "{t('project_services.new_service')}",
-                class = "btn btn--primary btn--sm",
-                on_click = open_new_service_window,
-                disabled = @busy_open_new_service_window
-              )
+            button(
+              "{t('project_services.new_service')}",
+              class = "btn btn--primary btn--sm",
+              on_click = open_new_service_window,
+              disabled = @busy_open_new_service_window
+            )
 
+            if @project_can_delete == "1" {
               button(
-                "{t('project_services.edit_project')}",
-                class = "btn btn--ghost btn--sm",
-                on_click = edit_project_toggle,
-                disabled = @busy_edit_project_toggle
+                "{t('project_services.remove_project')}",
+                class = "btn btn--danger btn--sm",
+                on_click = delete_project:@selected_project_id,
+                disabled = @busy_delete_project
               )
-
-              if @project_can_delete == "1" {
-                button(
-                  "{t('project_services.remove_project')}",
-                  class = "btn btn--danger btn--sm",
-                  on_click = delete_project:@selected_project_id,
-                  disabled = @busy_delete_project
-                )
-              }
             }
           }
         }
 
-        if @editing_project == "true" {
-          form(
-            name = edit_project,
-            on_submit = save_project_edit,
-            on_validation_error = project_edit_show_validation_errors,
-            class = "form form--gap-6",
-          ) {
-            input(
-              class = field__input,
-              form_control = edit_project_name,
-              rules = required,
-              msg = "{t('common.enter_a_name')}",
-              placeholder = "{t('common.project_name')}",
-            )
+        // Nome e descrição: inputs sem borda, editados no lugar, sem botão (gravam com
+        // debounce em project_title_change / project_description_change) — o mesmo
+        // jeito do título do serviço.
+        input(
+          class = "page-head__title-input",
+          :value = edit_project_name,
+          on_change = project_title_change,
+          placeholder = "{t('common.project_name')}",
+        )
 
-            text(
-              "@error_edit_project_name",
-              class = u-error,
-              if = @error_edit_project_name,
-              not_empty,
-            )
+        input(
+          class = "page-head__subtitle-input",
+          :value = edit_project_description,
+          on_change = project_description_change,
+          placeholder = "{t('project_services.description_optional')}",
+        )
 
-            input(
-              class = field__input,
-              form_control = edit_project_description,
-              placeholder = "{t('project_services.description_optional')}",
-            )
-
-            row(class = env__add) {
-              button("{t('common.save')}", type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary")
-
-              button(
-                "{t('common.cancel')}",
-                class = "btn btn--ghost",
-                on_click = cancel_project_edit,
-                disabled = @busy_cancel_project_edit
-              )
-
-              text("@project_action_message", class = u-muted)
-            }
-          }
-        } else {
-          text("@project_name", class = page-head__title)
-          text("@project_description", class = page-head__subtitle)
-
-          text(
-            "@project_action_message",
-            if = @project_action_message,
-            not_equals = "",
-            class = u-muted,
-          )
-        }
+        text(
+          "@project_action_message",
+          if = @project_action_message,
+          not_equals = "",
+          class = u-muted,
+        )
       }
     }
 

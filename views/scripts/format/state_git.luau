@@ -188,6 +188,12 @@ function M.context(status: Status?, findings: { any }?): { [string]: string }
         state_git_mode = mode,
         state_git_is_enabled = flag(mode ~= "off"),
         state_git_is_sync = flag(mode == "sync"),
+        -- Há algo gravado para limpar: modo ligado, repositório ou conta.
+        state_git_is_configured = flag(
+            mode ~= "off"
+                or (s.remote ~= nil and s.remote ~= "")
+                or (s.provider_id ~= nil and s.provider_id ~= "")
+        ),
         state_git_git_missing = flag(
             status ~= nil and s.git_available == false
         ),

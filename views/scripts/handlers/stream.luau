@@ -92,6 +92,12 @@ local function update_open_project(): ()
     end
     ctx.project_name = found_project.name
     ctx.project_description = found_project.description or ""
+    -- Campos editáveis do cabeçalho: não pisar no que está sendo digitado
+    -- (handlers/projects.luau → project_title_change).
+    if ctx.project_edit_pending ~= "true" then
+        ctx.edit_project_name = found_project.name
+        ctx.edit_project_description = found_project.description or ""
+    end
     ctx.project_can_delete = (#project_pairs == 0) and "1" or "0"
     ctx.project_loading = "false"
     ctx.project_services = format.service_rows(

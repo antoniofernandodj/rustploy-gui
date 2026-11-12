@@ -54,6 +54,38 @@ function state_git_save(): ()
     finish(ok, response, i18n.tr("sincronização configurada"))
 end
 
+-- Limpa a configuração do sync: modo `off` e sem repositório, branch nem conta. O
+-- daemon apaga as chaves (`StateGitConfigure` com tudo vazio) e para de commitar/empurrar;
+-- a pasta local do histórico e o repositório remoto ficam como estão. Era a única saída
+-- de uma configuração errada (ex.: servidor local apontando para o repositório de prod).
+function state_git_clear(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local confirmed = confirm {
+        title = i18n.tr("Limpar a configuração da sincronização?"),
+        message = i18n.tr(
+            "O servidor deixa de commitar e de empurrar o estado. O repositório remoto e o histórico já gravado não são apagados; dá para configurar de novo depois."
+        ),
+        confirm_label = i18n.tr("Limpar"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    local ok, response = api:rpc_checked {
+        StateGitConfigure = { mode = "off" },
+    }
+    if ok then
+        ctx.state_git_form_mode = "off"
+        ctx.state_git_form_remote = ""
+        ctx.state_git_form_branch = "main"
+        ctx.state_git_form_provider_id = ""
+    end
+    finish(ok, response, i18n.tr("configuração da sincronização limpa"))
+end
+
 -- "Sincronizar agora": commit pendente, fetch, aplicação do que veio de fora e push.
 function state_git_sync_now(): ()
     local api = State.api

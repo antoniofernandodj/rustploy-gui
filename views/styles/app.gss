@@ -183,6 +183,13 @@
 .page-head__titles   { width: fill; spacing: 6; }
 .page-head__title    { size: 30; bold: true; color: var(--text); }
 .page-head__subtitle { size: 13; color: var(--muted); }
+/* Nome/descrição do projeto editados no lugar (como o título do serviço): input sem borda. */
+.page-head__title-input          { width: fill; size: 30; bold: true; color: var(--text); background: var(--bg); border_width: 0; padding: 0 6; }
+.page-head__title-input:hover    { background: var(--surface); }
+.page-head__title-input:focus    { background: var(--surface); }
+.page-head__subtitle-input       { width: fill; size: 13; color: var(--muted); background: var(--bg); border_width: 0; padding: 0 6; }
+.page-head__subtitle-input:hover { background: var(--surface); }
+.page-head__subtitle-input:focus { background: var(--surface); }
 .page-head__stats    { spacing: 14; }
 
 /* ── Table ────────────────────────────────────────────────────────────── */

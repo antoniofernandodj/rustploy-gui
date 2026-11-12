@@ -89,12 +89,9 @@ end
 --- project_services
 function test_shell_cada_visao__project_services()
     confere(app("project_services"), MOTOR, SESSAO, {
-        "editing_project",
         "project_action_message",
         "project_can_delete",
-        "project_description",
         "project_loading",
-        "project_name",
         "project_tab",
     })
 end

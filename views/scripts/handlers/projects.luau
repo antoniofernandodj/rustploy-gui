@@ -18,7 +18,7 @@ function open_project(project_id: string): ()
     ctx.selected_project_id = project_id
     ctx.view = "project_services"
     ctx.project_tab = "services"
-    ctx.editing_project = "false"
+    ctx.project_edit_pending = "false"
     ctx.project_action_message = ""
     ctx.project_env_text_open = "false"
     ctx.rename_open = ""
@@ -225,34 +225,40 @@ function delete_project(project_id: string): ()
     end
 end
 
--- ── Editar projeto (cabeçalho de project_services) ──────────────────────
+-- ── Renomear/descrever projeto (cabeçalho de project_services) ─────────
+--
+-- Igual ao título do serviço (services.luau → service_title_change): nome e
+-- descrição são inputs disfarçados de texto, sem botão "Editar". Cada tecla
+-- reinicia `project_save_timer` (grava 0,5 s depois da última) e
+-- `project_toast_timer` (o aviso "Projeto salvo" só sai depois de 2 s sem nova
+-- gravação). Enquanto há texto digitado ainda não gravado
+-- (`ctx.project_edit_pending`), o refresh do stream (stream.luau) não pode
+-- sobrescrever os campos com o valor antigo do servidor.
+local PROJECT_SAVE_DELAY_MS = 500
+local PROJECT_TOAST_IDLE_MS = 2000
+local project_save_timer: any = nil
+local project_toast_timer: any = nil
 
-function edit_project_toggle(): ()
-    ctx.edit_project_name = ctx.project_name or ""
-    ctx.edit_project_description = ctx.project_description or ""
-    ctx.error_edit_project_name = ""
-    ctx.editing_project = "true"
-end
-
-function cancel_project_edit(): ()
-    ctx.editing_project = "false"
-end
-
--- on_validation_error do form(name = edit_project) — o motor já publicou
--- {error_edit_project_name} e acendeu o :invalid; aqui é só o aviso.
-function project_edit_show_validation_errors(_erros_json: string?): ()
-    toast { message = i18n.tr("Informe o nome do projeto"), kind = "warning" }
-end
-
--- on_submit: só roda com a validação (rules="required" no NOME) aprovada.
-function save_project_edit(): ()
+local function project_edit_save(): ()
+    project_save_timer = nil
     local project_id = ctx.selected_project_id or ""
     local api = State.api
-    if project_id == "" or not api then
-        return
-    end
     local name = Helpers.trim(ctx.edit_project_name)
     local description = Helpers.trim(ctx.edit_project_description)
+    -- Saiu do projeto no meio do debounce, nome vazio (nunca é gravado; o campo
+    -- volta ao nome real no próximo refresh) ou nada mudou: nada a gravar.
+    if
+        project_id == ""
+        or not api
+        or name == ""
+        or (
+            name == (ctx.project_name or "")
+            and description == (ctx.project_description or "")
+        )
+    then
+        ctx.project_edit_pending = "false"
+        return
+    end
     local project_update_ok, project_update_response = api:rpc_checked {
         ProjectUpdate = {
             id = project_id,
@@ -260,14 +266,45 @@ function save_project_edit(): ()
             description = (description ~= "" and description or nil),
         },
     }
+    ctx.project_edit_pending = "false"
     if project_update_ok then
-        ctx.editing_project = "false"
-        ctx.project_action_message = i18n.tr("projeto atualizado")
+        ctx.project_action_message = ""
         ctx.project_name = name
         ctx.project_description = description
+        if project_toast_timer then
+            project_toast_timer:cancel()
+        end
+        project_toast_timer = after(PROJECT_TOAST_IDLE_MS, function(): ()
+            project_toast_timer = nil
+            toast { message = i18n.tr("Projeto salvo"), kind = "success" }
+        end)
     else
         ctx.project_action_message = i18n.tr("erro: ") .. project_update_response
+        toast {
+            message = tostring(project_update_response),
+            kind = "error",
+        }
     end
+end
+
+local function project_edit_schedule(): ()
+    ctx.project_edit_pending = "true"
+    if project_save_timer then
+        project_save_timer:cancel()
+    end
+    project_save_timer = after(PROJECT_SAVE_DELAY_MS, project_edit_save)
+end
+
+-- on_change do nome (título do cabeçalho).
+function project_title_change(value: string): ()
+    ctx.edit_project_name = value
+    project_edit_schedule()
+end
+
+-- on_change da descrição (subtítulo do cabeçalho).
+function project_description_change(value: string): ()
+    ctx.edit_project_description = value
+    project_edit_schedule()
 end
 
 -- ── Variáveis de ambiente do projeto (aba "Variáveis") ──────────────────

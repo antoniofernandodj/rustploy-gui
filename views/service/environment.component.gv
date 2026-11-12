@@ -50,9 +50,7 @@ component {
           form_control = env_new_value,
           placeholder = "{t('common.value')}",
         )
-      }
 
-      row(class = env__add) {
         button("{t('common.add')}", type = submit, disabled = @busy_env_add, class = "btn btn--primary")
       }
     }
@@ -241,9 +239,7 @@ component {
               msg = "{t('project_secrets.enter_a_value')}",
               placeholder = "{t('project_secrets.value_encrypted_on_save')}",
             )
-          }
 
-          row {
             button(
               "{t('project_secrets.save_secret')}",
               type = submit,

@@ -124,6 +124,15 @@ component {
           )
         }
 
+        if @state_git_is_configured == "true" {
+          button(
+            "{t('settings_gitsync.clear_config')}",
+            class = "btn btn--danger",
+            on_click = state_git_clear,
+            disabled = @busy_state_git_clear
+          )
+        }
+
         text("@state_git_message", class = u-muted)
       }
     }
