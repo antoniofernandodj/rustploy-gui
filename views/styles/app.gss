@@ -74,7 +74,7 @@
 .u-fill        { width: fill; }
 .u-fill-all    { width: fill; height: fill; }
 .u-center-fill { width: fill; height: fill; align_x: center; align_y: center; }
-.u-align-y-end { alignY: end; }
+.u-align-y-end { align_y: end; }
 .u-muted       { size: 12; color: var(--muted); }
 .u-label-cap   { size: 11; bold: true; color: var(--faint); }
 .u-error       { color: var(--error); }
@@ -330,11 +330,11 @@
    foco desenha um filete. O wrapper (form) tem a largura da célula que ele ocupa. */
 .env__edit        { width: fill; }
 .env__edit--key   { width: 230; }
-.env__inline      { width: fill; padding: 3 6; background: transparent; border_width: 0; font_size: 13; }
+.env__inline      { width: fill; padding: 3 6; background: transparent; border_width: 0; size: 13; }
 .env__inline:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
 .env__drag-handle { color: var(--faint); padding: 0 6 0 0; cursor: grab; }
 .env__drag-handle--dragging { cursor: grabbing; }
-.env__del         { color: var(--danger); padding: 4 10; background: var(--border); border_radius: 4; }
+.env__del         { color: var(--error); padding: 4 10; background: var(--border); border_radius: 4; }
 .env__del:disabled { color: var(--surface); text_color: var(--faint); }
 /* Respiro entre o botão ✕ e a chave da variável (evita que o vermelho encoste
    no texto). Usado nas linhas de env de serviço e de projeto. */
