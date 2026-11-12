@@ -95,7 +95,7 @@ component {
         button(
           "{t('login.connect')}",
           class = login__connect,
-          on_click = connect,
+          type = submit,
           disabled = @busy_connect
         )
       }

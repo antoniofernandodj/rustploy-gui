@@ -257,7 +257,7 @@ component {
           button(
             "{t('settings_git.connect_account')}",
             class = "btn btn--primary",
-            on_click = git_provider_connect,
+            type = submit,
             disabled = @busy_git_provider_connect
           )
 

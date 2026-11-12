@@ -132,7 +132,7 @@ component {
           button(
             "{t('common.save_2')}",
             class = "btn btn--primary",
-            on_click = settings_save,
+            type = submit,
             disabled = @busy_settings_save
           )
           text("@settings_message", class = u-muted)

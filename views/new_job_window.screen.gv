@@ -381,7 +381,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                 class = "btn btn--primary",
                 if = @new_job_edit_id,
                 not_equals = "",
-                on_click = new_job_create,
+                type = submit,
                 disabled = @busy_new_job_create
               )
 
@@ -390,7 +390,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                 class = "btn btn--primary",
                 if = @new_job_edit_id,
                 equals = "",
-                on_click = new_job_create,
+                type = submit,
                 disabled = @busy_new_job_create
               )
             }

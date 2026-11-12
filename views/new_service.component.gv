@@ -371,7 +371,7 @@ component {
             button(
               "{t('new_service.create_application')}",
               class = "btn btn--primary",
-              on_click = new_service_create,
+              type = submit,
               disabled = @busy_new_service_create
             )
           }
@@ -423,7 +423,7 @@ component {
             button(
               "{t('new_service.create_compose_stack')}",
               class = "btn btn--primary",
-              on_click = new_service_create,
+              type = submit,
               disabled = @busy_new_service_create
             )
           }
@@ -609,7 +609,7 @@ component {
               button(
                 "{t('new_service.create_2', new_service_template_name=new_service_template_name)}",
                 class = "btn btn--primary",
-                on_click = new_service_create,
+                type = submit,
                 disabled = @busy_new_service_create
               )
             }

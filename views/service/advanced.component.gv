@@ -54,7 +54,7 @@ component {
         }
 
         row(class = env__add) {
-          button("{t('common.save_2')}", class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save)
+          button("{t('common.save_2')}", class = "btn btn--primary", type = submit, disabled = @busy_advanced_save)
           text("@service_action_message", class = u-muted)
         }
       }
