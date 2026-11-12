@@ -14,6 +14,7 @@
         "require",
         "json",
         "confirm",
+        "open_dialog",
         "toast",
         "storage",
         "i18n",
