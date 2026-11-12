@@ -173,17 +173,33 @@ function test_novo_job_modo_edicao__git_sem_compose_path_usa_o_padrao()
     assert_eq(tela:get("new_job_compose_path"), "docker-compose.yml")
 end
 
---- as variáveis do job voltam como .env, com segredo e comentário
-function test_novo_job_modo_edicao__as_variaveis_do_job_voltam_como_env_com()
+--- as envs do job ficam guardadas para o "Salvar" reenviá-las (o painel as gerencia direto no daemon)
+function test_novo_job_modo_edicao__as_envs_do_job_ficam_guardadas_para_o_salvar()
     local tela = editando({
         id = "j",
+        project_id = "p1",
         env_vars = {
             { key = "A", value = { Plain = "1" } },
             { key = "B", value = { Secret = "S" } },
         },
         env_comments = { { before_key = "B", text = "# b" } },
     })
-    assert_eq(tela:get("new_job_env_text"), "A=1\n# b\nB=<secret:S>")
+    local seed = json.decode(tela:get("new_job_env_seed"))
+    assert_eq(#seed.env_vars, 2)
+    assert_eq(seed.env_vars[2].value.Secret, "S")
+    assert_eq(seed.env_comments[1].text, "# b")
+    assert_eq(tela:get("new_job_project_id"), "p1")
+end
+
+--- o painel de envs é um passo da janela e a tela avalia
+function test_novo_job_passo_env_avalia()
+    local tela = editando({ id = "j", project_id = "p1" })
+    tela:set("new_job_step", "env")
+    tela:set("job_env_name", "backup")
+    tela:set("job_env", "[]")
+    tela:set("job_secrets", "[]")
+    assert_not_nil(tela:render())
+    assert_true(#tela:buttons() > 0)
 end
 
 --- JSON de edição ilegível é ignorado: abre como job novo

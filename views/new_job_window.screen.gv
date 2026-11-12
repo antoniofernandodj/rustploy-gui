@@ -10,6 +10,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
     link(rel = import, href = "components/picker_row.component.gv", as = PickerRow)
     link(rel = import, href = "components/tab_button.component.gv", as = TabButton)
+    link(rel = import, href = "components/job_env_panel.component.gv", as = JobEnvPanel)
 
     script(src = "scripts/new_job_window.luau")
   }
@@ -243,19 +244,22 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               placeholder = "{t('new_job_window.e_g_job')}",
             )
 
-            text("{t('new_job_window.environment_variables_optional')}", class = field__label)
+            text("{t('new_job_window.env_section')}", class = field__label)
 
-            text(
-              "{t('new_job_window.they_override_the_project_s_trigger')}",
-              class = u-muted,
-            )
+            if @new_job_edit_id != "" {
+              text("{t('new_job_window.env_hint_edit')}", class = u-muted)
 
-            textarea(
-              class = env__editor,
-              font = mono,
-              :value = new_job_env_text,
-              placeholder = "{t('new_job_window.flow_myenv_test')}",
-            )
+              row(class = env__add) {
+                button(
+                  class = "btn btn--ghost",
+                  on_click = new_job_open_env,
+                  disabled = @busy_new_job_open_env,
+                  text = "{t('new_job_window.open_env')}",
+                )
+              }
+            } else {
+              text("{t('new_job_window.env_hint_create')}", class = u-muted)
+            }
 
             text("{t('common.recurrence')}", class = u-label-cap)
 
@@ -388,6 +392,43 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                 on_click = new_job_create,
                 disabled = @busy_new_job_create,
                 text = "{t('new_job_window.create_job')}",
+              )
+            }
+          }
+        }
+
+        // Passo "env": variáveis e secrets do job (painel compartilhado com a tela do app). Na edição
+        // vem do botão do formulário; na criação, logo depois de "Criar job".
+        if @new_job_step == "env" {
+          column(class = form-panel) {
+            text("{t('job_env.title', job_env_name=job_env_name)}", class = "u-label-cap")
+
+            text(
+              "{t('new_job_window.job_created')}",
+              class = u-muted,
+              if = @new_job_created_id,
+              not_equals = "",
+            )
+
+            JobEnvPanel
+
+            row(class = dialog__actions) {
+              column(class = u-fill)
+
+              button(
+                class = "btn btn--ghost",
+                if = @new_job_edit_id,
+                not_equals = "",
+                on_click = new_job_env_back,
+                disabled = @busy_new_job_env_back,
+                text = "{t('common.back')}",
+              )
+
+              button(
+                class = "btn btn--primary",
+                on_click = cancel,
+                disabled = @busy_cancel,
+                text = "{t('new_job_window.done')}",
               )
             }
           }

@@ -684,9 +684,7 @@
   "new_job_window.e_g_backup_db": "e.g. backup-db",
   "new_job_window.e_g_job": "e.g. job",
   "new_job_window.edit_job": "EDIT JOB — {new_job_name}",
-  "new_job_window.environment_variables_optional": "ENVIRONMENT VARIABLES (optional)",
   "new_job_window.every_how_many_hours": "EVERY HOW MANY HOURS",
-  "new_job_window.flow_myenv_test": "FLOW_MYENV=test",
   "new_job_window.git_account": "GIT ACCOUNT",
   "new_job_window.interval": "Interval",
   "new_job_window.lends_base_env_vars_secrets_to": "Lends base env vars/secrets to the job (the Docker network already comes from the project). The job does not run inside its container — it brings up a new, separate stack. With no trigger service, the job is 100% standalone and only receives the project's env vars.",
@@ -697,7 +695,6 @@
   "new_job_window.none_standalone_job": "None — standalone job ›",
   "new_job_window.select_the_connected_account_the_repository": "Select the connected account, the repository and the branch. The repo must already have a docker-compose.yml at the given path.",
   "new_job_window.the_job_brings_up_its_own": "The job brings up its own docker-compose stack; the project defines the network.",
-  "new_job_window.they_override_the_project_s_trigger": "They override the project's/trigger service's on top. KEY=VALUE format, one per line (# comment).",
   "new_job_window.this_project_has_no_services": "This project has no services yet.",
   "new_job_window.trigger_service_optional": "TRIGGER SERVICE (OPTIONAL) — {new_job_project_name}",
   "new_job_window.weekly": "Weekly",
@@ -1274,5 +1271,11 @@
   "\" será removida do projeto; os serviços e jobs deixam de herdá-la.": "\" will be removed from the project; services and jobs stop inheriting it.",
   "Todas as variáveis do projeto serão substituídas pelo texto do editor.": "All of the project's variables will be replaced by the editor text.",
   "\" será removida deste serviço.": "\" will be removed from this service.",
-  "Todas as variáveis deste serviço serão substituídas pelo texto do editor.": "All of this service's variables will be replaced by the editor text."
+  "Todas as variáveis deste serviço serão substituídas pelo texto do editor.": "All of this service's variables will be replaced by the editor text.",
+  "new_job_window.env_section": "VARIABLES AND SECRETS",
+  "new_job_window.env_hint_edit": "Manage this job's variables and secrets (encrypted), with the same buttons as a service.",
+  "new_job_window.env_hint_create": "After you create the job, the next step lets you add its variables and secrets, with the same buttons as a service.",
+  "new_job_window.open_env": "🔑  Variables and secrets",
+  "new_job_window.done": "Done",
+  "new_job_window.job_created": "Job created. Add its variables and secrets below, or click Done."
 }

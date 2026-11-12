@@ -15,6 +15,8 @@
 local Api = require("net/api")
 local Helpers = require("helpers")
 local format = require("format")
+local Core = require("job_env_core")
+require("job_env_actions")
 
 local function client(): Api.Client?
     local url = ctx.api_url or ""
@@ -95,8 +97,11 @@ function init(): ()
     ctx.new_job_git_busy = ""
     ctx.new_job_busy = ""
 
-    -- Env vars próprias do job (blob .env colado, parseado em new_job_create).
-    ctx.new_job_env_text = ""
+    -- Envs e secrets do job: no passo "env" (painel compartilhado, scripts/job_env_core.luau), que
+    -- mexe direto no daemon por `job_id` — por isso só existe com o job criado (na edição, já está;
+    -- na criação, aparece logo depois de "Criar job").
+    ctx.new_job_created_id = ""
+    ctx.new_job_env_seed = ""
 
     ctx.new_job_kind = "manual"
     ctx.new_job_hours = "6"
@@ -120,6 +125,13 @@ function init(): ()
         local json_decode_ok, job = pcall(json.decode, ctx.new_job_edit_job)
         if json_decode_ok and type(job) == "table" then
             ctx.new_job_edit_id = job.id
+            ctx.new_job_project_id = job.project_id or ""
+            -- Envs do Job como vieram (o painel as relê do daemon); o "Salvar" do formulário as
+            -- reenvia no JobUpdate, então precisa delas — não pode apagar o que o painel gravou.
+            ctx.new_job_env_seed = json.encode({
+                env_vars = job.env_vars or json.array({}),
+                env_comments = job.env_comments or json.array({}),
+            })
             ctx.new_job_step = "form"
             ctx.new_job_name = job.name or ""
             ctx.new_job_main_service = job.main_service or ""
@@ -136,9 +148,6 @@ function init(): ()
             else
                 ctx.new_job_compose = job.compose or ""
             end
-
-            ctx.new_job_env_text =
-                format.env_dotenv_with_comments(job.env_vars, job.env_comments)
 
             local kind, hours, hour, minute, weekday =
                 unpack_recurrence(job.recurrence)
@@ -408,13 +417,24 @@ function new_job_create(): ()
         }
     end
 
-    local env_vars, env_comments, env_errors =
-        Helpers.parse_dotenv(ctx.new_job_env_text)
-    if #env_errors > 0 then
-        ctx.new_job_error = Helpers.dotenv_errors_message(env_errors)
-        return
-    end
     local editing = ctx.new_job_edit_id ~= ""
+    -- Envs: na criação, vazias (o painel as edita depois, com o job criado); na edição, as mais
+    -- recentes (do painel, se foi aberto; senão, as do job como vieram).
+    local env_vars: any = json.array({})
+    local env_comments: any = json.array({})
+    if editing then
+        local current = Core.job()
+        if current then
+            env_vars = current.env_vars or env_vars
+            env_comments = current.env_comments or env_comments
+        else
+            local seed_ok, seed = pcall(json.decode, ctx.new_job_env_seed or "")
+            if seed_ok and type(seed) == "table" then
+                env_vars = seed.env_vars or env_vars
+                env_comments = seed.env_comments or env_comments
+            end
+        end
+    end
 
     ctx.new_job_message = editing and i18n.tr("salvando…") or i18n.tr("criando…")
     ctx.new_job_busy = "true"
@@ -460,7 +480,39 @@ function new_job_create(): ()
         editing and "job_updated" or "job_created",
         { id = job.id, name = job.name or name }
     )
+    if not editing and job.id then
+        -- Criado: segue para as variáveis e secrets do job (o `job_id` agora existe).
+        ctx.new_job_message = ""
+        ctx.new_job_created_id = job.id
+        open_env_step(job.id, ctx.new_job_project_id)
+        return
+    end
     close_window()
+end
+
+-- ── Passo "env": variáveis e secrets do job (painel compartilhado) ──────────
+
+function open_env_step(job_id: string, project_id: string): ()
+    Core.setup { api = client(), project_id = project_id, job_id = job_id }
+    Core.reset_forms()
+    ctx.job_env_job_id = job_id
+    ctx.job_env_project_id = project_id
+    ctx.new_job_step = "env"
+    Core.load()
+end
+
+-- "🔑 Variáveis e secrets" no formulário de EDIÇÃO.
+function new_job_open_env(): ()
+    if ctx.new_job_edit_id == "" then
+        return
+    end
+    open_env_step(ctx.new_job_edit_id, ctx.new_job_project_id)
+end
+
+-- Do painel de volta ao formulário (só na edição; na criação o job já foi salvo e só resta fechar).
+function new_job_env_back(): ()
+    Core.reset_forms()
+    ctx.new_job_step = "form"
 end
 
 function cancel(): ()
