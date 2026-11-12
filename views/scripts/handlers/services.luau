@@ -2359,10 +2359,11 @@ local function start_deploy(requested_service_id: string?): ()
         deploy_single(service_id)
         return
     end
-    -- O plano vai para o corpo do `dialog` declarado em app.gv; `open_dialog` espera o clique e
+    -- O plano vai (2º argumento) para o corpo do `dialog` declarado em app.gv, que o lê como
+    -- {__dialog.message}; `open_dialog` espera o clique e
     -- devolve o `value` do `choice` escolhido ("aceitar" | "so"), ou nil se rejeitou/fechou.
-    ctx["__dialog.plano"] = plan_order_text(plan_response.DeployBatch)
-    local choice = open_dialog("deploy_plan")
+    local message = plan_order_text(plan_response.DeployBatch)
+    local choice = open_dialog("deploy_plan", { message = message })
     if choice == "aceitar" then
         run_batch {
             DeployWithDependencies = {

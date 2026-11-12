@@ -55,7 +55,7 @@ function test_deploy_plan__sem_conexao_o_deploy_e_inerte()
     local tela = nova()
     tela:call("running_deploy", "svc_1")
     tela:call("service_deploy")
-    assert_nil(tela:get("__dialog.plano"))
+    assert_nil(tela:get("__dialog.message"))
     assert_eq(#tela:toasts(), 0)
 end
 
@@ -65,7 +65,7 @@ function test_deploy_plan__com_dependencias_semeia_o_plano_e_espera_a_escolha()
     com_api(tela, PLANO_3)
     tela:call("running_deploy", "svc_1")
     assert_eq(enviados(tela), "DeployWithDependenciesPlan")
-    assert_eq(tela:get("__dialog.plano"), "1. db\n2. api\n3. worker")
+    assert_eq(tela:get("__dialog.message"), "1. db\n2. api\n3. worker")
     assert_eq(#tela:toasts(), 0)
 end
 
@@ -79,7 +79,7 @@ function test_deploy_plan__ordem_indica_o_que_nao_entra_na_fila()
         } },
     }]])
     tela:call("running_deploy", "svc_1")
-    assert_eq(tela:get("__dialog.plano"), "1. db (running)\n2. api")
+    assert_eq(tela:get("__dialog.message"), "1. db (running)\n2. api")
 end
 
 --- sem dependências (plano de um item só): o deploy simples de sempre, sem abrir diálogo
@@ -91,7 +91,7 @@ function test_deploy_plan__sem_dependencias_vai_direto_ao_deploy_simples()
     }]])
     tela:call("running_deploy", "svc_1")
     assert_eq(enviados(tela), "DeployWithDependenciesPlan,DeployStart")
-    assert_nil(tela:get("__dialog.plano"))
+    assert_nil(tela:get("__dialog.message"))
     tela:eval([[ ctx.alvo = require("state").deploy_track.service_id ]])
     assert_eq(tela:get("alvo"), "svc_1")
 end
@@ -102,7 +102,7 @@ function test_deploy_plan__plano_com_erro_cai_no_deploy_simples()
     com_api(tela, [[{ DeployStart = { Deployment = { id = "d1", state = "Queued" } } }]])
     tela:call("running_deploy", "svc_1")
     assert_eq(enviados(tela), "DeployWithDependenciesPlan,DeployStart")
-    assert_nil(tela:get("__dialog.plano"))
+    assert_nil(tela:get("__dialog.message"))
 end
 
 --- Aceitar: deploya com as dependências, na ordem mostrada, para o serviço pedido
