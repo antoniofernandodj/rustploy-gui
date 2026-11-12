@@ -2349,20 +2349,18 @@ local function start_deploy(requested_service_id: string?): ()
         deploy_single(service_id)
         return
     end
-    local confirm_label = i18n.tr("Confirmar")
-    local only_label = i18n.tr("Só o serviço")
-    local reject_label = i18n.tr("Rejeitar")
-    local choice = prompt {
+    -- `confirm` (e não `prompt` de lista): o `prompt` devolve o valor do campo, e sem o usuário escolher
+    -- nada voltava "" — o OK não casava com nenhuma opção e o deploy nunca era enviado.
+    local answer = confirm {
         title = i18n.tr("Deploy com dependências"),
         message = i18n.tr("Ordem em que entram na fila:")
             .. "\n"
             .. plan_order_text(plan_response.DeployBatch),
-        label = i18n.tr("Ação"),
-        kind = "item",
-        items = { confirm_label, only_label, reject_label },
-        confirm_label = i18n.tr("OK"),
+        cancel_label = i18n.tr("Rejeitar"),
+        extra_label = i18n.tr("Só o serviço"),
+        confirm_label = i18n.tr("Aceitar"),
     }
-    if choice == confirm_label then
+    if answer == true then
         run_batch {
             DeployWithDependencies = {
                 service_id = service_id,
@@ -2372,7 +2370,7 @@ local function start_deploy(requested_service_id: string?): ()
         if ctx.selected_service == service_id then
             M.fetch_service_detail(service_id)
         end
-    elseif choice == only_label then
+    elseif answer == "extra" then
         deploy_single(service_id)
     end
 end

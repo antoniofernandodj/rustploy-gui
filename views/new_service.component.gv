@@ -11,7 +11,10 @@ component {
   column(class = content) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text("{t('new_service.new_service', project_name=project_name)}", class = page-head__title)
+        text(
+          "{t('new_service.new_service', project_name=project_name)}",
+          class = page-head__title
+        )
 
         text(
           "{t('new_service.choose_the_type_and_configure')}",
@@ -204,7 +207,10 @@ component {
                       disabled = @busy_import_choice
                     )
                   } else {
-                    text("{t('new_service.already_identical_nothing_to_do')}", class = u-muted)
+                    text(
+                      "{t('new_service.already_identical_nothing_to_do')}",
+                      class = u-muted
+                    )
                   }
                 }
               }
@@ -534,7 +540,7 @@ component {
               button(
                 "{t('new_service.create', new_service_database_label=new_service_database_label)}",
                 class = "btn btn--primary",
-                on_click = new_service_create,
+                type = submit,
                 disabled = @busy_new_service_create
               )
             }
