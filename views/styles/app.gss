@@ -124,22 +124,22 @@
 
 /* ── Tabs ─────────────────────────────────────────────────────────────── */
 .tabs               { width: fill; spacing: 4; }
-.tabs__tab          { color: var(--surface); padding: 9 16; border_radius: 5 }
+.tabs__tab          { color: var(--surface); padding: 7 14; border_radius: 5; size: 13 }
 .tabs__tab--active  { color: var(--blue); }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 /* `.btn` é o bloco; a cor vem de um modificador (--primary/--danger/--ghost/
    --blue) e o tamanho de outro (--sm/--xs/--wide). Os de tamanho vêm DEPOIS
    dos de cor porque o `--ghost` fixa o padding. */
-.btn           { color: var(--border); padding: 11 20; border_radius: 5 }
+.btn           { color: var(--border); padding: 8 15; border_radius: 5; size: 13 }
 /* `gradient` pinta o fundo do botão (glacier-ui 0.141+); `color` fica de base. */
 .btn--primary  { color: var(--green); gradient: var(--green-a) var(--green-b); }
 .btn--danger   { color: var(--danger); gradient: var(--danger-a) var(--danger-b); }
-.btn--ghost    { color: var(--border); padding: 11 18; }
+.btn--ghost    { color: var(--border); padding: 8 14; }
 .btn--blue     { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
-.btn--wide     { padding: 11 22; }
-.btn--sm       { padding: 7 13; border_radius: 4; size: 12 }
-.btn--xs       { padding: 5 12; border_radius: 4 }
+.btn--wide     { padding: 8 18; }
+.btn--sm       { padding: 6 11; border_radius: 4; size: 12 }
+.btn--xs       { padding: 4 10; border_radius: 4; size: 12 }
 /* `.btn-secondary` nunca teve regra (botão sem estilo); fica como marcador. */
 /* Ação em andamento (busy.luau liga `disabled = @busy_<ação>`): o botão apaga na hora. */
 /* Hover/pressionado com `transition` (glacier-ui 0.145, medido numa janela real): a cor sobe em
@@ -294,10 +294,10 @@
 .badge         { spacing: 7; align_y: center; }
 .badge__label  { size: 12; bold: true; }
 /* Ações do card (projeto e serviço): um botão cheio, no tamanho da coluna. */
-.card__action         { width: fill; color: var(--border); padding: 9 10; text_align: center; border_radius: 5 }
-.card__action--auto   { width: shrink; padding: 9 14; }
-.card__action--open   { padding: 9 14; }
-.card__action--icon   { padding: 9 0; }
+.card__action         { width: fill; color: var(--border); padding: 7 10; text_align: center; border_radius: 5; size: 13 }
+.card__action--auto   { width: shrink; padding: 7 12; }
+.card__action--open   { padding: 7 12; }
+.card__action--icon   { padding: 7 0; }
 .card__action--danger { color: var(--danger); }
 
 /* ── Service detail (compartilhado) ───────────────────────────────────── */
