@@ -181,7 +181,8 @@ end
 
 --- Baixa o pacote de dados do serviço (`GET /api/services/<id>/data/export`) direto para `path`
 --- (bytes crus, sem passar pelo Lua). Só a chave mestra. `(true, nil)` ou `(false, mensagem)`.
-function M:download_service_data(
+function M.download_service_data(
+    self: Client,
     service_id: string,
     stop: boolean,
     encrypt: boolean,

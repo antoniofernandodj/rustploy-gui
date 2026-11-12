@@ -226,7 +226,7 @@ function service_backup_policy_save(): ()
     local ok, response = api:rpc_checked {
         ServiceBackupPolicySet = {
             service_id = service_id,
-            policy = M.policy_from_form(),
+            policy = policy_from_form(),
         },
     }
     if ok and response.ServiceBackups ~= nil then
