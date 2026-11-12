@@ -1,6 +1,6 @@
 [package]
 name = "rustploy-gui"
-version = "0.1.55"
+version = "0.1.56"
 edition = "2024"
 default-run = "rustploy-gui"
 description = "Rustploy — desktop client (glacier-ui) for the Rustploy PaaS daemon"
