@@ -34,8 +34,9 @@ app(
 
       script(src = "scripts/app.luau")
 
-      // Plano de "Deploy com dependências": aberto por start_deploy (handlers/services.luau)
-      // via open_dialog, com a ordem em __dialog.plano. Os botões quebram linha se não couberem.
+      // Plano de "Deploy com dependências": aberto por start_deploy (handlers/services.luau) via
+      // open_dialog, com a ordem em __dialog.plano; os `choice` devolvem "so"/"aceitar" a ele, e o
+      // `button` Rejeitar só fecha (nil). Os botões quebram linha se não couberem.
       dialog(name = deploy_plan, title = "{t('deploy_plan.title')}", icon = question) {
         column(spacing = 8, width = fill) {
           text("{t('deploy_plan.order')}", class = u-label-cap)
@@ -44,8 +45,8 @@ app(
 
         actions {
           button("{t('deploy_plan.reject')}")
-          button("{t('deploy_plan.only_service')}", on_click = deploy_plan_only, role = neutral)
-          button("{t('deploy_plan.accept')}", on_click = deploy_plan_accept)
+          choice("{t('deploy_plan.only_service')}", value = so, role = neutral)
+          choice("{t('deploy_plan.accept')}", value = aceitar)
         }
       }
     }

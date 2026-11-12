@@ -2349,38 +2349,24 @@ local function start_deploy(requested_service_id: string?): ()
         deploy_single(service_id)
         return
     end
-    -- `confirm` (e não `prompt` de lista): o `prompt` devolve o valor do campo, e sem o usuário escolher
-    -- nada voltava "" — o OK não casava com nenhuma opção e o deploy nunca era enviado.
-    -- O alvo e a ordem vão para o contexto e o `dialog` declarado em app.gv abre. Os botões
-    -- dele só despacham ações sem argumento (deploy_plan_accept / deploy_plan_only), então o
-    -- serviço alvo precisa ficar guardado aqui.
-    ctx.deploy_plan_service_id = service_id
+    -- O plano vai para o corpo do `dialog` declarado em app.gv; `open_dialog` espera o clique e
+    -- devolve o `value` do `choice` escolhido ("aceitar" | "so"), ou nil se rejeitou/fechou.
     ctx["__dialog.plano"] = plan_order_text(plan_response.DeployBatch)
-    open_dialog("deploy_plan")
-end
-
--- Botão "Aceitar" do dialog `deploy_plan`: deploy com as dependências, na ordem mostrada.
-function deploy_plan_accept(): ()
-    local service_id = ctx.deploy_plan_service_id
-    if not service_id or service_id == "" then
-        return
-    end
-    run_batch {
-        DeployWithDependencies = {
-            service_id = service_id,
-            skip_running = false,
-        },
-    }
-    if ctx.selected_service == service_id then
-        M.fetch_service_detail(service_id)
+    local choice = open_dialog("deploy_plan")
+    if choice == "aceitar" then
+        run_batch {
+            DeployWithDependencies = {
+                service_id = service_id,
+                skip_running = false,
+            },
+        }
+        if ctx.selected_service == service_id then
+            M.fetch_service_detail(service_id)
+        end
+    elseif choice == "so" then
+        deploy_single(service_id)
     end
 end
-
--- Botão "Só o serviço" do dialog `deploy_plan`: o deploy simples, sem as dependências.
-function deploy_plan_only(): ()
-    deploy_single(ctx.deploy_plan_service_id)
-end
--- "Rejeitar" só fecha o dialog (sem ação): não há handler.
 
 -- Botão "Deploy" do projeto: mostra a ordem de tudo e pede aceitar/rejeitar.
 function project_deploy(): ()
