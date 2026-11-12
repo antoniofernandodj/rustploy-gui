@@ -4,10 +4,9 @@
 -- O `State.api` é um falso injetado na VM da tela com `tela:eval` (cada `component()` tem a sua VM:
 -- um `require("state")` daqui devolveria outra tabela). Ele registra os comandos enviados ao daemon.
 --
--- `open_dialog` suspende e o harness não resolve diálogos: o handler PARA nele. Por isso estes testes
--- cobrem tudo até o diálogo abrir (o plano pedido e semeado, nada deployado antes da escolha) e os
--- caminhos que nem chegam a ele; a decisão pelo valor devolvido (aceitar / só o serviço / nil) é o
--- contrato do `open_dialog`/`choice`, testado no glacier-ui (tests/dialog_actions.rs).
+-- `open_dialog` suspende: o handler PARA nele, e `tela:answer(valor)` o retoma com o valor que o clique
+-- num `choice` devolveria ("aceitar" | "so") ou nil (Rejeitar / fundo). O contrato do próprio
+-- `open_dialog`/`choice` (qual botão produz qual valor) é testado no glacier-ui.
 
 local function nova()
     local tela = component("views/app.gv", {})
@@ -104,4 +103,69 @@ function test_deploy_plan__plano_com_erro_cai_no_deploy_simples()
     tela:call("running_deploy", "svc_1")
     assert_eq(enviados(tela), "DeployWithDependenciesPlan,DeployStart")
     assert_nil(tela:get("__dialog.plano"))
+end
+
+--- Aceitar: deploya com as dependências, na ordem mostrada, para o serviço pedido
+function test_deploy_plan__aceitar_deploya_com_dependencias()
+    local tela = nova()
+    com_api(tela, [[{
+        DeployWithDependenciesPlan = { DeployBatch = {
+            { service_name = "db", status = "Queued" },
+            { service_name = "api", status = "Queued" },
+        } },
+        DeployWithDependencies = { DeployBatch = { { status = "Queued" }, { status = "Queued" } } },
+    }]])
+    tela:eval([[
+        local State = require("state")
+        local api = State.api
+        local original = api.rpc_checked
+        api.rpc_checked = function(self, comando)
+            local nome = next(comando)
+            if nome == "DeployWithDependencies" then
+                ctx.alvo = comando[nome].service_id
+                ctx.pulou = tostring(comando[nome].skip_running)
+            end
+            return original(self, comando)
+        end
+    ]])
+    tela:call("running_deploy", "svc_1")
+    assert_eq(enviados(tela), "DeployWithDependenciesPlan")
+    tela:answer("aceitar")
+    assert_eq(enviados(tela), "DeployWithDependenciesPlan,DeployWithDependencies")
+    assert_eq(tela:get("alvo"), "svc_1")
+    assert_eq(tela:get("pulou"), "false")
+    assert_eq(#tela:toasts(), 1) -- "Deploy na fila: 2"
+end
+
+--- Só o serviço: o deploy simples do serviço pedido, sem o lote
+function test_deploy_plan__so_o_servico_faz_o_deploy_simples()
+    local tela = nova()
+    com_api(tela, [[{
+        DeployWithDependenciesPlan = { DeployBatch = {
+            { service_name = "db", status = "Queued" },
+            { service_name = "api", status = "Queued" },
+        } },
+        DeployStart = { Deployment = { id = "d1", state = "Queued" } },
+    }]])
+    tela:call("running_deploy", "svc_1")
+    tela:answer("so")
+    assert_eq(enviados(tela), "DeployWithDependenciesPlan,DeployStart")
+    tela:eval([[ ctx.alvo = require("state").deploy_track.service_id ]])
+    assert_eq(tela:get("alvo"), "svc_1")
+end
+
+--- Rejeitar (ou fechar o diálogo): nada mais é enviado ao daemon, nem toast
+function test_deploy_plan__rejeitar_nao_deploya_nada()
+    local tela = nova()
+    com_api(tela, PLANO_3)
+    tela:call("running_deploy", "svc_1")
+    tela:answer(nil)
+    assert_eq(enviados(tela), "DeployWithDependenciesPlan")
+    assert_eq(#tela:toasts(), 0)
+end
+
+--- sem diálogo aberto não há o que responder
+function test_deploy_plan__sem_dialogo_pendente_answer_lanca()
+    local tela = nova()
+    assert_fails(function() tela:answer("aceitar") end, "nenhum diálogo pendente")
 end

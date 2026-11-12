@@ -1665,9 +1665,9 @@ dependencies = [
 
 [[package]]
 name = "glacier-ui"
-version = "0.157.0"
+version = "0.158.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eca255de97bc9a81acd3e5aaa64b79eeb1765dad26786129dc536b3a3a6bece1"
+checksum = "df00dd955158f7d1328b12d205714348488ebaf2b1e169678dc883a8802d835c"
 dependencies = [
  "base64",
  "console_error_panic_hook",

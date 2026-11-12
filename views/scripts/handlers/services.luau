@@ -12,7 +12,17 @@ local format = require("../format")
 local History = require("history")
 local ServiceBackup = require("service_backup")
 
-local M = {}
+-- `open_service` (logo abaixo) chama estas três antes de elas serem definidas (mais adiante no
+-- arquivo), e o Luau só conhece um campo de `M` depois do `function M.x`. O tipo declara a forma
+-- de antemão; as definições seguem conferidas contra as assinaturas daqui.
+type ServicesModule = {
+    fetch_service_detail: (service_id: string) -> (),
+    data_reset: () -> (),
+    reset_log_executions: () -> (),
+    [string]: any,
+}
+
+local M: ServicesModule = {} :: any
 
 -- Título editável do serviço (service.component.gv): cada tecla reinicia `title_save_timer`
 -- (debounce de 0,5 s antes de gravar) e `title_toast_timer` (o toast "Nome
@@ -1246,11 +1256,11 @@ local function split_registry_image(image: string): (string, string)
     local rest = image
     local first, remainder = string.match(rest, "^([^/]+)/(.+)$")
     if first and (string.find(first, "[%.:]") or first == "localhost") then
-        rest = remainder
+        rest = remainder or ""
     end
     local repo, tag = string.match(rest, "^(.+):([^:/]+)$")
     if repo then
-        return repo, tag
+        return repo, (tag or "")
     end
     return rest, ""
 end
