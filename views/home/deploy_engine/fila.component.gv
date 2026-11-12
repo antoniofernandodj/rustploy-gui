@@ -14,21 +14,21 @@ component {
       )
 
       button(
+        "{t('deploy_engine_fila.resume_queue')}",
         if = @deploy_engine_paused,
         equals = true,
         class = "btn btn--ghost btn--xs",
         on_click = queue_toggle_pause,
-        disabled = @busy_queue_toggle_pause,
-        text = "{t('deploy_engine_fila.resume_queue')}",
+        disabled = @busy_queue_toggle_pause
       )
 
       button(
+        "{t('deploy_engine_fila.pause_queue')}",
         if = @deploy_engine_paused,
         not_equals = true,
         class = "btn btn--ghost btn--xs",
         on_click = queue_toggle_pause,
-        disabled = @busy_queue_toggle_pause,
-        text = "{t('deploy_engine_fila.pause_queue')}",
+        disabled = @busy_queue_toggle_pause
       )
     }
 
@@ -61,17 +61,17 @@ component {
             }
 
             button(
+              "{t('deploy_engine_fila.top')}",
               class = "btn btn--ghost btn--xs",
               on_click = queue_promote:@q.deployment_id,
-              disabled = @busy_queue_promote,
-              text = "{t('deploy_engine_fila.top')}",
+              disabled = @busy_queue_promote
             )
 
             button(
+              "✕",
               class = env__del,
               on_click = queue_cancel:@q.deployment_id,
-              disabled = @busy_queue_cancel,
-              text = "✕",
+              disabled = @busy_queue_cancel
             )
           }
 

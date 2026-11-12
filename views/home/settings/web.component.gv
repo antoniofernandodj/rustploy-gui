@@ -9,9 +9,9 @@ component {
           text("@server_settings_public_base", class = "kv-list__val kv-list__val--compact")
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_settings_public_base,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:server_settings_public_base
           )
         }
 
@@ -26,9 +26,9 @@ component {
           text("@server_access_key_short", class = "kv-list__val kv-list__val--compact")
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_access_key,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:server_access_key
           )
         }
 
@@ -48,9 +48,9 @@ component {
           )
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_mcp_command,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:server_mcp_command
           )
         }
 
@@ -63,9 +63,9 @@ component {
           )
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_mcp_command_codex,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:server_mcp_command_codex
           )
         }
 
@@ -78,9 +78,9 @@ component {
           )
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_mcp_command_gemini,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:server_mcp_command_gemini
           )
         }
 
@@ -130,10 +130,10 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('common.save_2')}",
             class = "btn btn--primary",
             on_click = settings_save,
-            disabled = @busy_settings_save,
-            text = "{t('common.save_2')}"
+            disabled = @busy_settings_save
           )
           text("@settings_message", class = u-muted)
         }

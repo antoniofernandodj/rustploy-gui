@@ -28,14 +28,14 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
       }
 
       button(
+        "—",
         class = titlebar__btn,
-        on_click = window:minimize,
-        text = "—"
+        on_click = window:minimize
       )
       button(
+        "✕",
         class = "titlebar__btn titlebar__btn--close",
-        on_click = window:close,
-        text = "✕"
+        on_click = window:close
       )
     }
 
@@ -110,16 +110,16 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
               column(class = u-fill)
 
               button(
+                "{t('common.cancel')}",
                 class = "btn btn--ghost",
-                on_click = window:close,
-                text = "{t('common.cancel')}",
+                on_click = window:close
               )
 
               button(
+                "{t('new_registry_token_window.create_token')}",
                 type = submit,
                 disabled = @busy_new_registry_token_create,
-                class = "btn btn--primary",
-                text = "{t('new_registry_token_window.create_token')}"
+                class = "btn btn--primary"
               )
             }
           }
@@ -152,9 +152,9 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
               column(class = u-fill)
 
               button(
+                "{t('common.copy')}",
                 class = "btn btn--ghost btn--xs",
-                on_click = copy_ctx:new_registry_token_login_command,
-                text = "{t('common.copy')}",
+                on_click = copy_ctx:new_registry_token_login_command
               )
             }
           }
@@ -162,9 +162,9 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
           row(class = dialog__actions) {
             column(class = u-fill)
             button(
+              "{t('common.close')}",
               class = "btn btn--primary",
-              on_click = window:close,
-              text = "{t('common.close')}"
+              on_click = window:close
             )
           }
         }

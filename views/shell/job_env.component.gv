@@ -6,7 +6,7 @@ component {
   }
 
   row(class = env__head) {
-    button(class = "btn btn--ghost btn--sm", on_click = job_env_back, text = "{t('common.back')}")
+    button("{t('common.back')}", class = "btn btn--ghost btn--sm", on_click = job_env_back)
     text("{t('job_env.title', job_env_name=job_env_name)}", class = "u-label-cap u-fill")
   }
 

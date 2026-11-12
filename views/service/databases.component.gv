@@ -16,10 +16,10 @@ component {
         column(class = kv-list) {
           row(class = kv-list__row, :for_each = service_shared_databases, var = d) {
             button(
+              "✕",
               class = env__del,
               on_click = shared_database_delete:@d.id,
-              disabled = @busy_shared_database_delete,
-              text = "✕",
+              disabled = @busy_shared_database_delete
             )
 
             text(class = env__sep)
@@ -35,9 +35,9 @@ component {
         text("@shared_database_url_short", class = "kv-list__val kv-list__val--compact")
 
         button(
+          "{t('common.copy')}",
           class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:shared_database_url,
-          text = "{t('common.copy')}",
+          on_click = copy_ctx:shared_database_url
         )
       }
 
@@ -99,20 +99,20 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('databases.create_database')}",
           class = "btn btn--primary",
           if = @service_form_shared_database_project,
           equals = "",
-          disabled = true,
-          text = "{t('databases.create_database')}",
+          disabled = true
         )
 
         button(
+          "{t('databases.create_database')}",
           class = "btn btn--primary",
           if = @service_form_shared_database_project,
           not_equals = "",
           on_click = shared_database_create,
-          disabled = @busy_shared_database_create,
-          text = "{t('databases.create_database')}",
+          disabled = @busy_shared_database_create
         )
 
         text("@service_action_message", class = u-muted)

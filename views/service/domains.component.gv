@@ -20,10 +20,10 @@ component {
         each @service_domains as d (fallback = SemDominios) {
           row(class = kv-list__row) {
             button(
+              "✕",
               class = env__del,
               on_click = domain_delete:@d.domain,
-              disabled = @busy_domain_delete,
-              text = "✕",
+              disabled = @busy_domain_delete
             )
 
             text(class = env__sep)
@@ -77,10 +77,10 @@ component {
 
     row(class = env__add) {
       button(
+        "{t('domains.add_domain_2')}",
         class = "btn btn--primary",
         on_click = domain_add,
-        disabled = @busy_domain_add,
-        text = "{t('domains.add_domain_2')}",
+        disabled = @busy_domain_add
       )
 
       text("@service_action_message", class = u-muted)
@@ -108,17 +108,17 @@ component {
 
     row(class = env__add) {
       button(
+        "{t('common.save_port')}",
         class = "btn btn--ghost",
         on_click = domain_hostport_save,
-        disabled = @busy_domain_hostport_save,
-        text = "{t('common.save_port')}",
+        disabled = @busy_domain_hostport_save
       )
 
       button(
+        "{t('domains.automatic')}",
         class = "btn btn--ghost",
         on_click = domain_hostport_auto,
-        disabled = @busy_domain_hostport_auto,
-        text = "{t('domains.automatic')}",
+        disabled = @busy_domain_hostport_auto
       )
     }
 

@@ -6,6 +6,6 @@ screen(title = fixture, size = "200 200") {
   }
 
   column {
-    button(on_click = salvar, disabled = @busy_salvar, text = Salvar)
+    button("Salvar", on_click = salvar, disabled = @busy_salvar)
   }
 }

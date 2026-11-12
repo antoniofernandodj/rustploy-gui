@@ -20,23 +20,23 @@ component {
       )
 
       button(
+        "{t('common.export')}",
         class = "btn btn--ghost btn--wide",
         on_click = project_env_export,
-        disabled = @busy_project_env_export,
-        text = "{t('common.export')}",
+        disabled = @busy_project_env_export
       )
 
       text(" ")
 
       if @project_env_text_open == "true" {
         button(
+          "{t('common.close')}",
           class = "btn btn--blue btn--wide",
           on_click = project_env_text_toggle,
-          disabled = @busy_project_env_text_toggle,
-          text = "{t('common.close')}",
+          disabled = @busy_project_env_text_toggle
         )
       } else {
-        button(class = tabs__tab, on_click = project_env_text_toggle, disabled = @busy_project_env_text_toggle, text = "{t('common.env')}")
+        button("{t('common.env')}", class = tabs__tab, on_click = project_env_text_toggle, disabled = @busy_project_env_text_toggle)
       }
     }
 
@@ -76,13 +76,13 @@ component {
           )
 
           button(
+            "{t('project_env.use_secret')}",
             class = "btn btn--blue btn--wide",
             on_click = project_env_secret_toggle,
-            disabled = @busy_project_env_secret_toggle,
-            text = "{t('project_env.use_secret')}",
+            disabled = @busy_project_env_secret_toggle
           )
 
-          button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = "{t('common.add')}")
+          button("{t('common.add')}", type = submit, disabled = @busy_project_env_add, class = "btn btn--primary")
         }
 
         text(
@@ -121,13 +121,13 @@ component {
           )
 
           button(
+            "{t('project_env.use_secret')}",
             class = tabs__tab,
             on_click = project_env_secret_toggle,
-            disabled = @busy_project_env_secret_toggle,
-            text = "{t('project_env.use_secret')}",
+            disabled = @busy_project_env_secret_toggle
           )
 
-          button(type = submit, disabled = @busy_project_env_add, class = "btn btn--primary", text = "{t('common.add')}")
+          button("{t('common.add')}", type = submit, disabled = @busy_project_env_add, class = "btn btn--primary")
         }
       }
     }
@@ -168,10 +168,10 @@ component {
                 )
 
                 button(
+                  "✕",
                   class = env__del,
                   on_click = project_env_delete:@e.key,
-                  disabled = @busy_project_env_delete,
-                  text = "✕",
+                  disabled = @busy_project_env_delete
                 )
 
                 text(class = env__sep)
@@ -199,65 +199,65 @@ component {
                 )
 
                 button(
+                  "✕",
                   class = env__del,
                   on_click = project_env_delete:@e.key,
-                  disabled = @busy_project_env_delete,
-                  text = "✕",
+                  disabled = @busy_project_env_delete
                 )
 
                 button(
+                  "✏️",
                   class = "btn btn--ghost btn--sm",
                   on_click = project_env_edit_key:@e.key,
-                  text = "✏️",
-                  tooltip = "{t('environment.rename')}",
+                  tooltip = "{t('environment.rename')}"
                 )
 
                 button(
+                  "✎",
                   class = "btn btn--ghost btn--sm",
                   on_click = project_env_edit_value:@e.key,
-                  text = "✎",
-                  tooltip = "{t('environment.edit_value')}",
+                  tooltip = "{t('environment.edit_value')}"
                 )
 
                 button(
+                  "🔒",
                   class = "btn btn--ghost btn--sm",
                   on_click = project_env_to_secret:@e.key,
                   disabled = @busy_project_env_to_secret,
                   if = @e.kind,
                   equals = plain,
-                  text = "🔒",
-                  tooltip = "{t('environment.to_secret')}",
+                  tooltip = "{t('environment.to_secret')}"
                 )
 
                 template(if = @e.kind, equals = plain) {
                   button(
+                    "↓",
                     class = "btn btn--ghost btn--sm",
                     if = @move_target_service_id,
                     equals = "",
                     disabled = true,
-                    text = "↓",
-                    tooltip = "{t('project_env.choose_service')}",
+                    tooltip = "{t('project_env.choose_service')}"
                   )
 
                   button(
+                    "↓",
                     class = "btn btn--ghost btn--sm",
                     on_click = project_env_to_service:@e.key,
                     disabled = @busy_project_env_to_service,
                     if = @move_target_service_id,
                     not_equals = "",
-                    text = "↓",
-                    tooltip = "{t('project_env.env_to_service')}",
+                    tooltip = "{t('project_env.env_to_service')}"
                   )
                 }
 
                 button(
+                  "🔓",
                   class = "btn btn--ghost btn--sm",
                   on_click = project_secret_to_env:@e.secret_name,
                   disabled = @busy_project_secret_to_env,
                   if = @e.kind,
                   equals = secret,
-                  text = "🔓",
-                  tooltip = "{t('environment.secret_to_env')}",
+                  tooltip = "{t('environment.secret_to_env')}"
                 )
 
                 text(class = env__sep)
@@ -265,8 +265,8 @@ component {
                   form(name = project_env_edit, on_submit = env_edit_apply, class = "form env__edit env__edit--key") {
                     row(class = env__add) {
                       input(class = env__inline, form_control = env_edit_draft, autofocus = true)
-                      button(type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm", text = "✓")
-                      button(on_click = env_edit_cancel, class = "btn btn--ghost btn--sm", text = "✕")
+                      button("✓", type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm")
+                      button("✕", on_click = env_edit_cancel, class = "btn btn--ghost btn--sm")
                     }
                   }
                 } else {
@@ -277,8 +277,8 @@ component {
                   form(name = project_env_edit_value, on_submit = env_edit_apply, class = "form env__edit env__edit--value") {
                     row(class = env__add) {
                       input(class = env__inline, form_control = env_edit_draft, autofocus = true)
-                      button(type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm", text = "✓")
-                      button(on_click = env_edit_cancel, class = "btn btn--ghost btn--sm", text = "✕")
+                      button("✓", type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm")
+                      button("✕", on_click = env_edit_cancel, class = "btn btn--ghost btn--sm")
                     }
                   }
                 } else {
@@ -304,17 +304,17 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('common.save')}",
               class = "btn btn--primary",
               on_click = project_env_import,
-              disabled = @busy_project_env_import,
-              text = "{t('common.save')}",
+              disabled = @busy_project_env_import
             )
 
             button(
+              "{t('common.cancel')}",
               class = "btn btn--ghost",
               on_click = project_env_text_cancel,
-              disabled = @busy_project_env_text_cancel,
-              text = "{t('common.cancel')}",
+              disabled = @busy_project_env_text_cancel
             )
           }
         }

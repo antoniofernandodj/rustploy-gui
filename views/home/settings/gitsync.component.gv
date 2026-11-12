@@ -109,18 +109,18 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('settings_gitsync.save_and_apply')}",
           class = "btn btn--primary",
           on_click = state_git_save,
-          disabled = @busy_state_git_save,
-          text = "{t('settings_gitsync.save_and_apply')}"
+          disabled = @busy_state_git_save
         )
 
         if @state_git_is_sync == "true" {
           button(
+            "{t('settings_gitsync.sync_now')}",
             class = "btn btn--ghost",
             on_click = state_git_sync_now,
-            disabled = @busy_state_git_sync_now,
-            text = "{t('settings_gitsync.sync_now')}"
+            disabled = @busy_state_git_sync_now
           )
         }
 
@@ -191,16 +191,16 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('settings_gitsync.use_repository')}",
             class = "btn btn--danger",
             on_click = state_git_resolve_remote,
-            disabled = @busy_state_git_resolve_remote,
-            text = "{t('settings_gitsync.use_repository')}"
+            disabled = @busy_state_git_resolve_remote
           )
           button(
+            "{t('settings_gitsync.use_server')}",
             class = "btn btn--danger",
             on_click = state_git_resolve_local,
-            disabled = @busy_state_git_resolve_local,
-            text = "{t('settings_gitsync.use_server')}"
+            disabled = @busy_state_git_resolve_local
           )
         }
 
@@ -208,10 +208,10 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('settings_gitsync.resume')}",
             class = "btn btn--ghost",
             on_click = state_git_resume,
-            disabled = @busy_state_git_resume,
-            text = "{t('settings_gitsync.resume')}"
+            disabled = @busy_state_git_resume
           )
         }
       }
@@ -242,10 +242,10 @@ component {
               }
 
               button(
+                "{t('settings_gitsync.dismiss')}",
                 class = "btn btn--ghost btn--xs",
                 on_click = state_git_dismiss_removal:@removal.id,
-                disabled = @busy_state_git_dismiss_removal,
-                text = "{t('settings_gitsync.dismiss')}",
+                disabled = @busy_state_git_dismiss_removal
               )
             }
           }
@@ -273,21 +273,21 @@ component {
             }
 
             button(
+              "{t('settings_gitsync.not_a_secret')}",
               if = @finding.can_allow,
               equals = 1,
               class = "btn btn--ghost btn--xs",
               on_click = state_git_allow_finding:@finding.index,
-              disabled = @busy_state_git_allow_finding,
-              text = "{t('settings_gitsync.not_a_secret')}",
+              disabled = @busy_state_git_allow_finding
             )
 
             button(
+              "{t('settings_gitsync.block_again')}",
               if = @finding.can_block_again,
               equals = 1,
               class = "btn btn--ghost btn--xs",
               on_click = state_git_block_again:@finding.index,
-              disabled = @busy_state_git_block_again,
-              text = "{t('settings_gitsync.block_again')}",
+              disabled = @busy_state_git_block_again
             )
           }
         }
@@ -303,10 +303,10 @@ component {
 
       row(class = busy-row) {
         button(
+          "{t('settings_gitsync.download_infra')}",
           class = "btn btn--primary",
           on_click = infra_download,
-          disabled = @busy_infra_download,
-          text = "{t('settings_gitsync.download_infra')}",
+          disabled = @busy_infra_download
         )
 
         text("@infra_download_message", class = u-muted)

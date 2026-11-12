@@ -10,10 +10,10 @@ component {
     text("{t('project_jobs.job_s', project_jobs_count=project_jobs_count)}", class = "u-muted u-fill")
 
     button(
+      "{t('common.new_job')}",
       class = "btn btn--primary btn--sm",
       on_click = open_new_job_window,
-      disabled = @busy_open_new_job_window,
-      text = "{t('common.new_job')}",
+      disabled = @busy_open_new_job_window
     )
   }
 

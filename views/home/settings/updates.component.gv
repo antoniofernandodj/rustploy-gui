@@ -22,9 +22,9 @@ component {
 
       row(class = healthcheck__grid) {
         button(
+          "{t('settings_updates.check_for_updates')}",
           class = "btn btn--ghost btn--sm",
-          on_click = update_check_now,
-          text = "{t('settings_updates.check_for_updates')}",
+          on_click = update_check_now
         )
       }
 
@@ -41,16 +41,16 @@ component {
         row(class = healthcheck__grid) {
           if @update_is_available == "true" {
             button(
+              "{t('settings_updates.update_daemon')}",
               class = "btn btn--primary btn--sm",
-              on_click = update_apply,
-              text = "{t('settings_updates.update_daemon')}",
+              on_click = update_apply
             )
           }
 
           button(
+            "{t('settings_updates.roll_back_to_the_previous')}",
             class = "btn btn--ghost btn--sm",
-            on_click = update_rollback,
-            text = "{t('settings_updates.roll_back_to_the_previous')}",
+            on_click = update_rollback
           )
         }
       }
@@ -76,9 +76,9 @@ component {
           if @update_app_can_update == "true" {
             row(class = healthcheck__grid) {
               button(
+                "{t('settings_updates.update_app')}",
                 class = "btn btn--primary btn--sm",
-                on_click = update_app_apply,
-                text = "{t('settings_updates.update_app')}",
+                on_click = update_app_apply
               )
             }
 
@@ -86,11 +86,11 @@ component {
 
             row(class = healthcheck__grid) {
               button(
+                "{t('common.cancel')}",
                 class = "btn btn--ghost btn--sm",
                 on_click = update_app_cancel,
                 if = @update_app_running,
-                equals = true,
-                text = "{t('common.cancel')}",
+                equals = true
               )
             }
 
@@ -107,9 +107,9 @@ component {
               text("@update_app_manual_command", class = "kv-list__val kv-list__val--compact")
 
               button(
+                "{t('common.copy')}",
                 class = "btn btn--ghost btn--xs",
-                on_click = copy_ctx:update_app_manual_command,
-                text = "{t('common.copy')}",
+                on_click = copy_ctx:update_app_manual_command
               )
             }
           }
@@ -128,9 +128,9 @@ component {
           text("@update_install_command", class = "kv-list__val kv-list__val--compact kv-list__val--wrap")
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:update_install_command,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:update_install_command
           )
         }
 
@@ -139,9 +139,9 @@ component {
           text("@update_release_url", class = "kv-list__val kv-list__val--compact kv-list__val--wrap")
 
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:update_release_url,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:update_release_url
           )
         }
       }

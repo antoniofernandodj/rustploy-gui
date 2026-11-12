@@ -48,7 +48,7 @@ screen {
             text("@log_window_title", class = titlebar__title)
           }
 
-          button(class = titlebar__btn, on_click = window:minimize, text = "—")
+          button("—", class = titlebar__btn, on_click = window:minimize)
           // Quadrado = maximizar; dois sobrepostos = restaurar (a convenção da
           // barra nativa). O estado vem do daemon do glacier, a cada resize.
           if @glacier_window_maximized {
@@ -71,9 +71,9 @@ screen {
             }
           }
           button(
+            "✕",
             class = "titlebar__btn titlebar__btn--close",
-            on_click = window:close,
-            text = "✕"
+            on_click = window:close
           )
         }
 
@@ -96,31 +96,31 @@ screen {
             )
 
             button(
+              "{t('log_window.load_older')}",
               if = @log_window_has_more,
               equals = true,
               class = tabs__tab,
-              on_click = log_window_load_older,
-              text = "{t('log_window.load_older')}",
+              on_click = log_window_load_older
             )
 
             button(
+              "↑",
               class = tabs__tab,
               on_click = textarea_top:log_window_logs_text,
-              text = "↑",
-              tooltip = "{t('log_window.go_to_top')}",
+              tooltip = "{t('log_window.go_to_top')}"
             )
 
             button(
+              "↓",
               class = tabs__tab,
               on_click = textarea_end:log_window_logs_text,
-              text = "↓",
-              tooltip = "{t('log_window.go_to_bottom')}",
+              tooltip = "{t('log_window.go_to_bottom')}"
             )
 
             button(
+              "{t('log_window.copy_all')}",
               class = tabs__tab,
-              on_click = copy_ctx:log_window_logs_text,
-              text = "{t('log_window.copy_all')}",
+              on_click = copy_ctx:log_window_logs_text
             )
           }
 

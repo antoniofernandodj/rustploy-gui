@@ -20,17 +20,17 @@ component {
 
   row(class = env__add) {
     button(
+      "{t('general_compose.save_compose')}",
       class = "btn btn--primary",
       on_click = compose_save,
-      disabled = @busy_compose_save,
-      text = "{t('general_compose.save_compose')}",
+      disabled = @busy_compose_save
     )
 
     button(
+      "{t('common.cancel')}",
       class = "btn btn--ghost",
       on_click = compose_cancel,
-      disabled = @busy_compose_cancel,
-      text = "{t('common.cancel')}",
+      disabled = @busy_compose_cancel
     )
 
     text("@service_action_message", class = u-muted)

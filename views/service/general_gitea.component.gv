@@ -140,10 +140,10 @@ component {
 
   row(class = env__add) {
     button(
+      "{t('common.save_2')}",
       class = "btn btn--primary",
       on_click = general_save,
-      disabled = @busy_general_save,
-      text = "{t('common.save_2')}",
+      disabled = @busy_general_save
     )
 
     text("@service_action_message", class = u-muted)

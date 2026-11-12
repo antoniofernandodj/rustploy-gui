@@ -30,10 +30,10 @@ component {
             }
 
             button(
+              "{t('common.remove')}",
               class = "btn btn--danger",
               on_click = git_provider_delete:@p.id,
-              disabled = @busy_git_provider_delete,
-              text = "{t('common.remove')}",
+              disabled = @busy_git_provider_delete
             )
           }
         }
@@ -70,11 +70,11 @@ component {
       )
 
       button(
+        "{t('settings_git.open_authorization_in_the_browser')}",
         if = @git_provider_oauth_url,
         not_equals = "",
         class = "btn btn--primary",
-        on_click = open:git_provider_oauth_url,
-        text = "{t('settings_git.open_authorization_in_the_browser')}",
+        on_click = open:git_provider_oauth_url
       )
 
       form(
@@ -169,9 +169,9 @@ component {
             text("@git_provider_redirect", class = "kv-list__val kv-list__val--compact")
 
             button(
+              "{t('common.copy')}",
               class = "btn btn--ghost btn--xs",
-              on_click = copy_ctx:git_provider_redirect,
-              text = "{t('common.copy')}",
+              on_click = copy_ctx:git_provider_redirect
             )
           }
 
@@ -255,17 +255,17 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('settings_git.connect_account')}",
             class = "btn btn--primary",
             on_click = git_provider_connect,
-            disabled = @busy_git_provider_connect,
-            text = "{t('settings_git.connect_account')}",
+            disabled = @busy_git_provider_connect
           )
 
           button(
+            "{t('settings_git.refresh_list')}",
             class = tabs__tab,
             on_click = git_provider_refresh,
-            disabled = @busy_git_provider_refresh,
-            text = "{t('settings_git.refresh_list')}",
+            disabled = @busy_git_provider_refresh
           )
         }
       }

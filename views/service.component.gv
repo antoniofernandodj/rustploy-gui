@@ -70,10 +70,10 @@ component {
       column(class = page-head__titles) {
         row(class = service__title-row) {
           button(
+            "‹ @service_project",
             class = "btn btn--ghost",
             on_click = open_project:@service_project_id,
-            disabled = @busy_open_project,
-            text = "‹ @service_project",
+            disabled = @busy_open_project
           )
 
           // Título = input sem borda: edita o nome in loco, sem botão (grava
@@ -128,100 +128,100 @@ component {
 
         row(class = "service__actions service__actions--compact") {
           button(
+            "▶",
             class = "btn btn--primary",
             on_click = service_deploy,
             disabled = @busy_service_deploy,
-            text = "▶",
-            tooltip = "{t('service.deploy')}",
+            tooltip = "{t('service.deploy')}"
           )
 
           button(
+            "⟳",
             class = "btn btn--blue btn--wide",
             on_click = service_reload,
             disabled = @busy_service_reload,
-            text = "⟳",
-            tooltip = "{t('service.reload')}",
+            tooltip = "{t('service.reload')}"
           )
 
           button(
+            "⚙",
             class = "btn btn--blue btn--wide",
             on_click = service_rebuild,
             disabled = @busy_service_rebuild,
-            text = "⚙",
-            tooltip = "{t('service.rebuild')}",
+            tooltip = "{t('service.rebuild')}"
           )
 
           button(
+            "■",
             class = "btn btn--danger",
             on_click = service_stop,
             disabled = @busy_service_stop,
-            text = "■",
-            tooltip = "{t('service.stop')}",
+            tooltip = "{t('service.stop')}"
           )
 
           button(
+            "◐",
             if = @service_warm_visible,
             equals = true,
             class = "btn btn--ghost",
             on_click = service_warm,
             disabled = @busy_service_warm,
-            text = "◐",
-            tooltip = "{t('service.warm_builds_the_image_so')}",
+            tooltip = "{t('service.warm_builds_the_image_so')}"
           )
 
           button(
+            "⇪",
             class = "btn btn--ghost",
             on_click = open_export_window,
             disabled = @busy_open_export_window,
-            text = "⇪",
-            tooltip = "{t('service.export_service')}",
+            tooltip = "{t('service.export_service')}"
           )
         }
       }
 
       row(class = "service__actions service__actions--full") {
         button(
+          "{t('service.deploy')}",
           class = "btn btn--primary",
           on_click = service_deploy,
-          disabled = @busy_service_deploy,
-          text = "{t('service.deploy')}"
+          disabled = @busy_service_deploy
         )
 
         button(
+          "{t('service.reload')}",
           class = "btn btn--blue btn--wide",
           on_click = service_reload,
-          disabled = @busy_service_reload,
-          text = "{t('service.reload')}"
+          disabled = @busy_service_reload
         )
 
         button(
+          "{t('service.rebuild')}",
           class = "btn btn--blue btn--wide",
           on_click = service_rebuild,
-          disabled = @busy_service_rebuild,
-          text = "{t('service.rebuild')}"
+          disabled = @busy_service_rebuild
         )
 
         button(
+          "{t('service.stop')}",
           class = "btn btn--danger",
           on_click = service_stop,
-          disabled = @busy_service_stop,
-          text = "{t('service.stop')}"
+          disabled = @busy_service_stop
         )
 
         button(
+          "{t('service.warm')}",
           if = @service_warm_visible,
           equals = true,
           class = "btn btn--ghost",
           on_click = service_warm,
-          disabled = @busy_service_warm,
-          text = "{t('service.warm')}",
+          disabled = @busy_service_warm
         )
 
         button(
+          "{t('service.export_service')}",
           class = "btn btn--ghost",
           on_click = open_export_window,
-          disabled = @busy_open_export_window,
-          text = "{t('service.export_service')}",
+          disabled = @busy_open_export_window
         )
       }
     }
@@ -356,10 +356,10 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('service.runtime_logs')}",
               class = tabs__tab,
               on_click = open_logs_window,
-              disabled = @busy_open_logs_window,
-              text = "{t('service.runtime_logs')}",
+              disabled = @busy_open_logs_window
             )
           }
         }

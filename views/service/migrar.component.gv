@@ -49,27 +49,27 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('common.migrate')}",
           class = "btn btn--primary",
           if = @service_form_migration_destination,
           equals = "",
-          disabled = true,
-          text = "{t('common.migrate')}",
+          disabled = true
         )
 
         button(
+          "{t('common.migrate')}",
           class = "btn btn--primary",
           if = @service_form_migration_destination,
           not_equals = "",
           on_click = migration_start,
-          disabled = @busy_migration_start,
-          text = "{t('common.migrate')}",
+          disabled = @busy_migration_start
         )
 
         button(
+          "{t('migrar.refresh')}",
           class = "btn btn--ghost",
           on_click = migration_refresh,
-          disabled = @busy_migration_refresh,
-          text = "{t('migrar.refresh')}",
+          disabled = @busy_migration_refresh
         )
       }
 
@@ -92,17 +92,17 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('migrar.roll_back')}",
               class = "btn btn--ghost",
               on_click = migration_rollback,
-              disabled = @busy_migration_rollback,
-              text = "{t('migrar.roll_back')}",
+              disabled = @busy_migration_rollback
             )
 
             button(
+              "{t('migrar.discard_the_old_database')}",
               class = "btn btn--ghost",
               on_click = migration_discard,
-              disabled = @busy_migration_discard,
-              text = "{t('migrar.discard_the_old_database')}",
+              disabled = @busy_migration_discard
             )
           }
         }

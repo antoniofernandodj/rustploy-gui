@@ -29,10 +29,10 @@ component {
       )
 
       button(
+        "{t('common.clean_unused')}",
         class = "btn btn--danger",
         on_click = docker_prune_images,
-        disabled = @busy_docker_prune_images,
-        text = "{t('common.clean_unused')}",
+        disabled = @busy_docker_prune_images
       )
     }
 
@@ -99,12 +99,12 @@ component {
 
       tablecolumn(label = "{t('common.action')}", class = table__col-act) {
         button(
+          "{t('common.remove')}",
           if = @i.in_use_label,
           equals = "SEM USO",
           class = "btn btn--danger btn--xs",
           on_click = docker_remove_image:@i.id_full,
-          disabled = @busy_docker_remove_image,
-          text = "{t('common.remove')}",
+          disabled = @busy_docker_remove_image
         )
       }
 

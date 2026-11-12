@@ -15,10 +15,10 @@ component {
       )
 
       button(
+        "{t('docker_containers.clean_stopped')}",
         class = "btn btn--danger",
         on_click = docker_prune_containers,
-        disabled = @busy_docker_prune_containers,
-        text = "{t('docker_containers.clean_stopped')}",
+        disabled = @busy_docker_prune_containers
       )
     }
 
@@ -81,21 +81,21 @@ component {
         // Só o container órfão ("removido no git") que
         // ainda roda: para-se aqui e depois remove-se.
         button(
+          "{t('docker_containers.stop')}",
           if = @c.can_stop,
           equals = 1,
           class = "btn btn--danger btn--xs",
           on_click = docker_stop_container:@c.id_full,
-          disabled = @busy_docker_stop_container,
-          text = "{t('docker_containers.stop')}",
+          disabled = @busy_docker_stop_container
         )
 
         button(
+          "{t('common.remove')}",
           if = @c.can_remove,
           equals = 1,
           class = "btn btn--danger btn--xs",
           on_click = docker_remove_container:@c.id_full,
-          disabled = @busy_docker_remove_container,
-          text = "{t('common.remove')}",
+          disabled = @busy_docker_remove_container
         )
       }
 

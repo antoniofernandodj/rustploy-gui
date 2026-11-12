@@ -16,10 +16,10 @@ component {
       column(class = page-head__titles) {
         row(class = proj-bar) {
           button(
+            "{t('project_services.projects')}",
             class = "btn btn--ghost",
             on_click = nav_projects,
-            disabled = @busy_nav_projects,
-            text = "{t('project_services.projects')}",
+            disabled = @busy_nav_projects
           )
 
           column(class = u-fill)
@@ -27,39 +27,39 @@ component {
           if @editing_project != "true" {
             flow(class = proj-bar__actions) {
               button(
+                "{t('project_services.reorder_services')}",
                 class = "btn btn--ghost btn--sm",
                 on_click = open_services_reorder_window,
-                disabled = @busy_open_services_reorder_window,
-                text = "{t('project_services.reorder_services')}",
+                disabled = @busy_open_services_reorder_window
               )
 
               button(
+                "{t('project_services.deploy')}",
                 class = "btn btn--ghost btn--sm",
                 on_click = project_deploy,
-                disabled = @busy_project_deploy,
-                text = "{t('project_services.deploy')}",
+                disabled = @busy_project_deploy
               )
 
               button(
+                "{t('project_services.new_service')}",
                 class = "btn btn--primary btn--sm",
                 on_click = open_new_service_window,
-                disabled = @busy_open_new_service_window,
-                text = "{t('project_services.new_service')}",
+                disabled = @busy_open_new_service_window
               )
 
               button(
+                "{t('project_services.edit_project')}",
                 class = "btn btn--ghost btn--sm",
                 on_click = edit_project_toggle,
-                disabled = @busy_edit_project_toggle,
-                text = "{t('project_services.edit_project')}",
+                disabled = @busy_edit_project_toggle
               )
 
               if @project_can_delete == "1" {
                 button(
+                  "{t('project_services.remove_project')}",
                   class = "btn btn--danger btn--sm",
                   on_click = delete_project:@selected_project_id,
-                  disabled = @busy_delete_project,
-                  text = "{t('project_services.remove_project')}",
+                  disabled = @busy_delete_project
                 )
               }
             }
@@ -95,13 +95,13 @@ component {
             )
 
             row(class = env__add) {
-              button(type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary", text = "{t('common.save')}")
+              button("{t('common.save')}", type = submit, disabled = @busy_save_project_edit, class = "btn btn--primary")
 
               button(
+                "{t('common.cancel')}",
                 class = "btn btn--ghost",
                 on_click = cancel_project_edit,
-                disabled = @busy_cancel_project_edit,
-                text = "{t('common.cancel')}",
+                disabled = @busy_cancel_project_edit
               )
 
               text("@project_action_message", class = u-muted)

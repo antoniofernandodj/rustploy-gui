@@ -8,10 +8,10 @@ component {
 
     row(class = env__add) {
       button(
+        "{t('logs.execution_logs')}",
         class = "btn btn--primary",
         on_click = open_logs_window,
-        disabled = @busy_open_logs_window,
-        text = "{t('logs.execution_logs')}",
+        disabled = @busy_open_logs_window
       )
     }
 
@@ -24,26 +24,26 @@ component {
         column(class = u-fill)
 
         button(
+          "{t('logs.select_all')}",
           class = "btn btn--ghost btn--sm",
-          on_click = log_exec_toggle_all,
-          text = "{t('logs.select_all')}",
+          on_click = log_exec_toggle_all
         )
 
         button(
+          "@log_selected_label",
           class = "btn btn--danger btn--sm",
           if = @log_selected_none,
           equals = true,
-          disabled = true,
-          text = "@log_selected_label",
+          disabled = true
         )
 
         button(
+          "@log_selected_label",
           class = "btn btn--danger btn--sm",
           if = @log_selected_none,
           not_equals = true,
           on_click = log_exec_delete_selected,
-          disabled = @busy_log_exec_delete_selected,
-          text = "@log_selected_label",
+          disabled = @busy_log_exec_delete_selected
         )
       }
 
@@ -52,9 +52,9 @@ component {
           template(:for_each = log_executions, var = e) {
             row(class = kv-list__row) {
               button(
+                "@e.mark",
                 class = "btn btn--ghost btn--sm",
-                on_click = log_exec_toggle:@e.key,
-                text = "@e.mark",
+                on_click = log_exec_toggle:@e.key
               )
 
               column(class = u-fill, spacing = 2) {
@@ -66,17 +66,17 @@ component {
               text("@e.partial", class = badge__label)
 
               button(
+                "{t('logs.view_logs')}",
                 class = "btn btn--ghost btn--sm",
                 on_click = log_exec_open:@e.key,
-                disabled = @busy_log_exec_open,
-                text = "{t('logs.view_logs')}",
+                disabled = @busy_log_exec_open
               )
 
               button(
+                "{t('logs.delete')}",
                 class = "btn btn--ghost btn--sm",
                 on_click = log_exec_delete:@e.key,
-                disabled = @busy_log_exec_delete,
-                text = "{t('logs.delete')}",
+                disabled = @busy_log_exec_delete
               )
             }
           }

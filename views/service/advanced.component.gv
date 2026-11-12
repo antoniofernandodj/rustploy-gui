@@ -54,7 +54,7 @@ component {
         }
 
         row(class = env__add) {
-          button(class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save, text = "{t('common.save_2')}")
+          button("{t('common.save_2')}", class = "btn btn--primary", on_click = advanced_save, disabled = @busy_advanced_save)
           text("@service_action_message", class = u-muted)
         }
       }
@@ -71,10 +71,10 @@ component {
           each @service_dependencies as d (fallback = SemDependencias) {
             row(class = kv-list__row) {
               button(
+                "✕",
                 class = env__del,
                 on_click = dependency_delete:@d.id,
-                disabled = @busy_dependency_delete,
-                text = "✕",
+                disabled = @busy_dependency_delete
               )
 
               text(class = env__sep)
@@ -99,20 +99,20 @@ component {
         // Sem serviço escolhido (valor nulo do select) o botão fica travado.
         row(class = env__add) {
           button(
+            "{t('advanced.add_dependency_button')}",
             class = "btn btn--primary",
             if = @service_form_dependency_add_id,
             equals = "",
-            disabled = true,
-            text = "{t('advanced.add_dependency_button')}",
+            disabled = true
           )
 
           button(
+            "{t('advanced.add_dependency_button')}",
             class = "btn btn--primary",
             if = @service_form_dependency_add_id,
             not_equals = "",
             on_click = dependency_add,
-            disabled = @busy_dependency_add,
-            text = "{t('advanced.add_dependency_button')}",
+            disabled = @busy_dependency_add
           )
         }
       }
@@ -146,10 +146,10 @@ component {
                   )
 
                   button(
+                    "✕",
                     class = env__del,
                     on_click = pre_deploy_check_delete:@c.id,
-                    disabled = @busy_pre_deploy_check_delete,
-                    text = "✕",
+                    disabled = @busy_pre_deploy_check_delete
                   )
 
                   text(class = env__sep)
@@ -165,10 +165,10 @@ component {
                   )
 
                   button(
+                    "✕",
                     class = env__del,
                     on_click = pre_deploy_check_delete:@c.id,
-                    disabled = @busy_pre_deploy_check_delete,
-                    text = "✕",
+                    disabled = @busy_pre_deploy_check_delete
                   )
 
                   text(class = env__sep)
@@ -194,20 +194,20 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('advanced.add_to_the_queue_2')}",
             class = "btn btn--primary",
             if = @service_form_pre_deploy_check_add_job_id,
             equals = "",
-            disabled = true,
-            text = "{t('advanced.add_to_the_queue_2')}",
+            disabled = true
           )
 
           button(
+            "{t('advanced.add_to_the_queue_2')}",
             class = "btn btn--primary",
             if = @service_form_pre_deploy_check_add_job_id,
             not_equals = "",
             on_click = pre_deploy_check_add,
-            disabled = @busy_pre_deploy_check_add,
-            text = "{t('advanced.add_to_the_queue_2')}",
+            disabled = @busy_pre_deploy_check_add
           )
         }
       }

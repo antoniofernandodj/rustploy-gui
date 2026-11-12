@@ -25,18 +25,18 @@ component {
       // Rótulo por extenso quando cabe; ícone + tooltip abaixo de 860px
       // (alternância no app.gss, como as ações da tela de serviço).
       button(
+        "{t('deployments.clean_stopped_failed')}",
         class = "btn btn--danger page-head__clear--full",
         on_click = deployments_clear_finished,
-        disabled = @busy_deployments_clear_finished,
-        text = "{t('deployments.clean_stopped_failed')}",
+        disabled = @busy_deployments_clear_finished
       )
 
       button(
+        "✕",
         class = "btn btn--danger page-head__clear--compact",
         on_click = deployments_clear_finished,
         disabled = @busy_deployments_clear_finished,
-        text = "✕",
-        tooltip = "{t('deployments.clean_stopped_failed')}",
+        tooltip = "{t('deployments.clean_stopped_failed')}"
       )
     }
 

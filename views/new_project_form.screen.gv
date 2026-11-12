@@ -23,14 +23,14 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
       }
 
       button(
+        "—",
         class = titlebar__btn,
-        on_click = window:minimize,
-        text = "—"
+        on_click = window:minimize
       )
       button(
+        "✕",
         class = "titlebar__btn titlebar__btn--close",
-        on_click = window:close,
-        text = "✕"
+        on_click = window:close
       )
     }
 
@@ -99,16 +99,16 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
         row(class = dialog__actions) {
           column(class = u-fill)
           button(
+            "{t('common.cancel')}",
             class = "btn btn--ghost",
             on_click = cancel,
-            disabled = @busy_cancel,
-            text = "{t('common.cancel')}"
+            disabled = @busy_cancel
           )
           button(
+            "{t('new_project_form.create_project')}",
             type = submit,
             disabled = @busy_submit_project,
-            class = "btn btn--primary",
-            text = "{t('new_project_form.create_project')}"
+            class = "btn btn--primary"
           )
         }
       }

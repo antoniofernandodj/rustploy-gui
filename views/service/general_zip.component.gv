@@ -38,25 +38,25 @@ component {
 
   row(class = env__add) {
     button(
+      "{t('general_zip.upload_zip')}",
       class = "btn btn--primary",
       on_click = archive_upload,
-      disabled = @busy_archive_upload,
-      text = "{t('general_zip.upload_zip')}",
+      disabled = @busy_archive_upload
     )
 
     button(
+      "{t('common.cancel')}",
       class = btn-secondary,
       on_click = archive_upload_cancel,
       if = @archive_upload_active,
-      equals = true,
-      text = "{t('common.cancel')}",
+      equals = true
     )
 
     button(
+      "{t('common.save_port')}",
       class = btn-secondary,
       on_click = general_save,
-      disabled = @busy_general_save,
-      text = "{t('common.save_port')}",
+      disabled = @busy_general_save
     )
   }
 }

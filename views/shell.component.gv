@@ -159,10 +159,10 @@ component {
       // Top bar
       row(class = topbar) {
         button(
+          "☰",
           class = topbar__menu,
-          text = "☰",
           on_click = app:drawer::toggle:menu,
-          tooltip = "{t('shell.show_hide_the_menu')}",
+          tooltip = "{t('shell.show_hide_the_menu')}"
         )
 
         input(
@@ -179,16 +179,16 @@ component {
 
         flow(class = topbar__actions) {
           button(
+            "{t('shell.stop_all')}",
             class = "btn btn--danger",
             on_click = stop_all,
-            disabled = @busy_stop_all,
-            text = "{t('shell.stop_all')}"
+            disabled = @busy_stop_all
           )
           button(
+            "{t('shell.disconnect')}",
             class = "btn btn--ghost",
             on_click = disconnect,
-            disabled = @busy_disconnect,
-            text = "{t('shell.disconnect')}"
+            disabled = @busy_disconnect
           )
         }
       }
@@ -201,9 +201,9 @@ component {
         row(class = "banner banner--warn") {
           text("@state_git_alert_message", class = "u-warn u-fill")
           button(
+            "{t('common.open')}",
             class = "btn btn--ghost btn--xs",
-            on_click = state_git_open,
-            text = "{t('common.open')}"
+            on_click = state_git_open
           )
         }
       }

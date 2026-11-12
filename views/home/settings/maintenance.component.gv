@@ -195,25 +195,26 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('common.save')}",
           class = "btn btn--primary",
           on_click = docker_cleanup_save,
-          disabled = @busy_docker_cleanup_save, text = "{t('common.save')}"
+          disabled = @busy_docker_cleanup_save
         )
 
         button(
+          "{t('settings_maintenance.run_now')}",
           class = tabs__tab,
           if = @docker_cleanup_running,
           not_equals = true,
           on_click = docker_cleanup_run_now,
-          disabled = @busy_docker_cleanup_run_now,
-          text = "{t('settings_maintenance.run_now')}",
+          disabled = @busy_docker_cleanup_run_now
         )
 
         button(
+          "{t('settings_maintenance.running')}",
           class = tabs__tab,
           if = @docker_cleanup_running,
-          equals = true,
-          text = "{t('settings_maintenance.running')}",
+          equals = true
         )
 
         text("@docker_cleanup_message", class = u-muted)

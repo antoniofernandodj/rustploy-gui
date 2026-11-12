@@ -25,16 +25,16 @@ component {
 
         row(class = webhook__actions) {
           button(
+            "{t('common.copy')}",
             class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:service_webhook_url,
-            text = "{t('common.copy')}",
+            on_click = copy_ctx:service_webhook_url
           )
 
           button(
+            "{t('deployments.regenerate')}",
             class = "btn btn--danger btn--xs",
             on_click = regenerate_webhook,
-            disabled = @busy_regenerate_webhook,
-            text = "{t('deployments.regenerate')}",
+            disabled = @busy_regenerate_webhook
           )
         }
       }
@@ -66,21 +66,21 @@ component {
 
               row(class = deployments__actions) {
                 button(
+                  "≡",
                   class = "btn btn--ghost btn--xs",
                   on_click = deployment_logs:@d.id_full,
                   disabled = @busy_deployment_logs,
-                  text = "≡",
-                  tooltip = "{t('deployments.view_build_log')}",
+                  tooltip = "{t('deployments.view_build_log')}"
                 )
 
                 button(
+                  "✕",
                   if = @d.can_delete,
                   equals = 1,
                   class = "btn btn--danger btn--xs",
                   on_click = delete_deployment:@d.id_full,
                   disabled = @busy_delete_deployment,
-                  text = "✕",
-                  tooltip = "{t('deployments.remove_deployment')}",
+                  tooltip = "{t('deployments.remove_deployment')}"
                 )
               }
             }

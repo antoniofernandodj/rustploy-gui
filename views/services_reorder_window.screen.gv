@@ -15,14 +15,14 @@ screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
       }
 
       button(
+        "—",
         class = titlebar__btn,
-        on_click = window:minimize,
-        text = "—"
+        on_click = window:minimize
       )
       button(
+        "✕",
         class = "titlebar__btn titlebar__btn--close",
-        on_click = window:close,
-        text = "✕"
+        on_click = window:close
       )
     }
 
@@ -72,15 +72,15 @@ screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
 
         row(class = dialog__actions) {
           button(
+            "{t('services_reorder_window.reorder')}",
             class = "btn btn--primary",
             on_click = services_reorder_apply,
-            disabled = @busy_services_reorder_apply,
-            text = "{t('services_reorder_window.reorder')}",
+            disabled = @busy_services_reorder_apply
           )
           button(
+            "{t('services_reorder_window.cancel')}",
             class = "btn btn--ghost",
-            on_click = cancel,
-            text = "{t('services_reorder_window.cancel')}",
+            on_click = cancel
           )
         }
       }

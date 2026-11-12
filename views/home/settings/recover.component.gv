@@ -54,10 +54,10 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('settings_recover.restore_infra')}",
               class = "btn btn--primary",
               on_click = recover_start,
-              disabled = @busy_recover_start,
-              text = "{t('settings_recover.restore_infra')}"
+              disabled = @busy_recover_start
             )
           }
         }
@@ -86,16 +86,16 @@ component {
 
           row(class = env__add, if = @recover_phase, equals = ready) {
             button(
+              "{t('settings_recover.restore_data')}",
               class = "btn btn--primary",
               on_click = recover_run,
-              disabled = @busy_recover_run,
-              text = "{t('settings_recover.restore_data')}"
+              disabled = @busy_recover_run
             )
             button(
+              "{t('common.cancel')}",
               class = btn-secondary,
               on_click = recover_cancel,
-              disabled = @busy_recover_cancel,
-              text = "{t('common.cancel')}"
+              disabled = @busy_recover_cancel
             )
           }
         }

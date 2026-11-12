@@ -35,10 +35,10 @@ component {
 
   popup(value = "job_actions_open_@job_id") {
     button(
+      "⋯",
       slot = anchor,
       class = "btn btn--ghost btn--xs",
-      text = "⋯",
-      tooltip = "{t('job_actions.job_actions')}",
+      tooltip = "{t('job_actions.job_actions')}"
     )
 
     column(class = job-actions__panel) {
@@ -63,75 +63,75 @@ component {
       }
 
       button(
+        "{t('job_actions.run_now')}",
         class = "btn btn--ghost btn--sm job-actions__item",
         if = @running,
         not_equals = true,
         on_click = job_run_now:@job_id,
-        disabled = @busy_job_run_now,
-        text = "{t('job_actions.run_now')}",
+        disabled = @busy_job_run_now
       )
 
       button(
+        "{t('job_actions.cancel_run')}",
         class = "btn btn--danger btn--sm job-actions__item",
         if = @running,
         equals = true,
         on_click = job_run_cancel:@last_run_id,
-        disabled = @busy_job_run_cancel,
-        text = "{t('job_actions.cancel_run')}",
+        disabled = @busy_job_run_cancel
       )
 
       button(
+        "{t('job_actions.warm')}",
         class = "btn btn--ghost btn--sm job-actions__item",
         on_click = job_warm:@job_id,
-        disabled = @busy_job_warm,
-        text = "{t('job_actions.warm')}",
+        disabled = @busy_job_warm
       )
 
       button(
+        "{t('job_actions.rebuild_no_cache')}",
         class = "btn btn--ghost btn--sm job-actions__item",
         if = @is_warm,
         equals = true,
         on_click = job_rebuild:@job_id,
         disabled = @busy_job_rebuild,
-        text = "{t('job_actions.rebuild_no_cache')}",
-        tooltip = "{t('job_actions.redoes_the_build_from_scratch')}",
+        tooltip = "{t('job_actions.redoes_the_build_from_scratch')}"
       )
 
       button(
+        "{t('job_actions.view_logs')}",
         class = "btn btn--ghost btn--sm job-actions__item",
         if = @last_run_id,
         not_equals = "",
         on_click = open_job_logs_window:@last_run_id,
-        disabled = @busy_open_job_logs_window,
-        text = "{t('job_actions.view_logs')}",
+        disabled = @busy_open_job_logs_window
       )
 
       button(
+        "‖  @enabled_label",
         class = "btn btn--ghost btn--sm job-actions__item",
         on_click = job_toggle:@job_id,
-        disabled = @busy_job_toggle,
-        text = "‖  @enabled_label",
+        disabled = @busy_job_toggle
       )
 
       button(
+        "{t('job_actions.variables')}",
         class = "btn btn--ghost btn--sm job-actions__item",
         on_click = job_env_open:@job_id,
-        disabled = @busy_job_env_open,
-        text = "{t('job_actions.variables')}",
+        disabled = @busy_job_env_open
       )
 
       button(
+        "{t('job_actions.edit')}",
         class = "btn btn--ghost btn--sm job-actions__item",
         on_click = open_edit_job_window:@job_id,
-        disabled = @busy_open_edit_job_window,
-        text = "{t('job_actions.edit')}",
+        disabled = @busy_open_edit_job_window
       )
 
       button(
+        "{t('job_actions.remove')}",
         class = "btn btn--danger btn--sm job-actions__item",
         on_click = job_delete:@job_id,
-        disabled = @busy_job_delete,
-        text = "{t('job_actions.remove')}",
+        disabled = @busy_job_delete
       )
     }
   }

@@ -21,16 +21,16 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('common.back')}",
           class = "btn btn--ghost",
           on_click = new_service_back,
-          disabled = @busy_new_service_back,
-          text = "{t('common.back')}"
+          disabled = @busy_new_service_back
         )
         button(
+          "{t('common.cancel')}",
           class = "btn btn--ghost",
           on_click = new_service_cancel,
-          disabled = @busy_new_service_cancel,
-          text = "{t('common.cancel')}"
+          disabled = @busy_new_service_cancel
         )
       }
     }
@@ -115,10 +115,10 @@ component {
           row(class = env__add) {
             text("{t('new_service.package', import_file=import_file)}", class = u-muted)
             button(
+              "{t('new_service.change_package')}",
               class = "btn btn--ghost",
               on_click = import_clear,
-              disabled = @busy_import_clear,
-              text = "{t('new_service.change_package')}",
+              disabled = @busy_import_clear
             )
           }
 
@@ -179,10 +179,10 @@ component {
             column(class = kv-list) {
               template(:for_each = import_providers, var = p) {
                 button(
+                  "@p.mark  @p.label",
                   class = "btn btn--ghost",
                   on_click = import_use_provider:@p.id,
-                  disabled = @busy_import_use_provider,
-                  text = "@p.mark  @p.label",
+                  disabled = @busy_import_use_provider
                 )
               }
             }
@@ -198,10 +198,10 @@ component {
                   text("@v.info", class = u-muted)
                   if @v.can_choose == "true" {
                     button(
+                      "@v.choice",
                       class = "btn btn--ghost",
                       on_click = import_choice:@v.key,
-                      disabled = @busy_import_choice,
-                      text = "@v.choice",
+                      disabled = @busy_import_choice
                     )
                   } else {
                     text("{t('new_service.already_identical_nothing_to_do')}", class = u-muted)
@@ -225,24 +225,24 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('new_service.create_service')}",
               class = "btn btn--primary",
               on_click = import_create,
-              disabled = @busy_import_create,
-              text = "{t('new_service.create_service')}",
+              disabled = @busy_import_create
             )
             button(
+              "{t('new_service.refresh_analysis')}",
               class = "btn btn--blue btn--wide",
               on_click = import_analyze,
-              disabled = @busy_import_analyze,
-              text = "{t('new_service.refresh_analysis')}",
+              disabled = @busy_import_analyze
             )
           }
         } else {
           button(
+            "{t('new_service.choose_file')}",
             class = "btn btn--blue btn--wide",
             on_click = import_pick_file,
-            disabled = @busy_import_pick_file,
-            text = "{t('new_service.choose_file')}",
+            disabled = @busy_import_pick_file
           )
 
           text("{t('new_service.or_paste_the_package_text')}", class = u-label-cap)
@@ -258,10 +258,10 @@ component {
           )
 
           button(
+            "{t('new_service.analyze')}",
             class = "btn btn--primary",
             on_click = import_analyze,
-            disabled = @busy_import_analyze,
-            text = "{t('new_service.analyze')}",
+            disabled = @busy_import_analyze
           )
         }
       }
@@ -363,10 +363,10 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('new_service.create_application')}",
               class = "btn btn--primary",
               on_click = new_service_create,
-              disabled = @busy_new_service_create,
-              text = "{t('new_service.create_application')}",
+              disabled = @busy_new_service_create
             )
           }
         }
@@ -415,10 +415,10 @@ component {
 
           row(class = env__add) {
             button(
+              "{t('new_service.create_compose_stack')}",
               class = "btn btn--primary",
               on_click = new_service_create,
-              disabled = @busy_new_service_create,
-              text = "{t('new_service.create_compose_stack')}",
+              disabled = @busy_new_service_create
             )
           }
         }
@@ -532,10 +532,10 @@ component {
 
             row(class = env__add) {
               button(
+                "{t('new_service.create', new_service_database_label=new_service_database_label)}",
                 class = "btn btn--primary",
                 on_click = new_service_create,
-                disabled = @busy_new_service_create,
-                text = "{t('new_service.create', new_service_database_label=new_service_database_label)}",
+                disabled = @busy_new_service_create
               )
             }
           }
@@ -601,10 +601,10 @@ component {
 
             row(class = env__add) {
               button(
+                "{t('new_service.create_2', new_service_template_name=new_service_template_name)}",
                 class = "btn btn--primary",
                 on_click = new_service_create,
-                disabled = @busy_new_service_create,
-                text = "{t('new_service.create_2', new_service_template_name=new_service_template_name)}",
+                disabled = @busy_new_service_create
               )
             }
           }

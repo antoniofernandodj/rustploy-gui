@@ -22,8 +22,8 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
         text("{t('new_job_window.new_job_rustploy')}", class = titlebar__title)
       }
 
-      button(class = titlebar__btn, on_click = window:minimize, text = "—")
-      button(class = "titlebar__btn titlebar__btn--close", on_click = window:close, text = "✕")
+      button("—", class = titlebar__btn, on_click = window:minimize)
+      button("✕", class = "titlebar__btn titlebar__btn--close", on_click = window:close)
     }
 
     scrollable(class = dialog__body, direction = vertical) {
@@ -51,10 +51,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
           row(class = dialog__actions) {
             column(class = u-fill)
             button(
+              "{t('common.cancel')}",
               class = "btn btn--ghost",
               on_click = cancel,
-              disabled = @busy_cancel,
-              text = "{t('common.cancel')}"
+              disabled = @busy_cancel
             )
           }
         }
@@ -72,10 +72,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
           row(class = env__add) {
             button(
+              "{t('new_job_window.none_standalone_job')}",
               class = "btn btn--ghost",
               on_click = new_job_pick_no_service,
-              disabled = @busy_new_job_pick_no_service,
-              text = "{t('new_job_window.none_standalone_job')}",
+              disabled = @busy_new_job_pick_no_service
             )
           }
 
@@ -100,10 +100,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
           row(class = dialog__actions) {
             column(class = u-fill)
             button(
+              "{t('common.back')}",
               class = "btn btn--ghost",
               on_click = new_job_back,
-              disabled = @busy_new_job_back,
-              text = "{t('common.back')}"
+              disabled = @busy_new_job_back
             )
           }
         }
@@ -251,10 +251,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
               row(class = env__add) {
                 button(
+                  "{t('new_job_window.open_env')}",
                   class = "btn btn--ghost",
                   on_click = new_job_open_env,
-                  disabled = @busy_new_job_open_env,
-                  text = "{t('new_job_window.open_env')}",
+                  disabled = @busy_new_job_open_env
                 )
               }
             } else {
@@ -359,39 +359,39 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               column(class = u-fill)
 
               button(
+                "{t('common.close')}",
                 class = "btn btn--ghost",
                 if = @new_job_edit_id,
                 not_equals = "",
                 on_click = new_job_back,
-                disabled = @busy_new_job_back,
-                text = "{t('common.close')}",
+                disabled = @busy_new_job_back
               )
 
               button(
+                "{t('common.back')}",
                 class = "btn btn--ghost",
                 if = @new_job_edit_id,
                 equals = "",
                 on_click = new_job_back,
-                disabled = @busy_new_job_back,
-                text = "{t('common.back')}",
+                disabled = @busy_new_job_back
               )
 
               button(
+                "{t('common.save')}",
                 class = "btn btn--primary",
                 if = @new_job_edit_id,
                 not_equals = "",
                 on_click = new_job_create,
-                disabled = @busy_new_job_create,
-                text = "{t('common.save')}",
+                disabled = @busy_new_job_create
               )
 
               button(
+                "{t('new_job_window.create_job')}",
                 class = "btn btn--primary",
                 if = @new_job_edit_id,
                 equals = "",
                 on_click = new_job_create,
-                disabled = @busy_new_job_create,
-                text = "{t('new_job_window.create_job')}",
+                disabled = @busy_new_job_create
               )
             }
           }
@@ -416,19 +416,19 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               column(class = u-fill)
 
               button(
+                "{t('common.back')}",
                 class = "btn btn--ghost",
                 if = @new_job_edit_id,
                 not_equals = "",
                 on_click = new_job_env_back,
-                disabled = @busy_new_job_env_back,
-                text = "{t('common.back')}",
+                disabled = @busy_new_job_env_back
               )
 
               button(
+                "{t('new_job_window.done')}",
                 class = "btn btn--primary",
                 on_click = cancel,
-                disabled = @busy_cancel,
-                text = "{t('new_job_window.done')}",
+                disabled = @busy_cancel
               )
             }
           }

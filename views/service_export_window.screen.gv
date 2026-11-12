@@ -20,14 +20,14 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
       }
 
       button(
+        "—",
         class = titlebar__btn,
-        on_click = window:minimize,
-        text = "—"
+        on_click = window:minimize
       )
       button(
+        "✕",
         class = "titlebar__btn titlebar__btn--close",
-        on_click = window:close,
-        text = "✕"
+        on_click = window:close
       )
     }
 
@@ -67,20 +67,20 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
           if @export_has_vars == "true" {
             row(class = dialog__actions) {
               button(
+                "{t('service_export_window.suggested')}",
                 class = "btn btn--ghost",
                 on_click = export_suggested,
-                disabled = @busy_export_suggested,
-                text = "{t('service_export_window.suggested')}",
+                disabled = @busy_export_suggested
               )
               button(
+                "{t('service_export_window.all')}",
                 class = "btn btn--ghost",
-                on_click = export_all, disabled = @busy_export_all,
-                text = "{t('service_export_window.all')}"
+                on_click = export_all, disabled = @busy_export_all
               )
               button(
+                "{t('service_export_window.none')}",
                 class = "btn btn--ghost",
-                on_click = export_none, disabled = @busy_export_none,
-                text = "{t('service_export_window.none')}"
+                on_click = export_none, disabled = @busy_export_none
               )
               text(
                 "{t('service_export_window.ticked', export_picked_count=export_picked_count)}",
@@ -92,10 +92,10 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
               template(:for_each = export_vars, var = v) {
                 row(class = dialog__actions) {
                   button(
+                    "@v.mark  @v.key",
                     class = dialog__check,
                     on_click = export_toggle:@v.key,
-                    disabled = @busy_export_toggle,
-                    text = "@v.mark  @v.key",
+                    disabled = @busy_export_toggle
                   )
                   text("@v.tag", class = u-muted)
                 }
@@ -130,16 +130,16 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
 
           row(class = dialog__actions) {
             button(
+              "{t('service_export_window.save_file')}",
               class = "btn btn--primary",
               on_click = export_save,
-              disabled = @busy_export_save,
-              text = "{t('service_export_window.save_file')}",
+              disabled = @busy_export_save
             )
             button(
+              "{t('service_export_window.show_as_text')}",
               class = "btn btn--blue btn--wide",
               on_click = export_show,
-              disabled = @busy_export_show,
-              text = "{t('service_export_window.show_as_text')}",
+              disabled = @busy_export_show
             )
           }
 
@@ -160,9 +160,9 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
           if @export_yaml != "" {
             textarea(class = dialog__yaml, font = mono, :value = export_yaml)
             button(
+              "{t('service_export_window.copy_text')}",
               class = "btn btn--ghost btn--xs",
-              on_click = copy_ctx:export_yaml,
-              text = "{t('service_export_window.copy_text')}",
+              on_click = copy_ctx:export_yaml
             )
           }
         }

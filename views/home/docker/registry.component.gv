@@ -34,12 +34,12 @@ component {
       )
 
       button(
+        "{t('docker_registry.run_gc')}",
         class = "btn btn--danger",
         if = @registry_status_enabled,
         equals = true,
         on_click = registry_gc,
-        disabled = @busy_registry_gc,
-        text = "{t('docker_registry.run_gc')}",
+        disabled = @busy_registry_gc
       )
     }
 
@@ -65,10 +65,10 @@ component {
         )
 
         button(
+          "{t('common.save_2')}",
           class = "btn btn--primary",
           on_click = registry_retention_save,
-          disabled = @busy_registry_retention_save,
-          text = "{t('common.save_2')}",
+          disabled = @busy_registry_retention_save
         )
       }
 
@@ -140,19 +140,19 @@ component {
         ) {
           row(class = table__col-act-2) {
             button(
+              "≡",
               class = "btn btn--ghost btn--xs",
               on_click = registry_open_repo:@r.name,
               disabled = @busy_registry_open_repo,
-              text = "≡",
-              tooltip = "{t('docker_registry.view_tags')}",
+              tooltip = "{t('docker_registry.view_tags')}"
             )
 
             button(
+              "✕",
               class = env__del,
               on_click = registry_remove_repo:@r.name,
               disabled = @busy_registry_remove_repo,
-              text = "✕",
-              tooltip = "{t('common.remove')}",
+              tooltip = "{t('common.remove')}"
             )
           }
         }
@@ -176,10 +176,10 @@ component {
         )
 
         button(
+          "{t('docker_registry.new_token')}",
           class = "btn btn--primary",
           on_click = registry_open_token_window,
-          disabled = @busy_registry_open_token_window,
-          text = "{t('docker_registry.new_token')}",
+          disabled = @busy_registry_open_token_window
         )
       }
 
@@ -237,11 +237,11 @@ component {
             class = table__col-act
           ) {
             button(
+              "✕",
               class = env__del,
               on_click = registry_remove_token:@tk.name,
               disabled = @busy_registry_remove_token,
-              text = "✕",
-              tooltip = "{t('docker_registry.revoke')}",
+              tooltip = "{t('docker_registry.revoke')}"
             )
           }
         }
@@ -260,10 +260,10 @@ component {
         )
 
         button(
+          "{t('docker_registry.back')}",
           class = "btn btn--ghost",
           on_click = registry_close_repo,
-          disabled = @busy_registry_close_repo,
-          text = "{t('docker_registry.back')}",
+          disabled = @busy_registry_close_repo
         )
       }
 
@@ -315,10 +315,10 @@ component {
           class = table__col-act
         ) {
           button(
+            "{t('common.remove')}",
             class = "btn btn--danger btn--xs",
             on_click = registry_remove_tag:@t.tag,
-            disabled = @busy_registry_remove_tag,
-            text = "{t('common.remove')}",
+            disabled = @busy_registry_remove_tag
           )
         }
 

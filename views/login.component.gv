@@ -84,19 +84,19 @@ component {
 
           row(class = login__forget-row) {
             button(
+              "{t('login.forget_this_server')}",
               class = login__forget-btn,
               on_click = forget_server,
-              disabled = @busy_forget_server,
-              text = "{t('login.forget_this_server')}",
+              disabled = @busy_forget_server
             )
           }
         }
 
         button(
+          "{t('login.connect')}",
           class = login__connect,
           on_click = connect,
-          disabled = @busy_connect,
-          text = "{t('login.connect')}"
+          disabled = @busy_connect
         )
       }
 

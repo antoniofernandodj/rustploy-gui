@@ -18,12 +18,12 @@ component {
   }
 
   button(
+    "@label",
     if = @kind,
     equals = service,
     class = table-link,
-    text = "@label",
-    on_click = open_service:@id,
+    on_click = open_service:@id
   )
 
-  button(else, class = table-link, text = "@label", on_click = open_project:@id)
+  button("@label", else, class = table-link, on_click = open_project:@id)
 }

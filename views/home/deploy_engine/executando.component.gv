@@ -65,22 +65,22 @@ component {
                 text("@a.phase", class = "u-muted table__col-start")
 
                 button(
+                  "{t('deploy_engine_executando.details')}",
                   if = @a.is_deploy,
                   equals = true,
                   class = "btn btn--ghost btn--xs",
                   on_click = deploy_engine_open_detail:@a.service_id,
-                  disabled = @busy_deploy_engine_open_detail,
-                  text = "{t('deploy_engine_executando.details')}",
+                  disabled = @busy_deploy_engine_open_detail
                 )
 
                 // Mata o deploy em andamento na hora (DeployAbort): derruba o
                 // build e marca o deployment como Failed.
                 button(
+                  "■",
                   class = env__del,
                   on_click = queue_cancel:@a.deployment_id,
                   disabled = @busy_queue_cancel,
-                  text = "■",
-                  tooltip = "{t('deploy_engine_executando.abort_deploy')}",
+                  tooltip = "{t('deploy_engine_executando.abort_deploy')}"
                 )
               }
 
@@ -110,10 +110,10 @@ component {
           )
 
           button(
+            "{t('common.close')}",
             class = "btn btn--ghost btn--xs",
             on_click = deploy_engine_close_detail,
-            disabled = @busy_deploy_engine_close_detail,
-            text = "{t('common.close')}"
+            disabled = @busy_deploy_engine_close_detail
           )
         }
 

@@ -25,10 +25,10 @@ component {
 
     row(class = env__add) {
       button(
+        "{t('projects.new_project')}",
         class = "btn btn--primary",
         on_click = open_new_project_window,
-        disabled = @busy_open_new_project_window,
-        text = "{t('projects.new_project')}",
+        disabled = @busy_open_new_project_window
       )
     }
 

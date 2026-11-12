@@ -22,12 +22,12 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('dados.export')}",
           class = "btn btn--primary",
           if = @data_can_export,
           equals = true,
           on_click = data_export,
-          disabled = @busy_data_export,
-          text = "{t('dados.export')}",
+          disabled = @busy_data_export
         )
       }
 
@@ -40,18 +40,18 @@ component {
 
       row(class = env__add, if = @data_backup_ready, equals = true) {
         button(
+          "{t('dados.s3_backup_now')}",
           class = "btn btn--primary",
           if = @data_backup_blocked,
           equals = "",
           on_click = service_backup_now,
-          disabled = @data_backup_running,
-          text = "{t('dados.s3_backup_now')}",
+          disabled = @data_backup_running
         )
         button(
+          "{t('dados.s3_backup_refresh')}",
           class = btn-secondary,
           on_click = service_backup_refresh,
-          disabled = @busy_service_backup_refresh,
-          text = "{t('dados.s3_backup_refresh')}",
+          disabled = @busy_service_backup_refresh
         )
       }
 
@@ -132,10 +132,10 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('dados.s3_policy_save')}",
             class = "btn btn--primary",
             on_click = service_backup_policy_save,
-            disabled = @busy_service_backup_policy_save,
-            text = "{t('dados.s3_policy_save')}",
+            disabled = @busy_service_backup_policy_save
           )
         }
       }
@@ -147,18 +147,18 @@ component {
         each @data_backups as b {
           row(class = kv-list__row) {
             button(
+              "✕",
               class = "btn btn--danger btn--xs",
               on_click = service_backup_delete:@b.key,
-              disabled = @busy_service_backup_delete,
-              text = "✕",
+              disabled = @busy_service_backup_delete
             )
             text("@b.when", class = kv-list__val)
             text("@b.size", class = u-muted)
             button(
+              "{t('dados.s3_backup_restore')}",
               class = "btn btn--ghost btn--xs",
               on_click = service_backup_restore:@b.key,
-              disabled = @data_backup_running,
-              text = "{t('dados.s3_backup_restore')}",
+              disabled = @data_backup_running
             )
           }
         }
@@ -175,22 +175,22 @@ component {
 
       row(class = env__add) {
         button(
+          "{t('dados.pick_file')}",
           class = btn-secondary,
           on_click = data_pick_file,
-          disabled = @busy_data_pick_file,
-          text = "{t('dados.pick_file')}",
+          disabled = @busy_data_pick_file
         )
         text("@data_file_name", class = u-muted)
       }
 
       row(class = env__add) {
         button(
+          "{t('dados.check')}",
           class = btn-secondary,
           if = @data_file_name,
           not_equals = "",
           on_click = data_preview,
-          disabled = @busy_data_preview,
-          text = "{t('dados.check')}",
+          disabled = @busy_data_preview
         )
       }
 
@@ -199,10 +199,10 @@ component {
         text("@data_preview_text", class = kv-list__val)
         row(class = env__add) {
           button(
+            "{t('dados.replace')}",
             class = "btn btn--primary",
             on_click = data_confirm,
-            disabled = @busy_data_confirm,
-            text = "{t('dados.replace')}",
+            disabled = @busy_data_confirm
           )
         }
       }

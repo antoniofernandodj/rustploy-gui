@@ -101,25 +101,25 @@ component {
 
         row(class = env__add) {
           button(
+            "{t('common.save')}",
             class = "btn btn--primary",
             on_click = backup_destination_save,
-            disabled = @busy_backup_destination_save,
-            text = "{t('common.save')}"
+            disabled = @busy_backup_destination_save
           )
 
           button(
+            "{t('settings_backups.test_connection')}",
             class = "btn btn--ghost",
             on_click = backup_destination_test,
-            disabled = @busy_backup_destination_test,
-            text = "{t('settings_backups.test_connection')}"
+            disabled = @busy_backup_destination_test
           )
 
           if @backup_destination_configured == "true" {
             button(
+              "{t('common.remove')}",
               class = "btn btn--danger",
               on_click = backup_destination_clear,
-              disabled = @busy_backup_destination_clear,
-              text = "{t('common.remove')}"
+              disabled = @busy_backup_destination_clear
             )
           }
 

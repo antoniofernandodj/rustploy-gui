@@ -66,12 +66,12 @@ component {
 
     row(class = card__container) {
       button(
+        "⧉",
         class = card__copy,
         if = @container_name_full,
         not_equals = "",
         on_click = copy_container_name:@container_name_full,
-        text = "⧉",
-        tooltip = "{t('service_card.copy_name')}",
+        tooltip = "{t('service_card.copy_name')}"
       )
 
       text(
@@ -82,12 +82,12 @@ component {
 
     row(class = card__container) {
       button(
+        "⧉",
         class = card__copy,
         if = @container_id_full,
         not_equals = "",
         on_click = copy_container_id:@container_id_full,
-        text = "⧉",
-        tooltip = "{t('service_card.copy_id')}",
+        tooltip = "{t('service_card.copy_id')}"
       )
 
       text(
@@ -120,35 +120,35 @@ component {
     // Ações empilhadas: 3 botões numa linha só transbordam no tamanho mínimo
     // de janela (grade de 3 colunas).
     button(
+      "{t('common.open')}",
       class = "card__action card__action--open",
       on_click = open_service:@id,
-      disabled = @busy_open_service,
-      text = "{t('common.open')}"
+      disabled = @busy_open_service
     )
 
     row(class = card__actions) {
       button(
+        "■",
         class = "card__action card__action--icon",
         on_click = service_stop_id:@id,
         disabled = @busy_service_stop_id,
-        text = "■",
-        tooltip = "{t('common.stop')}",
+        tooltip = "{t('common.stop')}"
       )
 
       button(
+        "✕",
         class = "card__action card__action--icon card__action--danger",
         on_click = stop_delete_service:@id,
         disabled = @busy_stop_delete_service,
-        text = "✕",
-        tooltip = "{t('common.remove')}",
+        tooltip = "{t('common.remove')}"
       )
 
       button(
+        "⇪",
         class = "card__action card__action--icon",
         on_click = open_export_window:@id,
         disabled = @busy_open_export_window,
-        text = "⇪",
-        tooltip = "{t('service_card.export_service_a_file_to')}",
+        tooltip = "{t('service_card.export_service_a_file_to')}"
       )
     }
   }

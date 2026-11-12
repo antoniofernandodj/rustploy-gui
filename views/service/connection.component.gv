@@ -14,9 +14,9 @@ component {
       text(" ")
 
       button(
+        "{t('common.copy')}",
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_port,
-        text = "{t('common.copy')}",
+        on_click = copy_ctx:service_port
       )
     }
 
@@ -26,9 +26,9 @@ component {
       text(" ")
 
       button(
+        "{t('common.copy')}",
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_host_port,
-        text = "{t('common.copy')}",
+        on_click = copy_ctx:service_host_port
       )
     }
 
@@ -38,9 +38,9 @@ component {
       text(" ")
 
       button(
+        "{t('common.copy')}",
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_domain,
-        text = "{t('common.copy')}",
+        on_click = copy_ctx:service_domain
       )
     }
 
@@ -55,9 +55,9 @@ component {
       text(" ")
 
       button(
+        "{t('common.copy')}",
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_external_url,
-        text = "{t('common.copy')}",
+        on_click = copy_ctx:service_external_url
       )
     }
 
@@ -67,9 +67,9 @@ component {
       text(" ")
 
       button(
+        "{t('common.copy')}",
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_internal_url,
-        text = "{t('common.copy')}",
+        on_click = copy_ctx:service_internal_url
       )
     }
 
@@ -79,19 +79,19 @@ component {
 
       if @service_shared == "false" {
         button(
+          "{t('connection.share')}",
           class = "btn btn--ghost btn--xs",
           on_click = shared_enable,
-          disabled = @busy_shared_enable,
-          text = "{t('connection.share')}",
+          disabled = @busy_shared_enable
         )
       }
 
       if @service_shared == "true" {
         button(
+          "{t('connection.turn_off')}",
           class = "btn btn--ghost btn--xs",
           on_click = shared_disable,
-          disabled = @busy_shared_disable,
-          text = "{t('connection.turn_off')}",
+          disabled = @busy_shared_disable
         )
       }
     }

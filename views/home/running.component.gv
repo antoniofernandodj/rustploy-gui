@@ -31,10 +31,10 @@ component {
             text("@p.count_label", class = "u-muted u-fill")
 
             button(
+              "{t('running.open_project')}",
               class = "card__action card__action--auto",
               on_click = open_project:@p.project_id,
-              disabled = @busy_open_project,
-              text = "{t('running.open_project')}",
+              disabled = @busy_open_project
             )
           }
 
