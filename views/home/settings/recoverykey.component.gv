@@ -31,7 +31,7 @@ component {
           row(class = env__add) {
             button(
               "{t('settings_recovery_key.generate')}",
-              class = "btn btn--primary",
+              class = "btn btn--primary btn--sm",
               on_click = recovery_key_generate,
               disabled = @busy_recovery_key_generate,
               if = @recovery_key_configured,
@@ -39,7 +39,7 @@ component {
             )
             button(
               "{t('settings_recovery_key.generate_another')}",
-              class = "btn btn--primary",
+              class = "btn btn--primary btn--sm",
               on_click = recovery_key_generate,
               disabled = @busy_recovery_key_generate,
               if = @recovery_key_configured,
@@ -56,18 +56,18 @@ component {
           row(class = env__add) {
             button(
               "{t('common.copy')}",
-              class = "btn btn--primary",
+              class = "btn btn--ghost btn--sm",
               on_click = recovery_key_copy
             )
             button(
               "{t('settings_recovery_key.save_again')}",
-              class = btn-secondary,
+              class = "btn btn--ghost btn--sm",
               on_click = recovery_key_save_again,
               disabled = @busy_recovery_key_save_again
             )
             button(
               "{t('settings_recovery_key.stored_safely')}",
-              class = btn-secondary,
+              class = "btn btn--primary btn--sm",
               on_click = recovery_key_dismiss
             )
           }

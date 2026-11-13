@@ -71,7 +71,7 @@ function recovery_key_generate(): ()
             message = i18n.tr(
                 "O que for exportado daqui em diante só abre com a chave nova. Backups e commits antigos continuam abrindo só com a chave antiga: guarde-a até não precisar mais."
             ),
-            confirm_label = i18n.tr("Gerar outra chave"),
+            confirm_label = i18n.tr("Trocar chave"),
             destructive = true,
         }
         if not confirmed then
