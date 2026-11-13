@@ -13,12 +13,29 @@ local M = {}
 
 local function set_defaults(): ()
     ctx.recovery_key_configured = ctx.recovery_key_configured or "false"
+    -- Inverso de `configured`: o `.gv` só confia em `equals = true` para o botão de gerar (com `equals = false`
+    -- sobre a string "false" do ctx o botão sumia quando o servidor não tinha chave).
+    ctx.recovery_key_missing = ctx.recovery_key_missing or "true"
+    ctx.recovery_key_warn = ctx.recovery_key_warn or "false"
+    ctx.recovery_key_generate_label = ctx.recovery_key_generate_label or i18n.tr("Gerar e baixar")
+    ctx.recovery_key_load_error = ctx.recovery_key_load_error or ""
     ctx.recovery_key_public = ctx.recovery_key_public or ""
     ctx.recovery_key_generated = ctx.recovery_key_generated or "false"
     ctx.recovery_key_private = ctx.recovery_key_private or ""
     ctx.recovery_key_filename = ctx.recovery_key_filename or ""
     ctx.recovery_key_contents = ctx.recovery_key_contents or ""
     ctx.recovery_key_saved_message = ctx.recovery_key_saved_message or ""
+end
+
+--- Deriva do estado (`configured`, `generated`) as flags e o rótulo que a tela usa. A tela só confia em
+--- `equals = true` e em elementos soltos (coluna condicional por fora do botão o escondia sem chave).
+local function refresh_flags(): ()
+    local configured = ctx.recovery_key_configured == "true"
+    local generated = ctx.recovery_key_generated == "true"
+    ctx.recovery_key_missing = tostring(not configured)
+    -- aviso de "trocar" só enquanto a privada NÃO está na tela (depois de gerar, o aviso de única cópia o substitui)
+    ctx.recovery_key_warn = tostring(configured and not generated)
+    ctx.recovery_key_generate_label = if configured then i18n.tr("Gerar outra chave") else i18n.tr("Gerar e baixar")
 end
 
 --- Lê se há chave configurada e qual é a pública.
@@ -32,6 +49,12 @@ function M.load(): ()
     if ok and type(response) == "table" and response.RecoveryKey ~= nil then
         ctx.recovery_key_configured = tostring(response.RecoveryKey.configured == true)
         ctx.recovery_key_public = response.RecoveryKey.public_key or ""
+        ctx.recovery_key_load_error = ""
+        refresh_flags()
+    else
+        -- Daemon antigo (sem o comando) ou fora do ar: não deixa a tela muda.
+        ctx.recovery_key_load_error = i18n.tr("Não consegui ler a chave de recuperação deste servidor (o daemon é anterior à versão 0.1.57?): ")
+            .. tostring(response)
     end
 end
 
@@ -87,6 +110,7 @@ function recovery_key_generate(): ()
     ctx.recovery_key_configured = "true"
     ctx.recovery_key_public = generated.public_key
     ctx.recovery_key_generated = "true"
+    refresh_flags()
     ctx.recovery_key_private = generated.private_key
     ctx.recovery_key_filename = generated.suggested_filename
     ctx.recovery_key_contents = generated.file_contents
@@ -118,6 +142,7 @@ function recovery_key_dismiss(): ()
     ctx.recovery_key_private = ""
     ctx.recovery_key_contents = ""
     ctx.recovery_key_saved_message = ""
+    refresh_flags()
 end
 
 return M

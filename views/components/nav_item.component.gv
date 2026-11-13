@@ -16,7 +16,9 @@ component {
     /* Bloco `nav-item`: o modificador `--active` na raiz recolore os filhos pelo
        combinador `>`, em vez de cada filho levar um par de classes _on/_off. */
     .nav-item         { width: fill; padding: 11 14; spacing: 10; align_y: center; color: var(--surface); cursor: pointer; }
-    .nav-item--active { color: var(--blue); }
+    /* Item ativo com o mesmo gradiente leve dos botões azuis (`.btn--blue`): parada clara em cima,
+       escura embaixo, para dar relevo (`color` fica de base, como nos botões). */
+    .nav-item--active { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
     .nav-item__icon   { size: 14; color: var(--faint); }
     .nav-item__label  { color: var(--muted); }
     .nav-item__badge  { size: 10; color: var(--green); }

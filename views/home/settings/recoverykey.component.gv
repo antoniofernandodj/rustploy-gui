@@ -10,42 +10,30 @@ component {
 
         text(
           "{t('settings_recovery_key.not_configured')}",
-          if = @recovery_key_configured,
-          equals = false,
+          if = @recovery_key_missing,
+          equals = true,
           class = u-error,
         )
+
+        text("@recovery_key_load_error", if = @recovery_key_load_error, not_equals = "", class = u-error)
 
         column(spacing = 6, if = @recovery_key_configured, equals = true) {
           text("{t('settings_recovery_key.public_key')}", class = u-label-cap)
           text("@recovery_key_public", class = u-muted)
         }
 
-        // Ainda não gerou nesta sessão: o botão (gerar, ou trocar se já existe).
-        column(spacing = 6, if = @recovery_key_generated, equals = false) {
-          text(
-            "{t('settings_recovery_key.replace_warning')}",
-            if = @recovery_key_configured,
-            equals = true,
-            class = u-muted,
+        // Ainda não gerou nesta sessão: o botão (gerar, ou trocar se já existe). Elementos soltos, sem coluna
+        // condicional por fora: com ela, o botão não aparecia quando o servidor não tinha chave.
+        column(spacing = 0, if = @recovery_key_warn, equals = true) {
+          text("{t('settings_recovery_key.replace_warning')}", class = u-muted)
+        }
+        row(class = env__add, if = @recovery_key_generated, equals = false) {
+          button(
+            "@recovery_key_generate_label",
+            class = "btn btn--primary btn--sm",
+            on_click = recovery_key_generate,
+            disabled = @busy_recovery_key_generate
           )
-          row(class = env__add) {
-            button(
-              "{t('settings_recovery_key.generate')}",
-              class = "btn btn--primary btn--sm",
-              on_click = recovery_key_generate,
-              disabled = @busy_recovery_key_generate,
-              if = @recovery_key_configured,
-              equals = false
-            )
-            button(
-              "{t('settings_recovery_key.generate_another')}",
-              class = "btn btn--primary btn--sm",
-              on_click = recovery_key_generate,
-              disabled = @busy_recovery_key_generate,
-              if = @recovery_key_configured,
-              equals = true
-            )
-          }
         }
 
         // Acabou de gerar: a privada aparece uma única vez, e o arquivo já foi para Downloads.

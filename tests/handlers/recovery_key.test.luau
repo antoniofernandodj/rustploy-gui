@@ -15,6 +15,8 @@ function test_recovery_key__sem_conexao_e_inerte()
     assert_eq(#tela:toasts(), 0)
     assert_eq(tela:get("recovery_key_generated"), "false")
     assert_eq(tela:get("recovery_key_private"), "")
+    -- a tela nasce "sem chave": é a flag `missing` (não o inverso de `configured`) que mostra o botão de gerar
+    assert_eq(tela:get("recovery_key_missing"), "true")
 end
 
 --- "Guardei em lugar seguro" apaga a privada e o conteúdo do arquivo do estado da tela
