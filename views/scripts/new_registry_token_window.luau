@@ -10,6 +10,7 @@
 
 local Api = require("net/api")
 local Helpers = require("helpers")
+local Download = require("download")
 
 local function client(): Api.Client?
     local url = ctx.api_url or ""
@@ -98,6 +99,26 @@ function new_registry_token_create(): ()
         secret
     )
     ctx.new_registry_token_step = "reveal"
+
+    -- O segredo só existe nesta resposta: grava o arquivo em Downloads na hora (sem diálogo).
+    local day = os.date("%Y%m%d")
+    local safe_host = string.gsub(tostring(ctx.registry_host), "[^%w%.%-]+", "_")
+    local token_name = created.name or name
+    local saved, where = Download.save(
+        string.format("rustploy-registry-token-%s-%s-%s.txt", token_name, safe_host, day),
+        string.format(
+            "# Rustploy — token do registry (%s)\n# Guarde em um cofre: o segredo não é mostrado de novo.\nregistry: %s\nusuário: %s\ntoken: %s\n\n%s\n",
+            tostring(ctx.new_registry_token_scope),
+            tostring(ctx.registry_host),
+            token_name,
+            secret,
+            ctx.new_registry_token_login_command
+        ),
+        i18n.tr("Salvar o token do registry")
+    )
+    ctx.new_registry_token_message = if saved
+        then i18n.tr("salvo em ") .. where
+        else where
 
     -- Avisa a janela principal já — não espera o "Fechar" (o usuário pode
     -- demorar pra copiar o segredo, ou nunca fechar explicitamente).

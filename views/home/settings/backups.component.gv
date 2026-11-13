@@ -17,6 +17,14 @@ component {
           class = u-error,
         )
 
+        row(class = env__add, if = @backup_destination_recovery_missing, equals = true) {
+          button(
+            "{t('settings_recovery_key.generate_key')}",
+            class = btn-secondary,
+            on_click = recovery_key_open
+          )
+        }
+
         text("{t('settings_backups.endpoint')}", class = u-label-cap)
 
         input(

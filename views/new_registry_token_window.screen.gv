@@ -137,6 +137,8 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
             class = u-error,
           )
 
+          text("@new_registry_token_message", if = @new_registry_token_message, not_equals = "", class = u-ok)
+
           column(class = dialog__secret) {
             text(
               "{t('new_registry_token_window.docker_login_command')}",

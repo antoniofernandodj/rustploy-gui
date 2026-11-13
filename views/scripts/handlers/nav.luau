@@ -9,6 +9,7 @@ local History = require("history")
 local Settings = require("settings")
 local DataBackup = require("data_backup")
 local Recover = require("recover")
+local RecoveryKey = require("recovery_key")
 local Services = require("services")
 
 local function goto_view(view: string): ()
@@ -69,6 +70,7 @@ function nav_settings(): ()
     Settings.git_provider_refresh_list()
     DataBackup.load()
     Recover.load()
+    RecoveryKey.load()
 end
 
 -- Botão "Abrir" do aviso do topo da sincronização com o git.

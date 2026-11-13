@@ -101,6 +101,49 @@ component {
       }
 
       text("⚠ @error", if = @error, not_equals = "", class = u-error)
+
+      // Versão nova do app desktop: aparece ANTES do login (a consulta é ao GitHub, não ao daemon), para
+      // dar para atualizar um app que já não consegue falar com o servidor. A mesma ação da aba Settings →
+      // Atualizações (update_app_apply); ver handlers/settings.luau.
+      if @update_app_is_available == "true" {
+        hr
+        text(
+          "{t('login.app_update_available', version=update_app_latest_version)}",
+          class = u-label-cap,
+        )
+
+        if @update_app_can_update == "true" {
+          row(class = login__status) {
+            button(
+              "{t('settings_updates.update_app')}",
+              class = "btn btn--primary btn--sm",
+              on_click = update_app_apply
+            )
+            button(
+              "{t('common.cancel')}",
+              class = "btn btn--ghost btn--sm",
+              on_click = update_app_cancel,
+              if = @update_app_running,
+              equals = true
+            )
+          }
+          progressbar(if = @update_app_running, equals = true, :value = update_app_percent)
+          text("@update_app_message", class = u-muted)
+        }
+
+        if @update_app_can_update == "false" {
+          text("{t('settings_updates.this_app_was_not_installed')}", class = u-muted)
+          row(class = login__status) {
+            text("@update_app_manual_command", class = "kv-list__val kv-list__val--compact")
+            button(
+              "{t('common.copy')}",
+              class = "btn btn--ghost btn--xs",
+              on_click = copy_ctx:update_app_manual_command
+            )
+          }
+        }
+      }
+
       hr
 
       row(class = login__status) {

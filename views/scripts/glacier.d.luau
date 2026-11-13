@@ -172,6 +172,10 @@ declare function every(ms: number, callback: (() -> ()) | string): Timer
 -- falha.
 declare function write_file(path: string, contents: string): (boolean, string?)
 -- Idem, acrescentando ao fim (glacier-ui 0.49+).
+-- Grava `contents` na pasta Downloads do sistema, sem diálogo e SEM sobrescrever (se `filename` existe,
+-- grava `nome-1.ext`…); no Unix o arquivo nasce 0600 (glacier-ui 0.160+). Devolve `true, caminho` ou
+-- `false, mensagem` (ex.: sem pasta Downloads — caia no `save_file`).
+declare function save_download(filename: string, contents: string): (boolean, string)
 declare function append_file(
     path: string,
     contents: string

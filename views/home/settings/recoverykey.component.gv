@@ -1,0 +1,78 @@
+// Settings → Chave de recuperação (plano em docs/plano-chave-de-recuperacao.md). Handlers em
+// handlers/recovery_key.luau; a webui faz o mesmo em `webui/index.html` (aba "Chave de recuperação"):
+// mude os dois juntos. A privada só existe aqui logo depois de gerar; o servidor guarda só a pública.
+component {
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = form-stack) {
+      column(class = form-panel) {
+        text("{t('settings_recovery_key.title')}", class = u-label-cap)
+        text("{t('settings_recovery_key.intro')}", class = u-muted)
+
+        text(
+          "{t('settings_recovery_key.not_configured')}",
+          if = @recovery_key_configured,
+          equals = false,
+          class = u-error,
+        )
+
+        column(spacing = 6, if = @recovery_key_configured, equals = true) {
+          text("{t('settings_recovery_key.public_key')}", class = u-label-cap)
+          text("@recovery_key_public", class = u-muted)
+        }
+
+        // Ainda não gerou nesta sessão: o botão (gerar, ou trocar se já existe).
+        column(spacing = 6, if = @recovery_key_generated, equals = false) {
+          text(
+            "{t('settings_recovery_key.replace_warning')}",
+            if = @recovery_key_configured,
+            equals = true,
+            class = u-muted,
+          )
+          row(class = env__add) {
+            button(
+              "{t('settings_recovery_key.generate')}",
+              class = "btn btn--primary",
+              on_click = recovery_key_generate,
+              disabled = @busy_recovery_key_generate,
+              if = @recovery_key_configured,
+              equals = false
+            )
+            button(
+              "{t('settings_recovery_key.generate_another')}",
+              class = "btn btn--primary",
+              on_click = recovery_key_generate,
+              disabled = @busy_recovery_key_generate,
+              if = @recovery_key_configured,
+              equals = true
+            )
+          }
+        }
+
+        // Acabou de gerar: a privada aparece uma única vez, e o arquivo já foi para Downloads.
+        column(spacing = 8, if = @recovery_key_generated, equals = true) {
+          text("@recovery_key_saved_message", class = u-ok)
+          text("{t('settings_recovery_key.only_copy')}", class = u-error)
+          text("@recovery_key_private", class = u-muted)
+          row(class = env__add) {
+            button(
+              "{t('common.copy')}",
+              class = "btn btn--primary",
+              on_click = recovery_key_copy
+            )
+            button(
+              "{t('settings_recovery_key.save_again')}",
+              class = btn-secondary,
+              on_click = recovery_key_save_again,
+              disabled = @busy_recovery_key_save_again
+            )
+            button(
+              "{t('settings_recovery_key.stored_safely')}",
+              class = btn-secondary,
+              on_click = recovery_key_dismiss
+            )
+          }
+        }
+      }
+    }
+  }
+}

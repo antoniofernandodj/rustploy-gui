@@ -7,6 +7,7 @@ component {
     link(rel = import, href = "settings/gitsync.component.gv", as = SettingsGitSyncTab)
     link(rel = import, href = "settings/backups.component.gv", as = SettingsBackupsTab)
     link(rel = import, href = "settings/recover.component.gv", as = SettingsRecoverTab)
+    link(rel = import, href = "settings/recoverykey.component.gv", as = SettingsRecoveryKeyTab)
     link(rel = import, href = "settings/updates.component.gv", as = SettingsUpdatesTab)
     link(rel = import, href = "settings/language.component.gv", as = SettingsLanguageTab)
   }
@@ -55,6 +56,10 @@ component {
 
   if @settings_tab == "backups" {
     SettingsBackupsTab
+  }
+
+  if @settings_tab == "recoverykey" {
+    SettingsRecoveryKeyTab
   }
 
   if @settings_tab == "recover" {

@@ -146,6 +146,7 @@ function init(): ()
         { id = "maintenance", label = i18n.tr("Manutenção") },
         { id = "gitsync", label = i18n.tr("Sincronização") },
         { id = "backups", label = i18n.tr("Backups") },
+        { id = "recoverykey", label = i18n.tr("Chave de recuperação") },
         { id = "recover", label = i18n.tr("Recuperar") },
         { id = "updates", label = i18n.tr("Atualizações") },
         { id = "language", label = i18n.tr("Idioma") },
@@ -243,6 +244,8 @@ function init(): ()
     ctx.update_app_current_version = ctx.update_app_current_version or ""
     ctx.update_app_latest_version = ctx.update_app_latest_version or ""
     ctx.update_app_is_available = ctx.update_app_is_available or "false"
+    ctx.update_app_running = ctx.update_app_running or "false"
+    ctx.update_app_percent = ctx.update_app_percent or 0
     ctx.update_app_can_update = ctx.update_app_can_update or "false"
     ctx.update_app_release_url = ctx.update_app_release_url or ""
     ctx.update_app_message = ctx.update_app_message or ""
@@ -344,6 +347,12 @@ function init(): ()
             AccessKey.encode(saved_servers[1].url, saved_servers[1].token)
     end
     publish_access_key_target()
+    -- A tela de login já mostra se há versão nova do APP: a consulta é ao GitHub (não ao daemon), então
+    -- não depende de estar conectado. Fora do init porque `fetch` suspende; falha aqui é silenciosa
+    -- (só a mensagem, que a tela de login não exibe).
+    after(0, function(): ()
+        Settings.update_app_check()
+    end)
 end
 
 -- Configurações do daemon + provedores Git, buscados uma vez na conexão (não

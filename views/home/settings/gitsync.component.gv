@@ -35,6 +35,14 @@ component {
         class = u-muted,
       )
 
+      row(class = env__add, if = @state_git_recovery_missing, equals = true) {
+        button(
+          "{t('settings_recovery_key.generate_key')}",
+          class = btn-secondary,
+          on_click = recovery_key_open
+        )
+      }
+
       text("{t('settings_gitsync.mode')}", class = u-label-cap)
 
       scroll(class = tabs__scroll, direction = horizontal) {
