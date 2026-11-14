@@ -894,6 +894,39 @@ function test_servico_cada_aba()
     end)
 end
 
+--- aba Domains: portas TCP (lista, sugestões clicáveis e botões) e o estado vazio
+function test_servico_domains_portas_tcp()
+    local Format = require("format")
+    local tela = servico("domains")
+    local spec = {
+        port = 9000,
+        tcp_ports = {
+            { host_port = 20002 },
+            { host_port = 20003, container_port = 9001, label = "console" },
+        },
+    }
+    seta(tela, {
+        service_tcp_ports = Format.tcp_ports_json(spec :: any),
+        service_tcp_ports_count = "2",
+        service_port_suggestions = Format.port_suggestions_json({
+            { port = 15692, label = "métricas", sources = { "listening" }, internal = false },
+        }),
+        service_port_suggestions_count = "1",
+    })
+    local textos = tela:texts()
+    assert_true(tem_trecho(textos, "HOST TCP PORTS (2)"), "título da lista ausente")
+    assert_true(tem_trecho(textos, "20003"), "porta do host ausente")
+    assert_true(tem_trecho(textos, "→ 9001"), "porta do container ausente")
+    assert_true(tem_trecho(textos, "console"), "rótulo ausente")
+    local botoes = tela:buttons()
+    assert_true(tem_trecho(botoes, "Suggest container ports"), "botão de sugerir ausente")
+    assert_true(tem_trecho(botoes, "15692 metrics (listening now)"), "sugestão clicável ausente")
+    assert_true(tem_trecho(botoes, "Add port"), "botão de adicionar ausente")
+    -- sem portas: o estado vazio aparece
+    seta(tela, { service_tcp_ports = "[]", service_tcp_ports_count = "0" })
+    assert_true(tem_trecho(tela:texts(), "No TCP port configured."), "estado vazio ausente")
+end
+
 --- aba Environment: secrets do serviço aparecem (nome + cadeado), com o botão "→ secret" nas variáveis em claro
 function test_servico_environment_secrets_do_servico()
     local Format = require("format")

@@ -1,9 +1,12 @@
 // Domains (editável): lista de rotas HTTP (domínio → porta de container,
-// TLS por rota), mais o form de adição e a porta TCP crua do host.
+// TLS por rota), mais o form de adição e a lista de portas TCP do host.
 component {
   resources {
     component(name = SemDominios) {
       text("{t('domains.no_domain_configured')}", class = u-muted)
+    }
+    component(name = SemPortasTcp) {
+      text("{t('domains.no_tcp_port')}", class = u-muted)
     }
   }
 
@@ -86,39 +89,91 @@ component {
       text("@service_action_message", class = u-muted)
     }
 
-    text(
-      "{t('domains.host_tcp_port_passthrough_optional')}",
-      class = u-label-cap,
-    )
+    // Portas TCP do host (docs/plano-multiplas-portas-tcp.md): cada uma liga uma porta do host a uma
+    // porta do container. Host vazio = Automática; container vazio = a porta padrão do serviço.
+    text("{t('domains.tcp_ports', service_tcp_ports_count=service_tcp_ports_count)}", class = u-label-cap)
+
+    text("{t('domains.tcp_ports_explanation')}", class = u-muted)
+
+    column(class = kv-list) {
+      each @service_tcp_ports as p (fallback = SemPortasTcp) {
+        row(class = kv-list__row) {
+          button(
+            "✕",
+            class = env__del,
+            on_click = tcp_port_delete:@p.host_port,
+            disabled = @busy_tcp_port_delete
+          )
+
+          text(class = env__sep)
+          text("@p.host_port", class = env__key)
+          text("→ @p.container_port", class = "kv-list__val kv-list__val--compact")
+          text("@p.label", class = u-muted)
+        }
+      }
+    }
+
+    text("{t('domains.host_tcp_port_passthrough_optional')}", class = u-label-cap)
 
     input(
       class = field__input,
-      form_control = service_form_host_port,
-      :value = service_form_host_port,
-      on_change = field:service_form_host_port,
+      form_control = service_form_tcp_host_port,
+      :value = service_form_tcp_host_port,
+      on_change = field:service_form_tcp_host_port,
+      placeholder = "{t('domains.automatic')}",
+    )
+
+    text("{t('domains.container_port_optional')}", class = u-label-cap)
+
+    input(
+      class = field__input,
+      form_control = service_form_tcp_container_port,
+      :value = service_form_tcp_container_port,
+      on_change = field:service_form_tcp_container_port,
       placeholder = "{t('domains.service_default')}",
     )
 
+    button(
+      "{t('domains.suggest_ports')}",
+      class = "btn btn--ghost",
+      on_click = tcp_port_suggest,
+      disabled = @busy_tcp_port_suggest
+    )
+
+    // Sugestões: clicar preenche a porta do container (e o rótulo, se a porta tem nome).
+    column(class = kv-list) {
+      each @service_port_suggestions as s {
+        button(
+          "@s.text",
+          class = "btn btn--ghost",
+          on_click = tcp_port_pick:@s.port
+        )
+      }
+    }
+
+    text("{t('domains.label_optional')}", class = u-label-cap)
+
+    input(
+      class = field__input,
+      form_control = service_form_tcp_label,
+      :value = service_form_tcp_label,
+      on_change = field:service_form_tcp_label,
+      placeholder = "{t('domains.label_placeholder')}",
+    )
+
     text(
-      "@error_service_form_host_port",
-      if = @error_service_form_host_port,
+      "@error_service_form_tcp",
+      if = @error_service_form_tcp,
       not_equals = "",
       class = u-error,
     )
 
     row(class = env__add) {
       button(
-        "{t('common.save_port')}",
-        class = "btn btn--ghost",
-        on_click = domain_hostport_save,
-        disabled = @busy_domain_hostport_save
-      )
-
-      button(
-        "{t('domains.automatic')}",
-        class = "btn btn--ghost",
-        on_click = domain_hostport_auto,
-        disabled = @busy_domain_hostport_auto
+        "{t('domains.add_tcp_port')}",
+        class = "btn btn--primary",
+        on_click = tcp_port_add,
+        disabled = @busy_tcp_port_add
       )
     }
 

@@ -413,6 +413,51 @@ function M.deployments_detail(deployments: { any }?): string
     return Util.encode_array(rows)
 end
 
+-- Portas TCP do host de um spec (aba Domains): uma linha por porta, com a porta do container
+-- efetiva (a própria ou a `port` do serviço) e o rótulo.
+function M.tcp_ports_json(spec: ServiceSpec): string
+    local rows = {}
+    for _, route in ipairs(Util.tcp_routes(spec)) do
+        table.insert(rows, {
+            host_port = tostring(route.host_port),
+            container_port = tostring(route.container_port or spec.port),
+            label = route.label or "",
+        })
+    end
+    return Util.encode_array(rows)
+end
+
+-- Sugestões de porta do container (`ServicePortSuggestions`): o texto do botão traz a porta, o nome
+-- (se conhecido) e a origem mais forte; as internas avisam que não devem ser expostas.
+function M.port_suggestions_json(suggestions: { any }): string
+    local rows = {}
+    for _, suggestion in ipairs(suggestions or {}) do
+        local parts = { tostring(suggestion.port) }
+        if suggestion.label and suggestion.label ~= "" then
+            table.insert(parts, i18n.tr(suggestion.label))
+        end
+        local sources = suggestion.sources or {}
+        local listening = false
+        for _, source in ipairs(sources) do
+            if source == "listening" then
+                listening = true
+            end
+        end
+        if suggestion.internal then
+            table.insert(parts, "(" .. i18n.tr("interna") .. ")")
+        elseif listening then
+            table.insert(parts, "(" .. i18n.tr("escutando agora") .. ")")
+        end
+        table.insert(rows, {
+            port = tostring(suggestion.port),
+            label = suggestion.label or "",
+            text = table.concat(parts, " "),
+            internal = suggestion.internal and "true" or "false",
+        })
+    end
+    return Util.encode_array(rows)
+end
+
 -- Rotas HTTP de um spec (aba Domains).
 function M.domains_json(spec: ServiceSpec): string
     local rows = {}

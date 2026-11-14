@@ -273,6 +273,8 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_replicas = tostring(spec.replicas)
     ctx.service_domains = format.domains_json(spec)
     ctx.service_domains_count = tostring(#routes)
+    ctx.service_tcp_ports = format.tcp_ports_json(spec)
+    ctx.service_tcp_ports_count = tostring(#format.tcp_routes(spec))
     -- Credenciais para a URL externa: mesma fusão que o daemon faz em
     -- resolve_env (projeto = base, serviço sobrescreve). Serviços Compose de
     -- banco têm spec.env_vars vazio — os ${POSTGRES_*} vêm do projeto. Como
@@ -382,6 +384,12 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_form_tls = "false"
     ctx.service_form_host_port = spec.host_port and tostring(spec.host_port)
         or ""
+    ctx.service_form_tcp_host_port = ""
+    ctx.service_form_tcp_container_port = ""
+    ctx.service_form_tcp_label = ""
+    ctx.error_service_form_tcp = ""
+    ctx.service_port_suggestions = "[]"
+    ctx.service_port_suggestions_count = "0"
     ctx.service_form_healthcheck_kind = healthcheck_kind
     ctx.service_form_healthcheck_path = healthcheck_path
     ctx.service_form_healthcheck_status = healthcheck_status
@@ -1066,20 +1074,144 @@ function domain_delete(domain: string): ()
     end)
 end
 
-function domain_hostport_save(): ()
+-- TODO(portas-tcp): substituídos pela lista de portas (tcp_port_add/tcp_port_delete), 2026-11.
+-- Mantidos comentados: editavam o `host_port` único, que agora é só espelho.
+-- function domain_hostport_save(): ()
+--     with_spec(function(spec: any): ()
+--         spec.host_port = tonumber(Helpers.trim(ctx.service_form_host_port))
+--     end)
+-- end
+--
+-- function domain_hostport_auto(): ()
+--     with_spec(function(spec: any): ()
+--         spec.host_port = 0
+--     end)
+-- end
+
+-- ── Portas TCP do host (docs/plano-multiplas-portas-tcp.md) ─────────────────
+-- Cada porta liga uma porta do host a uma porta do container. Porta do host vazia = "Automática"
+-- (sentinela 0: o daemon troca por uma livre da faixa [external_ports] e a libera no firewall).
+
+-- Mesmo idioma de `materialize_domains`: move o `host_port` legado para a lista e o zera. O daemon
+-- recalcula o espelho; mandar o `host_port` antigo junto faria uma lista esvaziada voltar por ele.
+local function materialize_tcp_ports(spec: any): ()
+    if not spec.tcp_ports or #spec.tcp_ports == 0 then
+        local routes = json.array {}
+        if spec.host_port ~= nil then
+            table.insert(routes, { host_port = spec.host_port })
+        end
+        spec.tcp_ports = routes
+    end
+    spec.host_port = json.null
+end
+
+-- Porta válida (1..65535) ou nil.
+local function parse_port(text: string): number?
+    local port = tonumber(Helpers.trim(text))
+    if port and port >= 1 and port <= 65535 and port == math.floor(port) then
+        return port
+    end
+    return nil
+end
+
+function tcp_port_add(): ()
+    local host_text = Helpers.trim(ctx.service_form_tcp_host_port or "")
+    local container_text = Helpers.trim(ctx.service_form_tcp_container_port or "")
+    local host_port = 0
+    if host_text ~= "" then
+        local parsed = parse_port(host_text)
+        if not parsed then
+            ctx.error_service_form_tcp = i18n.tr("porta do host inválida (1 a 65535, ou vazia para automática)")
+            return
+        end
+        host_port = parsed
+    end
+    local container_port: number? = nil
+    if container_text ~= "" then
+        container_port = parse_port(container_text)
+        if not container_port then
+            ctx.error_service_form_tcp = i18n.tr("porta do container inválida (1 a 65535, ou vazia para a padrão)")
+            return
+        end
+    end
+    local label = Helpers.trim(ctx.service_form_tcp_label or "")
+    ctx.error_service_form_tcp = ""
     with_spec(function(spec: any): ()
-        spec.host_port = tonumber(Helpers.trim(ctx.service_form_host_port))
+        materialize_tcp_ports(spec)
+        local route: any = { host_port = host_port }
+        if container_port then
+            route.container_port = container_port
+        end
+        if label ~= "" then
+            route.label = label
+        end
+        -- mesma porta do host (manual) = editar a que existe
+        local found = false
+        for index, existing in ipairs(spec.tcp_ports) do
+            if host_port ~= 0 and existing.host_port == host_port then
+                spec.tcp_ports[index] = route
+                found = true
+                break
+            end
+        end
+        if not found then
+            table.insert(spec.tcp_ports, route)
+        end
+    end)
+    ctx.service_form_tcp_host_port = ""
+    ctx.service_form_tcp_container_port = ""
+    ctx.service_form_tcp_label = ""
+end
+
+function tcp_port_delete(host_port: string): ()
+    local target = tonumber(host_port)
+    with_spec(function(spec: any): ()
+        materialize_tcp_ports(spec)
+        local kept = json.array {}
+        for _, route in ipairs(spec.tcp_ports) do
+            if route.host_port ~= target then
+                table.insert(kept, route)
+            end
+        end
+        spec.tcp_ports = kept
     end)
 end
 
--- Sentinela 0 = "aloque para mim": o daemon troca por uma porta livre da faixa
--- [external_ports] e a libera no firewall (rustployd-fw). O fetch pós-update
--- do with_spec já re-renderiza service_host_port/service_external_url com a
--- porta real.
-function domain_hostport_auto(): ()
-    with_spec(function(spec: any): ()
-        spec.host_port = 0
-    end)
+-- Rótulo de cada sugestão, por porta, para o tcp_port_pick preencher junto.
+local suggestion_labels: { [string]: string } = {}
+
+-- "Sugerir portas": pergunta ao daemon quais portas o container provavelmente tem (o que ele escuta, o
+-- que a imagem e o compose declaram, e a tabela do produto).
+function tcp_port_suggest(): ()
+    local api = State.api
+    local service_id = ctx.selected_service
+    if not api or not service_id or service_id == "" then
+        return
+    end
+    local ok, response = api:rpc_checked { ServicePortSuggestions = { service_id = service_id } }
+    if not ok or type(response) ~= "table" or response.ServicePortSuggestions == nil then
+        toast { message = tostring(response), kind = "error" }
+        return
+    end
+    local suggestions = response.ServicePortSuggestions
+    suggestion_labels = {}
+    for _, suggestion in ipairs(suggestions) do
+        suggestion_labels[tostring(suggestion.port)] = suggestion.label or ""
+    end
+    ctx.service_port_suggestions = format.port_suggestions_json(suggestions)
+    ctx.service_port_suggestions_count = tostring(#suggestions)
+    if #suggestions == 0 then
+        toast { message = tostring(i18n.tr("nenhuma outra porta encontrada no serviço")), kind = "info" }
+    end
+end
+
+-- Clicar numa sugestão preenche a porta do container (e o rótulo, se a porta tem nome).
+function tcp_port_pick(port: string): ()
+    ctx.service_form_tcp_container_port = port
+    local label = suggestion_labels[port]
+    if label and label ~= "" then
+        ctx.service_form_tcp_label = label
+    end
 end
 
 function compose_save(): ()

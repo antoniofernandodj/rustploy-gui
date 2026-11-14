@@ -25,10 +25,17 @@ export type DomainRoute = {
     tls: boolean,
 }
 
+export type TcpPortRoute = {
+    host_port: number,
+    container_port: number?,
+    label: string?,
+}
+
 export type ServiceSpec = {
     name: string,
     port: number,
     host_port: number?,
+    tcp_ports: { TcpPortRoute }?,
     source: any,
     domain: string?,
     tls_enabled: boolean?,

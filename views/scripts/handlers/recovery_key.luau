@@ -92,7 +92,7 @@ function recovery_key_generate(): ()
         local confirmed = confirm {
             title = i18n.tr("Trocar a chave de recuperação?"),
             message = i18n.tr(
-                "O que for exportado daqui em diante só abre com a chave nova. Backups e commits antigos continuam abrindo só com a chave antiga: guarde-a até não precisar mais."
+                "A chave nova cifra tudo daqui em diante e os segredos de hoje são recifrados para ela. Mas os backups de dados que já estão no S3 e o histórico do git NÃO mudam: continuam abrindo só com a chave antiga. Guarde-a enquanto precisar deles, ou refaça os backups logo depois da troca."
             ),
             confirm_label = i18n.tr("Trocar chave"),
             destructive = true,

@@ -766,12 +766,17 @@
   "settings_recovery_key.intro": "Os backups e o repositório git guardam segredos cifrados. Se este servidor for perdido, só a chave de recuperação os abre num servidor novo. O servidor guarda apenas a parte pública; a privada aparece uma única vez, ao gerar, e é baixada na hora. Guarde-a em um cofre ou gerenciador de senhas.",
   "settings_recovery_key.not_configured": "Este servidor ainda não tem chave de recuperação.",
   "settings_recovery_key.public_key": "CHAVE PÚBLICA",
-  "settings_recovery_key.replace_warning": "Gerar outra chave troca a atual: o que for exportado daqui em diante só abre com a nova. Backups e commits antigos continuam abrindo só com a chave antiga — guarde-a até não precisar mais.",
-  "settings_recovery_key.generate": "Gerar e baixar",
-  "settings_recovery_key.generate_another": "Gerar outra chave",
+  "settings_recovery_key.replace_warning": "Gerar outra chave troca a atual. Os segredos de hoje são recifrados para a nova, mas os backups de dados que já estão no S3 e o histórico do git NÃO mudam: continuam abrindo só com a chave antiga. Guarde a antiga enquanto precisar deles, ou refaça os backups logo depois da troca.",
   "settings_recovery_key.only_copy": "Esta é a única cópia: o servidor não a guarda e ela não será mostrada de novo. Mova o arquivo para um cofre; não deixe só na pasta de downloads.",
   "settings_recovery_key.save_again": "Baixar de novo",
   "settings_recovery_key.stored_safely": "Guardei em lugar seguro",
   "settings_recovery_key.generate_key": "Gerar chave de recuperação",
-  "login.app_update_available": "Há uma versão nova do app: {version}"
+  "login.app_update_available": "Há uma versão nova do app: {version}",
+  "domains.tcp_ports": "PORTAS TCP DO HOST ({service_tcp_ports_count})",
+  "domains.tcp_ports_explanation": "Cada porta do host leva a uma porta do container, sem HTTP (ex.: a API e o console de um storage).",
+  "domains.no_tcp_port": "Nenhuma porta TCP configurada.",
+  "domains.suggest_ports": "Sugerir portas do container",
+  "domains.label_optional": "RÓTULO (opcional)",
+  "domains.label_placeholder": "console, painel…",
+  "domains.add_tcp_port": "Adicionar porta"
 }

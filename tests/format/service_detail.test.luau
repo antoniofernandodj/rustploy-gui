@@ -358,6 +358,45 @@ function test_deployments_e_dominios__sem_dominio_da()
     assert_eq(SD.domains_json({ port = 80 } :: any), "[]")
 end
 
+--- portas TCP: a lista nova, ou o host_port legado virando uma porta para a porta do serviço
+function test_deployments_e_dominios__portas_tcp_lista_e_legado()
+    local linhas = json.decode(SD.tcp_ports_json({
+        port = 9000,
+        tcp_ports = {
+            { host_port = 20002 },
+            { host_port = 20003, container_port = 9001, label = "console" },
+        },
+    } :: any))
+    assert_eq(#linhas, 2)
+    assert_eq(linhas[1].container_port, "9000")
+    assert_eq(linhas[1].label, "")
+    assert_eq(linhas[2].container_port, "9001")
+    assert_eq(linhas[2].label, "console")
+
+    local legado = json.decode(SD.tcp_ports_json({ port = 5432, host_port = 20000 } :: any))
+    assert_eq(#legado, 1)
+    assert_eq(legado[1].host_port, "20000")
+    assert_eq(legado[1].container_port, "5432")
+
+    assert_eq(SD.tcp_ports_json({ port = 80 } :: any), "[]")
+end
+
+--- sugestões: o texto do botão traz porta, nome e "escutando agora" ou "interna"
+function test_deployments_e_dominios__sugestoes_de_porta()
+    local linhas = json.decode(SD.port_suggestions_json({
+        { port = 9001, label = "console", sources = { "listening", "product" }, internal = false },
+        { port = 3000, sources = { "image" }, internal = false },
+        { port = 25672, label = "cluster", sources = { "product" }, internal = true },
+    }))
+    assert_eq(linhas[1].port, "9001")
+    assert_eq(linhas[1].label, "console")
+    assert_eq(linhas[1].text, "9001 console (listening now)")
+    assert_eq(linhas[2].text, "3000")
+    assert_eq(linhas[3].text, "25672 cluster (internal)")
+    assert_eq(linhas[3].internal, "true")
+    assert_eq(SD.port_suggestions_json({}), "[]")
+end
+
 --- safe_name: minúsculas, não-alfanumérico vira _ colapsado e sem bordas
 function test_nomes_e_hosts__safe_name_minusculas_nao_alfanumerico_vira()
     assert_eq(SD.safe_name("Meu App!"), "meu_app")

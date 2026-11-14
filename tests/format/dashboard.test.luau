@@ -502,6 +502,23 @@ function test_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host()
     assert_eq(linhas[1].host_port_n, 80)
 end
 
+--- portas de host: uma linha por porta da lista nova, com a porta do container e o rótulo
+function test_ingress_portas_e_monitoramento__uma_linha_por_porta_tcp()
+    local s3 = par("s3", "p")
+    s3.svc.spec.port = 9000
+    s3.svc.spec.tcp_ports = {
+        { host_port = 20003, container_port = 9001, label = "console" },
+        { host_port = 20002 },
+    }
+    local texto, total = Dashboard.host_ports({ s3 })
+    local linhas = json.decode(texto)
+    assert_eq(total, 2)
+    assert_eq(linhas[1].host_port, "20002")
+    assert_eq(linhas[1].container_port, "9000")
+    assert_eq(linhas[2].host_port, "20003")
+    assert_eq(linhas[2].container_port, "9001 (console)")
+end
+
 --- monitoramento: só serviços com métricas vivas, com valores crus
 function test_ingress_portas_e_monitoramento__monitoramento_so_servicos_com()
     local linhas = json.decode(

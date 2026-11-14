@@ -32,6 +32,7 @@ M.weekdays = Time.weekdays
 
 -- Busca / codificação / estado (format/util.luau)
 M.matches = Util.matches
+M.tcp_routes = Util.tcp_routes
 M.ellipsis = Util.ellipsis
 M.short_reason = Util.short_reason
 M.encode_array = Util.encode_array
@@ -75,6 +76,8 @@ M.history_rows = ServiceDetail.history_rows
 M.log_execution_rows = ServiceDetail.log_execution_rows
 M.deployments_detail = ServiceDetail.deployments_detail
 M.domains_json = ServiceDetail.domains_json
+M.tcp_ports_json = ServiceDetail.tcp_ports_json
+M.port_suggestions_json = ServiceDetail.port_suggestions_json
 M.safe_name = ServiceDetail.safe_name
 M.internal_url = ServiceDetail.internal_url
 M.compose_host = ServiceDetail.compose_host

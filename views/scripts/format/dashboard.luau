@@ -579,7 +579,8 @@ function M.ingress(service_pairs: { ServicePair }): (string, number)
     return Util.encode_array(rows), #rows
 end
 
--- Portas TCP de host: uma linha por serviço com `host_port` configurado —
+-- Portas TCP de host: uma linha por porta TCP de cada serviço (a lista `tcp_ports`, ou o `host_port`
+-- legado) —
 -- exposição direta de porta TCP no host, independente das rotas HTTP de
 -- domínio acima (um serviço pode ter as duas, só uma, ou nenhuma). Não
 -- filtrado pela busca (mesma convenção de `M.ingress`).
@@ -588,15 +589,19 @@ function M.host_ports(service_pairs: { ServicePair }): (string, number)
     local rows = {}
     for _, pair in ipairs(service_pairs) do
         local spec = pair.svc.spec
-        if spec.host_port ~= nil then
+        for _, route in ipairs(Util.tcp_routes(spec)) do
+            local container_port = tostring(route.container_port or spec.port)
+            if route.label and route.label ~= "" then
+                container_port = container_port .. " (" .. route.label .. ")"
+            end
             table.insert(rows, {
                 service = Util.ellipsis(spec.name, column_budgets.svc),
                 service_id = pair.svc.id,
                 project = Util.ellipsis(pair.proj, column_budgets.proj),
                 project_id = spec.project_id,
-                host_port = tostring(spec.host_port),
-                host_port_n = spec.host_port,
-                container_port = tostring(spec.port),
+                host_port = tostring(route.host_port),
+                host_port_n = route.host_port,
+                container_port = container_port,
             })
         end
     end

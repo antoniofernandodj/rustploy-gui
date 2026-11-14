@@ -6,6 +6,7 @@ local Types = require("types")
 type ServicePair = Types.ServicePair
 type ServiceSpec = Types.ServiceSpec
 type DomainRoute = Types.DomainRoute
+type TcpPortRoute = Types.TcpPortRoute
 
 local M = {}
 
@@ -240,6 +241,24 @@ function M.source_summary(source: any): string
         return "docker-compose"
     end
     return "—"
+end
+
+-- tcp_routes(): a lista `tcp_ports` nova, ou o legado `host_port` (uma porta para a `port` do serviço).
+-- Mesmo idioma de `ServiceSpec::tcp_routes` no lado Rust.
+function M.tcp_routes(spec: ServiceSpec): { TcpPortRoute }
+    local routes: { TcpPortRoute } = {}
+    if spec.tcp_ports and #spec.tcp_ports > 0 then
+        for _, route in ipairs(spec.tcp_ports) do
+            table.insert(routes, {
+                host_port = route.host_port,
+                container_port = route.container_port,
+                label = route.label,
+            })
+        end
+    elseif spec.host_port ~= nil then
+        table.insert(routes, { host_port = spec.host_port :: number })
+    end
+    return routes
 end
 
 -- domain_routes(): a lista `domains` nova, ou o legado `domain`/`tls_enabled`.
