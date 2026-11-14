@@ -10,176 +10,191 @@ component {
     }
   }
 
-  column(class = form-panel) {
-    text("{t('domains.domains', service_domains_count=service_domains_count)}", class = u-label-cap)
+  // A aba inteira rola (como a Avançado): os dois painéis juntos passam da altura da janela.
+  scrollable(
+    direction = vertical,
+    class = u-fill-all,
+  ) {
+    column(class = service__main) {
+      column(class = form-panel) {
+        text("{t('domains.domains', service_domains_count=service_domains_count)}", class = u-label-cap)
 
-    text(
-      "{t('domains.each_domain_can_point_to_a')}",
-      class = u-muted,
-    )
+        text(
+          "{t('domains.each_domain_can_point_to_a')}",
+          class = u-muted,
+        )
 
-    scrollable(direction = vertical, class = u-fill-all) {
-      column(class = kv-list) {
-        each @service_domains as d (fallback = SemDominios) {
-          row(class = kv-list__row) {
-            button(
-              "✕",
-              class = env__del,
-              on_click = domain_delete:@d.domain,
-              disabled = @busy_domain_delete
-            )
+        column(class = kv-list, height = shrink) {
+          each @service_domains as d (fallback = SemDominios) {
+            row(class = kv-list__row) {
+              button(
+                "✕",
+                class = env__del,
+                on_click = domain_delete:@d.domain,
+                disabled = @busy_domain_delete
+              )
 
-            text(class = env__sep)
-            text("@d.domain", class = env__key)
-            text("→ @d.port", class = "kv-list__val kv-list__val--compact")
-            text("@d.tls_label", class = u-muted)
+              text(class = env__sep)
+              text("@d.domain", class = env__key)
+              text("→ @d.port", class = "kv-list__val kv-list__val--compact")
+              text("@d.tls_label", class = u-muted)
+            }
           }
         }
-      }
-    }
 
-    text("{t('domains.add_domain')}", class = u-label-cap)
+        text("{t('domains.add_domain')}", class = u-label-cap)
 
-    input(
-      class = field__input,
-      form_control = service_form_domain,
-      :value = service_form_domain,
-      on_change = field:service_form_domain,
-      placeholder = "{t('domains.app_example_com')}",
-    )
+        input(
+          class = field__input,
+          form_control = service_form_domain,
+          :value = service_form_domain,
+          on_change = field:service_form_domain,
+          placeholder = "{t('domains.app_example_com')}",
+        )
 
-    text(
-      "@error_service_form_domain",
-      if = @error_service_form_domain,
-      not_equals = "",
-      class = u-error,
-    )
+        text(
+          "@error_service_form_domain",
+          if = @error_service_form_domain,
+          not_equals = "",
+          class = u-error,
+        )
 
-    text("{t('domains.container_port_optional')}", class = u-label-cap)
+        text("{t('domains.container_port_optional')}", class = u-label-cap)
 
-    input(
-      class = field__input,
-      form_control = service_form_port,
-      :value = service_form_port,
-      on_change = field:service_form_port,
-      placeholder = "{t('domains.service_default')}",
-    )
+        input(
+          class = field__input,
+          form_control = service_form_port,
+          :value = service_form_port,
+          on_change = field:service_form_port,
+          placeholder = "{t('domains.service_default')}",
+        )
 
-    text(
-      "@error_service_form_port",
-      if = @error_service_form_port,
-      not_equals = "",
-      class = u-error,
-    )
+        text(
+          "@error_service_form_port",
+          if = @error_service_form_port,
+          not_equals = "",
+          class = u-error,
+        )
 
-    toggle(
-      :checked = service_form_tls,
-      on_toggle = field:service_form_tls,
-      label = "{t('domains.https_tls')}",
-    )
+        toggle(
+          :checked = service_form_tls,
+          on_toggle = field:service_form_tls,
+          label = "{t('domains.https_tls')}",
+        )
 
-    row(class = env__add) {
-      button(
-        "{t('domains.add_domain_2')}",
-        class = "btn btn--primary",
-        on_click = domain_add,
-        disabled = @busy_domain_add
-      )
-
-      text("@service_action_message", class = u-muted)
-    }
-
-    // Portas TCP do host (docs/plano-multiplas-portas-tcp.md): cada uma liga uma porta do host a uma
-    // porta do container. Host vazio = Automática; container vazio = a porta padrão do serviço.
-    text("{t('domains.tcp_ports', service_tcp_ports_count=service_tcp_ports_count)}", class = u-label-cap)
-
-    text("{t('domains.tcp_ports_explanation')}", class = u-muted)
-
-    column(class = kv-list) {
-      each @service_tcp_ports as p (fallback = SemPortasTcp) {
-        row(class = kv-list__row) {
+        row(class = env__add) {
           button(
-            "✕",
-            class = env__del,
-            on_click = tcp_port_delete:@p.host_port,
-            disabled = @busy_tcp_port_delete
+            "{t('domains.add_domain_2')}",
+            class = "btn btn--primary",
+            on_click = domain_add,
+            disabled = @busy_domain_add
           )
 
-          text(class = env__sep)
-          text("@p.host_port", class = env__key)
-          text("→ @p.container_port", class = "kv-list__val kv-list__val--compact")
-          text("@p.label", class = u-muted)
+          text("@service_action_message", class = u-muted)
         }
       }
-    }
 
-    text("{t('domains.host_tcp_port_passthrough_optional')}", class = u-label-cap)
+      column(class = form-panel) {
+        // Portas TCP do host (docs/plano-multiplas-portas-tcp.md): cada uma liga uma porta do host a uma
+        // porta do container. Host vazio = Automática; container vazio = a porta padrão do serviço.
+        text("{t('domains.tcp_ports', service_tcp_ports_count=service_tcp_ports_count)}", class = u-label-cap)
 
-    input(
-      class = field__input,
-      form_control = service_form_tcp_host_port,
-      :value = service_form_tcp_host_port,
-      on_change = field:service_form_tcp_host_port,
-      placeholder = "{t('domains.automatic')}",
-    )
+        text("{t('domains.tcp_ports_explanation')}", class = u-muted)
 
-    text("{t('domains.container_port_optional')}", class = u-label-cap)
+        column(class = kv-list, height = shrink) {
+          each @service_tcp_ports as p (fallback = SemPortasTcp) {
+            row(class = kv-list__row) {
+              button(
+                "✕",
+                class = env__del,
+                on_click = tcp_port_delete:@p.host_port,
+                disabled = @busy_tcp_port_delete
+              )
 
-    input(
-      class = field__input,
-      form_control = service_form_tcp_container_port,
-      :value = service_form_tcp_container_port,
-      on_change = field:service_form_tcp_container_port,
-      placeholder = "{t('domains.service_default')}",
-    )
+              text(class = env__sep)
+              // sem a largura fixa do env__key (400 px, feita para nomes de variável): a porta é curta
+              text("@p.host_port", class = kv-list__val)
+              text("→ @p.container_port", class = "kv-list__val kv-list__val--compact")
+              text("@p.label", class = u-muted)
+            }
+          }
+        }
 
-    button(
-      "{t('domains.suggest_ports')}",
-      class = "btn btn--ghost",
-      on_click = tcp_port_suggest,
-      disabled = @busy_tcp_port_suggest
-    )
+        text("{t('domains.host_tcp_port_passthrough_optional')}", class = u-label-cap)
 
-    // Sugestões: clicar preenche a porta do container (e o rótulo, se a porta tem nome).
-    column(class = kv-list) {
-      each @service_port_suggestions as s {
+        input(
+          class = field__input,
+          form_control = service_form_tcp_host_port,
+          :value = service_form_tcp_host_port,
+          on_change = field:service_form_tcp_host_port,
+          placeholder = "{t('domains.automatic')}",
+        )
+
+        text("{t('domains.container_port_optional')}", class = u-label-cap)
+
+        input(
+          class = field__input,
+          form_control = service_form_tcp_container_port,
+          :value = service_form_tcp_container_port,
+          on_change = field:service_form_tcp_container_port,
+          placeholder = "{t('domains.service_default')}",
+        )
+
         button(
-          "@s.text",
+          "{t('domains.suggest_ports')}",
           class = "btn btn--ghost",
-          on_click = tcp_port_pick:@s.port
+          on_click = tcp_port_suggest,
+          disabled = @busy_tcp_port_suggest
+        )
+
+        // Sugestões: clicar preenche a porta do container (e o rótulo, se a porta tem nome).
+        // Some quando não há sugestões (senão sobra uma caixa vazia embaixo do botão).
+        column(
+          class = kv-list,
+          height = shrink,
+          if = @service_port_suggestions_count,
+          not_equals = "0",
+        ) {
+          each @service_port_suggestions as s {
+            button(
+              "@s.text",
+              class = "btn btn--ghost",
+              on_click = tcp_port_pick:@s.port
+            )
+          }
+        }
+
+        text("{t('domains.label_optional')}", class = u-label-cap)
+
+        input(
+          class = field__input,
+          form_control = service_form_tcp_label,
+          :value = service_form_tcp_label,
+          on_change = field:service_form_tcp_label,
+          placeholder = "{t('domains.label_placeholder')}",
+        )
+
+        text(
+          "@error_service_form_tcp",
+          if = @error_service_form_tcp,
+          not_equals = "",
+          class = u-error,
+        )
+
+        row(class = env__add) {
+          button(
+            "{t('domains.add_tcp_port')}",
+            class = "btn btn--primary",
+            on_click = tcp_port_add,
+            disabled = @busy_tcp_port_add
+          )
+        }
+
+        text(
+          "{t('domains.automatic_allocates_a_free_port_and')}",
+          class = u-muted,
         )
       }
     }
-
-    text("{t('domains.label_optional')}", class = u-label-cap)
-
-    input(
-      class = field__input,
-      form_control = service_form_tcp_label,
-      :value = service_form_tcp_label,
-      on_change = field:service_form_tcp_label,
-      placeholder = "{t('domains.label_placeholder')}",
-    )
-
-    text(
-      "@error_service_form_tcp",
-      if = @error_service_form_tcp,
-      not_equals = "",
-      class = u-error,
-    )
-
-    row(class = env__add) {
-      button(
-        "{t('domains.add_tcp_port')}",
-        class = "btn btn--primary",
-        on_click = tcp_port_add,
-        disabled = @busy_tcp_port_add
-      )
-    }
-
-    text(
-      "{t('domains.automatic_allocates_a_free_port_and')}",
-      class = u-muted,
-    )
   }
 }

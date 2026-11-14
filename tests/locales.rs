@@ -109,3 +109,22 @@ fn both_languages_have_the_same_semantic_keys() {
         semantic(read_catalog("pt-BR.json"))
     );
 }
+
+/// Os textos do Luau (`i18n.tr("texto em português")`) usam o próprio texto como chave. O idioma padrão
+/// do app é o inglês (`default_locale("en")`), então um texto que tem tradução em `en.json` mas **não** tem
+/// entrada em `pt-BR.json` cai no inglês **com a tela em português** (achado em 2026-11-14: 548 textos assim,
+/// avisos e erros em inglês para quem usa a GUI em português). A entrada em português é a identidade.
+#[test]
+fn every_source_text_translated_to_english_also_exists_in_portuguese() {
+    let portuguese = read_catalog("pt-BR.json");
+    let missing: Vec<String> = read_catalog("en.json")
+        .into_keys()
+        .filter(|key| !looks_semantic(key) && !portuguese.contains_key(key))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "pt-BR.json: textos de origem sem entrada (aparecem em inglês na tela em português); \
+         acrescente cada um com ele mesmo como valor:\n  {}",
+        missing.join("\n  ")
+    );
+}
