@@ -49,6 +49,13 @@ function M.failure_text(http_response: any): string
         return tostring(http_response.error)
     end
 
+    -- O daemon explica a recusa no corpo (ex.: um ServiceUpdate que omite campos gravados). Sem isto a
+    -- tela só dizia "HTTP 400" e escondia o motivo.
+    local body = http_response.body
+    if type(body) == "string" and body ~= "" and #body <= 600 then
+        return "HTTP " .. tostring(http_response.status) .. ": " .. body
+    end
+
     return "HTTP " .. tostring(http_response.status)
 end
 

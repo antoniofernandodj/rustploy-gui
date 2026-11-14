@@ -1092,8 +1092,11 @@ end
 -- Cada porta liga uma porta do host a uma porta do container. Porta do host vazia = "Automática"
 -- (sentinela 0: o daemon troca por uma livre da faixa [external_ports] e a libera no firewall).
 
--- Mesmo idioma de `materialize_domains`: move o `host_port` legado para a lista e o zera. O daemon
--- recalcula o espelho; mandar o `host_port` antigo junto faria uma lista esvaziada voltar por ele.
+-- Mesmo idioma de `materialize_domains`: move o `host_port` legado para a lista. O `host_port` **fica**
+-- no spec: o `/api/rpc` recusa (HTTP 400) um update que omite um campo que o serviço tem gravado, e o Luau
+-- não tem como mandar `null` (um `nil` some do JSON). Ele é só espelho: o daemon o recalcula a partir da
+-- lista e, se a lista chegar vazia com o espelho antigo, entende que a última porta foi removida
+-- (`clear_stale_mirror` no daemon).
 local function materialize_tcp_ports(spec: any): ()
     if not spec.tcp_ports or #spec.tcp_ports == 0 then
         local routes = json.array {}
@@ -1102,7 +1105,6 @@ local function materialize_tcp_ports(spec: any): ()
         end
         spec.tcp_ports = routes
     end
-    spec.host_port = json.null
 end
 
 -- Porta válida (1..65535) ou nil.

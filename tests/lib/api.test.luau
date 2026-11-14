@@ -16,6 +16,13 @@ function test_failure_text__mensagem_do_motor_ou_status()
     )
     assert_eq(Api.failure_text({ error = "", status = 502 }), "HTTP 502")
     assert_eq(Api.failure_text({ status = 404 }), "HTTP 404")
+    -- o motivo que o daemon manda no corpo aparece (antes só "HTTP 400")
+    assert_eq(
+        Api.failure_text({ status = 400, body = "ServiceUpdate substitui o serviço inteiro" }),
+        "HTTP 400: ServiceUpdate substitui o serviço inteiro"
+    )
+    -- corpo enorme (uma página HTML de proxy, por exemplo) não vai para o toast
+    assert_eq(Api.failure_text({ status = 502, body = string.rep("x", 601) }), "HTTP 502")
 end
 
 --- o cliente guarda a base e o token; token vazio vira nil
