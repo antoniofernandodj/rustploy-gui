@@ -305,10 +305,12 @@ function job_delete(job_id: string): ()
         return
     end
     -- Confirma antes de apagar, como a webui ("Remover este job? Ação
-    -- irreversível.") e como os demais botões destrutivos do app. Cancelar
-    -- deixa o painel aberto.
+    -- irreversível.") e como os demais botões destrutivos do app. O painel ⋯
+    -- fecha ANTES: ele é uma camada flutuante e ficava por cima da confirmação,
+    -- escondendo-a (a janela só aparecia ao clicar fora do painel).
     local job = State.jobs_by_id[job_id]
     local job_name = job and job.name or job_id
+    close_job_actions()
     local confirmed = confirm {
         title = i18n.tr("Remover job?"),
         message = i18n.tr("O job \"")
@@ -320,7 +322,6 @@ function job_delete(job_id: string): ()
     if not confirmed then
         return
     end
-    close_job_actions()
     local job_delete_ok, job_delete_response = api:rpc_checked {
         JobDelete = {
             id = job_id,
@@ -345,6 +346,8 @@ function job_rebuild(job_id: string): ()
     end
     local job = State.jobs_by_id[job_id]
     local job_name = job and job.name or job_id
+    -- O painel ⋯ fecha antes da confirmação (ficava por cima dela; ver `job_delete`).
+    close_job_actions()
     local confirmed = confirm {
         title = i18n.tr("Reconstruir sem cache?"),
         message = i18n.tr("O job \"")
