@@ -10,6 +10,7 @@ local Helpers = require("../helpers")
 local format = require("../format")
 local Api = require("../net/api")
 local Services = require("services")
+local EnvRows = require("env_rows")
 
 local M = {}
 
@@ -129,8 +130,11 @@ local function update_open_project(): ()
     -- nasce "Variáveis ()" até a primeira edição.
     local project_env_vars = found_project.env_vars or {}
     local project_comments = found_project.env_comments or {}
-    ctx.project_env =
+    -- Via EnvRows: a lista ganha os campos editáveis de cada linha sem apagar um rascunho.
+    EnvRows.publish(
+        "project",
         format.env_json_with_comments(project_env_vars, project_comments)
+    )
     ctx.project_env_count = tostring(#project_env_vars)
     -- O snapshot chega ~1x/s; se reescrevêssemos project_env_text (o value do
     -- textarea) toda vez, o que o usuário digita seria resetado. Só
@@ -148,6 +152,12 @@ local function update_open_project(): ()
     local secrets = found_project.secrets or {}
     ctx.project_secrets = format.secret_rows(secrets, "project", State.revealed_secrets)
     ctx.project_secrets_count = tostring(#secrets)
+    -- O "usar secret" de uma variável do projeto só oferece os secrets do projeto.
+    local secret_options = {}
+    for _, name in ipairs(secrets) do
+        table.insert(secret_options, { name = name, label = name })
+    end
+    EnvRows.set_secret_options("project", secret_options)
 
     -- Aba "Jobs (N)": jobs deste projeto (filtrados do `msg.jobs` global —
     -- já busca tudo a cada snapshot, sem RPC extra).

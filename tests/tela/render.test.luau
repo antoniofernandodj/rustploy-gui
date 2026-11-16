@@ -619,28 +619,32 @@ function test_projeto_env_em_modo_secret_e_sem_secrets()
     end
 end
 
---- edição no lugar: a linha em edição ganha ✓ e ✕ no lugar do texto; as outras linhas seguem normais
-function test_projeto_edicao_no_lugar_da_chave_e_do_valor()
+--- linha editável no lugar: chave e valor são campos ligados às chaves da PRÓPRIA linha; o OK só
+--- aparece depois de mexer; "usar secret" troca o campo do valor pela lista de secrets
+function test_projeto_linha_editavel_no_lugar()
     local tela = projeto()
-    seta(tela, {
-        project_tab = "env",
-        project_env = {
-            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "", edit_key_id = "key:A", edit_value_id = "value:A" },
-            { key = "B", key_display = "B", value = "y", kind = "plain", secret_name = "", edit_key_id = "key:B", edit_value_id = "value:B" },
-        },
-        env_edit_id = "",
-    })
-    local sem_edicao = tela:buttons()
-    assert_false(tem_trecho(sem_edicao, "✓"), "sem edição não há ✓")
-    assert_true(tem_trecho(sem_edicao, "✎"), "falta o botão de editar o valor")
+    tela:set("project_tab", "env")
+    tela:eval([[
+        require("handlers/env_rows").publish("project", json.encode({
+            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "" },
+            { key = "S", key_display = "S", value = "🔒 secret:GITHUB_TOKEN", kind = "secret", secret_name = "GITHUB_TOKEN" },
+        }))
+    ]])
+    local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
+    assert_eq(#chaves, 2)
+    assert_eq(tela:get(chaves[1].attrs.value_var), "A")
+    assert_eq(tela:get(chaves[2].attrs.value_var), "S")
+    local valores = tela:find_all({ kind = "textinput", class = "env__inline" })
+    assert_eq(#valores, 1, "a variável secret mostra a lista, não o campo do valor")
+    assert_eq(tela:get(valores[1].attrs.value_var), "x")
+    assert_eq(#tela:find_all({ class = "env__secret-select" }), 1)
+    assert_eq(#tela:find_all({ kind = "checkbox", class = "env__use-secret" }), 3, "2 linhas + o form de adicionar")
+    assert_false(tem_trecho(tela:buttons(), "OK"), "sem alteração não há OK")
 
-    for _, id in { "key:A", "value:B" } do
-        seta(tela, { env_edit_id = id, env_edit_draft = "novo" })
-        rende(tela)
-        local botoes = tela:buttons()
-        assert_true(tem_trecho(botoes, "✓"), "em edição falta o ✓ (" .. id .. ")")
-        assert_true(tem_trecho(botoes, "✕"), "em edição falta o ✕ (" .. id .. ")")
-    end
+    tela:call("project_env_row_value:A", "y")
+    rende(tela)
+    assert_true(tem_trecho(tela:buttons(), "OK"), "depois de mexer falta o OK")
+    assert_eq(tela:get(valores[1].attrs.value_var), "y")
 end
 
 --- projeto: botões de mover (🔒 ↓ nas variáveis em claro, 🔓 nas que apontam para secret e nos secrets)
@@ -1388,14 +1392,33 @@ function test_job_env_tela()
         job_secrets = Format.secret_rows({ "TOKEN" }, "job:job_1"),
         job_secrets_count = "1",
     })
+    tela:set("job_env_job_id", "job_1")
+    tela:eval([[
+        local EnvRows = require("handlers/env_rows")
+        EnvRows.publish("job", ctx.job_env)
+        EnvRows.set_secret_options("job", { { name = "TOKEN", label = "TOKEN" } })
+    ]])
     rende(tela)
     local textos = tela:texts()
     assert_true(tem_trecho(textos, "backup"), "nome do job ausente")
-    assert_true(tem_trecho(textos, "OLA"), "variável ausente")
     assert_true(tem_trecho(textos, "TOKEN"), "secret ausente")
-    for _, botao in { "🔒", "↑", "🔓", "👁", "✏️", "✎" } do
+    for _, botao in { "🔒", "↑", "🔓", "👁", "✏️" } do
         assert_true(tem_trecho(tela:buttons(), botao), "botão " .. botao .. " ausente")
     end
+    -- linha editável no lugar: chave e valor sem borda, "usar secret" com lista, OK só depois de mexer
+    local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
+    assert_eq(#chaves, 2)
+    assert_eq(tela:get(chaves[1].attrs.value_var), "OLA")
+    local valores = tela:find_all({ kind = "textinput", class = "env__inline" })
+    assert_eq(#valores, 1, "a variável secret mostra a lista, não o campo do valor")
+    assert_eq(tela:get(valores[1].attrs.value_var), "mundo")
+    assert_eq(#tela:find_all({ class = "env__secret-select" }), 1)
+    assert_eq(#tela:find_all({ kind = "checkbox", class = "env__use-secret" }), 3, "2 linhas + o form de adicionar")
+    assert_false(tem_trecho(tela:buttons(), "OK"), "sem alteração não há OK")
+    tela:call("job_env_row_value:OLA", "terra")
+    rende(tela)
+    assert_true(tem_trecho(tela:buttons(), "OK"), "depois de mexer falta o OK")
+    assert_eq(tela:get(valores[1].attrs.value_var), "terra")
     -- sem secrets: o estado vazio aparece
     seta(tela, { job_secrets = "[]", job_secrets_count = "0" })
     assert_true(tem_trecho(tela:texts(), "No secret in this job yet."), "estado vazio ausente")

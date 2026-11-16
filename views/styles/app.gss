@@ -339,6 +339,15 @@
 .env__edit--key   { width: 230; }
 .env__inline      { width: fill; padding: 3 6; background: transparent; border_width: 0; size: 13; }
 .env__inline:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
+/* Linha de variável editável no lugar (handlers/env_rows.luau): a chave é um campo sem borda com a
+   cara do texto da chave; o mouse em cima clareia o fundo, a dica de que dá para clicar e editar. */
+.env__inline:hover { background: var(--surface); }
+.env__inline-key  { width: 230; padding: 3 6; background: transparent; border_width: 0; size: 13; bold: true; color: var(--accent); }
+.env__inline-key:hover { background: var(--surface); }
+.env__inline-key:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
+/* A lista de secrets que toma o lugar do valor quando "usar secret" está marcado. */
+.env__secret-select { width: fill; padding: 4 8; background: var(--raised); border_radius: 4; border_width: 1; border_color: #30363D; color: var(--text-2); size: 13; }
+.env__use-secret  { size: 12; color: var(--muted); }
 .env__drag-handle { color: var(--faint); padding: 0 6 0 0; cursor: grab; }
 .env__drag-handle--dragging { cursor: grabbing; }
 .env__del         { color: var(--error); padding: 4 10; background: var(--border); border_radius: 4; }

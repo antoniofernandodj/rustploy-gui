@@ -13,6 +13,7 @@
 
 local Helpers = require("helpers")
 local format = require("format")
+local EnvRows = require("handlers/env_rows")
 
 local Core = {}
 
@@ -62,8 +63,41 @@ function Core.reset_forms(): ()
     ctx.job_rename_to = ""
     ctx.job_env_new_key = ""
     ctx.job_env_new_value = ""
+    ctx.job_env_new_is_secret = "false"
     ctx.job_secret_new_name = ""
     ctx.job_secret_new_value = ""
+end
+
+-- Os nomes dos secrets de um escopo (do projeto, ou do serviço com `service_id`).
+local function secret_names(service_id: string?): { string }
+    local ok, response = api:rpc { SecretList = { project_id = project_id, service_id = service_id } }
+    if ok and type(response) == "table" and type(response.SecretNames) == "table" then
+        return response.SecretNames
+    end
+    return {}
+end
+
+-- Os secrets que uma variável do job pode usar, na ordem em que o daemon procura (env_resolve):
+-- os do job, os do serviço gatilho e os do projeto. Um nome que um escopo de cima já tem fica de
+-- fora — é o de cima que vale.
+local function secret_options(job: any, job_names: { string }): { any }
+    local options = {}
+    local seen: { [string]: boolean } = {}
+    local function add(names: { string }, suffix: string): ()
+        for _, name in ipairs(names) do
+            if not seen[name] then
+                seen[name] = true
+                table.insert(options, { name = name, label = name .. suffix })
+            end
+        end
+    end
+    add(job_names, "")
+    local trigger = job.trigger_service_id
+    if type(trigger) == "string" and trigger ~= "" then
+        add(secret_names(trigger), i18n.tr(" (serviço)"))
+    end
+    add(secret_names(nil), i18n.tr(" (projeto)"))
+    return options
 end
 
 -- Relê o job (e os nomes dos secrets dele) e espalha no ctx.
@@ -88,7 +122,7 @@ function Core.load(): ()
     end
     raw = job
     ctx.job_env_name = job.name
-    ctx.job_env = format.env_json_with_comments(job.env_vars, job.env_comments)
+    EnvRows.publish("job", format.env_json_with_comments(job.env_vars, job.env_comments))
     ctx.job_env_count = tostring(#(job.env_vars or {}))
     local dotenv = format.env_dotenv_with_comments(job.env_vars, job.env_comments)
     ctx.job_env_text = dotenv
@@ -102,6 +136,7 @@ function Core.load(): ()
     end
     ctx.job_secrets = format.secret_rows(names, "job:" .. job_id, revealed)
     ctx.job_secrets_count = tostring(#names)
+    EnvRows.set_secret_options("job", secret_options(job, names))
 end
 
 -- Reenvia o Job inteiro com as envs novas (o daemon não tem PATCH parcial).
@@ -146,6 +181,13 @@ function Core.add(): ()
     local key = Helpers.trim(ctx.job_env_new_key)
     local raw_value = ctx.job_env_new_value or ""
     local secret = Helpers.parse_secret_ref(raw_value)
+    if Helpers.is_true(ctx.job_env_new_is_secret) then
+        secret = Helpers.trim(raw_value)
+        if secret == "" then
+            toast { message = i18n.tr("escolha um secret"), kind = "warning" }
+            return
+        end
+    end
     if not Helpers.confirm_env_key(key, ctx.job_env) then
         return
     end
@@ -159,7 +201,15 @@ function Core.add(): ()
     if save_env(kept, job.env_comments or json.array {}, i18n.tr("Variável salva")) then
         ctx.job_env_new_key = ""
         ctx.job_env_new_value = ""
+        ctx.job_env_new_is_secret = "false"
     end
+end
+
+-- Checkbox "usar secret" do form de adicionar: liga/desliga o modo e limpa o valor — num modo ele é
+-- o texto digitado, no outro o NOME do secret escolhido na lista.
+function Core.new_use_secret(value: any): ()
+    ctx.job_env_new_is_secret = Helpers.is_true(value) and "true" or "false"
+    ctx.job_env_new_value = ""
 end
 
 function Core.delete(key: string): ()
@@ -277,87 +327,143 @@ function Core.reorder(reorder_json: string?): ()
     save_env(new_vars, new_comments, i18n.tr("Ordem salva"))
 end
 
--- ── Edição no lugar (✏️ chave, ✎ valor) ─────────────────────────────────────
+-- ── Linha editável no lugar (handlers/env_rows.luau) ───────────────────────
+-- A chave e o valor são campos sem borda; o "usar secret" troca o valor por uma lista de secrets.
+-- Digitar só muda o rascunho; o OK pede confirmação e grava: EnvValueSet (o valor) e depois
+-- EnvKeyRename (a chave — o EnvValueSet ainda acha a variável pelo nome antigo).
 
-local function env_row(key: string): any?
-    local decode_ok, rows = pcall(function()
-        return json.decode(ctx.job_env or "[]")
-    end)
-    for _, row in ipairs(decode_ok and rows or {}) do
-        if row.key == key then
-            return row
-        end
+function Core.row_change(key: string, field: string, value: any): ()
+    local row = EnvRows.row("job", key)
+    if row ~= nil then
+        EnvRows.set_draft("job", row, field, value)
     end
-    return nil
 end
 
-local function edit_start(field: string, key: string): ()
-    local row = env_row(key)
-    if row == nil then
+function Core.row_reset(key: string): ()
+    EnvRows.reset("job", key)
+end
+
+function Core.row_save(key: string): ()
+    local row = EnvRows.row("job", key)
+    if not api or row == nil or job_id == "" then
         return
     end
-    local is_secret = row.kind == "secret"
-    local draft = key
-    if field == "value" then
-        draft = is_secret and ("secret:" .. tostring(row.secret_name)) or tostring(row.value)
-    end
-    ctx.job_env_edit_id = field .. ":" .. key
-    ctx.job_env_edit_draft = draft
-    ctx.job_env_edit_was_secret = is_secret and "true" or "false"
-end
-
-function Core.edit_key(key: string): ()
-    edit_start("key", key)
-end
-
-function Core.edit_value(key: string): ()
-    edit_start("value", key)
-end
-
-function Core.edit_cancel(): ()
-    ctx.job_env_edit_id = ""
-    ctx.job_env_edit_draft = ""
-    ctx.job_env_edit_was_secret = "false"
-end
-
-function Core.edit_apply(): ()
-    local field, key = (ctx.job_env_edit_id or ""):match("^(%a+):(.+)$")
-    if not api or field == nil or key == nil or job_id == "" then
+    local rename_to, new_value = EnvRows.changes(row, EnvRows.row_state("job", row))
+    if rename_to == nil and new_value == nil then
         return
     end
-    local draft = ctx.job_env_edit_draft or ""
-    local edit_ok, edit_response
-    if field == "key" then
-        local to = Helpers.trim(draft)
-        if to == "" or to == key then
-            Core.edit_cancel()
+    if not EnvRows.confirm_save(key, row, rename_to, new_value, i18n.tr("Vale na próxima execução.")) then
+        return
+    end
+    if new_value ~= nil then
+        local value_ok, value_response = api:rpc_checked {
+            EnvValueSet = { project_id = project_id, job_id = job_id, key = key, value = new_value },
+        }
+        if not value_ok then
+            -- O rascunho fica: o que foi digitado não se perde numa recusa do daemon.
+            toast { message = tostring(value_response), kind = "error" }
             return
         end
-        edit_ok, edit_response = api:rpc_checked {
-            EnvKeyRename = { project_id = project_id, job_id = job_id, from = key, to = to },
-        }
-    else
-        edit_ok, edit_response = api:rpc_checked {
-            EnvValueSet = {
-                project_id = project_id,
-                job_id = job_id,
-                key = key,
-                value = Helpers.env_value_from_draft(draft, Helpers.is_true(ctx.job_env_edit_was_secret)),
-            },
-        }
     end
-    if edit_ok then
-        toast {
-            message = (field == "key") and (i18n.tr("Renomeado: ") .. key) or (i18n.tr("Valor salvo: ") .. key),
-            kind = "success",
+    if rename_to ~= nil then
+        local rename_ok, rename_response = api:rpc_checked {
+            EnvKeyRename = { project_id = project_id, job_id = job_id, from = key, to = rename_to },
         }
-        Core.edit_cancel()
-        changed()
-    else
-        -- Fica no modo de edição: o texto digitado não se perde numa recusa do daemon.
-        toast { message = tostring(edit_response), kind = "error" }
+        if not rename_ok then
+            -- O valor (se mudou) já foi gravado; o rascunho fica, com a chave nova por gravar.
+            toast { message = tostring(rename_response), kind = "error" }
+            changed()
+            return
+        end
     end
+    EnvRows.reset("job", key)
+    toast { message = i18n.tr("Variável salva: ") .. (rename_to or key), kind = "success" }
+    changed()
 end
+
+-- Substituído pela linha editável com OK + confirmação (logo acima), 2026-11-16. Fica comentado
+-- para referência; pode ser apagado quando o desenho novo assentar.
+-- -- ── Edição no lugar (✏️ chave, ✎ valor) ─────────────────────────────────────
+--
+-- local function env_row(key: string): any?
+--     local decode_ok, rows = pcall(function()
+--         return json.decode(ctx.job_env or "[]")
+--     end)
+--     for _, row in ipairs(decode_ok and rows or {}) do
+--         if row.key == key then
+--             return row
+--         end
+--     end
+--     return nil
+-- end
+--
+-- local function edit_start(field: string, key: string): ()
+--     local row = env_row(key)
+--     if row == nil then
+--         return
+--     end
+--     local is_secret = row.kind == "secret"
+--     local draft = key
+--     if field == "value" then
+--         draft = is_secret and ("secret:" .. tostring(row.secret_name)) or tostring(row.value)
+--     end
+--     ctx.job_env_edit_id = field .. ":" .. key
+--     ctx.job_env_edit_draft = draft
+--     ctx.job_env_edit_was_secret = is_secret and "true" or "false"
+-- end
+--
+-- function Core.edit_key(key: string): ()
+--     edit_start("key", key)
+-- end
+--
+-- function Core.edit_value(key: string): ()
+--     edit_start("value", key)
+-- end
+--
+-- function Core.edit_cancel(): ()
+--     ctx.job_env_edit_id = ""
+--     ctx.job_env_edit_draft = ""
+--     ctx.job_env_edit_was_secret = "false"
+-- end
+--
+-- function Core.edit_apply(): ()
+--     local field, key = (ctx.job_env_edit_id or ""):match("^(%a+):(.+)$")
+--     if not api or field == nil or key == nil or job_id == "" then
+--         return
+--     end
+--     local draft = ctx.job_env_edit_draft or ""
+--     local edit_ok, edit_response
+--     if field == "key" then
+--         local to = Helpers.trim(draft)
+--         if to == "" or to == key then
+--             Core.edit_cancel()
+--             return
+--         end
+--         edit_ok, edit_response = api:rpc_checked {
+--             EnvKeyRename = { project_id = project_id, job_id = job_id, from = key, to = to },
+--         }
+--     else
+--         edit_ok, edit_response = api:rpc_checked {
+--             EnvValueSet = {
+--                 project_id = project_id,
+--                 job_id = job_id,
+--                 key = key,
+--                 value = Helpers.env_value_from_draft(draft, Helpers.is_true(ctx.job_env_edit_was_secret)),
+--             },
+--         }
+--     end
+--     if edit_ok then
+--         toast {
+--             message = (field == "key") and (i18n.tr("Renomeado: ") .. key) or (i18n.tr("Valor salvo: ") .. key),
+--             kind = "success",
+--         }
+--         Core.edit_cancel()
+--         changed()
+--     else
+--         -- Fica no modo de edição: o texto digitado não se perde numa recusa do daemon.
+--         toast { message = tostring(edit_response), kind = "error" }
+--     end
+-- end
 
 -- ── Renomear (EnvKeyRename / SecretRename), sem o valor passar pela tela ────
 

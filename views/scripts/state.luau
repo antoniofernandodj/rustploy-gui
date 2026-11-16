@@ -53,6 +53,13 @@ export type State = {
     -- "escopo:nome" → valor de um secret que o usuário pediu para ver (SecretReveal). Só em memória,
     -- some ao trocar de projeto/serviço e ao desconectar; nunca vai para o ctx persistido.
     revealed_secrets: { [string]: string },
+    -- Linha de variável editável no lugar (handlers/env_rows.luau): o rascunho de cada linha
+    -- ("escopo|projeto|serviço|chave" → {key, value, use_secret, secret}), as linhas cruas de cada
+    -- escopo ("project" | "service" → JSON de format.env_json_with_comments) e os secrets que o
+    -- select de cada escopo oferece.
+    env_drafts: { [string]: any },
+    env_rows_raw: { [string]: string },
+    env_secret_options: { [string]: { any } },
     -- service_id → ServiceWarmStatus (snapshot)
     service_warm_by_id: { [string]: any },
     -- job_id → Job cru (do snapshot) — job_toggle precisa do
@@ -96,6 +103,9 @@ local shared_state: State = {
     new_service_templates_all = {},
     running_revealed = {},
     revealed_secrets = {},
+    env_drafts = {},
+    env_rows_raw = {},
+    env_secret_options = {},
     service_warm_by_id = {},
     jobs_by_id = {},
     job_env_raw = nil,

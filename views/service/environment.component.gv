@@ -44,11 +44,31 @@ component {
         )
       }
 
+      // "usar secret": a lista (secrets do serviço e do projeto) toma o lugar do campo do valor.
       row(class = env__add) {
-        input(
-          class = env__input,
-          form_control = env_new_value,
-          placeholder = "{t('common.value')}",
+        if @env_new_is_secret == "true" {
+          select(
+            class = form-select,
+            :options = service_env_secret_options,
+            :value = env_new_value,
+            on_change = field:env_new_value,
+            label_field = label,
+            value_field = name,
+            placeholder = "{t('environment.pick_secret')}",
+          )
+        } else {
+          input(
+            class = env__input,
+            form_control = env_new_value,
+            placeholder = "{t('common.value')}",
+          )
+        }
+
+        checkbox(
+          class = env__use-secret,
+          :checked = env_new_is_secret,
+          on_toggle = env_new_use_secret,
+          label = "{t('environment.use_secret')}",
         )
 
         button("{t('common.add')}", type = submit, disabled = @busy_env_add, class = "btn btn--primary")
@@ -131,20 +151,6 @@ component {
               )
 
               button(
-                "✏️",
-                class = "btn btn--ghost btn--sm",
-                on_click = service_env_edit_key:@e.key,
-                tooltip = "{t('environment.rename')}"
-              )
-
-              button(
-                "✎",
-                class = "btn btn--ghost btn--sm",
-                on_click = service_env_edit_value:@e.key,
-                tooltip = "{t('environment.edit_value')}"
-              )
-
-              button(
                 "🔒",
                 class = "btn btn--ghost btn--sm",
                 on_click = env_to_secret:@e.key,
@@ -175,29 +181,59 @@ component {
               )
 
               text(class = env__sep)
-              if @env_edit_id == @e.edit_key_id {
-                form(name = service_env_edit, on_submit = env_edit_apply, class = "form env__edit env__edit--key") {
-                  row(class = env__add) {
-                    input(class = env__inline, form_control = env_edit_draft, autofocus = true)
-                    button("✓", type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm")
-                    button("✕", on_click = env_edit_cancel, class = "btn btn--ghost btn--sm")
-                  }
-                }
+
+              // Chave e valor editáveis no lugar (sem borda). Nada grava sozinho: o OK aparece quando a
+              // linha muda, pede confirmação e grava; o ✕ desfaz (handlers/env_rows.luau).
+              input(
+                class = env__inline-key,
+                :value = "@e.bind_key",
+                on_change = service_env_row_key:@e.key,
+                placeholder = "{t('common.key')}",
+              )
+
+              if @e.use_secret == "true" {
+                select(
+                  class = env__secret-select,
+                  :options = service_env_secret_options,
+                  :value = "@e.bind_secret",
+                  on_change = service_env_row_secret:@e.key,
+                  label_field = label,
+                  value_field = name,
+                  placeholder = "{t('environment.pick_secret')}",
+                )
               } else {
-                text("@e.key_display", class = env__key)
+                input(
+                  class = env__inline,
+                  :value = "@e.bind_value",
+                  on_change = service_env_row_value:@e.key,
+                  placeholder = "{t('common.value')}",
+                )
               }
 
-              if @env_edit_id == @e.edit_value_id {
-                form(name = service_env_edit_value, on_submit = env_edit_apply, class = "form env__edit env__edit--value") {
-                  row(class = env__add) {
-                    input(class = env__inline, form_control = env_edit_draft, autofocus = true)
-                    button("✓", type = submit, disabled = @busy_env_edit_apply, class = "btn btn--ghost btn--sm")
-                    button("✕", on_click = env_edit_cancel, class = "btn btn--ghost btn--sm")
-                  }
-                }
-              } else {
-                text("@e.value", class = "kv-list__val kv-list__val--compact")
-              }
+              checkbox(
+                class = env__use-secret,
+                :checked = "@e.bind_use_secret",
+                on_toggle = service_env_row_use_secret:@e.key,
+                label = "{t('environment.use_secret')}",
+              )
+
+              button(
+                "OK",
+                class = "btn btn--primary btn--sm",
+                on_click = service_env_row_save:@e.key,
+                disabled = @busy_service_env_row_save,
+                if = @e.dirty,
+                equals = "true",
+              )
+
+              button(
+                "✕",
+                class = "btn btn--ghost btn--sm",
+                on_click = service_env_row_reset:@e.key,
+                if = @e.dirty,
+                equals = "true",
+                tooltip = "{t('environment.undo')}",
+              )
             }
           }
         }

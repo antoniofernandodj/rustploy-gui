@@ -10,6 +10,7 @@ local State = require("../state")
 local Helpers = require("../helpers")
 local format = require("../format")
 local History = require("history")
+local EnvRows = require("env_rows")
 local ServiceBackup = require("service_backup")
 
 -- `open_service` (logo abaixo) chama estas três antes de elas serem definidas (mais adiante no
@@ -334,8 +335,11 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_run_args = (spec.run_args and #spec.run_args > 0)
             and table.concat(spec.run_args, " ")
         or "—"
-    ctx.service_env =
+    -- Via EnvRows: a lista ganha os campos editáveis de cada linha sem apagar um rascunho.
+    EnvRows.publish(
+        "service",
         format.env_json_with_comments(spec.env_vars, spec.env_comments)
+    )
     ctx.service_env_count = tostring(#(spec.env_vars or {}))
     local dotenv =
         format.env_dotenv_with_comments(spec.env_vars, spec.env_comments)
@@ -359,6 +363,27 @@ function M.fetch_service_detail(service_id: string): ()
         State.revealed_secrets
     )
     ctx.service_secrets_count = tostring(#service_secret_names)
+    -- O "usar secret" de uma variável do serviço oferece os secrets dele e os do projeto — menos os
+    -- do projeto que um do serviço com o mesmo nome esconde (no deploy o do serviço vale antes).
+    local own_secret: { [string]: boolean } = {}
+    local secret_options = {}
+    for _, name in ipairs(service_secret_names) do
+        own_secret[name] = true
+        table.insert(secret_options, { name = name, label = name })
+    end
+    for _, project in ipairs(State.snap and State.snap.projects or {}) do
+        if project.id == spec.project_id then
+            for _, name in ipairs(project.secrets or {}) do
+                if not own_secret[name] then
+                    table.insert(secret_options, {
+                        name = name,
+                        label = name .. i18n.tr(" (projeto)"),
+                    })
+                end
+            end
+        end
+    end
+    EnvRows.set_secret_options("service", secret_options)
     ctx.service_deployments = format.deployments_detail(deployments)
     ctx.service_deployments_count = tostring(#deployments)
     -- Webhook de deploy (aba Deployments). Só serviços Application (Git ou
@@ -1804,6 +1829,15 @@ function env_add(): ()
     -- sensíveis aqui, já que a aba do serviço não tem o toggle "usar secret"
     -- do projeto. O daemon decifra no deploy (deploy/env_resolve.rs).
     local secret = Helpers.parse_secret_ref(raw_value)
+    -- Checkbox "usar secret" ligado: o valor é o NOME escolhido na lista de secrets.
+    if Helpers.is_true(ctx.env_new_is_secret) and secret == nil then
+        local name = Helpers.trim(raw_value)
+        if name == "" then
+            toast { message = i18n.tr("escolha um secret"), kind = "warning" }
+            return
+        end
+        secret = name
+    end
     if not Helpers.confirm_env_key(key, ctx.service_env) then
         return
     end
@@ -1820,6 +1854,7 @@ function env_add(): ()
     end)
     ctx.env_new_key = ""
     ctx.env_new_value = ""
+    ctx.env_new_is_secret = "false"
 end
 
 -- on_validation_error do form(name = service_secret_add) — nome e valor são `rules="required"`.

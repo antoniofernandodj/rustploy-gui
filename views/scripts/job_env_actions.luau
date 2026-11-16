@@ -28,18 +28,41 @@ end
 function job_env_reorder(reorder_json: string?): ()
     Core.reorder(reorder_json)
 end
-function job_env_edit_key(key: string): ()
-    Core.edit_key(key)
+-- Linha editável no lugar (o sufixo da ação é a chave gravada da variável).
+function job_env_row_key(key: string, value: string): ()
+    Core.row_change(key, "key", value)
 end
-function job_env_edit_value(key: string): ()
-    Core.edit_value(key)
+function job_env_row_value(key: string, value: string): ()
+    Core.row_change(key, "value", value)
 end
-function job_env_edit_cancel(): ()
-    Core.edit_cancel()
+function job_env_row_use_secret(key: string, value: any): ()
+    Core.row_change(key, "use_secret", value)
 end
-function job_env_edit_apply(): ()
-    Core.edit_apply()
+function job_env_row_secret(key: string, value: string): ()
+    Core.row_change(key, "secret", value)
 end
+function job_env_row_save(key: string): ()
+    Core.row_save(key)
+end
+function job_env_row_reset(key: string): ()
+    Core.row_reset(key)
+end
+function job_env_new_use_secret(value: any): ()
+    Core.new_use_secret(value)
+end
+-- Substituídos pela linha editável (2026-11-16):
+-- function job_env_edit_key(key: string): ()
+--     Core.edit_key(key)
+-- end
+-- function job_env_edit_value(key: string): ()
+--     Core.edit_value(key)
+-- end
+-- function job_env_edit_cancel(): ()
+--     Core.edit_cancel()
+-- end
+-- function job_env_edit_apply(): ()
+--     Core.edit_apply()
+-- end
 function job_secret_rename_pick(name: string): ()
     Core.secret_rename_pick(name)
 end
