@@ -1325,5 +1325,12 @@
   "painel": "dashboard",
   "métricas": "metrics",
   "métricas TLS": "metrics (TLS)",
-  "monitoramento": "monitoring"
+  "monitoramento": "monitoring",
+  "Pausar": "Pause",
+  "Ativar": "Enable",
+  "nunca aquecido": "never warmed",
+  "a fonte do serviço mudou desde o último aquecimento": "the service source changed since the last warm-up",
+  "a definição do job mudou desde o último aquecimento": "the job definition changed since the last warm-up",
+  "a imagem %s não está mais no host": "image %s is no longer on the host",
+  "o cache de build foi limpo em %s": "the build cache was cleaned on %s"
 }

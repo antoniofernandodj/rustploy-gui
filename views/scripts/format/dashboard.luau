@@ -188,7 +188,7 @@ local function service_card(
         has_warm = warm ~= nil and "true" or "false",
         warm_label = warm_label,
         warm_color = warm_color,
-        warm_reason = warm ~= nil and warm.reason or "",
+        warm_reason = warm ~= nil and Jobs.warm_reason(warm.reason) or "",
         id = service.id,
         name = service.spec.name,
         project = project_name,

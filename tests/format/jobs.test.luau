@@ -86,6 +86,30 @@ function test_estado__servico_sem_build_nao_tem_selo()
     assert_eq(Jobs.service_warm_status({ warm = true }), "warm")
 end
 
+--- o motivo de frio vem do daemon em português: os formatos conhecidos são traduzidos, o resto passa cru
+function test_estado__motivo_de_frio_traduzido()
+    assert_eq(Jobs.warm_reason("nunca aquecido"), "never warmed")
+    assert_eq(
+        Jobs.warm_reason(
+            "a fonte do serviço mudou desde o último aquecimento"
+        ),
+        "the service source changed since the last warm-up"
+    )
+    assert_eq(
+        Jobs.warm_reason("a imagem rp_api:abc não está mais no host"),
+        "image rp_api:abc is no longer on the host"
+    )
+    assert_eq(
+        Jobs.warm_reason("o cache de build foi limpo em 16/11 04:00 UTC"),
+        "the build cache was cleaned on 16/11 04:00 UTC"
+    )
+    assert_eq(
+        Jobs.warm_reason("motivo novo do daemon"),
+        "motivo novo do daemon"
+    )
+    assert_eq(Jobs.warm_reason(nil), "")
+end
+
 local function resumo(sobrescrita)
     local base = {
         job = {
@@ -115,8 +139,8 @@ function test_tela_schedules__uma_linha_por_job_com_o_total()
     assert_eq(#linhas, 2)
     assert_eq(linhas[1].id, "j1")
     assert_eq(linhas[1].recurrence, "every 2h")
-    assert_eq(linhas[1].enabled_label, "Pausar")
-    assert_eq(linhas[2].enabled_label, "Ativar")
+    assert_eq(linhas[1].enabled_label, "Pause")
+    assert_eq(linhas[2].enabled_label, "Enable")
     assert_eq(linhas[1].last_run_label, "ok")
     assert_eq(linhas[1].last_run_id, "r1")
 end

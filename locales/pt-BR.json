@@ -1336,5 +1336,12 @@
   "Não consegui ler a chave de recuperação deste servidor (o daemon é anterior à versão 0.1.57?): ": "Não consegui ler a chave de recuperação deste servidor (o daemon é anterior à versão 0.1.57?): ",
   "chave copiada": "chave copiada",
   "não salvou: nenhum local escolhido (": "não salvou: nenhum local escolhido (",
-  "Salvar o token do registry": "Salvar o token do registry"
+  "Salvar o token do registry": "Salvar o token do registry",
+  "Pausar": "Pausar",
+  "Ativar": "Ativar",
+  "nunca aquecido": "nunca aquecido",
+  "a fonte do serviço mudou desde o último aquecimento": "a fonte do serviço mudou desde o último aquecimento",
+  "a definição do job mudou desde o último aquecimento": "a definição do job mudou desde o último aquecimento",
+  "a imagem %s não está mais no host": "a imagem %s não está mais no host",
+  "o cache de build foi limpo em %s": "o cache de build foi limpo em %s"
 }

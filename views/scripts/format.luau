@@ -98,6 +98,7 @@ M.pre_deploy_available = Jobs.pre_deploy_available
 
 -- Limpeza automática de Docker (format/docker_cleanup.luau)
 M.service_warm_status = Jobs.service_warm_status
+M.warm_reason = Jobs.warm_reason
 M.running = Running.running
 M.docker_cleanup_resource_label = DockerCleanup.resource_label
 M.docker_cleanup_last_run_summary = DockerCleanup.last_run_summary

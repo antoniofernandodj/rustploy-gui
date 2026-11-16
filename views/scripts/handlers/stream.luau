@@ -260,7 +260,7 @@ local function apply_snapshot(snapshot: any): ()
     ctx.service_warm_color = open_warm_color
     ctx.service_warm_reason = open_warm ~= nil
             and not open_warm.warming
-            and open_warm.reason
+            and format.warm_reason(open_warm.reason)
         or ""
 
     -- Status do daemon.

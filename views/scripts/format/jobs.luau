@@ -55,6 +55,41 @@ function M.run_status(run: any): (string, string)
     return i18n.tr("falhou"), "bad"
 end
 
+local FIXED_WARM_REASONS = {
+    ["nunca aquecido"] = true,
+    ["a fonte do serviço mudou desde o último aquecimento"] = true,
+    ["a definição do job mudou desde o último aquecimento"] = true,
+}
+
+-- O motivo de "frio" vem do daemon em português, com partes variáveis (a imagem,
+-- a data da limpeza). Aqui ele é casado com os formatos conhecidos e traduzido;
+-- um motivo desconhecido (daemon mais novo) passa como veio.
+function M.warm_reason(reason: any): string
+    if type(reason) ~= "string" or reason == "" then
+        return ""
+    end
+    if FIXED_WARM_REASONS[reason] then
+        return i18n.tr(reason)
+    end
+    local image =
+        string.match(reason, "^a imagem (.+) não está mais no host$")
+    if image then
+        return string.format(
+            i18n.tr("a imagem %s não está mais no host"),
+            image
+        )
+    end
+    local cleaned_at =
+        string.match(reason, "^o cache de build foi limpo em (.+)$")
+    if cleaned_at then
+        return string.format(
+            i18n.tr("o cache de build foi limpo em %s"),
+            cleaned_at
+        )
+    end
+    return reason
+end
+
 -- Aquecimento de um serviço com build (`ServiceWarmStatus`); `nil` = sem
 -- build, sem selo. Mesmas cores do job.
 function M.service_warm_status(warm: any): (string, string)
@@ -112,7 +147,8 @@ function M.summaries(
             ),
             recurrence = M.recurrence_label(job.recurrence),
             enabled = job.enabled,
-            enabled_label = job.enabled and "Pausar" or "Ativar",
+            enabled_label = job.enabled and i18n.tr("Pausar")
+                or i18n.tr("Ativar"),
             last_run_label = status_label,
             last_run_kind = status_kind,
             -- `running`: usado pra desativar/trocar o botão "Rodar agora"
@@ -130,7 +166,7 @@ function M.summaries(
             is_warming = warm ~= nil and warm.warming == true,
             warm_label = warm_label,
             warm_kind = warm_kind,
-            warm_reason = warm ~= nil and warm.reason or "",
+            warm_reason = warm ~= nil and M.warm_reason(warm.reason) or "",
             warmed_at_label = warm ~= nil
                     and warm.warmed_at
                     and Time.date_day_month_hour_minute(warm.warmed_at)
