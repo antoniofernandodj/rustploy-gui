@@ -42,39 +42,25 @@ component {
           }
         }
 
-        text("{t('domains.add_domain')}", class = u-label-cap)
+        field(label = "{t('domains.add_domain')}", label_class = u-label-cap, error = @error_service_form_domain) {
+          input(
+            class = field__input,
+            form_control = service_form_domain,
+            :value = service_form_domain,
+            on_change = field:service_form_domain,
+            placeholder = "{t('domains.app_example_com')}",
+          )
+        }
 
-        input(
-          class = field__input,
-          form_control = service_form_domain,
-          :value = service_form_domain,
-          on_change = field:service_form_domain,
-          placeholder = "{t('domains.app_example_com')}",
-        )
-
-        text(
-          "@error_service_form_domain",
-          if = @error_service_form_domain,
-          not_equals = "",
-          class = u-error,
-        )
-
-        text("{t('domains.container_port_optional')}", class = u-label-cap)
-
-        input(
-          class = field__input,
-          form_control = service_form_port,
-          :value = service_form_port,
-          on_change = field:service_form_port,
-          placeholder = "{t('domains.service_default')}",
-        )
-
-        text(
-          "@error_service_form_port",
-          if = @error_service_form_port,
-          not_equals = "",
-          class = u-error,
-        )
+        field(label = "{t('domains.container_port_optional')}", label_class = u-label-cap, error = @error_service_form_port) {
+          input(
+            class = field__input,
+            form_control = service_form_port,
+            :value = service_form_port,
+            on_change = field:service_form_port,
+            placeholder = "{t('domains.service_default')}",
+          )
+        }
 
         toggle(
           :checked = service_form_tls,
@@ -120,25 +106,25 @@ component {
           }
         }
 
-        text("{t('domains.host_tcp_port_passthrough_optional')}", class = u-label-cap)
+        field(label = "{t('domains.host_tcp_port_passthrough_optional')}", label_class = u-label-cap) {
+          input(
+            class = field__input,
+            form_control = service_form_tcp_host_port,
+            :value = service_form_tcp_host_port,
+            on_change = field:service_form_tcp_host_port,
+            placeholder = "{t('domains.automatic')}",
+          )
+        }
 
-        input(
-          class = field__input,
-          form_control = service_form_tcp_host_port,
-          :value = service_form_tcp_host_port,
-          on_change = field:service_form_tcp_host_port,
-          placeholder = "{t('domains.automatic')}",
-        )
-
-        text("{t('domains.container_port_optional')}", class = u-label-cap)
-
-        input(
-          class = field__input,
-          form_control = service_form_tcp_container_port,
-          :value = service_form_tcp_container_port,
-          on_change = field:service_form_tcp_container_port,
-          placeholder = "{t('domains.service_default')}",
-        )
+        field(label = "{t('domains.container_port_optional')}", label_class = u-label-cap) {
+          input(
+            class = field__input,
+            form_control = service_form_tcp_container_port,
+            :value = service_form_tcp_container_port,
+            on_change = field:service_form_tcp_container_port,
+            placeholder = "{t('domains.service_default')}",
+          )
+        }
 
         button(
           "{t('domains.suggest_ports')}",
@@ -164,22 +150,15 @@ component {
           }
         }
 
-        text("{t('domains.label_optional')}", class = u-label-cap)
-
-        input(
-          class = field__input,
-          form_control = service_form_tcp_label,
-          :value = service_form_tcp_label,
-          on_change = field:service_form_tcp_label,
-          placeholder = "{t('domains.label_placeholder')}",
-        )
-
-        text(
-          "@error_service_form_tcp",
-          if = @error_service_form_tcp,
-          not_equals = "",
-          class = u-error,
-        )
+        field(label = "{t('domains.label_optional')}", label_class = u-label-cap, error = @error_service_form_tcp) {
+          input(
+            class = field__input,
+            form_control = service_form_tcp_label,
+            :value = service_form_tcp_label,
+            on_change = field:service_form_tcp_label,
+            placeholder = "{t('domains.label_placeholder')}",
+          )
+        }
 
         row(class = env__add) {
           button(

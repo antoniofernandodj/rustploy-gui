@@ -12,40 +12,37 @@ component {
         class = u-muted,
       )
 
-      text(
-        "{t('migrar.source_database_inside_this_database')}",
-        class = u-label-cap,
-      )
+      field(label = "{t('migrar.source_database_inside_this_database')}", label_class = u-label-cap) {
+        input(
+          class = field__input,
+          form_control = service_form_migration_database,
+          :value = service_form_migration_database,
+          on_change = field:service_form_migration_database,
+          placeholder = "{t('migrar.database_name')}",
+        )
+      }
 
-      input(
-        class = field__input,
-        form_control = service_form_migration_database,
-        :value = service_form_migration_database,
-        on_change = field:service_form_migration_database,
-        placeholder = "{t('migrar.database_name')}",
-      )
+      field(label = "{t('migrar.destination')}", label_class = u-label-cap) {
+        select(
+          class = form-select,
+          :options = migration_destinations,
+          :value = service_form_migration_destination,
+          on_change = field:service_form_migration_destination,
+          placeholder = "{t('migrar.destination_database')}",
+          label_field = name,
+          value_field = id,
+        )
+      }
 
-      text("{t('migrar.destination')}", class = u-label-cap)
-
-      select(
-        class = form-select,
-        :options = migration_destinations,
-        :value = service_form_migration_destination,
-        on_change = field:service_form_migration_destination,
-        placeholder = "{t('migrar.destination_database')}",
-        label_field = name,
-        value_field = id,
-      )
-
-      text("{t('migrar.env_var_to_replace')}", class = u-label-cap)
-
-      input(
-        class = field__input,
-        form_control = service_form_migration_env,
-        :value = service_form_migration_env,
-        on_change = field:service_form_migration_env,
-        placeholder = "{t('migrar.default_database_url_mongodb_uri')}",
-      )
+      field(label = "{t('migrar.env_var_to_replace')}", label_class = u-label-cap) {
+        input(
+          class = field__input,
+          form_control = service_form_migration_env,
+          :value = service_form_migration_env,
+          on_change = field:service_form_migration_env,
+          placeholder = "{t('migrar.default_database_url_mongodb_uri')}",
+        )
+      }
 
       row(class = env__add) {
         button(

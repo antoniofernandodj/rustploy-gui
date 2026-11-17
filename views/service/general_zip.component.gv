@@ -1,14 +1,14 @@
 // Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.component.gv.
 component {
-  text("{t('general_zip.zip_dockerfile')}", class = u-label-cap)
-
-  input(
-    class = field__input,
-    form_control = service_form_archive_path,
-    :value = service_form_archive_path,
-    on_change = field:service_form_archive_path,
-    placeholder = "{t('general_zip.path_to_app_zip')}",
-  )
+  field(label = "{t('general_zip.zip_dockerfile')}", label_class = u-label-cap) {
+    input(
+      class = field__input,
+      form_control = service_form_archive_path,
+      :value = service_form_archive_path,
+      on_change = field:service_form_archive_path,
+      placeholder = "{t('general_zip.path_to_app_zip')}",
+    )
+  }
 
   text(
     "{t('general_zip.the_zip_must_contain_a_dockerfile')}",
@@ -17,15 +17,15 @@ component {
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      text("{t('common.port')}", class = u-label-cap)
-
-      input(
-        class = field__input,
-        form_control = service_form_general_port,
-        :value = service_form_general_port,
-        on_change = field:service_form_general_port,
-        placeholder = 80,
-      )
+      field(label = "{t('common.port')}", label_class = u-label-cap) {
+        input(
+          class = field__input,
+          form_control = service_form_general_port,
+          :value = service_form_general_port,
+          on_change = field:service_form_general_port,
+          placeholder = 80,
+        )
+      }
     }
 
     column(class = healthcheck__field) {

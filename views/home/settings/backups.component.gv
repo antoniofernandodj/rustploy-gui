@@ -25,51 +25,51 @@ component {
           )
         }
 
-        text("{t('settings_backups.endpoint')}", class = u-label-cap)
-
-        input(
-          placeholder = "https://s3.us-east-005.backblazeb2.com",
-          class = field__input,
-          form_control = backup_destination_endpoint,
-          :value = backup_destination_endpoint,
-          on_change = field:backup_destination_endpoint,
-        )
+        field(label = "{t('settings_backups.endpoint')}", label_class = u-label-cap) {
+          input(
+            placeholder = "https://s3.us-east-005.backblazeb2.com",
+            class = field__input,
+            form_control = backup_destination_endpoint,
+            :value = backup_destination_endpoint,
+            on_change = field:backup_destination_endpoint,
+          )
+        }
 
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
-            text("{t('settings_backups.bucket')}", class = u-label-cap)
-
-            input(
-              placeholder = "meu-bucket",
-              class = field__input,
-              form_control = backup_destination_bucket,
-              :value = backup_destination_bucket,
-              on_change = field:backup_destination_bucket,
-            )
+            field(label = "{t('settings_backups.bucket')}", label_class = u-label-cap) {
+              input(
+                placeholder = "meu-bucket",
+                class = field__input,
+                form_control = backup_destination_bucket,
+                :value = backup_destination_bucket,
+                on_change = field:backup_destination_bucket,
+              )
+            }
           }
 
           column(class = healthcheck__field) {
-            text("{t('settings_backups.region')}", class = u-label-cap)
-
-            input(
-              placeholder = "us-east-1",
-              class = field__input,
-              form_control = backup_destination_region,
-              :value = backup_destination_region,
-              on_change = field:backup_destination_region,
-            )
+            field(label = "{t('settings_backups.region')}", label_class = u-label-cap) {
+              input(
+                placeholder = "us-east-1",
+                class = field__input,
+                form_control = backup_destination_region,
+                :value = backup_destination_region,
+                on_change = field:backup_destination_region,
+              )
+            }
           }
         }
 
-        text("{t('settings_backups.folder')}", class = u-label-cap)
-
-        input(
-          placeholder = "rustploy/meu-servidor",
-          class = field__input,
-          form_control = backup_destination_prefix,
-          :value = backup_destination_prefix,
-          on_change = field:backup_destination_prefix,
-        )
+        field(label = "{t('settings_backups.folder')}", label_class = u-label-cap) {
+          input(
+            placeholder = "rustploy/meu-servidor",
+            class = field__input,
+            form_control = backup_destination_prefix,
+            :value = backup_destination_prefix,
+            on_change = field:backup_destination_prefix,
+          )
+        }
 
         toggle(
           :checked = backup_destination_path_style,
@@ -79,26 +79,26 @@ component {
 
         text("{t('settings_backups.path_style_hint')}", class = u-muted)
 
-        text("{t('settings_backups.access_key')}", class = u-label-cap)
+        field(label = "{t('settings_backups.access_key')}", label_class = u-label-cap) {
+          input(
+            placeholder = "",
+            class = field__input,
+            form_control = backup_destination_access_key,
+            :value = backup_destination_access_key,
+            on_change = field:backup_destination_access_key,
+          )
+        }
 
-        input(
-          placeholder = "",
-          class = field__input,
-          form_control = backup_destination_access_key,
-          :value = backup_destination_access_key,
-          on_change = field:backup_destination_access_key,
-        )
-
-        text("{t('settings_backups.secret_key')}", class = u-label-cap)
-
-        input(
-          placeholder = "{t('settings_backups.secret_key_placeholder')}",
-          secure = true,
-          class = field__input,
-          form_control = backup_destination_secret_key,
-          :value = backup_destination_secret_key,
-          on_change = field:backup_destination_secret_key,
-        )
+        field(label = "{t('settings_backups.secret_key')}", label_class = u-label-cap) {
+          input(
+            placeholder = "{t('settings_backups.secret_key_placeholder')}",
+            secure = true,
+            class = field__input,
+            form_control = backup_destination_secret_key,
+            :value = backup_destination_secret_key,
+            on_change = field:backup_destination_secret_key,
+          )
+        }
 
         text(
           "{t('settings_backups.secret_key_saved')}",

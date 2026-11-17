@@ -40,25 +40,25 @@ component {
       }
 
       hr
-      text("{t('settings_git.connect_git_account')}", class = u-label-cap)
-
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
-      scroll(class = tabs__scroll, direction = horizontal) {
-        row(class = tabs__main) {
-          TabButton(
-            label = "{t('settings_git.gitea')}",
-            current = @git_provider_kind,
-            target = gitea,
-            action = git_provider_kind:gitea,
-          )
+      field(label = "{t('settings_git.connect_git_account')}", label_class = u-label-cap) {
+        scroll(class = tabs__scroll, direction = horizontal) {
+          row(class = tabs__main) {
+            TabButton(
+              label = "{t('settings_git.gitea')}",
+              current = @git_provider_kind,
+              target = gitea,
+              action = git_provider_kind:gitea,
+            )
 
-          TabButton(
-            label = "{t('settings_git.github')}",
-            current = @git_provider_kind,
-            target = github,
-            action = git_provider_kind:github,
-          )
+            TabButton(
+              label = "{t('settings_git.github')}",
+              current = @git_provider_kind,
+              target = github,
+              action = git_provider_kind:github,
+            )
+          }
         }
       }
 
@@ -85,34 +85,27 @@ component {
       ) {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
-            text("{t('common.name')}", class = u-label-cap)
-
-            input(
-              placeholder = "{t('settings_git.my_gitea')}",
-              class = field__input,
-              form_control = git_provider_name,
-              :value = git_provider_name,
-              on_change = field:git_provider_name,
-            )
-
-            text(
-              "@error_git_provider_name",
-              if = @error_git_provider_name,
-              not_equals = "",
-              class = u-error,
-            )
+            field(label = "{t('common.name')}", label_class = u-label-cap, error = @error_git_provider_name) {
+              input(
+                placeholder = "{t('settings_git.my_gitea')}",
+                class = field__input,
+                form_control = git_provider_name,
+                :value = git_provider_name,
+                on_change = field:git_provider_name,
+              )
+            }
           }
 
           column(class = healthcheck__field) {
-            text("{t('settings_git.base_url')}", class = u-label-cap)
-
-            input(
-              placeholder = "{t('settings_git.https_gitea_example_com')}",
-              class = field__input,
-              form_control = git_provider_base_url,
-              :value = git_provider_base_url,
-              on_change = field:git_provider_base_url,
-            )
+            field(label = "{t('settings_git.base_url')}", label_class = u-label-cap) {
+              input(
+                placeholder = "{t('settings_git.https_gitea_example_com')}",
+                class = field__input,
+                form_control = git_provider_base_url,
+                :value = git_provider_base_url,
+                on_change = field:git_provider_base_url,
+              )
+            }
 
             text(
               "{t('settings_git.leave_empty_for_github_com_only')}",
@@ -123,43 +116,43 @@ component {
           }
         }
 
-        text("{t('settings_git.method')}", class = u-label-cap)
-
-        scroll(class = tabs__scroll, direction = horizontal) {
-          tabbar(
-            :value = git_provider_mode,
-            active = @git_provider_mode,
-            :items = git_provider_modes,
-            tab_class = tabs__tab,
-            tab_active_class = "tabs__tab tabs__tab--active",
-            padding = "9 16",
-            size = 14,
-            active_bold = false,
-          )
+        field(label = "{t('settings_git.method')}", label_class = u-label-cap) {
+          scroll(class = tabs__scroll, direction = horizontal) {
+            tabbar(
+              :value = git_provider_mode,
+              active = @git_provider_mode,
+              :items = git_provider_modes,
+              tab_class = tabs__tab,
+              tab_active_class = "tabs__tab tabs__tab--active",
+              padding = "9 16",
+              size = 14,
+              active_bold = false,
+            )
+          }
         }
 
         // OAuth2
         if @git_provider_mode != "pat" {
-          text("{t('settings_git.client_id')}", class = u-label-cap)
+          field(label = "{t('settings_git.client_id')}", label_class = u-label-cap) {
+            input(
+              placeholder = "",
+              class = field__input,
+              form_control = git_provider_client_id,
+              :value = git_provider_client_id,
+              on_change = field:git_provider_client_id,
+            )
+          }
 
-          input(
-            placeholder = "",
-            class = field__input,
-            form_control = git_provider_client_id,
-            :value = git_provider_client_id,
-            on_change = field:git_provider_client_id,
-          )
-
-          text("{t('settings_git.client_secret')}", class = u-label-cap)
-
-          input(
-            placeholder = "",
-            secure = true,
-            class = field__input,
-            form_control = git_provider_client_secret,
-            :value = git_provider_client_secret,
-            on_change = field:git_provider_client_secret,
-          )
+          field(label = "{t('settings_git.client_secret')}", label_class = u-label-cap) {
+            input(
+              placeholder = "",
+              secure = true,
+              class = field__input,
+              form_control = git_provider_client_secret,
+              :value = git_provider_client_secret,
+              on_change = field:git_provider_client_secret,
+            )
+          }
 
           text(
             "{t('settings_git.redirect_uri_paste_into_the')}",
@@ -193,16 +186,16 @@ component {
 
         // PAT
         if @git_provider_mode == "pat" {
-          text("{t('settings_git.personal_access_token')}", class = u-label-cap)
-
-          input(
-            placeholder = "",
-            secure = true,
-            class = field__input,
-            form_control = git_provider_personal_access_token,
-            :value = git_provider_personal_access_token,
-            on_change = field:git_provider_personal_access_token,
-          )
+          field(label = "{t('settings_git.personal_access_token')}", label_class = u-label-cap) {
+            input(
+              placeholder = "",
+              secure = true,
+              class = field__input,
+              form_control = git_provider_personal_access_token,
+              :value = git_provider_personal_access_token,
+              on_change = field:git_provider_personal_access_token,
+            )
+          }
 
           text(
             "{t('settings_git.on_gitea_settings_applications_generate_new')}",

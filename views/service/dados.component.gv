@@ -56,13 +56,13 @@ component {
       }
 
       column(spacing = 6, if = @data_backup_ready, equals = true) {
-        text("{t('dados.s3_policy_title')}", class = u-label-cap)
-
-        toggle(
-          :checked = data_backup_enabled,
-          on_toggle = field:data_backup_enabled,
-          label = "{t('dados.s3_policy_enable')}",
-        )
+        field(label = "{t('dados.s3_policy_title')}", label_class = u-label-cap) {
+          toggle(
+            :checked = data_backup_enabled,
+            on_toggle = field:data_backup_enabled,
+            label = "{t('dados.s3_policy_enable')}",
+          )
+        }
 
         column(spacing = 6, if = @data_backup_enabled, equals = true) {
           scroll(class = tabs__scroll, direction = horizontal) {

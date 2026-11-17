@@ -125,13 +125,14 @@ component {
             )
           }
 
-          text("{t('new_service.new_service_name')}", class = u-label-cap)
-          input(
-            class = field__input,
-            :value = import_name,
-            on_change = field:import_name,
-            placeholder = "{t('new_service.name')}"
-          )
+          field(label = "{t('new_service.new_service_name')}", label_class = u-label-cap) {
+            input(
+              class = field__input,
+              :value = import_name,
+              on_change = field:import_name,
+              placeholder = "{t('new_service.name')}"
+            )
+          }
 
           text(
             "{t('new_service.a_service_with_that_name')}",
@@ -332,35 +333,25 @@ component {
       form(error_prefix = error_, name = new_service_app, on_submit = new_service_create, class = form) {
         column(class = form-panel) {
           text("{t('new_service.new_application')}", class = u-label-cap)
-          text("{t('common.name')}", class = u-label-cap)
+          field(label = "{t('common.name')}", label_class = u-label-cap, error = @error_new_service_name) {
+            input(
+              placeholder = "{t('new_service.my_app')}",
+              class = field__input,
+              form_control = new_service_name,
+              :value = new_service_name,
+              on_change = field:new_service_name,
+            )
+          }
 
-          input(
-            placeholder = "{t('new_service.my_app')}",
-            class = field__input,
-            form_control = new_service_name,
-            :value = new_service_name,
-            on_change = field:new_service_name,
-          )
-
-          text(
-            "@error_new_service_name",
-            if = @error_new_service_name,
-            not_equals = "",
-            class = u-error,
-          )
-
-          text(
-            "{t('new_service.app_name_optional_used_in')}",
-            class = u-label-cap,
-          )
-
-          input(
-            placeholder = "{t('common.optional')}",
-            class = field__input,
-            form_control = new_service_app_name,
-            :value = new_service_app_name,
-            on_change = field:new_service_app_name,
-          )
+          field(label = "{t('new_service.app_name_optional_used_in')}", label_class = u-label-cap) {
+            input(
+              placeholder = "{t('common.optional')}",
+              class = field__input,
+              form_control = new_service_app_name,
+              :value = new_service_app_name,
+              on_change = field:new_service_app_name,
+            )
+          }
 
           text(
             "{t('new_service.configure_the_source_git_or_image')}",
@@ -384,35 +375,25 @@ component {
       form(error_prefix = error_, name = new_service_compose, on_submit = new_service_create, class = form) {
         column(class = form-panel) {
           text("{t('new_service.new_compose_stack')}", class = u-label-cap)
-          text("{t('common.name')}", class = u-label-cap)
+          field(label = "{t('common.name')}", label_class = u-label-cap, error = @error_new_service_name) {
+            input(
+              placeholder = "{t('new_service.my_stack')}",
+              class = field__input,
+              form_control = new_service_name,
+              :value = new_service_name,
+              on_change = field:new_service_name,
+            )
+          }
 
-          input(
-            placeholder = "{t('new_service.my_stack')}",
-            class = field__input,
-            form_control = new_service_name,
-            :value = new_service_name,
-            on_change = field:new_service_name,
-          )
-
-          text(
-            "@error_new_service_name",
-            if = @error_new_service_name,
-            not_equals = "",
-            class = u-error,
-          )
-
-          text(
-            "{t('new_service.app_name_optional_used_in')}",
-            class = u-label-cap,
-          )
-
-          input(
-            placeholder = "{t('common.optional')}",
-            class = field__input,
-            form_control = new_service_app_name,
-            :value = new_service_app_name,
-            on_change = field:new_service_app_name,
-          )
+          field(label = "{t('new_service.app_name_optional_used_in')}", label_class = u-label-cap) {
+            input(
+              placeholder = "{t('common.optional')}",
+              class = field__input,
+              form_control = new_service_app_name,
+              :value = new_service_app_name,
+              on_change = field:new_service_app_name,
+            )
+          }
 
           text(
             "{t('new_service.configure_the_compose_file_inside_the')}",
@@ -440,73 +421,63 @@ component {
               "{t('new_service.new', new_service_database_label=new_service_database_label)}",
               class = u-label-cap
             )
-            text("{t('common.name')}", class = u-label-cap)
-
-            input(
-              placeholder = "{t('new_service.my_database')}",
-              class = field__input,
-              form_control = new_service_name,
-              :value = new_service_name,
-              on_change = field:new_service_name,
-            )
-
-            text(
-              "@error_new_service_name",
-              if = @error_new_service_name,
-              not_equals = "",
-              class = u-error,
-            )
-
-            if @new_service_database_has_dbname == "true" {
-              text("{t('new_service.database_name')}", class = u-label-cap)
-
+            field(label = "{t('common.name')}", label_class = u-label-cap, error = @error_new_service_name) {
               input(
-                placeholder = "{t('new_service.app')}",
+                placeholder = "{t('new_service.my_database')}",
                 class = field__input,
-                form_control = new_service_database_name,
-                :value = new_service_database_name,
-                on_change = field:new_service_database_name,
+                form_control = new_service_name,
+                :value = new_service_name,
+                on_change = field:new_service_name,
               )
             }
 
-            if @new_service_database_has_user == "true" {
-              text("{t('new_service.user')}", class = u-label-cap)
+            if @new_service_database_has_dbname == "true" {
+              field(label = "{t('new_service.database_name')}", label_class = u-label-cap) {
+                input(
+                  placeholder = "{t('new_service.app')}",
+                  class = field__input,
+                  form_control = new_service_database_name,
+                  :value = new_service_database_name,
+                  on_change = field:new_service_database_name,
+                )
+              }
+            }
 
-              input(
-                placeholder = "{t('new_service.user_2')}",
-                class = field__input,
-                form_control = new_service_database_user,
-                :value = new_service_database_user,
-                on_change = field:new_service_database_user,
-              )
+            if @new_service_database_has_user == "true" {
+              field(label = "{t('new_service.user')}", label_class = u-label-cap) {
+                input(
+                  placeholder = "{t('new_service.user_2')}",
+                  class = field__input,
+                  form_control = new_service_database_user,
+                  :value = new_service_database_user,
+                  on_change = field:new_service_database_user,
+                )
+              }
             }
 
             // Kafka e NATS não têm senha: o campo só aparece onde ela é usada (igual à webui).
             if @new_service_database_has_password == "true" {
-              text("{t('new_service.password_generated_you_can_change')}", class = u-label-cap)
-
-              input(
-                placeholder = "{t('new_service.empty_no_password_redis_only')}",
-                class = field__input,
-                form_control = new_service_database_password,
-                :value = new_service_database_password,
-                on_change = field:new_service_database_password,
-              )
+              field(label = "{t('new_service.password_generated_you_can_change')}", label_class = u-label-cap) {
+                input(
+                  placeholder = "{t('new_service.empty_no_password_redis_only')}",
+                  class = field__input,
+                  form_control = new_service_database_password,
+                  :value = new_service_database_password,
+                  on_change = field:new_service_database_password,
+                )
+              }
             }
 
             if @new_service_database_has_rootpw == "true" {
-              text(
-                "{t('new_service.root_password_generated_you_can')}",
-                class = u-label-cap,
-              )
-
-              input(
-                placeholder = "",
-                class = field__input,
-                form_control = new_service_database_root_password,
-                :value = new_service_database_root_password,
-                on_change = field:new_service_database_root_password,
-              )
+              field(label = "{t('new_service.root_password_generated_you_can')}", label_class = u-label-cap) {
+                input(
+                  placeholder = "",
+                  class = field__input,
+                  form_control = new_service_database_root_password,
+                  :value = new_service_database_root_password,
+                  on_change = field:new_service_database_root_password,
+                )
+              }
             }
 
             checkbox(
@@ -553,14 +524,14 @@ component {
     if @new_service_step == "pick_template" {
       column(class = env) {
         column(class = healthcheck__field) {
-          text("{t('new_service.search')}", class = u-label-cap)
-
-          input(
-            placeholder = "{t('new_service.search_templates')}",
-            class = field__input,
-            :value = new_service_template_search,
-            on_change = new_service_template_search,
-          )
+          field(label = "{t('new_service.search')}", label_class = u-label-cap) {
+            input(
+              placeholder = "{t('new_service.search_templates')}",
+              class = field__input,
+              :value = new_service_template_search,
+              on_change = new_service_template_search,
+            )
+          }
         }
 
         scrollable(direction = vertical, class = u-fill-all) {
@@ -582,26 +553,26 @@ component {
               "{t('new_service.configure', new_service_template_name=new_service_template_name)}",
               class = u-label-cap
             )
-            text("{t('common.service_name')}", class = u-label-cap)
-
-            input(
-              placeholder = @new_service_template_name,
-              class = field__input,
-              form_control = new_service_name,
-              :value = new_service_name,
-              on_change = field:new_service_name,
-            )
+            field(label = "{t('common.service_name')}", label_class = u-label-cap) {
+              input(
+                placeholder = @new_service_template_name,
+                class = field__input,
+                form_control = new_service_name,
+                :value = new_service_name,
+                on_change = field:new_service_name,
+              )
+            }
 
             template(:for_each = new_service_template_vars, var = v) {
               column(class = healthcheck__field) {
-                text("@v.label", class = u-label-cap)
-
-                input(
-                  placeholder = @v.placeholder,
-                  class = field__input,
-                  :value = new_service_template_variable_value_@v.idx,
-                  on_change = field:new_service_template_variable_value_@v.idx,
-                )
+                field(label = "@v.label", label_class = u-label-cap) {
+                  input(
+                    placeholder = @v.placeholder,
+                    class = field__input,
+                    :value = new_service_template_variable_value_@v.idx,
+                    on_change = field:new_service_template_variable_value_@v.idx,
+                  )
+                }
               }
             }
 

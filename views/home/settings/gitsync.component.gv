@@ -43,19 +43,19 @@ component {
         )
       }
 
-      text("{t('settings_gitsync.mode')}", class = u-label-cap)
-
-      scroll(class = tabs__scroll, direction = horizontal) {
-        tabbar(
-          :value = state_git_form_mode,
-          active = @state_git_form_mode,
-          :items = state_git_form_modes,
-          tab_class = tabs__tab,
-          tab_active_class = "tabs__tab tabs__tab--active",
-          padding = "9 16",
-          size = 14,
-          active_bold = false,
-        )
+      field(label = "{t('settings_gitsync.mode')}", label_class = u-label-cap) {
+        scroll(class = tabs__scroll, direction = horizontal) {
+          tabbar(
+            :value = state_git_form_mode,
+            active = @state_git_form_mode,
+            :items = state_git_form_modes,
+            tab_class = tabs__tab,
+            tab_active_class = "tabs__tab tabs__tab--active",
+            padding = "9 16",
+            size = 14,
+            active_bold = false,
+          )
+        }
       }
 
       text(
@@ -81,17 +81,17 @@ component {
           )
         }
 
-        text("{t('settings_gitsync.git_account')}", class = u-label-cap)
-
-        select(
-          class = form-select,
-          :options = gitea_providers,
-          :value = state_git_form_provider_id,
-          on_change = state_git_provider_pick,
-          placeholder = "{t('common.select_the_account')}",
-          label_field = display,
-          value_field = id,
-        )
+        field(label = "{t('settings_gitsync.git_account')}", label_class = u-label-cap) {
+          select(
+            class = form-select,
+            :options = gitea_providers,
+            :value = state_git_form_provider_id,
+            on_change = state_git_provider_pick,
+            placeholder = "{t('common.select_the_account')}",
+            label_field = display,
+            value_field = id,
+          )
+        }
 
         text(
           "{t('settings_gitsync.connect_accounts_hint')}",

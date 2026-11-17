@@ -41,15 +41,15 @@ component {
         )
       }
 
-      text("{t('databases.new_database')}", class = u-label-cap)
-
-      input(
-        class = field__input,
-        form_control = service_form_shared_database_name,
-        :value = service_form_shared_database_name,
-        on_change = field:service_form_shared_database_name,
-        placeholder = "{t('databases.name_a_z_0_9')}",
-      )
+      field(label = "{t('databases.new_database')}", label_class = u-label-cap) {
+        input(
+          class = field__input,
+          form_control = service_form_shared_database_name,
+          :value = service_form_shared_database_name,
+          on_change = field:service_form_shared_database_name,
+          placeholder = "{t('databases.name_a_z_0_9')}",
+        )
+      }
 
       select(
         class = form-select,

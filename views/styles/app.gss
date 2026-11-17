@@ -379,6 +379,10 @@
 .field-required    { size: 11; bold: true; color: var(--error); }
 .field-description { size: 12; color: var(--muted); }
 .field-error       { size: 12; color: var(--error); }
+/* Rótulo no estilo `u-label-cap` (o de boa parte dos formulários de serviço e
+   settings): `field(label_class = u-label-cap)`. A regra composta pesa mais que
+   as duas sozinhas, então a cor apagada do `u-label-cap` vence a do `.field-label`. */
+.field-label.u-label-cap { color: var(--faint); }
 
 /* Campo de um spinbox (`field_class="field__spin"`). O `.field__input` (padding
    13 14 → ~44px de altura) desencontrava o campo dos degraus ▴▾, que somam

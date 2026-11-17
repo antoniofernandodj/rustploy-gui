@@ -70,18 +70,18 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
               )
             }
 
-            text("{t('common.scope')}", class = u-label-cap)
-
-            scroll(class = tabs__scroll, direction = horizontal) {
-              tabbar(
-                :value = new_registry_token_scope,
-                active = @new_registry_token_scope,
-                :items = new_registry_token_scopes,
-                tab_class = tabs__tab,
-                tab_active_class = "tabs__tab tabs__tab--active",
-                padding = "9 16",
-                size = 14,
-              )
+            field(label = "{t('common.scope')}", label_class = u-label-cap) {
+              scroll(class = tabs__scroll, direction = horizontal) {
+                tabbar(
+                  :value = new_registry_token_scope,
+                  active = @new_registry_token_scope,
+                  :items = new_registry_token_scopes,
+                  tab_class = tabs__tab,
+                  tab_active_class = "tabs__tab tabs__tab--active",
+                  padding = "9 16",
+                  size = 14,
+                )
+              }
             }
 
             text(

@@ -15,92 +15,92 @@ component {
     on_submit = healthcheck_save,
     class = form-panel,
   ) {
-    text("{t('healthcheck.kind')}", class = u-label-cap)
-
-    scroll(class = tabs__scroll, direction = horizontal) {
-      tabbar(
-        :value = service_form_healthcheck_kind, active = @service_form_healthcheck_kind, :items = healthcheck_kinds,
-        tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
-      )
+    field(label = "{t('healthcheck.kind')}", label_class = u-label-cap) {
+      scroll(class = tabs__scroll, direction = horizontal) {
+        tabbar(
+          :value = service_form_healthcheck_kind, active = @service_form_healthcheck_kind, :items = healthcheck_kinds,
+          tab_class = tabs__tab, tab_active_class = "tabs__tab tabs__tab--active", padding = "9 16", size = 14,
+        )
+      }
     }
 
     if @service_form_healthcheck_kind == "http" {
-      text("{t('healthcheck.http_path')}", class = u-label-cap)
-
-      input(
-        class = field__input,
-        form_control = service_form_healthcheck_path,
-        :value = service_form_healthcheck_path,
-        on_change = field:service_form_healthcheck_path,
-        placeholder = "{t('healthcheck.health')}",
-      )
-
-      text("{t('healthcheck.expected_status')}", class = u-label-cap)
-
-      spinbox(
-        field_class = field__spin,
-        form_control = service_form_healthcheck_status,
-        :value = service_form_healthcheck_status,
-        min = 100,
-        max = 599,
-        width = 90,
-        placeholder = 200,
-      )
-    }
-
-    row(class = healthcheck__grid) {
-      column(class = healthcheck__field) {
-        text("{t('healthcheck.interval_s')}", class = u-label-cap)
-
-        spinbox(
-          field_class = field__spin,
-          form_control = service_form_healthcheck_interval,
-          :value = service_form_healthcheck_interval,
-          min = 1,
-          max = 3600,
-          width = 90,
+      field(label = "{t('healthcheck.http_path')}", label_class = u-label-cap) {
+        input(
+          class = field__input,
+          form_control = service_form_healthcheck_path,
+          :value = service_form_healthcheck_path,
+          on_change = field:service_form_healthcheck_path,
+          placeholder = "{t('healthcheck.health')}",
         )
       }
 
-      column(class = healthcheck__field) {
-        text("{t('healthcheck.timeout_s')}", class = u-label-cap)
-
+      field(label = "{t('healthcheck.expected_status')}", label_class = u-label-cap) {
         spinbox(
           field_class = field__spin,
-          form_control = service_form_healthcheck_timeout,
-          :value = service_form_healthcheck_timeout,
-          min = 1,
-          max = 3600,
+          form_control = service_form_healthcheck_status,
+          :value = service_form_healthcheck_status,
+          min = 100,
+          max = 599,
           width = 90,
+          placeholder = 200,
         )
       }
     }
 
     row(class = healthcheck__grid) {
       column(class = healthcheck__field) {
-        text("{t('healthcheck.retries')}", class = u-label-cap)
-
-        spinbox(
-          field_class = field__spin,
-          form_control = service_form_healthcheck_retries,
-          :value = service_form_healthcheck_retries,
-          min = 1,
-          max = 10,
-          width = 90,
-        )
+        field(label = "{t('healthcheck.interval_s')}", label_class = u-label-cap) {
+          spinbox(
+            field_class = field__spin,
+            form_control = service_form_healthcheck_interval,
+            :value = service_form_healthcheck_interval,
+            min = 1,
+            max = 3600,
+            width = 90,
+          )
+        }
       }
 
       column(class = healthcheck__field) {
-        text("{t('healthcheck.start_period_s')}", class = u-label-cap)
+        field(label = "{t('healthcheck.timeout_s')}", label_class = u-label-cap) {
+          spinbox(
+            field_class = field__spin,
+            form_control = service_form_healthcheck_timeout,
+            :value = service_form_healthcheck_timeout,
+            min = 1,
+            max = 3600,
+            width = 90,
+          )
+        }
+      }
+    }
 
-        spinbox(
-          field_class = field__spin,
-          form_control = service_form_healthcheck_start,
-          :value = service_form_healthcheck_start,
-          min = 0,
-          max = 3600,
-          width = 90,
-        )
+    row(class = healthcheck__grid) {
+      column(class = healthcheck__field) {
+        field(label = "{t('healthcheck.retries')}", label_class = u-label-cap) {
+          spinbox(
+            field_class = field__spin,
+            form_control = service_form_healthcheck_retries,
+            :value = service_form_healthcheck_retries,
+            min = 1,
+            max = 10,
+            width = 90,
+          )
+        }
+      }
+
+      column(class = healthcheck__field) {
+        field(label = "{t('healthcheck.start_period_s')}", label_class = u-label-cap) {
+          spinbox(
+            field_class = field__spin,
+            form_control = service_form_healthcheck_start,
+            :value = service_form_healthcheck_start,
+            min = 0,
+            max = 3600,
+            width = 90,
+          )
+        }
       }
     }
 

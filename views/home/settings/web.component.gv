@@ -89,39 +89,26 @@ component {
           class = u-muted,
         )
 
-        text(
-          "{t('settings_web.let_s_encrypt_email_automatic')}",
-          class = u-label-cap,
-        )
-
-        input(
-          placeholder = "{t('settings_web.you_example_com')}",
-          class = field__input,
-          form_control = server_settings_email,
-        )
-
-        text(
-          "@error_server_settings_email",
-          if = @error_server_settings_email,
-          not_equals = "",
-          class = u-error,
-        )
+        field(label = "{t('settings_web.let_s_encrypt_email_automatic')}", label_class = u-label-cap, error = @error_server_settings_email) {
+          input(
+            placeholder = "{t('settings_web.you_example_com')}",
+            class = field__input,
+            form_control = server_settings_email,
+          )
+        }
 
         text(
           "{t('settings_web.tls_certificates_issued_automatically_requires_a')}",
           class = u-muted,
         )
 
-        text(
-          "{t('settings_web.registry_domain_public_exposure')}",
-          class = u-label-cap,
-        )
-
-        input(
-          placeholder = "{t('settings_web.registry_mysite_com')}",
-          class = field__input,
-          form_control = server_settings_registry_domain,
-        )
+        field(label = "{t('settings_web.registry_domain_public_exposure')}", label_class = u-label-cap) {
+          input(
+            placeholder = "{t('settings_web.registry_mysite_com')}",
+            class = field__input,
+            form_control = server_settings_registry_domain,
+          )
+        }
 
         text(
           "{t('settings_web.exposes_the_built_in_docker_registry')}",

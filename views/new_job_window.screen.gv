@@ -137,23 +137,23 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               )
             }
 
-            text("{t('new_job_window.compose_source')}", class = u-label-cap)
+            field(label = "{t('new_job_window.compose_source')}", label_class = u-label-cap) {
+              scroll(class = tabs__scroll, direction = horizontal) {
+                row(class = tabs__main) {
+                  TabButton(
+                    label = "{t('common.compose')}",
+                    current = @new_job_source,
+                    target = compose,
+                    action = new_job_source:compose,
+                  )
 
-            scroll(class = tabs__scroll, direction = horizontal) {
-              row(class = tabs__main) {
-                TabButton(
-                  label = "{t('common.compose')}",
-                  current = @new_job_source,
-                  target = compose,
-                  action = new_job_source:compose,
-                )
-
-                TabButton(
-                  label = "{t('common.git')}",
-                  current = @new_job_source,
-                  target = git,
-                  action = new_job_source:git,
-                )
+                  TabButton(
+                    label = "{t('common.git')}",
+                    current = @new_job_source,
+                    target = git,
+                    action = new_job_source:git,
+                  )
+                }
               }
             }
 
@@ -261,37 +261,37 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               }
             }
 
-            text("{t('common.recurrence')}", class = u-label-cap)
+            field(label = "{t('common.recurrence')}", label_class = u-label-cap) {
+              scroll(class = tabs__scroll, direction = horizontal) {
+                row(class = tabs__main) {
+                  TabButton(
+                    label = "{t('new_job_window.manual')}",
+                    current = @new_job_kind,
+                    target = manual,
+                    action = new_job_kind:manual,
+                  )
 
-            scroll(class = tabs__scroll, direction = horizontal) {
-              row(class = tabs__main) {
-                TabButton(
-                  label = "{t('new_job_window.manual')}",
-                  current = @new_job_kind,
-                  target = manual,
-                  action = new_job_kind:manual,
-                )
+                  TabButton(
+                    label = "{t('new_job_window.interval')}",
+                    current = @new_job_kind,
+                    target = interval,
+                    action = new_job_kind:interval,
+                  )
 
-                TabButton(
-                  label = "{t('new_job_window.interval')}",
-                  current = @new_job_kind,
-                  target = interval,
-                  action = new_job_kind:interval,
-                )
+                  TabButton(
+                    label = "{t('new_job_window.daily')}",
+                    current = @new_job_kind,
+                    target = daily,
+                    action = new_job_kind:daily,
+                  )
 
-                TabButton(
-                  label = "{t('new_job_window.daily')}",
-                  current = @new_job_kind,
-                  target = daily,
-                  action = new_job_kind:daily,
-                )
-
-                TabButton(
-                  label = "{t('new_job_window.weekly')}",
-                  current = @new_job_kind,
-                  target = weekly,
-                  action = new_job_kind:weekly,
-                )
+                  TabButton(
+                    label = "{t('new_job_window.weekly')}",
+                    current = @new_job_kind,
+                    target = weekly,
+                    action = new_job_kind:weekly,
+                  )
+                }
               }
             }
 

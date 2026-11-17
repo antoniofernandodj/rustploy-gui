@@ -11,27 +11,27 @@ component {
   ) {
     column(class = service__main) {
       form(error_prefix = error_, name = advanced, on_submit = advanced_save, class = form-panel) {
-        text("{t('advanced.replicas')}", class = u-label-cap)
+        field(label = "{t('advanced.replicas')}", label_class = u-label-cap) {
+          spinbox(
+            field_class = field__spin,
+            form_control = service_form_replicas,
+            :value = service_form_replicas,
+            min = 1,
+            max = 20,
+            width = 90,
+            placeholder = 1,
+          )
+        }
 
-        spinbox(
-          field_class = field__spin,
-          form_control = service_form_replicas,
-          :value = service_form_replicas,
-          min = 1,
-          max = 20,
-          width = 90,
-          placeholder = 1,
-        )
-
-        text("{t('advanced.run_command')}", class = u-label-cap)
-
-        input(
-          class = field__input,
-          form_control = service_form_run_command,
-          :value = service_form_run_command,
-          on_change = field:service_form_run_command,
-          placeholder = "{t('advanced.image_default')}",
-        )
+        field(label = "{t('advanced.run_command')}", label_class = u-label-cap) {
+          input(
+            class = field__input,
+            form_control = service_form_run_command,
+            :value = service_form_run_command,
+            on_change = field:service_form_run_command,
+            placeholder = "{t('advanced.image_default')}",
+          )
+        }
 
         text("{t('advanced.current_run_args', service_run_args=service_run_args)}", class = u-muted)
 
@@ -84,17 +84,17 @@ component {
           }
         }
 
-        text("{t('advanced.add_dependency')}", class = u-label-cap)
-
-        select(
-          class = form-select,
-          :options = service_dependency_options,
-          :value = service_form_dependency_add_id,
-          on_change = field:service_form_dependency_add_id,
-          placeholder = "{t('advanced.choose_service')}",
-          label_field = name,
-          value_field = id,
-        )
+        field(label = "{t('advanced.add_dependency')}", label_class = u-label-cap) {
+          select(
+            class = form-select,
+            :options = service_dependency_options,
+            :value = service_form_dependency_add_id,
+            on_change = field:service_form_dependency_add_id,
+            placeholder = "{t('advanced.choose_service')}",
+            label_field = name,
+            value_field = id,
+          )
+        }
 
         // Sem serviço escolhido (valor nulo do select) o botão fica travado.
         row(class = env__add) {
@@ -180,17 +180,17 @@ component {
           }
         }
 
-        text("{t('advanced.add_to_the_queue')}", class = u-label-cap)
-
-        select(
-          class = form-select,
-          :options = pre_deploy_available_jobs,
-          :value = service_form_pre_deploy_check_add_job_id,
-          on_change = field:service_form_pre_deploy_check_add_job_id,
-          placeholder = "{t('advanced.choose_job')}",
-          label_field = name,
-          value_field = id,
-        )
+        field(label = "{t('advanced.add_to_the_queue')}", label_class = u-label-cap) {
+          select(
+            class = form-select,
+            :options = pre_deploy_available_jobs,
+            :value = service_form_pre_deploy_check_add_job_id,
+            on_change = field:service_form_pre_deploy_check_add_job_id,
+            placeholder = "{t('advanced.choose_job')}",
+            label_field = name,
+            value_field = id,
+          )
+        }
 
         row(class = env__add) {
           button(

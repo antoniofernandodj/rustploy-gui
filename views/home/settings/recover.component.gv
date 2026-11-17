@@ -12,43 +12,47 @@ component {
         column(spacing = 6, if = @recover_services_count, equals = 0) {
           text("@recover_message", if = @recover_message, not_equals = "", class = u-muted)
 
-          text("{t('settings_recover.repository')}", class = u-label-cap)
-          input(
-            placeholder = "https://github.com/org/rustploy-estado.git",
-            class = field__input,
-            form_control = recover_remote,
-            :value = recover_remote,
-            on_change = field:recover_remote,
-          )
+          field(label = "{t('settings_recover.repository')}", label_class = u-label-cap) {
+            input(
+              placeholder = "https://github.com/org/rustploy-estado.git",
+              class = field__input,
+              form_control = recover_remote,
+              :value = recover_remote,
+              on_change = field:recover_remote,
+            )
+          }
 
-          text("{t('settings_recover.token')}", class = u-label-cap)
-          input(
-            placeholder = "",
-            secure = true,
-            class = field__input,
-            form_control = recover_token,
-            :value = recover_token,
-            on_change = field:recover_token,
-          )
+          field(label = "{t('settings_recover.token')}", label_class = u-label-cap) {
+            input(
+              placeholder = "",
+              secure = true,
+              class = field__input,
+              form_control = recover_token,
+              :value = recover_token,
+              on_change = field:recover_token,
+            )
+          }
 
-          text("{t('settings_recover.branch')}", class = u-label-cap)
-          input(
-            placeholder = "main",
-            class = field__input,
-            form_control = recover_branch,
-            :value = recover_branch,
-            on_change = field:recover_branch,
-          )
+          field(label = "{t('settings_recover.branch')}", label_class = u-label-cap) {
+            input(
+              placeholder = "main",
+              class = field__input,
+              form_control = recover_branch,
+              :value = recover_branch,
+              on_change = field:recover_branch,
+            )
+          }
 
-          text("{t('settings_recover.key')}", class = u-label-cap)
-          input(
-            placeholder = "AGE-SECRET-KEY-1…",
-            secure = true,
-            class = field__input,
-            form_control = recover_key,
-            :value = recover_key,
-            on_change = field:recover_key,
-          )
+          field(label = "{t('settings_recover.key')}", label_class = u-label-cap) {
+            input(
+              placeholder = "AGE-SECRET-KEY-1…",
+              secure = true,
+              class = field__input,
+              form_control = recover_key,
+              :value = recover_key,
+              on_change = field:recover_key,
+            )
+          }
 
           text("{t('settings_recover.key_hint')}", class = u-muted)
 
