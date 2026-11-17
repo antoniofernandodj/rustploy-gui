@@ -126,7 +126,7 @@ component {
           color = @service_action_color,
         )
 
-        // As ações num split button (glacier-ui 0.164): Deploy à esquerda, o
+        // As ações num split button (glacier-ui 0.164; pintado pela `.btn` desde a 0.166): Deploy à esquerda, o
         // resto no "▾"; o Stop fica fora do menu, à mão e em vermelho. Os
         // `disabled = @busy_*` valem nos itens também (glacier-ui 0.165).
         row(class = "service__actions service__actions--compact") {
@@ -134,6 +134,7 @@ component {
             label = "▶",
             on_click = service_deploy,
             disabled = @busy_service_deploy,
+            button_class = "btn btn--primary",
             tooltip = "{t('service.deploy')}",
           ) {
             menuitem(label = "{t('service.reload')}", on_click = service_reload, disabled = @busy_service_reload)
@@ -164,6 +165,7 @@ component {
           label = "{t('service.deploy')}",
           on_click = service_deploy,
           disabled = @busy_service_deploy,
+          button_class = "btn btn--primary",
         ) {
           menuitem(label = "{t('service.reload')}", on_click = service_reload, disabled = @busy_service_reload)
           menuitem(label = "{t('service.rebuild')}", on_click = service_rebuild, disabled = @busy_service_rebuild)
