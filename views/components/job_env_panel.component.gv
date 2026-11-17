@@ -1,6 +1,7 @@
-// Painel das envs e dos secrets de UM job, com os mesmos botões da aba Environment do serviço.
-// Usado pela tela `job_env` do app (shell/job_env.component.gv) e pela janela Novo/Editar job; a
-// lógica está em scripts/job_env_core.luau.
+// Painel das envs e dos secrets de UM job, com os mesmos botões da aba
+// Environment do serviço. Usado pela tela `job_env` do app
+// (shell/job_env.component.gv) e pela janela Novo/Editar job; a lógica está em
+// scripts/job_env_core.luau.
 component {
   resources {
     component(name = SemVariaveisDoJob) {
@@ -14,7 +15,10 @@ component {
 
   column(class = env) {
     row(class = env__head) {
-      text("{t('job_env.variable_s', job_env_count=job_env_count)}", class = "u-muted u-fill")
+      text(
+        "{t('job_env.variable_s', job_env_count=job_env_count)}",
+        class = "u-muted u-fill"
+      )
 
       if @job_env_text_open == "true" {
         button(
@@ -24,7 +28,12 @@ component {
           disabled = @busy_job_env_text_toggle
         )
       } else {
-        button("{t('common.env')}", class = tabs__tab, on_click = job_env_text_toggle, disabled = @busy_job_env_text_toggle)
+        button(
+          "{t('common.env')}",
+          class = tabs__tab,
+          on_click = job_env_text_toggle,
+          disabled = @busy_job_env_text_toggle
+        )
       }
     }
 
@@ -45,7 +54,8 @@ component {
         )
       }
 
-      // "usar secret": a lista dos secrets que o job pode usar toma o lugar do campo do valor.
+      // "usar secret": a lista dos secrets que o job pode usar toma o lugar do
+      // campo do valor.
       row(class = env__add) {
         if @job_env_new_is_secret == "true" {
           select(
@@ -74,7 +84,12 @@ component {
       }
 
       row(class = env__add) {
-        button("{t('common.add')}", type = submit, disabled = @busy_job_env_add, class = "btn btn--primary")
+        button(
+          "{t('common.add')}",
+          type = submit,
+          disabled = @busy_job_env_add,
+          class = "btn btn--primary"
+        )
       }
     }
 
@@ -100,7 +115,11 @@ component {
           foreach_fallback = SemVariaveisDoJob,
         ) {
           if @e.__dragging == "true" {
-            row(class = "kv-list__row kv-list__row--dragging", if = @e.kind, equals = comment) {
+            row(
+              class = "kv-list__row kv-list__row--dragging",
+              if = @e.kind,
+              equals = comment
+            ) {
               text(
                 "⋮ ",
                 class = "env__drag-handle env__drag-handle--dragging",
@@ -188,8 +207,9 @@ component {
 
               text(class = env__sep)
 
-              // Chave e valor editáveis no lugar (sem borda). Nada grava sozinho: o OK aparece quando a
-              // linha muda, pede confirmação e grava; o ✕ desfaz (handlers/env_rows.luau).
+              // Chave e valor editáveis no lugar (sem borda). Nada grava
+              // sozinho: o OK aparece quando a linha muda, pede confirmação e
+              // grava; o ✕ desfaz (handlers/env_rows.luau).
               input(
                 class = env__inline-key,
                 :value = "@e.bind_key",
@@ -245,7 +265,8 @@ component {
           }
         }
 
-        // ── Secrets deste serviço (só nomes; o valor nunca volta do daemon) ──────────────────
+        // ── Secrets deste serviço (só nomes; o valor nunca volta do daemon)
+        // ──────────────────
         hr
 
         text(
@@ -358,8 +379,18 @@ component {
               on_change = job_secret_name_change:@s.name,
               placeholder = "{t('common.name')}",
             )
-            text("{t('project_secrets.encrypted')}", class = "kv-list__val kv-list__val--compact", if = @s.revealed, equals = false)
-            text("@s.value", class = "kv-list__val kv-list__val--compact", if = @s.revealed, equals = true)
+            text(
+              "{t('project_secrets.encrypted')}",
+              class = "kv-list__val kv-list__val--compact",
+              if = @s.revealed,
+              equals = false
+            )
+            text(
+              "@s.value",
+              class = "kv-list__val kv-list__val--compact",
+              if = @s.revealed,
+              equals = true
+            )
           }
         }
 

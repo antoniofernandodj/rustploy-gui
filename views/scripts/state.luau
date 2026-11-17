@@ -50,13 +50,15 @@ export type State = {
     new_service_templates_all: { any },
     -- service_id → webhook revelado no painel "Em execução"
     running_revealed: { [string]: boolean },
-    -- "escopo:nome" → valor de um secret que o usuário pediu para ver (SecretReveal). Só em memória,
-    -- some ao trocar de projeto/serviço e ao desconectar; nunca vai para o ctx persistido.
+    -- "escopo:nome" → valor de um secret que o usuário pediu para ver
+    -- (SecretReveal). Só em memória, some ao trocar de projeto/serviço e ao
+    -- desconectar; nunca vai para o ctx persistido.
     revealed_secrets: { [string]: string },
-    -- Linha de variável editável no lugar (handlers/env_rows.luau): o rascunho de cada linha
-    -- ("escopo|projeto|serviço|chave" → {key, value, use_secret, secret}), as linhas cruas de cada
-    -- escopo ("project" | "service" → JSON de format.env_json_with_comments) e os secrets que o
-    -- select de cada escopo oferece.
+    -- Linha de variável editável no lugar (handlers/env_rows.luau): o rascunho
+    -- de cada linha ("escopo|projeto|serviço|chave" → {key, value, use_secret,
+    -- secret}), as linhas cruas de cada escopo ("project" | "service" → JSON
+    -- de format.env_json_with_comments) e os secrets que o select de cada
+    -- escopo oferece.
     env_drafts: { [string]: any },
     env_rows_raw: { [string]: string },
     env_secret_options: { [string]: { any } },
@@ -65,8 +67,9 @@ export type State = {
     -- job_id → Job cru (do snapshot) — job_toggle precisa do
     -- compose/name/main_service completos pra reenviar o JobUpdate.
     jobs_by_id: { [string]: any },
-    -- Job cru da tela "Variáveis e secrets do job" (handlers/job_env.luau), relido do daemon a cada
-    -- mudança: o JobUpdate das envs precisa dos demais campos.
+    -- Job cru da tela "Variáveis e secrets do job" (handlers/job_env.luau),
+    -- relido do daemon a cada mudança: o JobUpdate das envs precisa dos demais
+    -- campos.
     job_env_raw: any,
     -- job_id → true entre o click em "Rodar agora" e o refresh_now() que
     -- confirma o novo job_run — trava double-click durante o round-trip da RPC
@@ -82,8 +85,9 @@ export type State = {
     -- handlers/stream.luau::apply_update_info).
     update_checked_at: string,
     -- Aviso deixado por "Atualizar daemon"/"Reverter" para a tela de login: o
-    -- daemon reinicia, o stream cai e a janela volta ao login antes de dar tempo
-    -- de ler a mensagem da aba (ver handlers/stream.luau::on_close). Vazio = nada.
+    -- daemon reinicia, o stream cai e a janela volta ao login antes de dar
+    -- tempo de ler a mensagem da aba (ver handlers/stream.luau::on_close).
+    -- Vazio = nada.
     restart_notice: string,
 }
 

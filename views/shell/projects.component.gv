@@ -19,7 +19,11 @@ component {
 
       row(class = page-head__stats) {
         StatCard(label = "{t('common.services')}", value = @services_count)
-        StatCard(label = "{t('projects.projects_2')}", value = @projects_count, accent = 1)
+        StatCard(
+          label = "{t('projects.projects_2')}",
+          value = @projects_count,
+          accent = 1
+        )
       }
     }
 

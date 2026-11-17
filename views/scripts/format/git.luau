@@ -34,7 +34,8 @@ function M.git_providers(providers: { any }?): string
             account_lbl = "@" .. tostring(login or "")
             account_login = tostring(login or "")
         else
-            display = tostring(provider.name or "") .. i18n.tr(" — não conectado")
+            display = tostring(provider.name or "")
+                .. i18n.tr(" — não conectado")
             account_lbl = i18n.tr("(pendente — autorize no navegador)")
             account_login = i18n.tr("não conectado")
         end

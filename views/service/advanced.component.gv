@@ -10,7 +10,12 @@ component {
     class = u-fill-all,
   ) {
     column(class = service__main) {
-      form(error_prefix = error_, name = advanced, on_submit = advanced_save, class = form-panel) {
+      form(
+        error_prefix = error_,
+        name = advanced,
+        on_submit = advanced_save,
+        class = form-panel
+      ) {
         field(label = "{t('advanced.replicas')}", label_class = u-label-cap) {
           spinbox(
             field_class = field__spin,
@@ -23,7 +28,10 @@ component {
           )
         }
 
-        field(label = "{t('advanced.run_command')}", label_class = u-label-cap) {
+        field(
+          label = "{t('advanced.run_command')}",
+          label_class = u-label-cap
+        ) {
           input(
             class = field__input,
             form_control = service_form_run_command,
@@ -33,7 +41,11 @@ component {
           )
         }
 
-        text("{t('advanced.current_run_args', service_run_args=service_run_args)}", class = u-muted)
+        text(
+          "{t('advanced.current_run_args',
+            service_run_args=service_run_args)}",
+          class = u-muted
+        )
 
         toggle(
           :checked = service_form_autostart,
@@ -54,14 +66,20 @@ component {
         }
 
         row(class = env__add) {
-          button("{t('common.save_2')}", class = "btn btn--primary", type = submit, disabled = @busy_advanced_save)
+          button(
+            "{t('common.save_2')}",
+            class = "btn btn--primary",
+            type = submit,
+            disabled = @busy_advanced_save
+          )
           text("@service_action_message", class = u-muted)
         }
       }
 
       column(class = form-panel) {
         text(
-          "{t('advanced.depends_on', service_dependencies_count=service_dependencies_count)}",
+          "{t('advanced.depends_on',
+            service_dependencies_count=service_dependencies_count)}",
           class = u-label-cap,
         )
 
@@ -84,7 +102,10 @@ component {
           }
         }
 
-        field(label = "{t('advanced.add_dependency')}", label_class = u-label-cap) {
+        field(
+          label = "{t('advanced.add_dependency')}",
+          label_class = u-label-cap
+        ) {
           select(
             class = form-select,
             :options = service_dependency_options,
@@ -119,7 +140,8 @@ component {
 
       column(class = form-panel) {
         text(
-          "{t('advanced.pre_deploy_queue', pre_deploy_checks_count=pre_deploy_checks_count)}",
+          "{t('advanced.pre_deploy_queue',
+            pre_deploy_checks_count=pre_deploy_checks_count)}",
           class = u-label-cap,
         )
 
@@ -180,7 +202,10 @@ component {
           }
         }
 
-        field(label = "{t('advanced.add_to_the_queue')}", label_class = u-label-cap) {
+        field(
+          label = "{t('advanced.add_to_the_queue')}",
+          label_class = u-label-cap
+        ) {
           select(
             class = form-select,
             :options = pre_deploy_available_jobs,

@@ -116,13 +116,15 @@ local function env_var_row(env_var: EnvVar)
     end
     return {
         key = env_var.key,
-        -- Ids da edição no lugar (`ctx.env_edit_id`): a linha compara o seu com o do contexto.
+        -- Ids da edição no lugar (`ctx.env_edit_id`): a linha compara o seu
+        -- com o do contexto.
         edit_key_id = "key:" .. env_var.key,
         edit_value_id = "value:" .. env_var.key,
         key_display = Util.ellipsis(env_var.key, ENV_KEY_MAX),
         value = value,
         kind = kind,
-        -- Nome do secret que a variável referencia ("" se for em claro): o botão 🔓 usa.
+        -- Nome do secret que a variável referencia ("" se for em claro): o
+        -- botão 🔓 usa.
         secret_name = secret_name,
     }
 end
@@ -137,7 +139,8 @@ function M.secret_rows(
 ): string
     local rows = {}
     for _, name in ipairs(names or {}) do
-        -- `ref` identifica o secret no mapa de revelados ("projeto" ou o id do serviço, e o nome).
+        -- `ref` identifica o secret no mapa de revelados ("projeto" ou o id do
+        -- serviço, e o nome).
         local ref = (scope or "project") .. ":" .. name
         local value = revealed and revealed[ref]
         table.insert(rows, {
@@ -151,28 +154,35 @@ function M.secret_rows(
     return Util.encode_array(rows)
 end
 
--- Dependências do serviço (`spec.depends_on`: ids de serviços do MESMO projeto) como linhas
--- {id, name, index}. Um id que não resolve mais aparece como "(serviço removido…)", para dar para
--- tirá-lo pela própria tela.
+-- Dependências do serviço (`spec.depends_on`: ids de serviços do MESMO
+-- projeto) como linhas {id, name, index}. Um id que não resolve mais aparece
+-- como "(serviço removido…)", para dar para tirá-lo pela própria tela.
 function M.dependency_rows(spec: any, services: { any }?): string
     local name_by_id = {}
     for _, service in ipairs(services or {}) do
-        name_by_id[service.id] = service.spec and service.spec.name or service.id
+        name_by_id[service.id] = service.spec and service.spec.name
+            or service.id
     end
     local rows = {}
     for position, dependency_id in ipairs(spec.depends_on or {}) do
         table.insert(rows, {
             id = dependency_id,
-            name = name_by_id[dependency_id]
-                or (i18n.tr("(serviço removido: ") .. tostring(dependency_id) .. ")"),
+            name = name_by_id[dependency_id] or (i18n.tr(
+                "(serviço removido: "
+            ) .. tostring(dependency_id) .. ")"),
             index = tostring(position),
         })
     end
     return Util.encode_array(rows)
 end
 
--- Serviços do projeto que ainda podem virar dependência: não o próprio, e nenhum que já esteja na lista.
-function M.dependency_options(spec: any, self_id: string, services: { any }?): string
+-- Serviços do projeto que ainda podem virar dependência: não o próprio, e
+-- nenhum que já esteja na lista.
+function M.dependency_options(
+    spec: any,
+    self_id: string,
+    services: { any }?
+): string
     local already = {}
     for _, dependency_id in ipairs(spec.depends_on or {}) do
         already[dependency_id] = true
@@ -315,8 +325,9 @@ local function execution_outcome(outcome: string?): (string, string)
     return i18n.tr("sem deploy associado"), "#8B949E"
 end
 
--- `LogsExecutions` → linhas da lista "Execuções anteriores" da aba Logs. `selected` = chaves
--- marcadas para "Limpar selecionados". O texto do resumo já vem montado (a lista só mostra).
+-- `LogsExecutions` → linhas da lista "Execuções anteriores" da aba Logs.
+-- `selected` = chaves marcadas para "Limpar selecionados". O texto do resumo
+-- já vem montado (a lista só mostra).
 function M.log_execution_rows(
     executions: { any }?,
     selected: { [string]: boolean }?
@@ -355,10 +366,11 @@ function M.log_execution_rows(
     return rows
 end
 
--- Linhas do log GUARDADO (`LogsHistory`: {timestamp, container_id, stream, line}, em ordem
--- cronológica) → linhas da janela de logs, com um separador onde o container muda (o histórico
--- atravessa deploys). `previous_container` = container da linha que vem logo antes (ao juntar com o
--- que já está na tela); devolve também o container da última linha.
+-- Linhas do log GUARDADO (`LogsHistory`: {timestamp, container_id, stream,
+-- line}, em ordem cronológica) → linhas da janela de logs, com um separador
+-- onde o container muda (o histórico atravessa deploys). `previous_container`
+-- = container da linha que vem logo antes (ao juntar com o que já está na
+-- tela); devolve também o container da última linha.
 function M.history_rows(
     entries: { any }?,
     previous_container: string?
@@ -408,8 +420,8 @@ function M.deployments_detail(deployments: { any }?): string
     return Util.encode_array(rows)
 end
 
--- Portas TCP do host de um spec (aba Domains): uma linha por porta, com a porta do container
--- efetiva (a própria ou a `port` do serviço) e o rótulo.
+-- Portas TCP do host de um spec (aba Domains): uma linha por porta, com a
+-- porta do container efetiva (a própria ou a `port` do serviço) e o rótulo.
 function M.tcp_ports_json(spec: ServiceSpec): string
     local rows = {}
     for _, route in ipairs(Util.tcp_routes(spec)) do
@@ -422,8 +434,9 @@ function M.tcp_ports_json(spec: ServiceSpec): string
     return Util.encode_array(rows)
 end
 
--- Sugestões de porta do container (`ServicePortSuggestions`): o texto do botão traz a porta, o nome
--- (se conhecido) e a origem mais forte; as internas avisam que não devem ser expostas.
+-- Sugestões de porta do container (`ServicePortSuggestions`): o texto do botão
+-- traz a porta, o nome (se conhecido) e a origem mais forte; as internas
+-- avisam que não devem ser expostas.
 function M.port_suggestions_json(suggestions: { any }): string
     local rows = {}
     for _, suggestion in ipairs(suggestions or {}) do

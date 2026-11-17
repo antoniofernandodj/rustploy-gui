@@ -26,7 +26,8 @@
 -- append_textarea.
 --
 -- require resolve relativo a ESTE arquivo (scripts/): "format" (fachada de
--- format/*) e "net/api" (`auth_headers` do SSE e o cliente do "Carregar anteriores").
+-- format/*) e "net/api" (`auth_headers` do SSE e o cliente do "Carregar
+-- anteriores").
 
 local format = require("format")
 local Api = require("net/api")
@@ -42,7 +43,8 @@ local log_rows: { any } = {}
 
 -- Set COMPLETO do textarea a partir do buf (usado no seed e no corte). Mantém
 -- o fim com "\n" para os appends seguintes começarem em linha nova.
--- Janela de uma execução PASSADA (`log_window_past`): cada linha leva a data completa.
+-- Janela de uma execução PASSADA (`log_window_past`): cada linha leva a data
+-- completa.
 local function with_date(): boolean
     return Helpers.is_true(ctx.log_window_past)
 end
@@ -87,9 +89,11 @@ local function log_event_to_row(event: any): any?
     return event.LogLine or event.BuildLog or event.JobLogLine
 end
 
--- Botão "Carregar anteriores": a página de log GUARDADO anterior ao que a janela já mostra
--- (`LogsHistory`), posta por cima. Só aparece quando o pai semeou a partir do histórico e ainda há
--- mais para trás (`log_window_has_more`). Ação despachada: o `http()` suspende, a UI não trava.
+-- Botão "Carregar anteriores": a página de log GUARDADO anterior ao que a
+-- janela já mostra (`LogsHistory`), posta por cima. Só aparece quando o pai
+-- semeou a partir do histórico e ainda há mais para trás
+-- (`log_window_has_more`). Ação despachada: o `http()` suspende, a UI não
+-- trava.
 function log_window_load_older(): ()
     local before = ctx.log_window_more_before or ""
     local service_id = ctx.log_window_service_id or ""
@@ -97,8 +101,10 @@ function log_window_load_older(): ()
         return
     end
     local client = Api.new(ctx.api_url or "", ctx.api_token)
-    -- Só os containers desta execução (a janela "Logs de execução" não mistura as anteriores).
-    local ids_ok, container_ids = Helpers.decode_list(ctx.log_window_container_ids)
+    -- Só os containers desta execução (a janela "Logs de execução" não mistura
+    -- as anteriores).
+    local ids_ok, container_ids =
+        Helpers.decode_list(ctx.log_window_container_ids)
     if not ids_ok or type(container_ids) ~= "table" then
         container_ids = {}
     end
@@ -162,11 +168,13 @@ end
 
 function init(): ()
     ctx.log_window_title = ctx.log_window_title or "Logs"
-    -- Só a janela de uma execução PASSADA liga isto (sem ao vivo, linhas com data).
+    -- Só a janela de uma execução PASSADA liga isto (sem ao vivo, linhas com
+    -- data).
     if ctx.log_window_past == nil then
         ctx.log_window_past = false
     end
-    -- "Carregar anteriores" só aparece quando o pai semeou a partir do log guardado e há mais atrás.
+    -- "Carregar anteriores" só aparece quando o pai semeou a partir do log
+    -- guardado e há mais atrás.
     if ctx.log_window_has_more == nil then
         ctx.log_window_has_more = false
     end

@@ -4,16 +4,56 @@
 component {
   resources {
     link(rel = import, href = "service/logs.component.gv", as = ServiceLogsTab)
-    link(rel = import, href = "service/general.component.gv", as = ServiceGeneralTab)
-    link(rel = import, href = "service/connection.component.gv", as = ServiceConnectionTab)
-    link(rel = import, href = "service/environment.component.gv", as = ServiceEnvironmentTab)
-    link(rel = import, href = "service/domains.component.gv", as = ServiceDomainsTab)
-    link(rel = import, href = "service/migrar.component.gv", as = ServiceMigrarTab)
-    link(rel = import, href = "service/dados.component.gv", as = ServiceDadosTab)
-    link(rel = import, href = "service/databases.component.gv", as = ServiceDatabasesTab)
-    link(rel = import, href = "service/deployments.component.gv", as = ServiceDeploymentsTab)
-    link(rel = import, href = "service/healthcheck.component.gv", as = ServiceHealthcheckTab)
-    link(rel = import, href = "service/advanced.component.gv", as = ServiceAdvancedTab)
+    link(
+      rel = import,
+      href = "service/general.component.gv",
+      as = ServiceGeneralTab
+    )
+    link(
+      rel = import,
+      href = "service/connection.component.gv",
+      as = ServiceConnectionTab
+    )
+    link(
+      rel = import,
+      href = "service/environment.component.gv",
+      as = ServiceEnvironmentTab
+    )
+    link(
+      rel = import,
+      href = "service/domains.component.gv",
+      as = ServiceDomainsTab
+    )
+    link(
+      rel = import,
+      href = "service/migrar.component.gv",
+      as = ServiceMigrarTab
+    )
+    link(
+      rel = import,
+      href = "service/dados.component.gv",
+      as = ServiceDadosTab
+    )
+    link(
+      rel = import,
+      href = "service/databases.component.gv",
+      as = ServiceDatabasesTab
+    )
+    link(
+      rel = import,
+      href = "service/deployments.component.gv",
+      as = ServiceDeploymentsTab
+    )
+    link(
+      rel = import,
+      href = "service/healthcheck.component.gv",
+      as = ServiceHealthcheckTab
+    )
+    link(
+      rel = import,
+      href = "service/advanced.component.gv",
+      as = ServiceAdvancedTab
+    )
 
     style """
       /* Cabeçalho + ações */
@@ -21,9 +61,17 @@ component {
       .service__title-row { width: fill; spacing: 14; align_y: center; }
       .service__title     { width: fill; }
       /* Título editável: um input sem borda e sem fundo próprio, que parece o
-         título comum (mesmo tamanho/peso de .page-head__title). Só o hover/foco
-         tinge o fundo, como pista de que dá para editar. */
-      .service__title-input        { width: fill; size: 30; bold: true; color: var(--text); background: var(--bg); border_width: 0; padding: 0 6; }
+         título comum (mesmo tamanho/peso de .page-head__title). Só o
+         hover/foco tinge o fundo, como pista de que dá para editar. */
+      .service__title-input {
+        width: fill;
+        size: 30;
+        bold: true;
+        color: var(--text);
+        background: var(--bg);
+        border_width: 0;
+        padding: 0 6;
+      }
       .service__title-input:hover  { background: var(--surface); }
       .service__title-input:focus  { background: var(--surface); }
       /* Sub-linha de status (badge + timer) logo abaixo do nome. */
@@ -40,20 +88,43 @@ component {
       /* Deployments (lista + build log) */
       .table__col-dep-id        { width: 130; }
       .table__col-dep-start     { width: fill; }
-      .deployments__image       { size: 11; color: var(--faint); padding: 2 0 0 0; }
+      .deployments__image {
+        size: 11;
+        color: var(--faint);
+        padding: 2 0 0 0;
+      }
       .deployments__wrap        { width: fill; height: fill; spacing: 8; }
       .deployments__list-scroll { width: fill; height: 240; }
       .deployments__actions     { spacing: 8; align_y: center; }
-      /* Logs (aba Logs = launcher da janela isolada; painel usado só p/ layout) */
-      .log-panel       { width: fill; height: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 14 16; spacing: 8; }
+      /* Logs (aba Logs = launcher da janela isolada; painel usado só p/
+         layout) */
+      .log-panel {
+        width: fill;
+        height: fill;
+        background: var(--surface);
+        border_radius: 6;
+        border_width: 1;
+        border_color: var(--border);
+        padding: 14 16;
+        spacing: 8;
+      }
       .log-panel__body { width: fill; spacing: 2; }
       .log-panel__line { width: fill; spacing: 12; }
       .log-panel__time { width: 76; size: 11; color: var(--faint); }
       .log-panel__text { width: fill; size: 12; color: #9DA7B3; }
       /* Painel lateral (o `--fill` troca só a altura e o respiro) */
-      .aside-panel        { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 18; spacing: 8; }
+      .aside-panel {
+        width: fill;
+        background: var(--surface);
+        border_radius: 6;
+        border_width: 1;
+        border_color: var(--border);
+        padding: 18;
+        spacing: 8;
+      }
       .aside-panel--fill  { height: fill; padding: 14 16; }
-      /* Responsivo: estreita o painel lateral e aperta o corpo (glacier-ui 0.9.0+). */
+      /* Responsivo: estreita o painel lateral e aperta o corpo (glacier-ui
+         0.9.0+). */
       @media (max-width: 900) {
         .service__aside { width: 240; }
         .service__body  { spacing: 12; }
@@ -87,7 +158,10 @@ component {
         }
 
         row(class = service__substatus) {
-          rp-badge(color = @service_status_color, label = @service_status_label)
+          rp-badge(
+            color = @service_status_color,
+            label = @service_status_label
+          )
 
           rp-badge(
             if = @service_pending_deploy_visible,
@@ -126,9 +200,10 @@ component {
           color = @service_action_color,
         )
 
-        // As ações num split button (glacier-ui 0.164; pintado pela `.btn` desde a 0.166): Deploy à esquerda, o
-        // resto no "▾"; o Stop fica fora do menu, à mão e em vermelho. Os
-        // `disabled = @busy_*` valem nos itens também (glacier-ui 0.165).
+        // As ações num split button (glacier-ui 0.164; pintado pela `.btn`
+        // desde a 0.166): Deploy à esquerda, o resto no "▾"; o Stop fica fora
+        // do menu, à mão e em vermelho. Os `disabled = @busy_*` valem nos
+        // itens também (glacier-ui 0.165).
         row(class = "service__actions service__actions--compact") {
           dropdownbutton(
             label = "▶",
@@ -137,8 +212,16 @@ component {
             button_class = "btn btn--primary",
             tooltip = "{t('service.deploy')}",
           ) {
-            menuitem(label = "{t('service.reload')}", on_click = service_reload, disabled = @busy_service_reload)
-            menuitem(label = "{t('service.rebuild')}", on_click = service_rebuild, disabled = @busy_service_rebuild)
+            menuitem(
+              label = "{t('service.reload')}",
+              on_click = service_reload,
+              disabled = @busy_service_reload
+            )
+            menuitem(
+              label = "{t('service.rebuild')}",
+              on_click = service_rebuild,
+              disabled = @busy_service_rebuild
+            )
             menuitem(
               label = "{t('service.warm')}",
               on_click = service_warm,
@@ -147,7 +230,11 @@ component {
               equals = true,
             )
             menuseparator
-            menuitem(label = "{t('service.export_service')}", on_click = open_export_window, disabled = @busy_open_export_window)
+            menuitem(
+              label = "{t('service.export_service')}",
+              on_click = open_export_window,
+              disabled = @busy_open_export_window
+            )
           }
 
           button(
@@ -167,8 +254,16 @@ component {
           disabled = @busy_service_deploy,
           button_class = "btn btn--primary",
         ) {
-          menuitem(label = "{t('service.reload')}", on_click = service_reload, disabled = @busy_service_reload)
-          menuitem(label = "{t('service.rebuild')}", on_click = service_rebuild, disabled = @busy_service_rebuild)
+          menuitem(
+            label = "{t('service.reload')}",
+            on_click = service_reload,
+            disabled = @busy_service_reload
+          )
+          menuitem(
+            label = "{t('service.rebuild')}",
+            on_click = service_rebuild,
+            disabled = @busy_service_rebuild
+          )
           menuitem(
             label = "{t('service.warm')}",
             on_click = service_warm,
@@ -177,7 +272,11 @@ component {
             equals = true,
           )
           menuseparator
-          menuitem(label = "{t('service.export_service')}", on_click = open_export_window, disabled = @busy_open_export_window)
+          menuitem(
+            label = "{t('service.export_service')}",
+            on_click = open_export_window,
+            disabled = @busy_open_export_window
+          )
         }
 
         button(
@@ -302,7 +401,10 @@ component {
       column(class = service__aside) {
         column(class = aside-panel) {
           text("{t('common.status')}", class = u-label-cap)
-          rp-badge(color = @service_status_color, label = @service_status_label)
+          rp-badge(
+            color = @service_status_color,
+            label = @service_status_label
+          )
           text("{t('common.uptime')}", class = u-label-cap)
           text("@daemon_uptime", class = kv-list__val)
           text("{t('common.services')}", class = u-label-cap)

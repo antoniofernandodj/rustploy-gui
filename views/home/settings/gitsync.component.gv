@@ -1,6 +1,7 @@
-// Settings → Sincronização: o estado de infra (projetos, serviços, jobs, secrets cifrados)
-// versionado num repositório git. Fases 6 e 7 de docs/plano-backup-estado-em-git.md. O
-// STATUS vem no snapshot (format/state_git.luau → ctx.state_git_*); a webui faz o mesmo em
+// Settings → Sincronização: o estado de infra (projetos, serviços, jobs,
+// secrets cifrados) versionado num repositório git. Fases 6 e 7 de
+// docs/plano-backup-estado-em-git.md. O STATUS vem no snapshot
+// (format/state_git.luau → ctx.state_git_*); a webui faz o mesmo em
 // `webui/index.html` (aba "Sync"): mude os dois juntos.
 component {
   resources {
@@ -43,7 +44,10 @@ component {
         )
       }
 
-      field(label = "{t('settings_gitsync.mode')}", label_class = u-label-cap) {
+      field(
+        label = "{t('settings_gitsync.mode')}",
+        label_class = u-label-cap
+      ) {
         scroll(class = tabs__scroll, direction = horizontal) {
           tabbar(
             :value = state_git_form_mode,
@@ -73,7 +77,12 @@ component {
       if @state_git_form_mode == "sync" {
         text("{t('settings_gitsync.repository')}", class = u-label-cap)
 
-        form(error_prefix = error_, name = state_git, on_submit = state_git_save, class = "form form--gap-8") {
+        form(
+          error_prefix = error_,
+          name = state_git,
+          on_submit = state_git_save,
+          class = "form form--gap-8"
+        ) {
           input(
             placeholder = "{t('settings_gitsync.repository_placeholder')}",
             class = field__input,
@@ -81,7 +90,10 @@ component {
           )
         }
 
-        field(label = "{t('settings_gitsync.git_account')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_gitsync.git_account')}",
+          label_class = u-label-cap
+        ) {
           select(
             class = form-select,
             :options = gitea_providers,
@@ -146,7 +158,7 @@ component {
       }
     }
 
-    // ── Situação ──────────────────────────────────────────────────────────────────────────
+    // ── Situação ────────────────────────────────────────────────────────────
     if @state_git_is_enabled == "true" {
       column(class = form-panel) {
         text("{t('settings_gitsync.status')}", class = u-label-cap)
@@ -200,7 +212,7 @@ component {
       }
     }
 
-    // ── Divergência: o servidor não decide qual lado vence ───────────────────────────────
+    // ── Divergência: o servidor não decide qual lado vence ──────────────────
     if @state_git_is_paused == "true" {
       column(class = form-panel) {
         text("{t('settings_gitsync.diverged_title')}", class = u-label-cap)
@@ -235,7 +247,7 @@ component {
       }
     }
 
-    // ── Commit do repositório recusado ───────────────────────────────────────────────────
+    // ── Commit do repositório recusado ──────────────────────────────────────
     if @state_git_has_rejected == "true" {
       column(class = form-panel) {
         text("{t('settings_gitsync.rejected_title')}", class = u-label-cap)
@@ -245,7 +257,8 @@ component {
       }
     }
 
-    // ── Removidos no git: o container, os volumes e os dados NÃO foram tocados ───────────
+    // ── Removidos no git: o container, os volumes e os dados NÃO foram
+    // tocados ───────────
     if @state_git_removed_count != "0" {
       column(class = form-panel) {
         text("{t('settings_gitsync.removed_title')}", class = u-label-cap)
@@ -271,7 +284,7 @@ component {
       }
     }
 
-    // ── Auditoria: a trava para ligar (e para commitar) ──────────────────────────────────
+    // ── Auditoria: a trava para ligar (e para commitar) ─────────────────────
     column(class = form-panel) {
       text(
         "{t('settings_gitsync.plaintext_title', count=state_git_audit_count)}",
@@ -312,8 +325,9 @@ component {
       }
     }
 
-    // Baixar a infra: os mesmos arquivos que vão para o repositório (secrets cifrados).
-    // A webui tem o mesmo painel em `webui/index.html` (aba "Sync"): mude os dois juntos.
+    // Baixar a infra: os mesmos arquivos que vão para o repositório (secrets
+    // cifrados). A webui tem o mesmo painel em `webui/index.html` (aba
+    // "Sync"): mude os dois juntos.
     column(class = form-panel) {
       text("{t('settings_gitsync.download_infra_title')}", class = u-label-cap)
 

@@ -42,7 +42,10 @@ component {
       hr
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
-      field(label = "{t('settings_git.connect_git_account')}", label_class = u-label-cap) {
+      field(
+        label = "{t('settings_git.connect_git_account')}",
+        label_class = u-label-cap
+      ) {
         scroll(class = tabs__scroll, direction = horizontal) {
           row(class = tabs__main) {
             TabButton(
@@ -85,7 +88,11 @@ component {
       ) {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
-            field(label = "{t('common.name')}", label_class = u-label-cap, error = @error_git_provider_name) {
+            field(
+              label = "{t('common.name')}",
+              label_class = u-label-cap,
+              error = @error_git_provider_name
+            ) {
               input(
                 placeholder = "{t('settings_git.my_gitea')}",
                 class = field__input,
@@ -97,7 +104,10 @@ component {
           }
 
           column(class = healthcheck__field) {
-            field(label = "{t('settings_git.base_url')}", label_class = u-label-cap) {
+            field(
+              label = "{t('settings_git.base_url')}",
+              label_class = u-label-cap
+            ) {
               input(
                 placeholder = "{t('settings_git.https_gitea_example_com')}",
                 class = field__input,
@@ -116,7 +126,10 @@ component {
           }
         }
 
-        field(label = "{t('settings_git.method')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_git.method')}",
+          label_class = u-label-cap
+        ) {
           scroll(class = tabs__scroll, direction = horizontal) {
             tabbar(
               :value = git_provider_mode,
@@ -133,7 +146,10 @@ component {
 
         // OAuth2
         if @git_provider_mode != "pat" {
-          field(label = "{t('settings_git.client_id')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_git.client_id')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "",
               class = field__input,
@@ -143,7 +159,10 @@ component {
             )
           }
 
-          field(label = "{t('settings_git.client_secret')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_git.client_secret')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "",
               secure = true,
@@ -159,8 +178,12 @@ component {
             class = u-label-cap,
           )
 
-          // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
-          inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:git_provider_redirect") {
+          // o valor num campo só de leitura, com o Copiar colado (inputgroup,
+          // glacier-ui 0.164)
+          inputgroup(
+            action = "{t('common.copy')}",
+            on_action = "copy_ctx:git_provider_redirect"
+          ) {
             input(:value = git_provider_redirect, readonly = true)
           }
 
@@ -181,7 +204,10 @@ component {
 
         // PAT
         if @git_provider_mode == "pat" {
-          field(label = "{t('settings_git.personal_access_token')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_git.personal_access_token')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "",
               secure = true,
@@ -200,7 +226,7 @@ component {
           )
 
           text(
-            "{t('settings_git.on_github_settings_developer_settings_personal')}",
+            "{t('settings_git.on_github_developer_settings_personal')}",
             if = @git_provider_kind,
             equals = github,
             class = u-muted,

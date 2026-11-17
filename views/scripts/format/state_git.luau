@@ -1,10 +1,11 @@
 --!strict
 -- format/state_git.luau — a sincronização do estado com o git (Fases 6 e 7 de
--- docs/plano-backup-estado-em-git.md) vista pela GUI: o aviso do topo, os textos
--- da tela Settings → Sync, as listas "removidos no git" e "valores em claro", o
--- selo "mudança pendente de deploy" e o dono do container órfão. Tudo vem do
--- snapshot (`snapshot.state_git`, `snapshot.infra_audit`); nada aqui fala com a
--- rede. A webui faz o mesmo em `webui/app.js` (`stateGit*`) — mude os dois juntos.
+-- docs/plano-backup-estado-em-git.md) vista pela GUI: o aviso do topo, os
+-- textos da tela Settings → Sync, as listas "removidos no git" e "valores em
+-- claro", o selo "mudança pendente de deploy" e o dono do container órfão.
+-- Tudo vem do snapshot (`snapshot.state_git`, `snapshot.infra_audit`); nada
+-- aqui fala com a rede. A webui faz o mesmo em `webui/app.js` (`stateGit*`) —
+-- mude os dois juntos.
 
 local Time = require("time")
 local Util = require("util")
@@ -60,13 +61,15 @@ function M.alert_message(status: Status?): string
     end
     if status.paused_reason ~= nil and status.paused_reason ~= "" then
         return i18n.tr(
-            "Sincronização com o git pausada: o histórico divergiu. Abra Settings → Sync."
+            "Sincronização com o git pausada: o histórico divergiu. Abra "
+                .. "Settings → Sync."
         )
     end
     if status.incoming_rejected ~= nil then
         return string.format(
             i18n.tr(
-                "Um commit do repositório foi recusado (%s). Abra Settings → Sync."
+                "Um commit do repositório foi recusado (%s). Abra Settings → "
+                    .. "Sync."
             ),
             short(status.incoming_rejected.sha)
         )
@@ -74,7 +77,8 @@ function M.alert_message(status: Status?): string
     if (status.blocked_by_plaintext or 0) > 0 then
         return string.format(
             i18n.tr(
-                "Commits suspensos: %d valor(es) em claro. Abra Settings → Sync."
+                "Commits suspensos: %d valor(es) em claro. Abra Settings → "
+                    .. "Sync."
             ),
             status.blocked_by_plaintext or 0
         )

@@ -4,10 +4,10 @@
 --
 -- Encapsula base_url + header Authorization e expõe `rpc(cmd)`: faz
 -- POST /api/rpc com o Command em JSON e devolve a Response decodificada. Fala
--- pelo cliente `http()` do glacier (glacier-ui 0.145+), que SUSPENDE a corrotina
--- da ação (async/await) — a UI não trava enquanto espera a resposta. O cliente
--- guarda base_url, Authorization e o teto de tempo num lugar só; a tradução de
--- "falhou" para texto (`failure_text`) também.
+-- pelo cliente `http()` do glacier (glacier-ui 0.145+), que SUSPENDE a
+-- corrotina da ação (async/await) — a UI não trava enquanto espera a resposta.
+-- O cliente guarda base_url, Authorization e o teto de tempo num lugar só; a
+-- tradução de "falhou" para texto (`failure_text`) também.
 --
 -- `rpc` é POST: o cliente NUNCA repete um POST sozinho (o primeiro pode ter
 -- chegado ao daemon — repetir um `ServiceDelete` ou um deploy seria perigoso).
@@ -49,8 +49,9 @@ function M.failure_text(http_response: any): string
         return tostring(http_response.error)
     end
 
-    -- O daemon explica a recusa no corpo (ex.: um ServiceUpdate que omite campos gravados). Sem isto a
-    -- tela só dizia "HTTP 400" e escondia o motivo.
+    -- O daemon explica a recusa no corpo (ex.: um ServiceUpdate que omite
+    -- campos gravados). Sem isto a tela só dizia "HTTP 400" e escondia o
+    -- motivo.
     local body = http_response.body
     if type(body) == "string" and body ~= "" and #body <= 600 then
         return "HTTP " .. tostring(http_response.status) .. ": " .. body
@@ -186,8 +187,9 @@ function M:upload_archive(
     return true, decoded
 end
 
---- Baixa o pacote de dados do serviço (`GET /api/services/<id>/data/export`) direto para `path`
---- (bytes crus, sem passar pelo Lua). Só a chave mestra. `(true, nil)` ou `(false, mensagem)`.
+--- Baixa o pacote de dados do serviço (`GET /api/services/<id>/data/export`)
+--- direto para `path` (bytes crus, sem passar pelo Lua). Só a chave mestra.
+--- `(true, nil)` ou `(false, mensagem)`.
 function M.download_service_data(
     self: Client,
     service_id: string,
@@ -215,8 +217,9 @@ function M.download_service_data(
     return true, nil
 end
 
---- Envia um `.rpdata` (`body_file`) para `POST /api/services/<id>/data/import`. Sem `confirm` só
---- confere e devolve o que seria substituído; com `confirm` aplica. Retorna `(true, relatório)`.
+--- Envia um `.rpdata` (`body_file`) para `POST
+--- /api/services/<id>/data/import`. Sem `confirm` só confere e devolve o que
+--- seria substituído; com `confirm` aplica. Retorna `(true, relatório)`.
 function M:upload_service_data(
     service_id: string,
     path: string,

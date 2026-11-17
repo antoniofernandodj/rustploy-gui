@@ -502,7 +502,8 @@ function test_ingress_portas_e_monitoramento__portas_de_host_so_quem_tem_host()
     assert_eq(linhas[1].host_port_n, 80)
 end
 
---- portas de host: uma linha por porta da lista nova, com a porta do container e o rótulo
+--- portas de host: uma linha por porta da lista nova, com a porta do container
+--- e o rótulo
 function test_ingress_portas_e_monitoramento__uma_linha_por_porta_tcp()
     local s3 = par("s3", "p")
     s3.svc.spec.port = 9000
@@ -741,10 +742,13 @@ function test_motor_de_deploy__a_fila_numera_de_1_e_guarda_o_id_para_cancelar()
     assert_eq(Dashboard.deploy_engine_queued({}), "[]")
 end
 
---- job e aquecimento entram nas três listas, com o selo antes do nome; só deploy tem "Detalhes"
+--- job e aquecimento entram nas três listas, com o selo antes do nome; só
+--- deploy tem "Detalhes"
 function test_motor_de_deploy__job_e_aquecimento_levam_selo_nas_tres_listas()
-    local job = { kind = "Job", service_name = "limpeza", deployment_id = "jrun_1" }
-    local warm = { kind = "Warm", service_name = "limpeza", deployment_id = "jwarm_1" }
+    local job =
+        { kind = "Job", service_name = "limpeza", deployment_id = "jrun_1" }
+    local warm =
+        { kind = "Warm", service_name = "limpeza", deployment_id = "jwarm_1" }
 
     local fila = json.decode(Dashboard.deploy_engine_queued({
         info("Pending", job),
@@ -754,9 +758,17 @@ function test_motor_de_deploy__job_e_aquecimento_levam_selo_nas_tres_listas()
     -- (o nome é truncado pela largura da coluna; o selo vem inteiro à frente)
     assert_match(fila[1].service, "^%[job%]")
     assert_match(fila[2].service, "^%[.+%]")
-    assert_ne(fila[1].service, fila[2].service, "job e aquecimento têm selos diferentes")
+    assert_ne(
+        fila[1].service,
+        fila[2].service,
+        "job e aquecimento têm selos diferentes"
+    )
     assert_eq(fila[3].service, "api", "deploy não leva selo")
-    assert_eq(fila[1].deployment_id, "jrun_1", "o id da execução serve a promover/cancelar")
+    assert_eq(
+        fila[1].deployment_id,
+        "jrun_1",
+        "o id da execução serve a promover/cancelar"
+    )
 
     local ativos = json.decode(Dashboard.deploy_engine_active({
         info("ComposingUp", job),
@@ -800,7 +812,10 @@ function test_motor_de_deploy__o_historico_leva_o_id_do_projeto()
         info("Live", { service_id = "svc_1" }),
         info("Live", { service_id = "svc_x" }),
     }, {
-        { svc = { id = "svc_1", spec = { project_id = "prj_9" } }, proj = "p" },
+        {
+            svc = { id = "svc_1", spec = { project_id = "prj_9" } },
+            proj = "p",
+        },
     }))
     assert_eq(linhas[1].project_id, "prj_9")
     assert_eq(linhas[2].project_id, "")
@@ -809,7 +824,10 @@ end
 --- ativos e fila levam o id do projeto, achado pelo serviço
 function test_motor_de_deploy__ativos_e_fila_levam_o_id_do_projeto()
     local pares = {
-        { svc = { id = "svc_1", spec = { project_id = "prj_9" } }, proj = "p" },
+        {
+            svc = { id = "svc_1", spec = { project_id = "prj_9" } },
+            proj = "p",
+        },
     }
     local ativos = json.decode(
         Dashboard.deploy_engine_active(

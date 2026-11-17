@@ -77,8 +77,8 @@ function init(): ()
     ctx.new_job_name = ""
     ctx.new_job_compose = ""
     ctx.new_job_main_service = ""
-    -- Variáveis do job novo (lista local, ver draft_env_start): publicadas já aqui para o markup
-    -- nunca ler chave inexistente.
+    -- Variáveis do job novo (lista local, ver draft_env_start): publicadas já
+    -- aqui para o markup nunca ler chave inexistente.
     ctx.new_job_env_key = ""
     ctx.new_job_env_value = ""
     ctx.new_job_env_is_secret = "false"
@@ -105,9 +105,10 @@ function init(): ()
     ctx.new_job_git_busy = ""
     ctx.new_job_busy = ""
 
-    -- Envs e secrets do job: no passo "env" (painel compartilhado, scripts/job_env_core.luau), que
-    -- mexe direto no daemon por `job_id` — por isso só existe com o job criado (na edição, já está;
-    -- na criação, aparece logo depois de "Criar job").
+    -- Envs e secrets do job: no passo "env" (painel compartilhado,
+    -- scripts/job_env_core.luau), que mexe direto no daemon por `job_id` — por
+    -- isso só existe com o job criado (na edição, já está; na criação, aparece
+    -- logo depois de "Criar job").
     ctx.new_job_created_id = ""
     ctx.new_job_env_seed = ""
 
@@ -134,8 +135,9 @@ function init(): ()
         if json_decode_ok and type(job) == "table" then
             ctx.new_job_edit_id = job.id
             ctx.new_job_project_id = job.project_id or ""
-            -- Envs do Job como vieram (o painel as relê do daemon); o "Salvar" do formulário as
-            -- reenvia no JobUpdate, então precisa delas — não pode apagar o que o painel gravou.
+            -- Envs do Job como vieram (o painel as relê do daemon); o "Salvar"
+            -- do formulário as reenvia no JobUpdate, então precisa delas — não
+            -- pode apagar o que o painel gravou.
             ctx.new_job_env_seed = json.encode({
                 env_vars = job.env_vars or json.array({}),
                 env_comments = job.env_comments or json.array({}),
@@ -168,10 +170,11 @@ function init(): ()
 end
 
 -- ── Variáveis do job já na criação ──────────────────────────────────────────
--- O job ainda não existe, então as variáveis ficam numa lista local e vão no próprio JobCreate
--- (`env_vars`). A chave e o valor de cada linha são campos sem borda que mudam a lista na hora —
--- nada é gravado até "Criar job". "usar secret" escolhe um secret do serviço gatilho ou do projeto
--- (os do próprio job só existem depois de criado: o passo seguinte cuida deles).
+-- O job ainda não existe, então as variáveis ficam numa lista local e vão no
+-- próprio JobCreate (`env_vars`). A chave e o valor de cada linha são campos
+-- sem borda que mudam a lista na hora — nada é gravado até "Criar job". "usar
+-- secret" escolhe um secret do serviço gatilho ou do projeto (os do próprio
+-- job só existem depois de criado: o passo seguinte cuida deles).
 
 type DraftEnv = { key: string, value: string, secret: string? }
 local draft_env: { DraftEnv } = {}
@@ -195,7 +198,8 @@ local function draft_env_publish(): ()
     ctx.new_job_env_count = tostring(#draft_env)
 end
 
--- Os secrets que a variável pode usar, na ordem em que o daemon procura: serviço gatilho, projeto.
+-- Os secrets que a variável pode usar, na ordem em que o daemon procura:
+-- serviço gatilho, projeto.
 local function draft_env_secret_options(): ()
     local api = client()
     local options = {}
@@ -205,13 +209,23 @@ local function draft_env_secret_options(): ()
             return
         end
         local ok, response = api:rpc {
-            SecretList = { project_id = ctx.new_job_project_id, service_id = service_id },
+            SecretList = {
+                project_id = ctx.new_job_project_id,
+                service_id = service_id,
+            },
         }
-        if ok and type(response) == "table" and type(response.SecretNames) == "table" then
+        if
+            ok
+            and type(response) == "table"
+            and type(response.SecretNames) == "table"
+        then
             for _, name in ipairs(response.SecretNames) do
                 if not seen[name] then
                     seen[name] = true
-                    table.insert(options, { name = name, label = name .. suffix })
+                    table.insert(
+                        options,
+                        { name = name, label = name .. suffix }
+                    )
                 end
             end
         end
@@ -253,7 +267,8 @@ function new_job_env_add(): ()
         end
         value = ""
     end
-    -- A mesma chave duas vezes: a nova substitui a antiga, como no painel de um job já criado.
+    -- A mesma chave duas vezes: a nova substitui a antiga, como no painel de
+    -- um job já criado.
     local kept: { DraftEnv } = {}
     for _, env_var in ipairs(draft_env) do
         if env_var.key ~= key then
@@ -292,7 +307,8 @@ function new_job_env_row_value(index: string, value: string): ()
     end
 end
 
--- As linhas como o JobCreate as quer (`{ key, value = { Plain } | { Secret } }`); chave vazia sai.
+-- As linhas como o JobCreate as quer (`{ key, value = { Plain } | { Secret }
+-- }`); chave vazia sai.
 local function draft_env_vars(): any
     local vars = json.array({})
     for _, env_var in ipairs(draft_env) do
@@ -300,7 +316,8 @@ local function draft_env_vars(): any
         if key ~= "" then
             table.insert(vars, {
                 key = key,
-                value = env_var.secret and { Secret = env_var.secret } or { Plain = env_var.value },
+                value = env_var.secret and { Secret = env_var.secret }
+                    or { Plain = env_var.value },
             })
         end
     end
@@ -338,7 +355,8 @@ function new_job_source(kind: string): ()
                 format.git_providers(git_provider_list_response.GitProviders)
             ctx.new_job_git_message = ""
         else
-            ctx.new_job_git_message = i18n.tr("erro ao listar contas conectadas")
+            ctx.new_job_git_message =
+                i18n.tr("erro ao listar contas conectadas")
         end
     end
 end
@@ -480,7 +498,8 @@ end
 function new_job_create(): ()
     local api = client()
     if not api then
-        ctx.new_job_error = i18n.tr("sem conexão — reabra a janela pelo app")
+        ctx.new_job_error =
+            i18n.tr("sem conexão — reabra a janela pelo app")
         return
     end
     local name = Helpers.trim(ctx.new_job_name)
@@ -490,8 +509,9 @@ function new_job_create(): ()
     end
     local main_service = Helpers.trim(ctx.new_job_main_service)
     if main_service == "" then
-        ctx.new_job_error =
-            i18n.tr("informe o main_service (nome do serviço dentro do compose)")
+        ctx.new_job_error = i18n.tr(
+            "informe o main_service (nome do serviço dentro do compose)"
+        )
         return
     end
 
@@ -521,7 +541,10 @@ function new_job_create(): ()
             end
         end
         if url == "" then
-            ctx.new_job_error = i18n.tr("não foi possível resolver a URL do repositório — selecione de novo")
+            ctx.new_job_error = i18n.tr(
+                "não foi possível resolver a URL do repositório — selecione "
+                    .. "de novo"
+            )
             return
         end
         git_source = {
@@ -568,8 +591,9 @@ function new_job_create(): ()
     end
 
     local editing = ctx.new_job_edit_id ~= ""
-    -- Envs: na criação, as da lista local (o passo seguinte cuida dos secrets do job); na edição, as mais
-    -- recentes (do painel, se foi aberto; senão, as do job como vieram).
+    -- Envs: na criação, as da lista local (o passo seguinte cuida dos secrets
+    -- do job); na edição, as mais recentes (do painel, se foi aberto; senão,
+    -- as do job como vieram).
     local env_vars: any = json.array({})
     local env_comments: any = json.array({})
     if not editing then
@@ -581,7 +605,8 @@ function new_job_create(): ()
             env_vars = current.env_vars or env_vars
             env_comments = current.env_comments or env_comments
         else
-            local seed_ok, seed = pcall(json.decode, ctx.new_job_env_seed or "")
+            local seed_ok, seed =
+                pcall(json.decode, ctx.new_job_env_seed or "")
             if seed_ok and type(seed) == "table" then
                 env_vars = seed.env_vars or env_vars
                 env_comments = seed.env_comments or env_comments
@@ -589,7 +614,8 @@ function new_job_create(): ()
         end
     end
 
-    ctx.new_job_message = editing and i18n.tr("salvando…") or i18n.tr("criando…")
+    ctx.new_job_message = editing and i18n.tr("salvando…")
+        or i18n.tr("criando…")
     ctx.new_job_busy = "true"
     local save_ok, save_response
     if editing then
@@ -634,7 +660,8 @@ function new_job_create(): ()
         { id = job.id, name = job.name or name }
     )
     if not editing and job.id then
-        -- Criado: segue para as variáveis e secrets do job (o `job_id` agora existe).
+        -- Criado: segue para as variáveis e secrets do job (o `job_id` agora
+        -- existe).
         ctx.new_job_message = ""
         ctx.new_job_created_id = job.id
         open_env_step(job.id, ctx.new_job_project_id)
@@ -662,7 +689,8 @@ function new_job_open_env(): ()
     open_env_step(ctx.new_job_edit_id, ctx.new_job_project_id)
 end
 
--- Do painel de volta ao formulário (só na edição; na criação o job já foi salvo e só resta fechar).
+-- Do painel de volta ao formulário (só na edição; na criação o job já foi
+-- salvo e só resta fechar).
 function new_job_env_back(): ()
     Core.reset_forms()
     ctx.new_job_step = "form"

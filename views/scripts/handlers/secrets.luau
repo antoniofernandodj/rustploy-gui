@@ -82,7 +82,8 @@ function secret_delete(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover secret?"),
         message = i18n.tr(
-            'O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam "'
+            "O valor cifrado será apagado e não há como recuperá-lo. "
+                .. 'Variáveis que referenciam "'
         )
             .. name
             .. i18n.tr('" passarão a receber valor vazio no próximo deploy.'),
@@ -128,8 +129,9 @@ function project_env_secret_toggle(): ()
     ctx.project_env_new_value = ""
 end
 
--- Checkbox "usar secret" do form de adicionar (projeto e serviço): liga/desliga o modo e limpa o
--- valor — num modo ele é o texto digitado, no outro o NOME do secret escolhido na lista.
+-- Checkbox "usar secret" do form de adicionar (projeto e serviço):
+-- liga/desliga o modo e limpa o valor — num modo ele é o texto digitado, no
+-- outro o NOME do secret escolhido na lista.
 function project_env_new_use_secret(value: any): ()
     ctx.project_env_new_is_secret = Helpers.is_true(value) and "true"
         or "false"
@@ -142,8 +144,8 @@ function env_new_use_secret(value: any): ()
 end
 
 -- ── Movimentos (SecretMove) a partir do PROJETO ─────────────────────────────
--- O destino dos "↓ para o serviço" é o serviço escolhido no <select> do topo da aba
--- (ctx.move_target_service_id); os outros movimentos não precisam dele.
+-- O destino dos "↓ para o serviço" é o serviço escolhido no <select> do topo
+-- da aba (ctx.move_target_service_id); os outros movimentos não precisam dele.
 
 function move_target_pick(service_id: string): ()
     ctx.move_target_service_id = service_id or ""
@@ -194,7 +196,9 @@ end
 function project_env_to_secret(key: string): ()
     local confirmed = confirm {
         title = i18n.tr("Mover para secret?"),
-        message = i18n.tr('O valor de "') .. key .. i18n.tr('" passa a ser guardado cifrado.'),
+        message = i18n.tr('O valor de "') .. key .. i18n.tr(
+            '" passa a ser guardado cifrado.'
+        ),
         confirm_label = i18n.tr("Mover para secret"),
     }
     if not confirmed then
@@ -214,7 +218,8 @@ function project_secret_to_env(name: string): ()
         message = i18n.tr('O valor de "')
             .. name
             .. i18n.tr(
-                '" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado).'
+                '" deixa de ser cifrado e passa a aparecer em claro na '
+                    .. "variável (e no estado versionado)."
             ),
         confirm_label = i18n.tr("Mover para variável"),
         destructive = true,
@@ -237,7 +242,12 @@ function project_secret_to_service(name: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Mover para o serviço?"),
-        message = i18n.tr('O secret "') .. name .. i18n.tr('" vai para o serviço escolhido; os outros serviços e jobs deixam de enxergá-lo.'),
+        message = i18n.tr('O secret "')
+            .. name
+            .. i18n.tr(
+                '" vai para o serviço escolhido; os outros serviços e jobs '
+                    .. "deixam de enxergá-lo."
+            ),
         confirm_label = i18n.tr("Mover para o serviço"),
     }
     if not confirmed then
@@ -258,7 +268,12 @@ function project_env_to_service(key: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Mover para o serviço?"),
-        message = i18n.tr('A variável "') .. key .. i18n.tr('" vai para o serviço escolhido; os outros serviços e jobs deixam de herdá-la.'),
+        message = i18n.tr('A variável "')
+            .. key
+            .. i18n.tr(
+                '" vai para o serviço escolhido; os outros serviços e jobs '
+                    .. "deixam de herdá-la."
+            ),
         confirm_label = i18n.tr("Mover para o serviço"),
     }
     if not confirmed then
@@ -273,33 +288,45 @@ function project_env_to_service(key: string): ()
 end
 
 -- ── O nome de um secret do projeto, editado no lugar ────────────────────────
--- Sem botão "Renomear": o nome é um campo sem borda que renomeia (SecretRename — o valor nunca passa
--- pela tela) meio segundo depois da última tecla, como o nome do projeto. Ver handlers/secret_rows.luau.
+-- Sem botão "Renomear": o nome é um campo sem borda que renomeia (SecretRename
+-- — o valor nunca passa pela tela) meio segundo depois da última tecla, como o
+-- nome do projeto. Ver handlers/secret_rows.luau.
 
 function project_secret_name_change(name: string, value: string): ()
-    SecretRows.change("project", "project_secrets", name, value, function(from: string, to: string): boolean
-        local project_id = ctx.selected_project_id or ""
-        local api = State.api
-        if project_id == "" or not api then
-            return false
+    SecretRows.change(
+        "project",
+        "project_secrets",
+        name,
+        value,
+        function(from: string, to: string): boolean
+            local project_id = ctx.selected_project_id or ""
+            local api = State.api
+            if project_id == "" or not api then
+                return false
+            end
+            local rename_ok, rename_response = api:rpc_checked {
+                SecretRename = {
+                    project_id = project_id,
+                    from = from,
+                    to = to,
+                },
+            }
+            if not rename_ok then
+                toast { message = tostring(rename_response), kind = "error" }
+                return false
+            end
+            Stream.refresh_now()
+            return true
         end
-        local rename_ok, rename_response = api:rpc_checked {
-            SecretRename = { project_id = project_id, from = from, to = to },
-        }
-        if not rename_ok then
-            toast { message = tostring(rename_response), kind = "error" }
-            return false
-        end
-        Stream.refresh_now()
-        return true
-    end)
+    )
 end
 
 -- ── Linha de variável editável no lugar (handlers/env_rows.luau) ────────────
--- A chave e o valor são campos sem borda; o "usar secret" troca o valor por uma lista de secrets.
--- Digitar só muda o rascunho; o OK pede confirmação e grava: EnvValueSet (o valor) e depois
--- EnvKeyRename (a chave — o EnvValueSet ainda acha a variável pelo nome antigo). O sufixo de cada
--- ação é a chave GRAVADA da variável (`service_env_row_key:@e.key`); o `value` é o que mudou.
+-- A chave e o valor são campos sem borda; o "usar secret" troca o valor por
+-- uma lista de secrets. Digitar só muda o rascunho; o OK pede confirmação e
+-- grava: EnvValueSet (o valor) e depois EnvKeyRename (a chave — o EnvValueSet
+-- ainda acha a variável pelo nome antigo). O sufixo de cada ação é a chave
+-- GRAVADA da variável (`service_env_row_key:@e.key`); o `value` é o que mudou.
 
 local function env_row_change(
     scope: string,
@@ -353,7 +380,8 @@ local function env_row_save(scope: string, key: string): ()
             },
         }
         if not value_ok then
-            -- O rascunho fica: o que foi digitado não se perde numa recusa do daemon.
+            -- O rascunho fica: o que foi digitado não se perde numa recusa do
+            -- daemon.
             toast { message = tostring(value_response), kind = "error" }
             return
         end
@@ -368,7 +396,8 @@ local function env_row_save(scope: string, key: string): ()
             },
         }
         if not rename_ok then
-            -- O valor (se mudou) já foi gravado; o rascunho fica, com a chave nova por gravar.
+            -- O valor (se mudou) já foi gravado; o rascunho fica, com a chave
+            -- nova por gravar.
             toast { message = tostring(rename_response), kind = "error" }
             if is_service and service_id then
                 Services.fetch_service_detail(service_id)
@@ -436,14 +465,15 @@ function service_env_row_reset(key: string): ()
     EnvRows.reset("service", key)
 end
 
--- Substituído pela linha editável com OK + confirmação (handlers/env_rows.luau e os handlers
--- `*_env_row_*` logo abaixo), 2026-11-16. Fica comentado para referência; pode ser apagado quando
--- o desenho novo assentar.
--- -- ── Edição no lugar da chave/valor de uma variável ──────────────────────────
--- -- O ✏️ (chave) e o ✎ (valor) da linha trocam o texto dela por um campo, na própria posição da
--- -- lista: nada é levado para um formulário no topo (numa lista grande ele ficava fora da tela).
--- -- Enter ou ✓ grava; ✕ desiste. Chave: EnvKeyRename; valor: EnvValueSet (o valor nunca passa
--- -- pela lista inteira, só a variável editada). `ctx.env_edit_id` é "key:NOME" | "value:NOME".
+-- Substituído pela linha editável com OK + confirmação (handlers/env_rows.luau
+-- e os handlers `*_env_row_*` logo abaixo), 2026-11-16. Fica comentado para
+-- referência; pode ser apagado quando o desenho novo assentar. -- ── Edição no
+-- lugar da chave/valor de uma variável ────────────────────────── -- O ✏️
+-- (chave) e o ✎ (valor) da linha trocam o texto dela por um campo, na própria
+-- posição da -- lista: nada é levado para um formulário no topo (numa lista
+-- grande ele ficava fora da tela). -- Enter ou ✓ grava; ✕ desiste. Chave:
+-- EnvKeyRename; valor: EnvValueSet (o valor nunca passa -- pela lista inteira,
+-- só a variável editada). `ctx.env_edit_id` é "key:NOME" | "value:NOME".
 
 -- local function env_row(raw: any, key: string): any?
 --     local rows = raw
@@ -470,8 +500,10 @@ end
 --     local is_secret = row.kind == "secret"
 --     local draft = key
 --     if field == "value" then
---         -- Variável secret: o texto editável é a referência (`secret:NOME`), nunca o valor cifrado.
---         draft = is_secret and ("secret:" .. tostring(row.secret_name)) or tostring(row.value)
+--         -- Variável secret: o texto editável é a referência
+--         -- (`secret:NOME`), nunca o valor cifrado.
+--         draft = is_secret and ("secret:" .. tostring(row.secret_name))
+--             or tostring(row.value)
 --     end
 --     ctx.env_edit_scope = scope
 --     ctx.env_edit_id = field .. ":" .. key
@@ -556,13 +588,15 @@ end
 --         end
 --         Stream.refresh_now()
 --     else
---         -- Fica no modo de edição: o texto digitado não se perde numa recusa do daemon.
+--         -- Fica no modo de edição: o texto digitado não se perde numa
+--         -- recusa do daemon.
 --         toast { message = tostring(response), kind = "error" }
 --     end
 -- end
 
 -- ── Ver o valor de um secret do PROJETO ─────────────────────────────────────
--- SecretReveal grava auditoria (quem, qual, quando; nunca o valor) e fica de fora do MCP.
+-- SecretReveal grava auditoria (quem, qual, quando; nunca o valor) e fica de
+-- fora do MCP.
 
 function secret_reveal(name: string): ()
     local project_id = ctx.selected_project_id or ""
@@ -575,7 +609,9 @@ function secret_reveal(name: string): ()
         message = i18n.tr('O valor de "')
             .. name
             .. i18n.tr(
-                '" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor).'
+                '" vai aparecer na tela. O acesso fica registrado na '
+                    .. "auditoria do servidor (quem, qual secret e quando; "
+                    .. "nunca o valor)."
             ),
         confirm_label = i18n.tr("Ver valor"),
     }

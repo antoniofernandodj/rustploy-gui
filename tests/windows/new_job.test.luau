@@ -173,8 +173,9 @@ function test_novo_job_modo_edicao__git_sem_compose_path_usa_o_padrao()
     assert_eq(tela:get("new_job_compose_path"), "docker-compose.yml")
 end
 
---- as envs do job ficam guardadas para o "Salvar" reenviá-las (o painel as gerencia direto no daemon)
-function test_novo_job_modo_edicao__as_envs_do_job_ficam_guardadas_para_o_salvar()
+--- as envs do job ficam guardadas para o "Salvar" reenviá-las (o painel as
+--- gerencia direto no daemon)
+function test_novo_job_modo_edicao__envs_do_job_ficam_guardadas_para_salvar()
     local tela = editando({
         id = "j",
         project_id = "p1",
@@ -435,7 +436,8 @@ end
 
 -- ── variáveis já na criação (lista local que vai no JobCreate) ─────────────
 
---- ir ao formulário de um job novo zera a lista de variáveis e mostra o form de adicionar
+--- ir ao formulário de um job novo zera a lista de variáveis e mostra o form
+--- de adicionar
 function test_novo_job_envs_na_criacao__o_formulario_tem_o_form_de_variaveis()
     local tela = com_catalogo()
     tela:call("new_job_pick_project", "p1")
@@ -443,7 +445,10 @@ function test_novo_job_envs_na_criacao__o_formulario_tem_o_form_de_variaveis()
     assert_eq(tela:get("new_job_env_rows"), "[]")
     assert_eq(tela:get("new_job_env_count"), "0")
     assert_not_nil(tela:render())
-    assert_true(#tela:find_all({ kind = "checkbox", class = "env__use-secret" }) == 1, "falta o \"usar secret\" do form")
+    assert_true(
+        #tela:find_all({ kind = "checkbox", class = "env__use-secret" }) == 1,
+        'falta o "usar secret" do form'
+    )
 end
 
 --- adicionar, editar no lugar e remover mexem só na lista local
@@ -455,7 +460,11 @@ function test_novo_job_envs_na_criacao__adicionar_editar_e_remover()
     tela:set("new_job_env_value", "mundo")
     tela:call("new_job_env_add")
     assert_eq(tela:get("new_job_env_count"), "1")
-    assert_eq(tela:get("new_job_env_key"), "", "o form esvazia depois de adicionar")
+    assert_eq(
+        tela:get("new_job_env_key"),
+        "",
+        "o form esvazia depois de adicionar"
+    )
     tela:set("new_job_env_key", "TOKEN")
     tela:set("new_job_env_is_secret", "true")
     tela:set("new_job_env_value", "API_TOKEN")
@@ -467,7 +476,8 @@ function test_novo_job_envs_na_criacao__adicionar_editar_e_remover()
     assert_eq(linhas[2].secret, "API_TOKEN")
     -- a linha é editável no lugar: o campo lê a chave do ctx da posição
     assert_not_nil(tela:render())
-    local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
+    local chaves =
+        tela:find_all({ kind = "textinput", class = "env__inline-key" })
     assert_eq(#chaves, 2)
     assert_eq(tela:get(chaves[1].attrs.value_var), "OLA")
     tela:call("new_job_env_row_value:1", "terra")
@@ -479,7 +489,7 @@ function test_novo_job_envs_na_criacao__adicionar_editar_e_remover()
 end
 
 --- secret sem escolher e chave vazia não entram
-function test_novo_job_envs_na_criacao__chave_vazia_e_secret_sem_nome_nao_entram()
+function test_novo_job_envs_na_criacao__chave_vazia_e_secret_sem_nome_fora()
     local tela = com_catalogo()
     tela:call("new_job_pick_project", "p1")
     tela:call("new_job_pick_no_service")

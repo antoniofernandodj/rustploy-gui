@@ -1,13 +1,20 @@
-// Projeto aberto (view = project_services): cabeçalho/edição, sub-abas e grade de
-// serviços; cada sub-aba pesada mora em seu arquivo.
+// Projeto aberto (view = project_services): cabeçalho/edição, sub-abas e grade
+// de serviços; cada sub-aba pesada mora em seu arquivo.
 component {
   resources {
     link(rel = import, href = "project_env.component.gv", as = ProjectEnvTab)
-    link(rel = import, href = "project_secrets.component.gv", as = ProjectSecretsTab)
+    link(
+      rel = import,
+      href = "project_secrets.component.gv",
+      as = ProjectSecretsTab
+    )
     link(rel = import, href = "project_jobs.component.gv", as = ProjectJobsTab)
 
     component(name = SemServicosNoProjeto) {
-      text("{t('project_services.no_service_in_this_project')}", class = u-muted)
+      text(
+        "{t('project_services.no_service_in_this_project')}",
+        class = u-muted
+      )
     }
   }
 
@@ -57,9 +64,9 @@ component {
           }
         }
 
-        // Nome e descrição: inputs sem borda, editados no lugar, sem botão (gravam com
-        // debounce em project_title_change / project_description_change) — o mesmo
-        // jeito do título do serviço.
+        // Nome e descrição: inputs sem borda, editados no lugar, sem botão
+        // (gravam com debounce em project_title_change /
+        // project_description_change) — o mesmo jeito do título do serviço.
         input(
           class = "page-head__title-input",
           :value = edit_project_name,
@@ -94,21 +101,24 @@ component {
         )
 
         TabButton(
-          label = "{t('project_services.variables', project_env_count=project_env_count)}",
+          label = "{t('project_services.variables',
+            project_env_count=project_env_count)}",
           current = @project_tab,
           target = env,
           action = project_tab:env,
         )
 
         TabButton(
-          label = "{t('project_services.secrets', project_secrets_count=project_secrets_count)}",
+          label = "{t('project_services.secrets',
+            project_secrets_count=project_secrets_count)}",
           current = @project_tab,
           target = secrets,
           action = project_tab:secrets,
         )
 
         TabButton(
-          label = "{t('project_services.jobs', project_jobs_count=project_jobs_count)}",
+          label = "{t('project_services.jobs',
+            project_jobs_count=project_jobs_count)}",
           current = @project_tab,
           target = jobs,
           action = project_tab:jobs,

@@ -1,5 +1,6 @@
 // Linha do catálogo de templates de aplicação: logo à esquerda (vetor ou
-// raster conforme logo_kind), nome + descrição, e o botão "Escolher" à direita.
+// raster conforme logo_kind), nome + descrição, e o botão "Escolher" à
+// direita.
 component {
   props {
     prop(name = name)
@@ -11,8 +12,18 @@ component {
 
   resources {
     style """
-    .tpl-row          { width: fill; padding: 12 0; align_y: center; spacing: 14; }
-    .tpl-row__logo-box { width: 34; height: 34; align_x: center; align_y: center; }
+    .tpl-row {
+      width: fill;
+      padding: 12 0;
+      align_y: center;
+      spacing: 14;
+    }
+    .tpl-row__logo-box {
+      width: 34;
+      height: 34;
+      align_x: center;
+      align_y: center;
+    }
     .tpl-row__logo    { width: 30; height: 30; }
     """
   }

@@ -132,8 +132,8 @@ function test_bundle_exportar_servico__sem_conexao_ou_sem_servico_escolhido()
     assert_eq(#tela:toasts(), 0)
 end
 
--- Aba Atualizações (Command::CheckUpdate). Sem conexão o botão é inerte, como o
--- resto: nem toast, nem mensagem "verificando…" presa na tela.
+-- Aba Atualizações (Command::CheckUpdate). Sem conexão o botão é inerte, como
+-- o resto: nem toast, nem mensagem "verificando…" presa na tela.
 --- o init semeia as chaves da aba e a lista de abas a inclui
 function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
     local tela = nova()
@@ -151,25 +151,42 @@ function test_atualizacoes__o_init_semeia_as_chaves_e_a_aba()
     assert_eq(tela:get("update_app_deb_url"), "")
     assert_eq(tela:get("update_app_install_kind"), "")
     assert_true(
-        string.find(tela:get("update_app_apply_hint"), "password", 1, true) ~= nil
+        string.find(tela:get("update_app_apply_hint"), "password", 1, true)
+            ~= nil
     )
     assert_true(
-        string.find(tela:get("update_app_manual_command"), "install.sh", 1, true)
-            ~= nil
+        string.find(
+            tela:get("update_app_manual_command"),
+            "install.sh",
+            1,
+            true
+        ) ~= nil
     )
     assert_true(
         string.find(tela:get("update_install_command"), "install.sh", 1, true)
             ~= nil
     )
-    -- Listas chegam no ctx como JSON: confere a aba (a última, Idioma) e a aba de sincronização.
+    -- Listas chegam no ctx como JSON: confere a aba (a última, Idioma) e a aba
+    -- de sincronização.
     local abas = tela:get("settings_tabs")
     local ids = {}
     for id in string.gmatch(abas, '"id":"([a-z]+)"') do
         table.insert(ids, id)
     end
-    assert_eq(ids, { "web", "git", "maintenance", "gitsync", "backups", "recoverykey", "recover", "updates", "language" })
+    assert_eq(ids, {
+        "web",
+        "git",
+        "maintenance",
+        "gitsync",
+        "backups",
+        "recoverykey",
+        "recover",
+        "updates",
+        "language",
+    })
     assert_eq(ids[#ids], "language")
-    -- O formulário da sincronização nasce com padrões (o markup nunca lê `nil`).
+    -- O formulário da sincronização nasce com padrões (o markup nunca lê
+    -- `nil`).
     assert_eq(tela:get("state_git_form_mode"), "off")
     assert_eq(tela:get("state_git_form_branch"), "main")
     assert_eq(tela:get("state_git_alert_message"), "")

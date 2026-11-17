@@ -5,18 +5,44 @@ component {
   resources {
     style """
       .login           { width: fill; height: fill; }
-      .login__body     { width: fill; height: fill; align_x: center; align_y: center; }
+      .login__body {
+        width: fill;
+        height: fill;
+        align_x: center;
+        align_y: center;
+      }
       .login__footer   { width: fill; align_x: end; padding: 6 12; }
       .login__lang-btn { size: 10; padding: 2 8; border_radius: 3; }
-      .login__card     { width: fill; max_width: 460; align_x: start; background: var(--surface); border_radius: 4; border_width: 1; border_color: var(--border); padding: 32; spacing: 16; }
+      .login__card {
+        width: fill;
+        max_width: 460;
+        align_x: start;
+        background: var(--surface);
+        border_radius: 4;
+        border_width: 1;
+        border_color: var(--border);
+        padding: 32;
+        spacing: 16;
+      }
       .login__head     { width: fill; spacing: 14; align_y: center; }
       .login__brand    { width: fill; spacing: 6; align_x: start; }
       .login__title    { size: 30; bold: true; color: #A9C7FF; }
       .login__forget-row { width: fill; align_x: end; padding: 2 0; }
-      .login__forget-btn { size: 11; color: var(--border); padding: 5 12; border_radius: 4; }
+      .login__forget-btn {
+        size: 11;
+        color: var(--border);
+        padding: 5 12;
+        border_radius: 4;
+      }
       .login__status   { spacing: 14; align_y: center; }
       .login__language { spacing: 4; }
-      .login__connect  { width: fill; color: var(--spin); padding: 14; text_align: center; border_radius: 3; }
+      .login__connect {
+        width: fill;
+        color: var(--spin);
+        padding: 14;
+        text_align: center;
+        border_radius: 3;
+      }
     """
   }
 
@@ -41,10 +67,18 @@ component {
         }
       }
 
-      form(error_prefix = error_, name = login, on_submit = connect, class = "form form--gap-16") {
+      form(
+        error_prefix = error_,
+        name = login,
+        on_submit = connect,
+        class = "form form--gap-16"
+      ) {
         // O erro vem do script (connection.luau grava {error_access_key}); o
         // `field` o põe sob o campo, no lugar onde o `text(if …)` ficava.
-        field(label = "{t('login.connection_token')}", error = @error_access_key) {
+        field(
+          label = "{t('login.connection_token')}",
+          error = @error_access_key
+        ) {
           template(slot = aside) {
             text("{t('login.secure')}", class = field__label)
           }
@@ -96,13 +130,15 @@ component {
 
       text("⚠ @error", if = @error, not_equals = "", class = u-error)
 
-      // Versão nova do app desktop: aparece ANTES do login (a consulta é ao GitHub, não ao daemon), para
-      // dar para atualizar um app que já não consegue falar com o servidor. A mesma ação da aba Settings →
+      // Versão nova do app desktop: aparece ANTES do login (a consulta é ao
+      // GitHub, não ao daemon), para dar para atualizar um app que já não
+      // consegue falar com o servidor. A mesma ação da aba Settings →
       // Atualizações (update_app_apply); ver handlers/settings.luau.
       if @update_app_is_available == "true" {
         hr
         text(
-          "{t('login.app_update_available', version=update_app_latest_version)}",
+          "{t('login.app_update_available',
+            version=update_app_latest_version)}",
           class = u-label-cap,
         )
 
@@ -121,14 +157,25 @@ component {
               equals = true
             )
           }
-          progressbar(if = @update_app_running, equals = true, :value = update_app_percent)
+          progressbar(
+            if = @update_app_running,
+            equals = true,
+            :value = update_app_percent
+          )
           text("@update_app_message", class = u-muted)
         }
 
         if @update_app_can_update == "false" {
-          text("{t('settings_updates.this_app_was_not_installed')}", class = u-muted)
-          // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
-          inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:update_app_manual_command") {
+          text(
+            "{t('settings_updates.this_app_was_not_installed')}",
+            class = u-muted
+          )
+          // o valor num campo só de leitura, com o Copiar colado (inputgroup,
+          // glacier-ui 0.164)
+          inputgroup(
+            action = "{t('common.copy')}",
+            on_action = "copy_ctx:update_app_manual_command"
+          ) {
             input(:value = update_app_manual_command, readonly = true)
           }
         }

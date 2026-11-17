@@ -165,7 +165,8 @@ function test_urls__normalize_url_recusa_vazio_e_esquema_que_nao_e_http_s()
     assert_nil(H.normalize_url("https://"))
 end
 
---- is_true aceita o boolean (checkbox/toggle) e o texto "true"; o resto é falso
+--- is_true aceita o boolean (checkbox/toggle) e o texto "true"; o resto é
+--- falso
 function test_booleanos__is_true_aceita_boolean_e_texto()
     assert_true(H.is_true(true))
     assert_true(H.is_true("true"))
@@ -175,7 +176,8 @@ function test_booleanos__is_true_aceita_boolean_e_texto()
     assert_false(H.is_true("1"))
 end
 
---- is_false só é verdadeiro para o false explícito; ausente não é falso (padrão ligado)
+--- is_false só é verdadeiro para o false explícito; ausente não é falso
+--- (padrão ligado)
 function test_booleanos__is_false_nao_confunde_ausente_com_falso()
     assert_true(H.is_false(false))
     assert_true(H.is_false("false"))
@@ -188,8 +190,14 @@ end
 function test_env_value_from_draft__plain_secret_e_variavel_que_ja_era_secret()
     assert_eq(H.env_value_from_draft("abc", false).Plain, "abc")
     assert_eq(H.env_value_from_draft("", false).Plain, "")
-    assert_eq(H.env_value_from_draft("secret:DB_PASS", false).Secret, "DB_PASS")
-    assert_eq(H.env_value_from_draft("<secret:DB_PASS>", false).Secret, "DB_PASS")
+    assert_eq(
+        H.env_value_from_draft("secret:DB_PASS", false).Secret,
+        "DB_PASS"
+    )
+    assert_eq(
+        H.env_value_from_draft("<secret:DB_PASS>", false).Secret,
+        "DB_PASS"
+    )
     -- numa variável que já era secret, o texto é o NOME do secret
     assert_eq(H.env_value_from_draft("  OUTRO ", true).Secret, "OUTRO")
     assert_nil(H.env_value_from_draft("secret:X", true).Plain)

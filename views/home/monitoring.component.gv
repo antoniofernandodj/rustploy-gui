@@ -1,4 +1,5 @@
-// Seção `monitoring` (view = monitoring) das telas globais; importada por home.component.gv.
+// Seção `monitoring` (view = monitoring) das telas globais; importada por
+// home.component.gv.
 component {
   resources {
     // Vazio das listas Docker/Monitoring e dos repositórios do registry.

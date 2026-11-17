@@ -188,7 +188,8 @@ function export_save(): ()
 
     local write_ok, write_error = write_file(path, yaml)
     if not write_ok then
-        ctx.export_error = i18n.tr("falha ao gravar: ") .. tostring(write_error)
+        ctx.export_error = i18n.tr("falha ao gravar: ")
+            .. tostring(write_error)
         return
     end
     ctx.export_message = i18n.tr("salvo em ") .. path

@@ -1,6 +1,6 @@
-// Janela "Novo projeto": motor Glacier próprio, aberto por open_window a partir
-// do app principal (handlers/projects.luau → open_new_project_window), que semeia
-// a conexão (api_url/api_token) via open_window({ data = ...
+// Janela "Novo projeto": motor Glacier próprio, aberto por open_window a
+// partir do app principal (handlers/projects.luau → open_new_project_window),
+// que semeia a conexão (api_url/api_token) via open_window({ data = ...
 screen(title = "{t('new_project_form.new_project_rustploy')}") {
   resources {
     style """

@@ -1,4 +1,5 @@
-// Janela "Exportar serviço": motor Glacier próprio, aberto por open_window a partir do app principal (handlers/bundle.luau).
+// Janela "Exportar serviço": motor Glacier próprio, aberto por open_window a
+// partir do app principal (handlers/bundle.luau).
 screen(title = "{t('service_export_window.export_service_rustploy')}") {
   resources {
     style """
@@ -47,7 +48,8 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
           text("@export_blocked", class = u-error)
         } else {
           text(
-            "{t('service_export_window.service_variables_all_of_them', export_service_count=export_service_count)}",
+            "{t('service_export_window.service_variables_all_of_them',
+              export_service_count=export_service_count)}",
             class = u-label-cap
           )
           text(
@@ -55,7 +57,8 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
             class = u-muted
           )
           text(
-            "{t('service_export_window.project_variables_tick_the_ones', export_project=export_project)}",
+            "{t('service_export_window.project_variables_tick_the_ones',
+              export_project=export_project)}",
             class = u-label-cap
           )
 
@@ -83,7 +86,8 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
                 on_click = export_none, disabled = @busy_export_none
               )
               text(
-                "{t('service_export_window.ticked', export_picked_count=export_picked_count)}",
+                "{t('service_export_window.ticked',
+                  export_picked_count=export_picked_count)}",
                 class = u-muted
               )
             }

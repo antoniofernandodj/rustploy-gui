@@ -1,6 +1,10 @@
-// Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab == "git"` de general.component.gv.
+// Sub-aba Git do provider: URL/imagem crua; corpo do `if @provider_tab ==
+// "git"` de general.component.gv.
 component {
-  field(label = "{t('general_git.source_repository_url_image')}", label_class = u-label-cap) {
+  field(
+    label = "{t('general_git.source_repository_url_image')}",
+    label_class = u-label-cap
+  ) {
     input(
       class = field__input,
       form_control = service_form_repo_url,
@@ -29,7 +33,11 @@ component {
     }
 
     column(class = healthcheck__field) {
-      field(label = "{t('common.port')}", label_class = u-label-cap, error = @error_service_form_general_port) {
+      field(
+        label = "{t('common.port')}",
+        label_class = u-label-cap,
+        error = @error_service_form_general_port
+      ) {
         input(
           class = field__input,
           form_control = service_form_general_port,
@@ -55,7 +63,10 @@ component {
     }
 
     column(class = healthcheck__field) {
-      field(label = "{t('general_git.credentials_secret')}", label_class = u-label-cap) {
+      field(
+        label = "{t('general_git.credentials_secret')}",
+        label_class = u-label-cap
+      ) {
         input(
           class = field__input,
           form_control = service_form_credentials,
@@ -82,7 +93,10 @@ component {
     )
   }
 
-  field(label = "{t('common.watch_paths_comma_separated')}", label_class = u-label-cap) {
+  field(
+    label = "{t('common.watch_paths_comma_separated')}",
+    label_class = u-label-cap
+  ) {
     input(
       class = field__input,
       form_control = service_form_watch_paths,
@@ -126,7 +140,10 @@ component {
     }
   }
 
-  field(label = "{t('general_git.build_stage_optional')}", label_class = u-label-cap) {
+  field(
+    label = "{t('general_git.build_stage_optional')}",
+    label_class = u-label-cap
+  ) {
     input(
       class = field__input,
       form_control = service_form_build_stage,

@@ -1,6 +1,7 @@
-// Settings → Recuperar: recuperar este servidor (git + chave de recuperação + backups no S3), Fase 4 de
-// docs/plano-backup-de-dados-para-s3.md. Handlers em handlers/recover.luau; a webui faz o mesmo em
-// `webui/index.html` (aba "Recuperar"): mude os dois juntos. A chave e o token só vivem no campo.
+// Settings → Recuperar: recuperar este servidor (git + chave de recuperação +
+// backups no S3), Fase 4 de docs/plano-backup-de-dados-para-s3.md. Handlers em
+// handlers/recover.luau; a webui faz o mesmo em `webui/index.html` (aba
+// "Recuperar"): mude os dois juntos. A chave e o token só vivem no campo.
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-stack) {
@@ -8,11 +9,20 @@ component {
         text("{t('settings_recover.title')}", class = u-label-cap)
         text("{t('settings_recover.intro')}", class = u-muted)
 
-        // Formulário: só quando não há uma recuperação em curso (ou a última falhou).
+        // Formulário: só quando não há uma recuperação em curso (ou a última
+        // falhou).
         column(spacing = 6, if = @recover_services_count, equals = 0) {
-          text("@recover_message", if = @recover_message, not_equals = "", class = u-muted)
+          text(
+            "@recover_message",
+            if = @recover_message,
+            not_equals = "",
+            class = u-muted
+          )
 
-          field(label = "{t('settings_recover.repository')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_recover.repository')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "https://github.com/org/rustploy-estado.git",
               class = field__input,
@@ -22,7 +32,10 @@ component {
             )
           }
 
-          field(label = "{t('settings_recover.token')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_recover.token')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "",
               secure = true,
@@ -33,7 +46,10 @@ component {
             )
           }
 
-          field(label = "{t('settings_recover.branch')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_recover.branch')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "main",
               class = field__input,
@@ -43,7 +59,10 @@ component {
             )
           }
 
-          field(label = "{t('settings_recover.key')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_recover.key')}",
+            label_class = u-label-cap
+          ) {
             input(
               placeholder = "AGE-SECRET-KEY-1…",
               secure = true,
@@ -72,7 +91,12 @@ component {
             "{t('settings_recover.found', recover_projects=recover_projects)}",
             class = u-label-cap,
           )
-          text("@recover_destination_error", if = @recover_destination_error, not_equals = "", class = u-error)
+          text(
+            "@recover_destination_error",
+            if = @recover_destination_error,
+            not_equals = "",
+            class = u-error
+          )
 
           each @recover_services as r {
             row(class = kv-list__row) {
@@ -83,10 +107,30 @@ component {
             }
           }
 
-          text("{t('settings_recover.ready_hint')}", if = @recover_phase, equals = ready, class = u-muted)
-          text("{t('settings_recover.running')}", if = @recover_phase, equals = running, class = u-muted)
-          text("{t('settings_recover.done')}", if = @recover_phase, equals = done, class = u-muted)
-          text("@recover_message", if = @recover_message, not_equals = "", class = u-error)
+          text(
+            "{t('settings_recover.ready_hint')}",
+            if = @recover_phase,
+            equals = ready,
+            class = u-muted
+          )
+          text(
+            "{t('settings_recover.running')}",
+            if = @recover_phase,
+            equals = running,
+            class = u-muted
+          )
+          text(
+            "{t('settings_recover.done')}",
+            if = @recover_phase,
+            equals = done,
+            class = u-muted
+          )
+          text(
+            "@recover_message",
+            if = @recover_message,
+            not_equals = "",
+            class = u-error
+          )
 
           row(class = env__add, if = @recover_phase, equals = ready) {
             button(

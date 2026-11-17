@@ -1,5 +1,5 @@
-// Linha de escolha do wizard "Novo serviço": título + subtítulo à esquerda e um
-// botão de ação à direita.
+// Linha de escolha do wizard "Novo serviço": título + subtítulo à esquerda e
+// um botão de ação à direita.
 component {
   props {
     prop(name = title)
@@ -14,6 +14,10 @@ component {
       text("@subtitle", class = u-muted)
     }
 
-    button(class = "btn btn--primary", on_click = @action, text = @button_label)
+    button(
+      class = "btn btn--primary",
+      on_click = @action,
+      text = @button_label
+    )
   }
 }

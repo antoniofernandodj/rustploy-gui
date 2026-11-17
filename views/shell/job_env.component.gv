@@ -1,13 +1,25 @@
-// Tela "Variáveis e secrets do job" (view = job_env): cabeçalho com "Voltar" e o painel das envs.
-// Importada por shell.component.gv; handlers em scripts/handlers/job_env.luau.
+// Tela "Variáveis e secrets do job" (view = job_env): cabeçalho com "Voltar" e
+// o painel das envs. Importada por shell.component.gv; handlers em
+// scripts/handlers/job_env.luau.
 component {
   resources {
-    link(rel = import, href = "../components/job_env_panel.component.gv", as = JobEnvPanel)
+    link(
+      rel = import,
+      href = "../components/job_env_panel.component.gv",
+      as = JobEnvPanel
+    )
   }
 
   row(class = env__head) {
-    button("{t('common.back')}", class = "btn btn--ghost btn--sm", on_click = job_env_back)
-    text("{t('job_env.title', job_env_name=job_env_name)}", class = "u-label-cap u-fill")
+    button(
+      "{t('common.back')}",
+      class = "btn btn--ghost btn--sm",
+      on_click = job_env_back
+    )
+    text(
+      "{t('job_env.title', job_env_name=job_env_name)}",
+      class = "u-label-cap u-fill"
+    )
   }
 
   JobEnvPanel

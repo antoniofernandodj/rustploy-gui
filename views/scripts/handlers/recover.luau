@@ -1,10 +1,12 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/recover.luau — Settings → Recuperar: recuperar este servidor a partir do git + chave de recuperação +
--- backups no S3 (docs/plano-backup-de-dados-para-s3.md, Fase 4). A webui faz o mesmo em `webui/app.js`
--- (`recover*`): mude os dois juntos.
+-- handlers/recover.luau — Settings → Recuperar: recuperar este servidor a
+-- partir do git + chave de recuperação + backups no S3
+-- (docs/plano-backup-de-dados-para-s3.md, Fase 4). A webui faz o mesmo em
+-- `webui/app.js` (`recover*`): mude os dois juntos.
 --
--- A chave e o token só vivem no campo: somem ao enviar, deem certo ou não, e nunca ficam em outro lugar do `ctx`.
+-- A chave e o token só vivem no campo: somem ao enviar, deem certo ou não, e
+-- nunca ficam em outro lugar do `ctx`.
 
 local State = require("../state")
 local Helpers = require("../helpers")
@@ -23,7 +25,8 @@ local STEP_LABELS: { [string]: string } = {
     failed = "falhou",
 }
 
---- O rótulo de uma etapa. A tradução acontece aqui, no ponto de uso (e não numa tabela de módulo).
+--- O rótulo de uma etapa. A tradução acontece aqui, no ponto de uso (e não
+--- numa tabela de módulo).
 function M.step_label(step: string): string
     local source = STEP_LABELS[step]
     if source == nil then
@@ -32,7 +35,8 @@ function M.step_label(step: string): string
     return i18n.tr(source)
 end
 
---- A linha de um serviço na tela, a partir do que o daemon devolveu. Pura (recebe o rótulo de cada coisa).
+--- A linha de um serviço na tela, a partir do que o daemon devolveu. Pura
+--- (recebe o rótulo de cada coisa).
 function M.service_row(service: any): { [string]: string }
     local backup = if service.latest_backup ~= nil
         then i18n.tr("backup de ") .. tostring(service.latest_backup)
@@ -88,7 +92,8 @@ function recover_refresh(): ()
     M.load()
 end
 
---- Passo 1: traz a infra do git, recifra os segredos e lista o que foi achado. Não toca em dado.
+--- Passo 1: traz a infra do git, recifra os segredos e lista o que foi achado.
+--- Não toca em dado.
 function recover_start(): ()
     local api = State.api
     if not api then
@@ -119,7 +124,8 @@ function recover_start(): ()
     end
 end
 
---- Passo 2: restaura os dados e sobe os serviços na ordem das dependências (em segundo plano).
+--- Passo 2: restaura os dados e sobe os serviços na ordem das dependências (em
+--- segundo plano).
 function recover_run(): ()
     local api = State.api
     if not api then
@@ -128,7 +134,8 @@ function recover_run(): ()
     local confirmed = confirm {
         title = i18n.tr("Restaurar os dados e subir?"),
         message = i18n.tr(
-            "Cada serviço tem os dados restaurados do S3 (volumes antes de subir, bancos depois) e sobe na ordem das dependências."
+            "Cada serviço tem os dados restaurados do S3 (volumes antes de "
+                .. "subir, bancos depois) e sobe na ordem das dependências."
         ),
         confirm_label = i18n.tr("Restaurar"),
         destructive = true,

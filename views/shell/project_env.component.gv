@@ -36,7 +36,12 @@ component {
           disabled = @busy_project_env_text_toggle
         )
       } else {
-        button("{t('common.env')}", class = tabs__tab, on_click = project_env_text_toggle, disabled = @busy_project_env_text_toggle)
+        button(
+          "{t('common.env')}",
+          class = tabs__tab,
+          on_click = project_env_text_toggle,
+          disabled = @busy_project_env_text_toggle
+        )
       }
     }
 
@@ -60,7 +65,8 @@ component {
       on_validation_error = project_env_show_validation_errors,
       class = "form form--gap-8",
     ) {
-      // "usar secret": a lista de secrets do projeto toma o lugar do campo do valor.
+      // "usar secret": a lista de secrets do projeto toma o lugar do campo do
+      // valor.
       row(class = env__add) {
         input(
           class = env__input,
@@ -95,7 +101,12 @@ component {
           label = "{t('environment.use_secret')}",
         )
 
-        button("{t('common.add')}", type = submit, disabled = @busy_project_env_add, class = "btn btn--primary")
+        button(
+          "{t('common.add')}",
+          type = submit,
+          disabled = @busy_project_env_add,
+          class = "btn btn--primary"
+        )
       }
 
       if @project_env_new_is_secret == "true" {
@@ -228,8 +239,9 @@ component {
 
                 text(class = env__sep)
 
-                // Chave e valor editáveis no lugar (sem borda). Nada grava sozinho: o OK aparece quando a
-                // linha muda, pede confirmação e grava; o ✕ desfaz (handlers/env_rows.luau).
+                // Chave e valor editáveis no lugar (sem borda). Nada grava
+                // sozinho: o OK aparece quando a linha muda, pede confirmação
+                // e grava; o ✕ desfaz (handlers/env_rows.luau).
                 input(
                   class = env__inline-key,
                   :value = "@e.bind_key",

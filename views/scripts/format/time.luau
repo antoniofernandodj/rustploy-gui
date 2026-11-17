@@ -30,17 +30,20 @@ end
 
 -- "dd/mm HH:MM" local.
 function M.date_day_month_hour_minute(iso_timestamp: string?): string
-    return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm")) or ""
+    return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm"))
+        or ""
 end
 
 -- "dd/mm HH:MM:SS" local.
 function M.date_day_month_hour_minute_second(iso_timestamp: string?): string
-    return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm:SS")) or ""
+    return date.format(date.to_local(iso_timestamp), i18n.tr("DD/MM HH:mm:SS"))
+        or ""
 end
 
 -- "dd/mm/aaaa HH:MM:SS" local (log de uma execução antiga: a data importa).
 function M.date_time_full(iso_timestamp: string?): string
-    return date.format(date.to_local(iso_timestamp), "DD/MM/YYYY HH:mm:SS") or ""
+    return date.format(date.to_local(iso_timestamp), "DD/MM/YYYY HH:mm:SS")
+        or ""
 end
 
 -- Ns ou Mm Ns.
@@ -123,8 +126,9 @@ local WEEKDAYS = {
     { id = "6", label = "Dom" },
 }
 
--- Os dias da semana para o combo (rótulo traduzido na hora de chamar, para acompanhar a troca
--- de idioma): `ctx.weekdays = format.weekdays()` grava o JSON que o combo consome.
+-- Os dias da semana para o combo (rótulo traduzido na hora de chamar, para
+-- acompanhar a troca de idioma): `ctx.weekdays = format.weekdays()` grava o
+-- JSON que o combo consome.
 function M.weekdays(): { { id: string, label: string } }
     local out = {}
     for _, weekday in ipairs(WEEKDAYS) do

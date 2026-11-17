@@ -7,7 +7,10 @@ component {
   }
 
   row(class = env__head) {
-    text("{t('project_jobs.job_s', project_jobs_count=project_jobs_count)}", class = "u-muted u-fill")
+    text(
+      "{t('project_jobs.job_s', project_jobs_count=project_jobs_count)}",
+      class = "u-muted u-fill"
+    )
 
     button(
       "{t('common.new_job')}",

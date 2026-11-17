@@ -34,10 +34,14 @@ function settings_save(): ()
                 ),
             },
         }
-    ctx.settings_message = set_daemon_settings_ok and i18n.tr("configurações salvas")
+    ctx.settings_message = set_daemon_settings_ok
+            and i18n.tr("configurações salvas")
         or ("erro: " .. set_daemon_settings_response)
     if set_daemon_settings_ok then
-        toast { message = tostring(i18n.tr("Configurações salvas")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Configurações salvas")),
+            kind = "success",
+        }
     else
         toast {
             message = tostring(set_daemon_settings_response),
@@ -142,7 +146,8 @@ function git_provider_connect(): ()
         local personal_access_token = ctx.git_provider_personal_access_token
             or ""
         if Helpers.trim(personal_access_token) == "" then
-            ctx.git_provider_message = i18n.tr("informe o Personal Access Token")
+            ctx.git_provider_message =
+                i18n.tr("informe o Personal Access Token")
             return
         end
         provider_command = {
@@ -180,7 +185,9 @@ function git_provider_connect(): ()
                 i18n.tr("provider criado; inicie o OAuth manualmente")
         end
     else
-        ctx.git_provider_message = i18n.tr("conta ") .. label .. i18n.tr(" conectada ✓")
+        ctx.git_provider_message = i18n.tr("conta ")
+            .. label
+            .. i18n.tr(" conectada ✓")
     end
     ctx.git_provider_name = ""
     ctx.git_provider_base_url = ""
@@ -190,8 +197,9 @@ function git_provider_connect(): ()
     git_provider_refresh_list()
 end
 
--- Quem (serviço ou job) ainda clona com esta conta, como "projeto/nome" — do snapshot. Sem a conta o
--- próximo deploy deles falha no clone. O daemon também recusa a remoção (`InUse`) sem `force`.
+-- Quem (serviço ou job) ainda clona com esta conta, como "projeto/nome" — do
+-- snapshot. Sem a conta o próximo deploy deles falha no clone. O daemon também
+-- recusa a remoção (`InUse`) sem `force`.
 local function git_provider_users(provider_id: string): { string }
     local snap: any = State.snap
     local project_names: { [string]: string } = {}
@@ -203,14 +211,20 @@ local function git_provider_users(provider_id: string): { string }
         local spec = entry.service and entry.service.spec
         local git = spec and spec.source and spec.source.Git
         if git and git.provider_id == provider_id then
-            table.insert(users, tostring(entry.project_name) .. "/" .. tostring(spec.name))
+            table.insert(
+                users,
+                tostring(entry.project_name) .. "/" .. tostring(spec.name)
+            )
         end
     end
     for _, job in State.jobs_by_id do
         if job.git_source and job.git_source.provider_id == provider_id then
             table.insert(
                 users,
-                (project_names[job.project_id] or tostring(job.project_id)) .. "/" .. tostring(job.name) .. " (job)"
+                (project_names[job.project_id] or tostring(job.project_id))
+                    .. "/"
+                    .. tostring(job.name)
+                    .. " (job)"
             )
         end
     end
@@ -232,7 +246,9 @@ function git_provider_delete(provider_id: string): ()
                 .. i18n.tr(" item(ns): ")
                 .. table.concat(users, ", ")
                 .. i18n.tr(
-                    ". Sem ela, eles deixam de conseguir clonar o repositório até serem reapontados para outra conta (aba General → Git de cada serviço)."
+                    ". Sem ela, eles deixam de conseguir clonar o repositório "
+                        .. "até serem reapontados para outra conta (aba "
+                        .. "General → Git de cada serviço)."
                 ),
             confirm_label = i18n.tr("Remover mesmo assim"),
             destructive = true,
@@ -242,8 +258,11 @@ function git_provider_delete(provider_id: string): ()
         end
     end
     local git_provider_delete_ok, git_provider_delete_response =
-        api:rpc_checked { GitProviderDelete = { id = provider_id, force = #users > 0 } }
-    ctx.git_provider_message = git_provider_delete_ok and i18n.tr("provider removido")
+        api:rpc_checked {
+            GitProviderDelete = { id = provider_id, force = #users > 0 },
+        }
+    ctx.git_provider_message = git_provider_delete_ok
+            and i18n.tr("provider removido")
         or ("erro: " .. git_provider_delete_response)
     if not git_provider_delete_ok then
         toast {
@@ -304,7 +323,8 @@ function infra_download(): ()
         ctx.infra_download_message = i18n.tr("erro ao gravar o zip: ")
             .. tostring(zip_write_error)
         toast {
-            message = i18n.tr("Falha ao gravar o zip: ") .. tostring(zip_write_error),
+            message = i18n.tr("Falha ao gravar o zip: ")
+                .. tostring(zip_write_error),
             kind = "error",
         }
         return
@@ -372,9 +392,9 @@ local function docker_cleanup_apply_config(config: any): ()
     ctx.docker_cleanup_kind = kind
     ctx.docker_cleanup_hours = hours
     -- Uma chave só, "HH:MM", porque quem edita agora é o <timeedit> em
-    -- home.component.gv. `docker_cleanup_unpack_recurrence` continua devolvendo hora e
-    -- minuto separados (é o formato do daemon); a junção acontece aqui, na
-    -- fronteira.
+    -- home.component.gv. `docker_cleanup_unpack_recurrence` continua
+    -- devolvendo hora e minuto separados (é o formato do daemon); a junção
+    -- acontece aqui, na fronteira.
     ctx.docker_cleanup_time = format.hour_minute_join(hour, minute)
     ctx.docker_cleanup_weekday = weekday
     ctx.docker_cleanup_next_run_label = config.next_run_at
@@ -414,11 +434,11 @@ end
 -- end
 
 -- Órfão desde que o seletor de dia da semana virou um <radiogroup> em
--- home.component.gv: o builtin grava `docker_cleanup_weekday` sozinho, no update dele
--- em Rust, e ninguém mais dispara esta ação. Fica comentado porque volta a ser
--- necessário se algum dia o grupo voltar a ser markup à mão (ex.: para
--- recuperar a fileira de pílulas). function docker_cleanup_weekday(w: string):
--- ()
+-- home.component.gv: o builtin grava `docker_cleanup_weekday` sozinho, no
+-- update dele em Rust, e ninguém mais dispara esta ação. Fica comentado porque
+-- volta a ser necessário se algum dia o grupo voltar a ser markup à mão (ex.:
+-- para recuperar a fileira de pílulas). function docker_cleanup_weekday(w:
+-- string): ()
 --     ctx.docker_cleanup_weekday = w
 -- end
 
@@ -550,7 +570,10 @@ function docker_cleanup_run_now(): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Executar limpeza agora?"),
-        message = i18n.tr("Roda a limpeza dos recursos marcados imediatamente, fora do horário agendado. Ação irreversível."),
+        message = i18n.tr(
+            "Roda a limpeza dos recursos marcados imediatamente, fora do "
+                .. "horário agendado. Ação irreversível."
+        ),
         confirm_label = i18n.tr("Executar"),
         destructive = true,
     }
@@ -574,11 +597,11 @@ end
 
 -- ── Settings → Atualizações ──────────────────────────────────────────────
 
--- Pergunta ao daemon se há release mais nova (Command::CheckUpdate: só leitura,
--- com cache de horas no daemon por causa do limite de 60 req/h do GitHub).
--- `force` ignora o cache — o daemon ainda espaça consultas forçadas em ~1 min.
--- Chamada sem `force` na conexão (handlers/connection.luau), para a aba já abrir
--- preenchida; o botão chama com `force`.
+-- Pergunta ao daemon se há release mais nova (Command::CheckUpdate: só
+-- leitura, com cache de horas no daemon por causa do limite de 60 req/h do
+-- GitHub). `force` ignora o cache — o daemon ainda espaça consultas forçadas
+-- em ~1 min. Chamada sem `force` na conexão (handlers/connection.luau), para a
+-- aba já abrir preenchida; o botão chama com `force`.
 function M.update_check(force: boolean): ()
     local api = State.api
     if not api then
@@ -588,8 +611,8 @@ function M.update_check(force: boolean): ()
     local update_check_ok, update_check_response =
         api:rpc_checked { CheckUpdate = { force = force } }
     if not update_check_ok then
-        -- Sem GitHub, limite de consultas, `enabled = false`: o texto do daemon
-        -- já diz a causa. Mantém a última resposta boa na tela.
+        -- Sem GitHub, limite de consultas, `enabled = false`: o texto do
+        -- daemon já diz a causa. Mantém a última resposta boa na tela.
         ctx.update_message = tostring(update_check_response)
         return
     end
@@ -612,19 +635,30 @@ end
 local APP_RELEASE_URL =
     "https://api.github.com/repos/antoniofernandodj/rustploy/releases/latest"
 
-local APP_MANUAL_COMMAND_LINUX =
-    "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
-local APP_MANUAL_COMMAND_WINDOWS =
-    "irm https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.ps1 | iex"
-local APP_APPLY_HINT_DEB =
-    i18n.tr("O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho.")
-local APP_APPLY_HINT_ZIP =
-    i18n.tr("O app baixa a versão nova e confere a assinatura; depois fecha, troca os arquivos e reabre sozinho. Só um pacote assinado pelo projeto é aceito.")
+local APP_MANUAL_COMMAND_LINUX = "curl -fsSL "
+    .. "https://raw.githubusercontent.com/"
+    .. "antoniofernandodj/rustploy/main/install.sh "
+    .. "| sudo sh -s -- gui"
+local APP_MANUAL_COMMAND_WINDOWS = "irm "
+    .. "https://raw.githubusercontent.com/"
+    .. "antoniofernandodj/rustploy/main/install.ps1 "
+    .. "| iex"
+local APP_APPLY_HINT_DEB = i18n.tr(
+    "O app baixa a versão nova, pede a senha de administrador do sistema e a "
+        .. "instala; só um pacote assinado pelo projeto é aceito. Depois ele "
+        .. "reabre sozinho."
+)
+local APP_APPLY_HINT_ZIP = i18n.tr(
+    "O app baixa a versão nova e confere a assinatura; depois fecha, troca os "
+        .. "arquivos e reabre sozinho. Só um pacote assinado pelo projeto é "
+        .. "aceito."
+)
 
--- Pergunta ao GitHub se há versão nova do app. Ao contrário do daemon, a consulta é daqui
--- (o app roda na máquina da pessoa); a comparação de versões e a escolha do pacote são da
--- ponte nativa `app_update`, para existirem num lugar só (update-core). Em testes o global
--- `app_update` não existe e nada acontece.
+-- Pergunta ao GitHub se há versão nova do app. Ao contrário do daemon, a
+-- consulta é daqui (o app roda na máquina da pessoa); a comparação de versões
+-- e a escolha do pacote são da ponte nativa `app_update`, para existirem num
+-- lugar só (update-core). Em testes o global `app_update` não existe e nada
+-- acontece.
 function M.update_app_check(): ()
     local native = app_update
     if not native then
@@ -643,7 +677,8 @@ function M.update_app_check(): ()
             and APP_APPLY_HINT_ZIP
         or APP_APPLY_HINT_DEB
 
-    -- Windows: a troca acontece com esta janela fechada; o helper deixa o resultado para cá.
+    -- Windows: a troca acontece com esta janela fechada; o helper deixa o
+    -- resultado para cá.
     local last_ok, last_message = native.last_result()
     if last_message then
         toast {
@@ -684,8 +719,9 @@ function M.update_app_check(): ()
         or i18n.tr("O app está na versão mais recente.")
 end
 
--- Acompanha a instalação que o Rust faz numa thread (`app_update.install_start`): atualiza a
--- barra e a mensagem a cada 250 ms e, no fim, reabre o app (ou mostra a causa da falha).
+-- Acompanha a instalação que o Rust faz numa thread
+-- (`app_update.install_start`): atualiza a barra e a mensagem a cada 250 ms e,
+-- no fim, reabre o app (ou mostra a causa da falha).
 local function update_app_poll(is_zip: boolean): ()
     local native = app_update
     if not native then
@@ -725,15 +761,17 @@ local function update_app_poll(is_zip: boolean): ()
     end
 end
 
--- Cancela o download em andamento (depois dele, a senha e a instalação não se cancelam).
+-- Cancela o download em andamento (depois dele, a senha e a instalação não se
+-- cancelam).
 function update_app_cancel(): ()
     if app_update then
         app_update.install_cancel()
     end
 end
 
--- Baixa o pacote, pede a senha (pkexec) e instala; ao fim reabre o app. Tudo roda numa thread
--- do app: a janela continua respondendo e a barra mostra o download.
+-- Baixa o pacote, pede a senha (pkexec) e instala; ao fim reabre o app. Tudo
+-- roda numa thread do app: a janela continua respondendo e a barra mostra o
+-- download.
 function update_app_apply(): ()
     local native = app_update
     if not native or ctx.update_app_deb_url == "" then
@@ -744,7 +782,12 @@ function update_app_apply(): ()
         title = i18n.tr("Atualizar o app?"),
         message = i18n.tr("O app baixa a versão ")
             .. ctx.update_app_latest_version
-            .. (is_zip and i18n.tr(", confere a assinatura e fecha para trocar os arquivos; depois reabre. ") or i18n.tr(", pede a senha de administrador e a instala; depois reabre. "))
+            .. (is_zip and i18n.tr(
+                ", confere a assinatura e fecha para trocar os arquivos; "
+                    .. "depois reabre. "
+            ) or i18n.tr(
+                ", pede a senha de administrador e a instala; depois reabre. "
+            ))
             .. i18n.tr("Só um pacote assinado pelo projeto é instalado."),
         confirm_label = i18n.tr("Atualizar"),
         destructive = true,
@@ -769,10 +812,11 @@ function update_app_apply(): ()
     update_app_poll(is_zip)
 end
 
--- Texto do que o daemon sabe sobre a atualização em curso ou a última tentativa
--- (Command::UpdateStatus). Existe porque a GUI não vê o fim: o dpkg reinicia o daemon
--- no meio, o stream cai e esta janela volta ao login. Ao reconectar, `update_check`
--- chama isto e a pessoa descobre se deu certo e, se não, por quê.
+-- Texto do que o daemon sabe sobre a atualização em curso ou a última
+-- tentativa (Command::UpdateStatus). Existe porque a GUI não vê o fim: o dpkg
+-- reinicia o daemon no meio, o stream cai e esta janela volta ao login. Ao
+-- reconectar, `update_check` chama isto e a pessoa descobre se deu certo e, se
+-- não, por quê.
 local function update_progress_text(update_progress: any): string
     local stage = update_progress.stage
     local target = update_progress.target_version
@@ -782,11 +826,17 @@ local function update_progress_text(update_progress: any): string
     elseif stage == "Installing" then
         return i18n.tr("Instalando")
             .. (target and (" " .. target) or "")
-            .. i18n.tr("… o daemon vai reiniciar e esta janela volta ao login.")
+            .. i18n.tr(
+                "… o daemon vai reiniciar e esta janela volta ao login."
+            )
     elseif stage == "RollingBack" then
-        return i18n.tr("Revertendo… o daemon vai reiniciar e esta janela volta ao login.")
+        return i18n.tr(
+            "Revertendo… o daemon vai reiniciar e esta janela volta ao login."
+        )
     elseif stage == "Succeeded" then
-        return i18n.tr("Atualizado") .. (target and (i18n.tr(" para ") .. target) or "") .. "."
+        return i18n.tr("Atualizado")
+            .. (target and (i18n.tr(" para ") .. target) or "")
+            .. "."
     elseif stage == "Failed" then
         return i18n.tr("A atualização falhou: ") .. message
     elseif stage == "RolledBack" then
@@ -813,8 +863,9 @@ function M.update_load_progress(): ()
     ctx.update_progress_message = update_progress_text(update_progress)
 end
 
--- Atualiza o daemon pelo app (Command::ApplyUpdate). A confirmação diz o que vai
--- acontecer; se há deploy em andamento o daemon recusa e a pessoa decide de novo.
+-- Atualiza o daemon pelo app (Command::ApplyUpdate). A confirmação diz o que
+-- vai acontecer; se há deploy em andamento o daemon recusa e a pessoa decide
+-- de novo.
 function update_apply(): ()
     local api = State.api
     if not api then
@@ -824,7 +875,12 @@ function update_apply(): ()
         title = i18n.tr("Atualizar o daemon?"),
         message = i18n.tr("O daemon baixa a versão ")
             .. ctx.update_latest_version
-            .. i18n.tr(", confere a assinatura e a instala. Ele reinicia (os containers dos serviços continuam rodando) e esta janela volta ao login. Um snapshot do banco é guardado antes."),
+            .. i18n.tr(
+                ", confere a assinatura e a instala. Ele reinicia (os "
+                    .. "containers dos serviços continuam rodando) e esta "
+                    .. "janela volta ao login. Um snapshot do banco é "
+                    .. "guardado antes."
+            ),
         confirm_label = i18n.tr("Atualizar"),
         destructive = true,
     }
@@ -840,7 +896,10 @@ function update_apply(): ()
     then
         local confirmed_anyway = confirm {
             title = i18n.tr("Há deploy em andamento"),
-            message = i18n.tr("Atualizar agora interrompe o deploy que está rodando ou na fila. Atualizar mesmo assim?"),
+            message = i18n.tr(
+                "Atualizar agora interrompe o deploy que está rodando ou na "
+                    .. "fila. Atualizar mesmo assim?"
+            ),
             confirm_label = i18n.tr("Atualizar mesmo assim"),
             destructive = true,
         }
@@ -856,15 +915,21 @@ function update_apply(): ()
         toast { message = tostring(apply_response), kind = "error" }
         return
     end
-    ctx.update_progress_message =
-        i18n.tr("Atualizando… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto.")
+    ctx.update_progress_message = i18n.tr(
+        "Atualizando… o daemon vai reiniciar e esta janela volta ao login. "
+            .. "Entre de novo em cerca de um minuto."
+    )
     State.restart_notice = i18n.tr("Atualizando o daemon para a ")
         .. ctx.update_latest_version
-        .. i18n.tr(": ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto.")
+        .. i18n.tr(
+            ": ele reiniciou e você voltou ao login. Entre de novo em cerca "
+                .. "de um minuto."
+        )
     toast { message = i18n.tr("Atualização iniciada"), kind = "success" }
 end
 
--- Volta os binários para os do backup da última atualização (Command::UpdateRollback).
+-- Volta os binários para os do backup da última atualização
+-- (Command::UpdateRollback).
 function update_rollback(): ()
     local api = State.api
     if not api then
@@ -872,7 +937,12 @@ function update_rollback(): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Reverter para a versão anterior?"),
-        message = i18n.tr("Restaura os binários do backup da última atualização e reinicia o daemon. O banco não é revertido: se a versão nova migrou o esquema, o snapshot guardado antes da atualização fica no diretório do banco."),
+        message = i18n.tr(
+            "Restaura os binários do backup da última atualização e reinicia "
+                .. "o daemon. O banco não é revertido: se a versão nova "
+                .. "migrou o esquema, o snapshot guardado antes da "
+                .. "atualização fica no diretório do banco."
+        ),
         confirm_label = i18n.tr("Reverter"),
         destructive = true,
     }
@@ -886,14 +956,19 @@ function update_rollback(): ()
         toast { message = tostring(rollback_response), kind = "error" }
         return
     end
-    ctx.update_progress_message =
-        i18n.tr("Revertendo… o daemon vai reiniciar e esta janela volta ao login. Entre de novo em cerca de um minuto.")
-    State.restart_notice =
-        i18n.tr("Revertendo o daemon para a versão anterior: ele reiniciou e você voltou ao login. Entre de novo em cerca de um minuto.")
+    ctx.update_progress_message = i18n.tr(
+        "Revertendo… o daemon vai reiniciar e esta janela volta ao login. "
+            .. "Entre de novo em cerca de um minuto."
+    )
+    State.restart_notice = i18n.tr(
+        "Revertendo o daemon para a versão anterior: ele reiniciou e você "
+            .. "voltou ao login. Entre de novo em cerca de um minuto."
+    )
     toast { message = i18n.tr("Reversão iniciada"), kind = "success" }
 end
 
--- Item do menu vertical de Settings (home/settings.component.gv): abre a seção.
+-- Item do menu vertical de Settings (home/settings.component.gv): abre a
+-- seção.
 function settings_tab_pick(id: string): ()
     ctx.settings_tab = id
 end

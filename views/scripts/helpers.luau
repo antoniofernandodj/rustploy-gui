@@ -19,10 +19,13 @@ end
 -- "secret:NOME" no lugar do segredo. Um único ponto de verdade para os quatro
 -- call sites (env do serviço e do projeto, editor .env e campo valor) — foi a
 -- duplicação entre eles que deixou as sintaxes divergirem.
--- O valor de uma env como o `EnvValueSet` espera, a partir do texto digitado na edição no lugar:
--- `<secret:NOME>`/`secret:NOME` vira Secret; numa variável que JÁ era secret, qualquer texto é o
--- nome do secret; o resto é Plain.
-function M.env_value_from_draft(draft: string?, was_secret: boolean): { [string]: string }
+-- O valor de uma env como o `EnvValueSet` espera, a partir do texto digitado
+-- na edição no lugar: `<secret:NOME>`/`secret:NOME` vira Secret; numa variável
+-- que JÁ era secret, qualquer texto é o nome do secret; o resto é Plain.
+function M.env_value_from_draft(
+    draft: string?,
+    was_secret: boolean
+): { [string]: string }
     local ref = M.parse_secret_ref(draft)
     if ref ~= nil then
         return { Secret = ref }
@@ -57,14 +60,17 @@ end
 function M.confirm_env_key(key: string, existing_json: string?): boolean
     if not M.valid_env_key(key) then
         toast {
-            message = i18n.tr("Nome inválido: \"")
+            message = i18n.tr('Nome inválido: "')
                 .. key
-                .. i18n.tr("\" — use letras, dígitos e _, sem começar por dígito"),
+                .. i18n.tr(
+                    '" — use letras, dígitos e _, sem começar por dígito'
+                ),
             kind = "error",
         }
         return false
     end
-    -- `existing_json` é a lista que a tela já exibe (ctx.service_env/project_env).
+    -- `existing_json` é a lista que a tela já exibe
+    -- (ctx.service_env/project_env).
     local decode_ok, existing = pcall(json.decode, existing_json or "[]")
     for _, env_var in
         ipairs(decode_ok and type(existing) == "table" and existing or {})
@@ -73,7 +79,9 @@ function M.confirm_env_key(key: string, existing_json: string?): boolean
             return confirm {
                 title = i18n.tr("Sobrescrever variável?"),
                 message = key
-                    .. i18n.tr(" já existe; o valor atual será substituído."),
+                    .. i18n.tr(
+                        " já existe; o valor atual será substituído."
+                    ),
                 confirm_label = i18n.tr("Sobrescrever"),
                 destructive = false,
             }
@@ -125,7 +133,7 @@ function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
                 table.insert(
                     errors,
                     string.format(
-                        i18n.tr("linha %d: nome inválido \"%s\""),
+                        i18n.tr('linha %d: nome inválido "%s"'),
                         line_number,
                         key
                     )
@@ -134,7 +142,9 @@ function M.parse_dotenv(text: string?): ({ any }, { any }, { string })
                 table.insert(
                     errors,
                     string.format(
-                        i18n.tr("linha %d: %s repetida (já definida na linha %d)"),
+                        i18n.tr(
+                            "linha %d: %s repetida (já definida na linha %d)"
+                        ),
                         line_number,
                         key,
                         first_line_of[key]
@@ -229,11 +239,12 @@ function M.normalize_url(raw: string): string?
     return (scheme or "") .. "://" .. (rest or "")
 end
 
--- Uma chave JSON do `ctx` pode ser a TABELA (gravada como tabela ou semeada com
--- `json.array({})`) ou o TEXTO JSON (de `json.encode`, de `open_window` `data` ou do
--- markup). `decode_list(valor)` é o substituto de `pcall(json.decode, valor or "[]")`
--- que aceita as duas formas: `(true, tabela)`, ou `(false, mensagem)` para um texto
--- que não é JSON. Ausente ou vazio é a lista vazia.
+-- Uma chave JSON do `ctx` pode ser a TABELA (gravada como tabela ou semeada
+-- com `json.array({})`) ou o TEXTO JSON (de `json.encode`, de `open_window`
+-- `data` ou do markup). `decode_list(valor)` é o substituto de
+-- `pcall(json.decode, valor or "[]")` que aceita as duas formas: `(true,
+-- tabela)`, ou `(false, mensagem)` para um texto que não é JSON. Ausente ou
+-- vazio é a lista vazia.
 function M.decode_list(value: any): (boolean, any)
     if type(value) == "table" then
         return true, value
@@ -245,19 +256,22 @@ function M.decode_list(value: any): (boolean, any)
 end
 
 -- Um booleano do `ctx` chega como o `boolean` (um checkbox/toggle que o motor
--- grava direto, ou `ctx.x = true`) ou como o TEXTO `"true"` (o que o markup, um
--- `open_window` `data` ou `ctx.x = "true"` escreveram). Comparar só com o texto
--- erra o primeiro caso desde a glacier-ui 0.137; estas duas aceitam os dois.
+-- grava direto, ou `ctx.x = true`) ou como o TEXTO `"true"` (o que o markup,
+-- um `open_window` `data` ou `ctx.x = "true"` escreveram). Comparar só com o
+-- texto erra o primeiro caso desde a glacier-ui 0.137; estas duas aceitam os
+-- dois.
 function M.is_true(value: any): boolean
     return value == true or value == "true"
 end
 
--- O par de `is_true`. Ausente não é falso: `not is_false(v)` é o "ligado por padrão".
+-- O par de `is_true`. Ausente não é falso: `not is_false(v)` é o "ligado por
+-- padrão".
 function M.is_false(value: any): boolean
     return value == false or value == "false"
 end
 
--- `true` se a chave JSON do `ctx` é uma lista vazia (ou não é uma lista legível).
+-- `true` se a chave JSON do `ctx` é uma lista vazia (ou não é uma lista
+-- legível).
 function M.list_is_empty(value: any): boolean
     local ok, list = M.decode_list(value)
     return not ok or type(list) ~= "table" or next(list) == nil

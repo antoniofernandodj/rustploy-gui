@@ -1,8 +1,8 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/services.luau — detalhe do serviço (service.component.gv): fetch completo,
--- mutações de spec/env, ciclo de vida (deploy/reload/stop), build logs de
--- deployments, picker Gitea. Exporta `fetch_service_detail` para
+-- handlers/services.luau — detalhe do serviço (service.component.gv): fetch
+-- completo, mutações de spec/env, ciclo de vida (deploy/reload/stop), build
+-- logs de deployments, picker Gitea. Exporta `fetch_service_detail` para
 -- handlers/stream.luau reusar no desfecho de um deploy (evento bus
 -- DeployStateChanged).
 
@@ -14,9 +14,10 @@ local EnvRows = require("env_rows")
 local SecretRows = require("secret_rows")
 local ServiceBackup = require("service_backup")
 
--- `open_service` (logo abaixo) chama estas três antes de elas serem definidas (mais adiante no
--- arquivo), e o Luau só conhece um campo de `M` depois do `function M.x`. O tipo declara a forma
--- de antemão; as definições seguem conferidas contra as assinaturas daqui.
+-- `open_service` (logo abaixo) chama estas três antes de elas serem definidas
+-- (mais adiante no arquivo), e o Luau só conhece um campo de `M` depois do
+-- `function M.x`. O tipo declara a forma de antemão; as definições seguem
+-- conferidas contra as assinaturas daqui.
 type ServicesModule = {
     fetch_service_detail: (service_id: string) -> (),
     data_reset: () -> (),
@@ -26,11 +27,12 @@ type ServicesModule = {
 
 local M: ServicesModule = {} :: any
 
--- Título editável do serviço (service.component.gv): cada tecla reinicia `title_save_timer`
--- (debounce de 0,5 s antes de gravar) e `title_toast_timer` (o toast "Nome
--- salvo" só sai depois de 2 s sem nenhuma gravação). Enquanto `title_save_timer`
--- existe há texto digitado ainda não gravado: `fetch_service_detail` não pode
--- sobrescrever o campo com o nome antigo do servidor.
+-- Título editável do serviço (service.component.gv): cada tecla reinicia
+-- `title_save_timer` (debounce de 0,5 s antes de gravar) e `title_toast_timer`
+-- (o toast "Nome salvo" só sai depois de 2 s sem nenhuma gravação). Enquanto
+-- `title_save_timer` existe há texto digitado ainda não gravado:
+-- `fetch_service_detail` não pode sobrescrever o campo com o nome antigo do
+-- servidor.
 local TITLE_SAVE_DELAY_MS = 500
 local TITLE_TOAST_IDLE_MS = 2000
 local title_save_timer: any = nil
@@ -82,7 +84,8 @@ function open_service(service_id: string): ()
     ctx.selected_service = service_id
     ctx.view = "service"
     ctx.tab = "general"
-    -- A lista de execuções é do serviço anterior: limpa até a aba Logs recarregar.
+    -- A lista de execuções é do serviço anterior: limpa até a aba Logs
+    -- recarregar.
     M.reset_log_executions()
     ctx.service_error = ""
     ctx.deployment_selected = ""
@@ -238,11 +241,14 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.error_edit_service_name = ""
     if source_kind == "Compose" then
         ctx.service_rename_note = i18n.tr(
-            "A stack e os volumes do Docker não mudam com o nome: os dados continuam os mesmos."
+            "A stack e os volumes do Docker não mudam com o nome: os dados "
+                .. "continuam os mesmos."
         )
     else
         ctx.service_rename_note = i18n.tr(
-            "O hostname interno (rp_<nome>) só passa a valer no próximo deploy. Outros serviços que usam o nome antigo em variáveis de ambiente precisam ser atualizados."
+            "O hostname interno (rp_<nome>) só passa a valer no próximo "
+                .. "deploy. Outros serviços que usam o nome antigo em "
+                .. "variáveis de ambiente precisam ser atualizados."
         )
     end
     ctx.service_project = project_name
@@ -336,7 +342,8 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_run_args = (spec.run_args and #spec.run_args > 0)
             and table.concat(spec.run_args, " ")
         or "—"
-    -- Via EnvRows: a lista ganha os campos editáveis de cada linha sem apagar um rascunho.
+    -- Via EnvRows: a lista ganha os campos editáveis de cada linha sem apagar
+    -- um rascunho.
     EnvRows.publish(
         "service",
         format.env_json_with_comments(spec.env_vars, spec.env_comments)
@@ -346,7 +353,8 @@ function M.fetch_service_detail(service_id: string): ()
         format.env_dotenv_with_comments(spec.env_vars, spec.env_comments)
     ctx.service_env_text = dotenv
     ctx.service_env_text_original = dotenv
-    -- Secrets DESTE serviço (só os nomes; no deploy o de serviço vale antes do de projeto).
+    -- Secrets DESTE serviço (só os nomes; no deploy o de serviço vale antes do
+    -- de projeto).
     local service_secret_names: { string } = {}
     local secret_list_ok, secret_list_response = api:rpc {
         SecretList = { project_id = spec.project_id, service_id = service_id },
@@ -360,11 +368,16 @@ function M.fetch_service_detail(service_id: string): ()
     end
     ctx.service_secrets = SecretRows.bind(
         "service",
-        format.secret_rows(service_secret_names, service_id, State.revealed_secrets)
+        format.secret_rows(
+            service_secret_names,
+            service_id,
+            State.revealed_secrets
+        )
     )
     ctx.service_secrets_count = tostring(#service_secret_names)
-    -- O "usar secret" de uma variável do serviço oferece os secrets dele e os do projeto — menos os
-    -- do projeto que um do serviço com o mesmo nome esconde (no deploy o do serviço vale antes).
+    -- O "usar secret" de uma variável do serviço oferece os secrets dele e os
+    -- do projeto — menos os do projeto que um do serviço com o mesmo nome
+    -- esconde (no deploy o do serviço vale antes).
     local own_secret: { [string]: boolean } = {}
     local secret_options = {}
     for _, name in ipairs(service_secret_names) do
@@ -455,7 +468,8 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.pre_deploy_available_jobs =
         format.pre_deploy_available(spec, project_jobs)
 
-    -- Dependências e religamento no boot (aba Advanced). Os candidatos são os outros serviços do projeto.
+    -- Dependências e religamento no boot (aba Advanced). Os candidatos são os
+    -- outros serviços do projeto.
     local project_service_list_ok, project_service_list_response =
         api:rpc { ServiceList = { project_id = spec.project_id } }
     local project_services = project_service_list_ok
@@ -661,7 +675,8 @@ function shared_disable(): ()
     then
         toast {
             message = i18n.tr(
-                "Remova os databases deste servidor antes de deixar de compartilhar"
+                "Remova os databases deste servidor antes de deixar de "
+                    .. "compartilhar"
             ),
             kind = "warning",
         }
@@ -734,7 +749,8 @@ function shared_database_delete(shared_database_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover database?"),
         message = i18n.tr(
-            "O database e o usuário são apagados do servidor, com todos os dados. Ação irreversível."
+            "O database e o usuário são apagados do servidor, com todos os "
+                .. "dados. Ação irreversível."
         ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
@@ -897,7 +913,9 @@ function migration_start(): ()
     local confirmed = confirm {
         title = i18n.tr("Iniciar migração?"),
         message = i18n.tr(
-            "Os serviços do projeto que usam este banco serão parados durante o dump/restore e subirão de novo no banco novo. O banco antigo é mantido (parado) para rollback."
+            "Os serviços do projeto que usam este banco serão parados durante "
+                .. "o dump/restore e subirão de novo no banco novo. O banco "
+                .. "antigo é mantido (parado) para rollback."
         ),
         confirm_label = i18n.tr("Migrar"),
     }
@@ -932,7 +950,8 @@ function migration_rollback(): ()
     local confirmed = confirm {
         title = i18n.tr("Reverter a migração?"),
         message = i18n.tr(
-            "A app volta ao banco antigo. O que foi escrito no banco novo depois da migração se perde."
+            "A app volta ao banco antigo. O que foi escrito no banco novo "
+                .. "depois da migração se perde."
         ),
         confirm_label = i18n.tr("Reverter"),
         destructive = true,
@@ -959,7 +978,8 @@ function migration_discard(): ()
     local confirmed = confirm {
         title = i18n.tr("Descartar o banco antigo?"),
         message = i18n.tr(
-            "O serviço do banco antigo é removido, com os dados dele. Sem volta."
+            "O serviço do banco antigo é removido, com os dados dele. Sem "
+                .. "volta."
         ),
         confirm_label = i18n.tr("Descartar"),
         destructive = true,
@@ -1099,9 +1119,10 @@ function domain_delete(domain: string): ()
     end)
 end
 
--- TODO(portas-tcp): substituídos pela lista de portas (tcp_port_add/tcp_port_delete), 2026-11.
--- Mantidos comentados: editavam o `host_port` único, que agora é só espelho.
--- function domain_hostport_save(): ()
+-- TODO(portas-tcp): substituídos pela lista de portas
+-- (tcp_port_add/tcp_port_delete), 2026-11. Mantidos comentados: editavam o
+-- `host_port` único, que agora é só espelho. function domain_hostport_save():
+-- ()
 --     with_spec(function(spec: any): ()
 --         spec.host_port = tonumber(Helpers.trim(ctx.service_form_host_port))
 --     end)
@@ -1114,14 +1135,16 @@ end
 -- end
 
 -- ── Portas TCP do host (docs/plano-multiplas-portas-tcp.md) ─────────────────
--- Cada porta liga uma porta do host a uma porta do container. Porta do host vazia = "Automática"
--- (sentinela 0: o daemon troca por uma livre da faixa [external_ports] e a libera no firewall).
+-- Cada porta liga uma porta do host a uma porta do container. Porta do host
+-- vazia = "Automática" (sentinela 0: o daemon troca por uma livre da faixa
+-- [external_ports] e a libera no firewall).
 
--- Mesmo idioma de `materialize_domains`: move o `host_port` legado para a lista. O `host_port` **fica**
--- no spec: o `/api/rpc` recusa (HTTP 400) um update que omite um campo que o serviço tem gravado, e o Luau
--- não tem como mandar `null` (um `nil` some do JSON). Ele é só espelho: o daemon o recalcula a partir da
--- lista e, se a lista chegar vazia com o espelho antigo, entende que a última porta foi removida
--- (`clear_stale_mirror` no daemon).
+-- Mesmo idioma de `materialize_domains`: move o `host_port` legado para a
+-- lista. O `host_port` **fica** no spec: o `/api/rpc` recusa (HTTP 400) um
+-- update que omite um campo que o serviço tem gravado, e o Luau não tem como
+-- mandar `null` (um `nil` some do JSON). Ele é só espelho: o daemon o
+-- recalcula a partir da lista e, se a lista chegar vazia com o espelho antigo,
+-- entende que a última porta foi removida (`clear_stale_mirror` no daemon).
 local function materialize_tcp_ports(spec: any): ()
     if not spec.tcp_ports or #spec.tcp_ports == 0 then
         local routes = json.array {}
@@ -1143,12 +1166,15 @@ end
 
 function tcp_port_add(): ()
     local host_text = Helpers.trim(ctx.service_form_tcp_host_port or "")
-    local container_text = Helpers.trim(ctx.service_form_tcp_container_port or "")
+    local container_text =
+        Helpers.trim(ctx.service_form_tcp_container_port or "")
     local host_port = 0
     if host_text ~= "" then
         local parsed = parse_port(host_text)
         if not parsed then
-            ctx.error_service_form_tcp = i18n.tr("porta do host inválida (1 a 65535, ou vazia para automática)")
+            ctx.error_service_form_tcp = i18n.tr(
+                "porta do host inválida (1 a 65535, ou vazia para automática)"
+            )
             return
         end
         host_port = parsed
@@ -1157,7 +1183,10 @@ function tcp_port_add(): ()
     if container_text ~= "" then
         container_port = parse_port(container_text)
         if not container_port then
-            ctx.error_service_form_tcp = i18n.tr("porta do container inválida (1 a 65535, ou vazia para a padrão)")
+            ctx.error_service_form_tcp = i18n.tr(
+                "porta do container inválida (1 a 65535, ou vazia para a "
+                    .. "padrão)"
+            )
             return
         end
     end
@@ -1207,16 +1236,23 @@ end
 -- Rótulo de cada sugestão, por porta, para o tcp_port_pick preencher junto.
 local suggestion_labels: { [string]: string } = {}
 
--- "Sugerir portas": pergunta ao daemon quais portas o container provavelmente tem (o que ele escuta, o
--- que a imagem e o compose declaram, e a tabela do produto).
+-- "Sugerir portas": pergunta ao daemon quais portas o container provavelmente
+-- tem (o que ele escuta, o que a imagem e o compose declaram, e a tabela do
+-- produto).
 function tcp_port_suggest(): ()
     local api = State.api
     local service_id = ctx.selected_service
     if not api or not service_id or service_id == "" then
         return
     end
-    local ok, response = api:rpc_checked { ServicePortSuggestions = { service_id = service_id } }
-    if not ok or type(response) ~= "table" or response.ServicePortSuggestions == nil then
+    local ok, response = api:rpc_checked {
+        ServicePortSuggestions = { service_id = service_id },
+    }
+    if
+        not ok
+        or type(response) ~= "table"
+        or response.ServicePortSuggestions == nil
+    then
         toast { message = tostring(response), kind = "error" }
         return
     end
@@ -1228,11 +1264,17 @@ function tcp_port_suggest(): ()
     ctx.service_port_suggestions = format.port_suggestions_json(suggestions)
     ctx.service_port_suggestions_count = tostring(#suggestions)
     if #suggestions == 0 then
-        toast { message = tostring(i18n.tr("nenhuma outra porta encontrada no serviço")), kind = "info" }
+        toast {
+            message = tostring(
+                i18n.tr("nenhuma outra porta encontrada no serviço")
+            ),
+            kind = "info",
+        }
     end
 end
 
--- Clicar numa sugestão preenche a porta do container (e o rótulo, se a porta tem nome).
+-- Clicar numa sugestão preenche a porta do container (e o rótulo, se a porta
+-- tem nome).
 function tcp_port_pick(port: string): ()
     ctx.service_form_tcp_container_port = port
     local label = suggestion_labels[port]
@@ -1311,8 +1353,8 @@ function advanced_save(): ()
     end)
 end
 
--- Adiciona o serviço escolhido às dependências. O daemon valida (sem ciclo, só serviços do mesmo
--- projeto) e a recusa aparece no toast de erro do with_spec.
+-- Adiciona o serviço escolhido às dependências. O daemon valida (sem ciclo, só
+-- serviços do mesmo projeto) e a recusa aparece no toast de erro do with_spec.
 function dependency_add(): ()
     local dependency_id = Helpers.trim(ctx.service_form_dependency_add_id)
     if dependency_id == "" then
@@ -1407,10 +1449,11 @@ function pre_deploy_check_reorder(reorder_json: string?): ()
     end)
 end
 
--- ── Sub-aba Registry: select de repositório/tag do registry embutido ─────────
+-- ── Sub-aba Registry: select de repositório/tag do registry embutido ────────
 
 -- Separa `host/repo:tag` em (repo, tag). O host (primeiro segmento com `.` ou
--- `:`, ou `localhost`) é descartado: o select só conhece o nome do repositório.
+-- `:`, ou `localhost`) é descartado: o select só conhece o nome do
+-- repositório.
 local function split_registry_image(image: string): (string, string)
     local rest = image
     local first, remainder = string.match(rest, "^([^/]+)/(.+)$")
@@ -1424,8 +1467,8 @@ local function split_registry_image(image: string): (string, string)
     return rest, ""
 end
 
--- Imagem montada a partir da seleção; sempre pelo loopback do registry embutido
--- (o mesmo endereço que o deploy reconhece sem depender de DNS/ACME).
+-- Imagem montada a partir da seleção; sempre pelo loopback do registry
+-- embutido (o mesmo endereço que o deploy reconhece sem depender de DNS/ACME).
 function registry_picker_image(): string
     local repo = Helpers.trim(ctx.registry_picker_repo)
     local tag = Helpers.trim(ctx.registry_picker_tag)
@@ -1671,13 +1714,16 @@ function data_export(): ()
     local path = save_file {
         title = i18n.tr("Salvar pacote de dados"),
         default_name = if encrypt then "dados.rpdata.age" else "dados.rpdata",
-        filters = { { name = "Rustploy data", extensions = { "rpdata", "age" } } },
+        filters = {
+            { name = "Rustploy data", extensions = { "rpdata", "age" } },
+        },
     }
     if not path then
         return
     end
     ctx.data_message = i18n.tr("exportando…")
-    -- Volume comum: para o serviço durante a cópia (o banco ignora, o dump é no ar).
+    -- Volume comum: para o serviço durante a cópia (o banco ignora, o dump é
+    -- no ar).
     local ok, err = api:download_service_data(service_id, true, encrypt, path)
     if ok then
         ctx.data_message = i18n.tr("pacote de dados salvo em ") .. path
@@ -1691,7 +1737,9 @@ end
 function data_pick_file(): ()
     local path = open_file {
         title = i18n.tr("Escolher pacote de dados"),
-        filters = { { name = "Rustploy data", extensions = { "rpdata", "age" } } },
+        filters = {
+            { name = "Rustploy data", extensions = { "rpdata", "age" } },
+        },
     }
     if not path then
         return
@@ -1703,7 +1751,8 @@ function data_pick_file(): ()
     ctx.data_message = ""
 end
 
---- 1º passo: o daemon confere o pacote e diz o que seria substituído (nada muda).
+--- 1º passo: o daemon confere o pacote e diz o que seria substituído (nada
+--- muda).
 function data_preview(): ()
     local api = State.api
     local service_id = ctx.selected_service or ""
@@ -1737,7 +1786,8 @@ function data_confirm(): ()
     local confirmed = confirm {
         title = i18n.tr("Substituir os dados?"),
         message = i18n.tr(
-            "Isto SUBSTITUI os dados atuais do serviço. Clique de novo para confirmar."
+            "Isto SUBSTITUI os dados atuais do serviço. Clique de novo para "
+                .. "confirmar."
         ),
         confirm_label = i18n.tr("Substituir"),
         destructive = true,
@@ -1829,7 +1879,8 @@ function env_add(): ()
     -- sensíveis aqui, já que a aba do serviço não tem o toggle "usar secret"
     -- do projeto. O daemon decifra no deploy (deploy/env_resolve.rs).
     local secret = Helpers.parse_secret_ref(raw_value)
-    -- Checkbox "usar secret" ligado: o valor é o NOME escolhido na lista de secrets.
+    -- Checkbox "usar secret" ligado: o valor é o NOME escolhido na lista de
+    -- secrets.
     if Helpers.is_true(ctx.env_new_is_secret) and secret == nil then
         local name = Helpers.trim(raw_value)
         if name == "" then
@@ -1857,7 +1908,8 @@ function env_add(): ()
     ctx.env_new_is_secret = "false"
 end
 
--- on_validation_error do form(name = service_secret_add) — nome e valor são `rules="required"`.
+-- on_validation_error do form(name = service_secret_add) — nome e valor são
+-- `rules="required"`.
 function service_secret_add_show_validation_errors(_erros_json: string?): ()
     toast {
         message = i18n.tr("Preencha nome e valor do secret"),
@@ -1865,8 +1917,8 @@ function service_secret_add_show_validation_errors(_erros_json: string?): ()
     }
 end
 
--- Cria (ou sobrescreve) um secret do SERVIÇO aberto. Write-only como o do projeto: o daemon só devolve
--- os nomes. O novo valor vale no próximo deploy.
+-- Cria (ou sobrescreve) um secret do SERVIÇO aberto. Write-only como o do
+-- projeto: o daemon só devolve os nomes. O novo valor vale no próximo deploy.
 function service_secret_add(): ()
     local service_id = ctx.selected_service or ""
     local project_id = ctx.service_project_id or ""
@@ -1909,7 +1961,8 @@ function service_secret_delete(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover secret?"),
         message = i18n.tr(
-            'O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam "'
+            "O valor cifrado será apagado e não há como recuperá-lo. "
+                .. 'Variáveis que referenciam "'
         )
             .. name
             .. i18n.tr('" passarão a receber valor vazio no próximo deploy.'),
@@ -1937,12 +1990,15 @@ function service_secret_delete(name: string): ()
     end
 end
 
--- "→ secret" numa variável em claro: o valor passa a ser guardado cifrado e a variável vira uma
--- referência ao secret (mesmo nome). O valor não muda, então nada precisa ser redigitado.
+-- "→ secret" numa variável em claro: o valor passa a ser guardado cifrado e a
+-- variável vira uma referência ao secret (mesmo nome). O valor não muda, então
+-- nada precisa ser redigitado.
 function env_to_secret(key: string): ()
     local confirmed = confirm {
         title = i18n.tr("Mover para secret?"),
-        message = i18n.tr('O valor de "') .. key .. i18n.tr('" passa a ser guardado cifrado.'),
+        message = i18n.tr('O valor de "') .. key .. i18n.tr(
+            '" passa a ser guardado cifrado.'
+        ),
         confirm_label = i18n.tr("Mover para secret"),
     }
     if not confirmed then
@@ -1973,8 +2029,9 @@ function env_to_secret(key: string): ()
     end
 end
 
--- 👁 num secret do serviço: pede o valor ao daemon (SecretReveal, que grava auditoria: quem, qual,
--- quando; nunca o valor) e o mostra na linha. Só em memória; 🙈 ou trocar de tela esconde.
+-- 👁 num secret do serviço: pede o valor ao daemon (SecretReveal, que grava
+-- auditoria: quem, qual, quando; nunca o valor) e o mostra na linha. Só em
+-- memória; 🙈 ou trocar de tela esconde.
 function service_secret_reveal(name: string): ()
     local service_id = ctx.selected_service or ""
     local project_id = ctx.service_project_id or ""
@@ -1987,7 +2044,9 @@ function service_secret_reveal(name: string): ()
         message = i18n.tr('O valor de "')
             .. name
             .. i18n.tr(
-                '" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor).'
+                '" vai aparecer na tela. O acesso fica registrado na '
+                    .. "auditoria do servidor (quem, qual secret e quando; "
+                    .. "nunca o valor)."
             ),
         confirm_label = i18n.tr("Ver valor"),
     }
@@ -2033,29 +2092,42 @@ function secret_copy(ref: string): ()
     }
 end
 
--- O nome de um secret do SERVIÇO aberto, editado no lugar (handlers/secret_rows.luau): renomeia
--- meio segundo depois da última tecla, como o título do serviço.
+-- O nome de um secret do SERVIÇO aberto, editado no lugar
+-- (handlers/secret_rows.luau): renomeia meio segundo depois da última tecla,
+-- como o título do serviço.
 function service_secret_name_change(name: string, value: string): ()
-    SecretRows.change("service", "service_secrets", name, value, function(from: string, to: string): boolean
-        local service_id = ctx.selected_service or ""
-        local project_id = ctx.service_project_id or ""
-        local api = State.api
-        if service_id == "" or project_id == "" or not api then
-            return false
+    SecretRows.change(
+        "service",
+        "service_secrets",
+        name,
+        value,
+        function(from: string, to: string): boolean
+            local service_id = ctx.selected_service or ""
+            local project_id = ctx.service_project_id or ""
+            local api = State.api
+            if service_id == "" or project_id == "" or not api then
+                return false
+            end
+            local rename_ok, rename_response = api:rpc_checked {
+                SecretRename = {
+                    project_id = project_id,
+                    service_id = service_id,
+                    from = from,
+                    to = to,
+                },
+            }
+            if not rename_ok then
+                toast { message = tostring(rename_response), kind = "error" }
+                return false
+            end
+            M.fetch_service_detail(service_id)
+            return true
         end
-        local rename_ok, rename_response = api:rpc_checked {
-            SecretRename = { project_id = project_id, service_id = service_id, from = from, to = to },
-        }
-        if not rename_ok then
-            toast { message = tostring(rename_response), kind = "error" }
-            return false
-        end
-        M.fetch_service_detail(service_id)
-        return true
-    end)
+    )
 end
 
--- Move genérico (SecretMove) de uma coisa do SERVIÇO aberto; `done_message` é o aviso de sucesso.
+-- Move genérico (SecretMove) de uma coisa do SERVIÇO aberto; `done_message` é
+-- o aviso de sucesso.
 local function service_move(op: string, name: string, done_message: string): ()
     local service_id = ctx.selected_service or ""
     local project_id = ctx.service_project_id or ""
@@ -2079,15 +2151,17 @@ local function service_move(op: string, name: string, done_message: string): ()
     end
 end
 
--- 🔓 num secret do serviço (ou numa variável que aponta para um): volta a ser uma variável em
--- claro do serviço. Cuidado: o valor passa a ficar visível na lista e no YAML do estado.
+-- 🔓 num secret do serviço (ou numa variável que aponta para um): volta a ser
+-- uma variável em claro do serviço. Cuidado: o valor passa a ficar visível na
+-- lista e no YAML do estado.
 function service_secret_to_env(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Voltar para variável em claro?"),
         message = i18n.tr('O valor de "')
             .. name
             .. i18n.tr(
-                '" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado).'
+                '" deixa de ser cifrado e passa a aparecer em claro na '
+                    .. "variável (e no estado versionado)."
             ),
         confirm_label = i18n.tr("Mover para variável"),
         destructive = true,
@@ -2102,7 +2176,8 @@ function service_secret_to_env(name: string): ()
     )
 end
 
--- ↑ secret do serviço → secret do projeto (todos os serviços do projeto passam a enxergá-lo).
+-- ↑ secret do serviço → secret do projeto (todos os serviços do projeto passam
+-- a enxergá-lo).
 function service_secret_to_project(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Subir para o projeto?"),
@@ -2123,7 +2198,8 @@ function service_secret_to_project(name: string): ()
     )
 end
 
--- ↑ variável em claro do serviço → variável do projeto (todos os serviços herdam).
+-- ↑ variável em claro do serviço → variável do projeto (todos os serviços
+-- herdam).
 function env_to_project(key: string): ()
     local confirmed = confirm {
         title = i18n.tr("Subir para o projeto?"),
@@ -2147,7 +2223,9 @@ end
 function env_delete(key: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover variável?"),
-        message = i18n.tr('A variável "') .. key .. i18n.tr('" será removida deste serviço.'),
+        message = i18n.tr('A variável "') .. key .. i18n.tr(
+            '" será removida deste serviço.'
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -2176,12 +2254,18 @@ function env_import(): ()
     local text = ctx.service_env_text or ""
     local _, _, errors = Helpers.parse_dotenv(text)
     if #errors > 0 then
-        toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        toast {
+            message = Helpers.dotenv_errors_message(errors),
+            kind = "error",
+        }
         return
     end
     local confirmed = confirm {
         title = i18n.tr("Substituir as variáveis?"),
-        message = i18n.tr('Todas as variáveis deste serviço serão substituídas pelo texto do editor.'),
+        message = i18n.tr(
+            "Todas as variáveis deste serviço serão substituídas pelo texto "
+                .. "do editor."
+        ),
         confirm_label = i18n.tr("Substituir"),
         destructive = true,
     }
@@ -2273,7 +2357,8 @@ function delete_deployment(deployment_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover deployment?"),
         message = i18n.tr(
-            "O registro do deployment e seus build logs serão removidos. Essa ação não pode ser desfeita."
+            "O registro do deployment e seus build logs serão removidos. Essa "
+                .. "ação não pode ser desfeita."
         ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
@@ -2316,7 +2401,8 @@ function regenerate_webhook(): ()
     local confirmed = confirm {
         title = i18n.tr("Regenerar token do webhook?"),
         message = i18n.tr(
-            "A URL atual para de funcionar imediatamente. Você precisará recadastrá-la no provedor (GitHub, Gitea, Docker Hub…)."
+            "A URL atual para de funcionar imediatamente. Você precisará "
+                .. "recadastrá-la no provedor (GitHub, Gitea, Docker Hub…)."
         ),
         confirm_label = i18n.tr("Regenerar"),
         destructive = true,
@@ -2437,7 +2523,7 @@ end
 
 -- Texto da ordem do plano: "1. db  2. api" (uma linha por serviço, na ordem
 -- em que entram na fila).
-local function plan_order_text(items: {any}): string
+local function plan_order_text(items: { any }): string
     local lines = {}
     for index, item in ipairs(items) do
         local suffix = ""
@@ -2468,7 +2554,8 @@ local function run_batch(command: any): boolean
             end
         end
         toast {
-            message = tostring(i18n.tr("Deploy na fila: ")) .. tostring(queued),
+            message = tostring(i18n.tr("Deploy na fila: "))
+                .. tostring(queued),
             kind = "success",
         }
         return true
@@ -2506,9 +2593,10 @@ local function start_deploy(requested_service_id: string?): ()
         deploy_single(service_id)
         return
     end
-    -- O plano vai (2º argumento) para o corpo do `dialog` declarado em app.gv, que o lê como
-    -- {__dialog.message}; `open_dialog` espera o clique e
-    -- devolve o `value` do `choice` escolhido ("aceitar" | "so"), ou nil se rejeitou/fechou.
+    -- O plano vai (2º argumento) para o corpo do `dialog` declarado em app.gv,
+    -- que o lê como {__dialog.message}; `open_dialog` espera o clique e
+    -- devolve o `value` do `choice` escolhido ("aceitar" | "so"), ou nil se
+    -- rejeitou/fechou.
     local message = plan_order_text(plan_response.DeployBatch)
     local choice = open_dialog("deploy_plan", { message = message })
     if choice == "aceitar" then
@@ -2550,7 +2638,10 @@ function project_deploy(): ()
         return
     end
     if #plan_response.DeployBatch == 0 then
-        toast { message = tostring(i18n.tr("Nada para deployar")), kind = "info" }
+        toast {
+            message = tostring(i18n.tr("Nada para deployar")),
+            kind = "info",
+        }
         return
     end
     local accepted = confirm {
@@ -2716,12 +2807,14 @@ function gitea_repo_pick(full_name: string): ()
 end
 
 -- ── Logs por execução (aba Logs) ────────────────────────────────────────────
--- Uma execução = um container. A janela "Logs de execução" mostra SÓ a atual (ou, com o serviço
--- parado, a mais recente); as outras viram a lista "Execuções anteriores", com "Ver logs" (janela
--- só dela, com data e hora), "Excluir" e "Limpar selecionados" (em lote).
+-- Uma execução = um container. A janela "Logs de execução" mostra SÓ a atual
+-- (ou, com o serviço parado, a mais recente); as outras viram a lista
+-- "Execuções anteriores", com "Ver logs" (janela só dela, com data e hora),
+-- "Excluir" e "Limpar selecionados" (em lote).
 
--- Execuções passadas do serviço aberto (cru, como veio do daemon), a que a janela ao vivo mostra
--- (ids curtos de container) e as chaves marcadas na lista.
+-- Execuções passadas do serviço aberto (cru, como veio do daemon), a que a
+-- janela ao vivo mostra (ids curtos de container) e as chaves marcadas na
+-- lista.
 local past_executions: { any } = {}
 local shown_container_ids: { string } = {}
 local selected_executions: { [string]: boolean } = {}
@@ -2750,7 +2843,8 @@ function M.reset_log_executions(): ()
     render_log_executions()
 end
 
--- Lê `LogsExecutions` e separa a execução "atual" (a que a janela ao vivo mostra) das passadas.
+-- Lê `LogsExecutions` e separa a execução "atual" (a que a janela ao vivo
+-- mostra) das passadas.
 function M.load_log_executions(): ()
     local service_id = ctx.selected_service or ""
     local api = State.api
@@ -2823,7 +2917,8 @@ function log_exec_toggle_all(): ()
     render_log_executions()
 end
 
--- Janela só de uma execução passada: histórico daquela execução (com data e hora), sem ao vivo.
+-- Janela só de uma execução passada: histórico daquela execução (com data e
+-- hora), sem ao vivo.
 function log_exec_open(key: string): ()
     local service_id = ctx.selected_service or ""
     local api = State.api
@@ -2864,10 +2959,9 @@ function log_exec_open(key: string): ()
         component = "log",
         size = "900 560",
         decorations = false,
-        title = i18n.tr("Execução ")
-            .. format.date_time_full(target.started_at)
-            .. " — "
-            .. (ctx.service_name or service_id),
+        title = i18n.tr("Execução ") .. format.date_time_full(
+            target.started_at
+        ) .. " — " .. (ctx.service_name or service_id),
         resizable = true,
         data = {
             api_url = ctx.api_url or "",
@@ -2957,12 +3051,14 @@ function log_exec_delete_selected(): ()
     )
 end
 
--- Abre os "Logs de execução" — só a execução ATUAL (ou a mais recente, com o serviço parado) —
--- numa JANELA à parte (motor Glacier isolado e leve — ver log_window.gv/.luau). Semeia a conexão,
--- o serviço-alvo e o histórico FRESCO via open_window({data}); a janela abre sua própria SSE
--- (endpoint dedicado) e rola os logs sem o custo de reavaliar a árvore inteira do app principal.
--- Sendo uma ação despachada, o `fetch` aqui funciona (ao contrário do init de uma janela) — pegamos
--- o histórico na hora para não haver vão entre o que existe e o que a stream ao vivo entrega.
+-- Abre os "Logs de execução" — só a execução ATUAL (ou a mais recente, com o
+-- serviço parado) — numa JANELA à parte (motor Glacier isolado e leve — ver
+-- log_window.gv/.luau). Semeia a conexão, o serviço-alvo e o histórico FRESCO
+-- via open_window({data}); a janela abre sua própria SSE (endpoint dedicado) e
+-- rola os logs sem o custo de reavaliar a árvore inteira do app principal.
+-- Sendo uma ação despachada, o `fetch` aqui funciona (ao contrário do init de
+-- uma janela) — pegamos o histórico na hora para não haver vão entre o que
+-- existe e o que a stream ao vivo entrega.
 function open_logs_window(): ()
     local service_id = ctx.selected_service or ""
     if service_id == "" then
@@ -2972,12 +3068,14 @@ function open_logs_window(): ()
     local has_more = false
     local more_before = ""
     local api = State.api
-    -- Quais containers pertencem à execução atual (atualiza também a lista de passadas).
+    -- Quais containers pertencem à execução atual (atualiza também a lista de
+    -- passadas).
     M.load_log_executions()
     local container_ids = shown_container_ids
     if api then
-        -- Prefere o log GUARDADO (só desta execução, e dá "Carregar anteriores"); sem histórico
-        -- (Compose, `[logs] enabled = false`), cai no log ao vivo do motor.
+        -- Prefere o log GUARDADO (só desta execução, e dá "Carregar
+        -- anteriores"); sem histórico (Compose, `[logs] enabled = false`), cai
+        -- no log ao vivo do motor.
         local history_ok, history_response = api:rpc {
             LogsHistory = {
                 service_id = service_id,

@@ -1,40 +1,107 @@
 // Casca do app conectado: sidebar, topbar e as views de projeto (Deployments,
-// Projects, serviços de um projeto, detalhe de serviço); importa home.component.gv para
-// as telas globais.
+// Projects, serviços de um projeto, detalhe de serviço); importa
+// home.component.gv para as telas globais.
 component {
   resources {
     // ── Imports ────────────────────────────────────────────────────
     link(rel = import, href = "service.component.gv", as = ServiceDetail)
     link(rel = import, href = "home.component.gv", as = HomeViews)
-    link(rel = import, href = "shell/deployments.component.gv", as = DeploymentsView)
+    link(
+      rel = import,
+      href = "shell/deployments.component.gv",
+      as = DeploymentsView
+    )
     link(rel = import, href = "shell/projects.component.gv", as = ProjectsView)
-    link(rel = import, href = "shell/project_services.component.gv", as = ProjectServicesView)
+    link(
+      rel = import,
+      href = "shell/project_services.component.gv",
+      as = ProjectServicesView
+    )
     link(rel = import, href = "shell/job_env.component.gv", as = JobEnvView)
-    link(rel = import, href = "components/project_card.component.gv", as = ProjectCard)
-    link(rel = import, href = "components/service_card.component.gv", as = ServiceCard)
-    link(rel = import, href = "components/running_card.component.gv", as = RunningCard)
-    link(rel = import, href = "components/stat_card.component.gv", as = StatCard)
-    link(rel = import, href = "components/state_cell.component.gv", as = StateCell)
-    link(rel = import, href = "components/table_link.component.gv", as = TableLink)
-    link(rel = import, href = "components/job_actions.component.gv", as = JobActions)
+    link(
+      rel = import,
+      href = "components/project_card.component.gv",
+      as = ProjectCard
+    )
+    link(
+      rel = import,
+      href = "components/service_card.component.gv",
+      as = ServiceCard
+    )
+    link(
+      rel = import,
+      href = "components/running_card.component.gv",
+      as = RunningCard
+    )
+    link(
+      rel = import,
+      href = "components/stat_card.component.gv",
+      as = StatCard
+    )
+    link(
+      rel = import,
+      href = "components/state_cell.component.gv",
+      as = StateCell
+    )
+    link(
+      rel = import,
+      href = "components/table_link.component.gv",
+      as = TableLink
+    )
+    link(
+      rel = import,
+      href = "components/job_actions.component.gv",
+      as = JobActions
+    )
     link(rel = import, href = "components/badge.component.gv", as = rp-badge)
     link(rel = import, href = "components/nav_item.component.gv", as = NavItem)
-    link(rel = import, href = "components/tab_button.component.gv", as = TabButton)
-    link(rel = import, href = "components/loading_row.component.gv", as = LoadingRow)
-    link(rel = import, href = "components/picker_row.component.gv", as = PickerRow)
-    link(rel = import, href = "components/template_row.component.gv", as = TemplateRow)
+    link(
+      rel = import,
+      href = "components/tab_button.component.gv",
+      as = TabButton
+    )
+    link(
+      rel = import,
+      href = "components/loading_row.component.gv",
+      as = LoadingRow
+    )
+    link(
+      rel = import,
+      href = "components/picker_row.component.gv",
+      as = PickerRow
+    )
+    link(
+      rel = import,
+      href = "components/template_row.component.gv",
+      as = TemplateRow
+    )
 
     style """
       .sidebar          { background: var(--surface); }
       .brand            { spacing: 2; padding: 0 8 18 8; }
       .brand__name      { size: 21; bold: true; color: var(--text); }
       .brand__sub       { size: 11; color: var(--faint); }
-      .sidebar__section { size: 11; bold: true; color: var(--faint); padding: 16 8 6 8; }
+      .sidebar__section {
+        size: 11;
+        bold: true;
+        color: var(--faint);
+        padding: 16 8 6 8;
+      }
       .sidebar__spacer  { height: fill; }
       .shell__main      { width: fill; height: fill; }
       /* Top bar */
-      .topbar        { width: fill; padding: 18 28; spacing: 18; align_y: center; }
-      .topbar__menu  { color: var(--border); text_color: var(--text); padding: 9 13; border_radius: 5; }
+      .topbar {
+        width: fill;
+        padding: 18 28;
+        spacing: 18;
+        align_y: center;
+      }
+      .topbar__menu {
+        color: var(--border);
+        text_color: var(--text);
+        padding: 9 13;
+        border_radius: 5;
+      }
       .topbar__search { width: fill; padding: 11 14; }
       .topbar__actions { spacing: 8; align_y: center; }
       /* Ações do cabeçalho do projeto (variantes compactas, à direita) */
@@ -48,8 +115,8 @@ component {
         .topbar { padding: 12 16; spacing: 10; }
       }
 
-      /* Com a sidebar aberta sobram ~350px de conteúdo aqui: a busca some antes
-         de espremer os botões de ação (ficava "Search d"). */
+      /* Com a sidebar aberta sobram ~350px de conteúdo aqui: a busca some
+         antes de espremer os botões de ação (ficava "Search d"). */
       @media (max-width: 760) {
         .topbar__search { hidden: true; }
       }
@@ -173,7 +240,9 @@ component {
         )
 
         text(
-          "{t('shell.daemon_v', connected_server=connected_server, daemon_version=daemon_version)}",
+          "{t('shell.daemon_v',
+            connected_server=connected_server,
+            daemon_version=daemon_version)}",
           class = "u-muted topbar__status",
         )
 
@@ -195,8 +264,9 @@ component {
 
       hr
 
-      // Aviso da sincronização do estado com o git: pausada (histórico divergiu), commit do
-      // repositório recusado ou commits suspensos por valor em claro (format/state_git.luau).
+      // Aviso da sincronização do estado com o git: pausada (histórico
+      // divergiu), commit do repositório recusado ou commits suspensos por
+      // valor em claro (format/state_git.luau).
       if @state_git_alert_message != "" {
         alert(description = @state_git_alert_message, variant = warning) {
           button(

@@ -1,8 +1,9 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/job_env.luau — tela "Variáveis e secrets do job" (shell/job_env.component.gv). A lógica
--- mora em scripts/job_env_core.luau (a mesma que a janela "Novo/Editar job" usa); aqui ficam só a
--- navegação (abrir/voltar) e as funções globais finas que os botões chamam.
+-- handlers/job_env.luau — tela "Variáveis e secrets do job"
+-- (shell/job_env.component.gv). A lógica mora em scripts/job_env_core.luau (a
+-- mesma que a janela "Novo/Editar job" usa); aqui ficam só a navegação
+-- (abrir/voltar) e as funções globais finas que os botões chamam.
 
 local State = require("../state")
 local Stream = require("stream")
@@ -22,7 +23,9 @@ local function show(job_id: string): ()
     local job = State.jobs_by_id[job_id]
     if not job then
         toast {
-            message = i18n.tr("job não encontrado (tela desatualizada — tenta de novo)"),
+            message = i18n.tr(
+                "job não encontrado (tela desatualizada — tenta de novo)"
+            ),
             kind = "error",
         }
         return
@@ -50,7 +53,8 @@ function job_env_open(job_id: string): ()
     show(job_id)
 end
 
--- Voltar para esta tela (depois de ter ido a outra): reabre o job pelo mesmo caminho do clique.
+-- Voltar para esta tela (depois de ter ido a outra): reabre o job pelo mesmo
+-- caminho do clique.
 History.register("job_env", function(_snapshot: any): ()
     local job_id = ctx.job_env_job_id or ""
     if job_id ~= "" and State.jobs_by_id[job_id] then

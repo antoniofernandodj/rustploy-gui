@@ -16,12 +16,19 @@ app(
     link(rel = stylesheet, href = "views/styles/app.gss")
 
     // JetBrains Mono, embutida no binário de release (src/embedded.rs).
-    font(src = "assets/fonts/JetBrainsMono-Regular.ttf", family = "JetBrains Mono")
+    font(
+      src = "assets/fonts/JetBrainsMono-Regular.ttf",
+      family = "JetBrains Mono"
+    )
     font(src = "assets/fonts/JetBrainsMono-Bold.ttf")
 
     tray(icon = "views/assets/rustploy.png", tooltip = Rustploy) {
       item(label = "Open Rustploy", on_click = tray:open)
-      check(label = Notifications, checked = @__notifications, on_click = notifications:toggle)
+      check(
+        label = Notifications,
+        checked = @__notifications,
+        on_click = notifications:toggle
+      )
       separator
       item(label = "Quit Rustploy", on_click = tray:quit)
     }
@@ -34,10 +41,16 @@ app(
 
       script(src = "scripts/app.luau")
 
-      // Plano de "Deploy com dependências": aberto por start_deploy (handlers/services.luau) via
-      // open_dialog, com a ordem em __dialog.message; os `choice` devolvem "so"/"aceitar" a ele, e o
-      // `button` Rejeitar só fecha (nil). Os botões quebram linha se não couberem.
-      dialog(name = deploy_plan, title = "{t('deploy_plan.title')}", icon = question) {
+      // Plano de "Deploy com dependências": aberto por start_deploy
+      // (handlers/services.luau) via open_dialog, com a ordem em
+      // __dialog.message; os `choice` devolvem "so"/"aceitar" a ele, e o
+      // `button` Rejeitar só fecha (nil). Os botões quebram linha se não
+      // couberem.
+      dialog(
+        name = deploy_plan,
+        title = "{t('deploy_plan.title')}",
+        icon = question
+      ) {
         column(spacing = 8, width = fill) {
           text("{t('deploy_plan.order')}", class = u-label-cap)
           text("{__dialog.message}")
@@ -52,14 +65,20 @@ app(
     }
 
     column(class = screen) {
-      // ── Top edge + top corners (north / nw / ne) ───────────────────────────
+      // ── Top edge + top corners (north / nw / ne) ──────────────────────────
       row(class = resize__top) {
-        column(class = "resize__corner resize__corner--nw", on_press = window:resize:nw)
+        column(
+          class = "resize__corner resize__corner--nw",
+          on_press = window:resize:nw
+        )
         column(class = resize__edge-h, on_press = window:resize:n)
-        column(class = "resize__corner resize__corner--ne", on_press = window:resize:ne)
+        column(
+          class = "resize__corner resize__corner--ne",
+          on_press = window:resize:ne
+        )
       }
 
-      // ── Middle band: left edge | body | right edge (west / east) ────────────
+      // ── Middle band: left edge | body | right edge (west / east) ──────────
       row(class = resize__mid) {
         column(class = resize__edge-v, on_press = window:resize:w)
 
@@ -76,12 +95,16 @@ app(
             }
 
             button("—", class = titlebar__btn, on_click = window:minimize)
-            // Quadrado = maximizar; dois sobrepostos = restaurar (a convenção da
-            // barra nativa). O estado vem do daemon do glacier, a cada resize.
+            // Quadrado = maximizar; dois sobrepostos = restaurar (a convenção
+            // da barra nativa). O estado vem do daemon do glacier, a cada
+            // resize.
             if @glacier_window_maximized {
               button(class = titlebar__btn, on_click = window:maximize) {
                 container(class = titlebar__icon-box) {
-                  svg(class = titlebar__icon, src = "assets/icons/win_restore.svg")
+                  svg(
+                    class = titlebar__icon,
+                    src = "assets/icons/win_restore.svg"
+                  )
                 }
               }
             } else {
@@ -111,11 +134,17 @@ app(
         column(class = resize__edge-v, on_press = window:resize:e)
       }
 
-      // ── Bottom edge + bottom corners (south / sw / se) ──────────────────────
+      // ── Bottom edge + bottom corners (south / sw / se) ────────────────────
       row(class = resize__bottom) {
-        column(class = "resize__corner resize__corner--sw", on_press = window:resize:sw)
+        column(
+          class = "resize__corner resize__corner--sw",
+          on_press = window:resize:sw
+        )
         column(class = resize__edge-h, on_press = window:resize:s)
-        column(class = "resize__corner resize__corner--se", on_press = window:resize:se)
+        column(
+          class = "resize__corner resize__corner--se",
+          on_press = window:resize:se
+        )
       }
     }
   }
@@ -124,7 +153,10 @@ app(
   screen(name = new_job, src = "new_job_window.screen.gv")
   screen(name = new_service, src = "new_service_window.screen.gv")
   screen(name = new_project, src = "new_project_form.screen.gv")
-  screen(name = new_registry_token, src = "new_registry_token_window.screen.gv")
+  screen(
+    name = new_registry_token,
+    src = "new_registry_token_window.screen.gv"
+  )
   screen(name = service_export, src = "service_export_window.screen.gv")
   screen(name = services_reorder, src = "services_reorder_window.screen.gv")
 }

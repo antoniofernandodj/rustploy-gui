@@ -18,10 +18,10 @@ local Language = require("language")
 -- O login é UM campo: o token de conexão (endereço + token, ver
 -- access_key.luau). Toda conexão bem-sucedida salva/atualiza o par sozinha
 -- (ver `connect()`), e quem administra mais de um daemon tem a lista inteira
--- no `<select>` (login.component.gv): cada item mostra o `host:porta`, e escolher um
--- preenche o campo com o token de conexão dele. O armazenamento continua
--- `{url, token}` (o token é montado na hora de mostrar), então servidores
--- salvos antes do login por token não se perdem. `storage` grava em
+-- no `<select>` (login.component.gv): cada item mostra o `host:porta`, e
+-- escolher um preenche o campo com o token de conexão dele. O armazenamento
+-- continua `{url, token}` (o token é montado na hora de mostrar), então
+-- servidores salvos antes do login por token não se perdem. `storage` grava em
 -- `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida por
 -- `app(id = rustploy)` de `views/app.gv`).
 local saved_servers: { { url: string, token: string } } = {}
@@ -128,8 +128,8 @@ function init(): ()
     ctx.status_line = ctx.status_line or i18n.tr("pronto para conectar")
     ctx.error = ctx.error or ""
     ctx.search = ctx.search or ""
-    -- Sidebar-gaveta (<drawer> em shell.component.gv): começa aberta; o ☰ da topbar
-    -- alterna via `drawer::toggle:menu`.
+    -- Sidebar-gaveta (<drawer> em shell.component.gv): começa aberta; o ☰ da
+    -- topbar alterna via `drawer::toggle:menu`.
     ctx.menu = ctx.menu or "true"
     -- Checkboxes do Infra as Code (Settings → aba IaC): semeados aqui pra o
     -- estado ser determinístico e o `do_import` nunca ler `nil`.
@@ -151,15 +151,17 @@ function init(): ()
         { id = "updates", label = i18n.tr("Atualizações") },
         { id = "language", label = i18n.tr("Idioma") },
     }
-    -- Aba Sincronização (estado de infra ↔ git). Os valores reais vêm no snapshot
-    -- (handlers/stream.luau); aqui só o formulário e os defaults, para o markup
-    -- nunca ler `nil`. Ver format/state_git.luau e handlers/state_git.luau.
+    -- Aba Sincronização (estado de infra ↔ git). Os valores reais vêm no
+    -- snapshot (handlers/stream.luau); aqui só o formulário e os defaults,
+    -- para o markup nunca ler `nil`. Ver format/state_git.luau e
+    -- handlers/state_git.luau.
     ctx.state_git_form_modes = {
         { id = "off", label = i18n.tr("Desligado") },
         { id = "commit", label = i18n.tr("Só commit (local)") },
         { id = "sync", label = i18n.tr("Sincronizar") },
     }
-    -- Aba Dados → Backup no S3: a lista nasce vazia (o markup nunca lê `nil`); handlers/service_backup.luau.
+    -- Aba Dados → Backup no S3: a lista nasce vazia (o markup nunca lê `nil`);
+    -- handlers/service_backup.luau.
     ctx.data_backups = ctx.data_backups or json.array {}
     ctx.data_backups_count = ctx.data_backups_count or "0"
     ctx.data_backup_blocked = ctx.data_backup_blocked or ""
@@ -176,8 +178,9 @@ function init(): ()
     ctx.data_backup_keep = ctx.data_backup_keep or "7"
     ctx.data_backup_stop = ctx.data_backup_stop or "true"
     ctx.data_backup_next = ctx.data_backup_next or ""
-    -- Aba Recuperar (docs/plano-backup-de-dados-para-s3.md, Fase 4); handlers/recover.luau. A chave e o token
-    -- só moram no campo: o handler os apaga ao enviar.
+    -- Aba Recuperar (docs/plano-backup-de-dados-para-s3.md, Fase 4);
+    -- handlers/recover.luau. A chave e o token só moram no campo: o handler os
+    -- apaga ao enviar.
     ctx.recover_remote = ctx.recover_remote or ""
     ctx.recover_token = ctx.recover_token or ""
     ctx.recover_branch = ctx.recover_branch or ""
@@ -188,28 +191,42 @@ function init(): ()
     ctx.recover_message = ctx.recover_message or ""
     ctx.recover_services = ctx.recover_services or json.array {}
     ctx.recover_services_count = ctx.recover_services_count or "0"
-    -- Aba Backups (destino S3 dos backups de dados): o formulário; os valores reais vêm de
-    -- `BackupDestinationGet` ao abrir Settings (handlers/data_backup.luau). A chave secreta nunca volta.
+    -- Aba Backups (destino S3 dos backups de dados): o formulário; os valores
+    -- reais vêm de `BackupDestinationGet` ao abrir Settings
+    -- (handlers/data_backup.luau). A chave secreta nunca volta.
     ctx.backup_destination_endpoint = ctx.backup_destination_endpoint or ""
-    ctx.backup_destination_region = ctx.backup_destination_region or "us-east-1"
+    ctx.backup_destination_region = ctx.backup_destination_region
+        or "us-east-1"
     ctx.backup_destination_bucket = ctx.backup_destination_bucket or ""
     ctx.backup_destination_prefix = ctx.backup_destination_prefix or ""
-    ctx.backup_destination_path_style = ctx.backup_destination_path_style or "true"
+    ctx.backup_destination_path_style = ctx.backup_destination_path_style
+        or "true"
     ctx.backup_destination_access_key = ctx.backup_destination_access_key or ""
     ctx.backup_destination_secret_key = ctx.backup_destination_secret_key or ""
-    ctx.backup_destination_configured = ctx.backup_destination_configured or "false"
-    ctx.backup_destination_secret_set = ctx.backup_destination_secret_set or "false"
-    ctx.backup_destination_recovery_missing = ctx.backup_destination_recovery_missing or "false"
+    ctx.backup_destination_configured = ctx.backup_destination_configured
+        or "false"
+    ctx.backup_destination_secret_set = ctx.backup_destination_secret_set
+        or "false"
+    local recovery_missing = ctx.backup_destination_recovery_missing
+    ctx.backup_destination_recovery_missing = recovery_missing or "false"
     ctx.backup_destination_message = ctx.backup_destination_message or ""
     ctx.service_dependencies = ctx.service_dependencies or "[]"
     ctx.service_dependency_options = ctx.service_dependency_options or "[]"
     ctx.service_dependencies_count = ctx.service_dependencies_count or "0"
-    ctx.service_form_dependency_add_id = ctx.service_form_dependency_add_id or ""
+    ctx.service_form_dependency_add_id = ctx.service_form_dependency_add_id
+        or ""
     -- Valor nulo dos selects: os botões ligados a eles (`if = @chave, empty`)
-    -- ficam travados até haver escolha; a chave precisa existir desde o início.
-    ctx.service_form_pre_deploy_check_add_job_id = ctx.service_form_pre_deploy_check_add_job_id or ""
-    ctx.service_form_shared_database_project = ctx.service_form_shared_database_project or ""
-    ctx.service_form_migration_destination = ctx.service_form_migration_destination or ""
+    -- ficam travados até haver escolha; a chave precisa existir desde o
+    -- início.
+    for _, key in
+        {
+            "service_form_pre_deploy_check_add_job_id",
+            "service_form_shared_database_project",
+            "service_form_migration_destination",
+        }
+    do
+        ctx[key] = ctx[key] or ""
+    end
     -- Aba Logs: lista "Execuções anteriores" (handlers/services.luau).
     ctx.log_executions = ctx.log_executions or "[]"
     ctx.log_executions_visible = ctx.log_executions_visible or "false"
@@ -217,8 +234,8 @@ function init(): ()
     ctx.log_selected_count = ctx.log_selected_count or "0"
     ctx.log_selected_label = ctx.log_selected_label or ""
     ctx.service_form_autostart = ctx.service_form_autostart or "true"
-    ctx.service_form_registry_auto_deploy = ctx.service_form_registry_auto_deploy
-        or "false"
+    local registry_auto_deploy = ctx.service_form_registry_auto_deploy
+    ctx.service_form_registry_auto_deploy = registry_auto_deploy or "false"
     ctx.project_service_options = ctx.project_service_options or "[]"
     ctx.move_target_service_id = ctx.move_target_service_id or ""
     ctx.state_git_form_mode = ctx.state_git_form_mode or "off"
@@ -227,7 +244,8 @@ function init(): ()
     ctx.state_git_form_provider_id = ctx.state_git_form_provider_id or ""
     ctx.state_git_form_loaded = ctx.state_git_form_loaded or "false"
     ctx.state_git_message = ctx.state_git_message or ""
-    ctx.service_pending_deploy_visible = ctx.service_pending_deploy_visible or "false"
+    ctx.service_pending_deploy_visible = ctx.service_pending_deploy_visible
+        or "false"
     for key, value in pairs(format.state_git_context(nil, nil)) do
         (ctx :: any)[key] = (ctx :: any)[key] or value
     end
@@ -240,7 +258,8 @@ function init(): ()
     ctx.update_release_url = ctx.update_release_url or ""
     ctx.update_message = ctx.update_message or ""
     ctx.update_progress_message = ctx.update_progress_message or ""
-    -- Atualização do APP (esta janela), ver handlers/settings.luau::update_app_check.
+    -- Atualização do APP (esta janela), ver
+    -- handlers/settings.luau::update_app_check.
     ctx.update_app_current_version = ctx.update_app_current_version or ""
     ctx.update_app_latest_version = ctx.update_app_latest_version or ""
     ctx.update_app_is_available = ctx.update_app_is_available or "false"
@@ -254,12 +273,21 @@ function init(): ()
     ctx.update_app_signature_url = ctx.update_app_signature_url or ""
     ctx.update_app_install_kind = ctx.update_app_install_kind or ""
     ctx.update_app_manual_command = ctx.update_app_manual_command
-        or "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
+        or (
+            "curl -fsSL https://raw.githubusercontent.com/"
+            .. "antoniofernandodj/rustploy/main/install.sh | sudo sh -s -- gui"
+        )
     ctx.update_app_apply_hint = ctx.update_app_apply_hint
-        or i18n.tr("O app baixa a versão nova, pede a senha de administrador do sistema e a instala; só um pacote assinado pelo projeto é aceito. Depois ele reabre sozinho.")
+        or i18n.tr(
+            "O app baixa a versão nova, pede a senha de administrador do "
+                .. "sistema e a instala; só um pacote assinado pelo projeto é "
+                .. "aceito. Depois ele reabre sozinho."
+        )
     ctx.update_is_helper_available = ctx.update_is_helper_available or "false"
-    ctx.update_install_command =
-        "curl -fsSL https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.sh | sudo sh"
+    ctx.update_install_command = "curl -fsSL "
+        .. "https://raw.githubusercontent.com/"
+        .. "antoniofernandodj/rustploy/main/install.sh "
+        .. "| sudo sh"
     ctx.docker_cleanup_kinds = {
         { id = "interval", label = i18n.tr("A cada N horas") },
         { id = "daily", label = i18n.tr("Todo dia") },
@@ -347,9 +375,10 @@ function init(): ()
             AccessKey.encode(saved_servers[1].url, saved_servers[1].token)
     end
     publish_access_key_target()
-    -- A tela de login já mostra se há versão nova do APP: a consulta é ao GitHub (não ao daemon), então
-    -- não depende de estar conectado. Fora do init porque `fetch` suspende; falha aqui é silenciosa
-    -- (só a mensagem, que a tela de login não exibe).
+    -- A tela de login já mostra se há versão nova do APP: a consulta é ao
+    -- GitHub (não ao daemon), então não depende de estar conectado. Fora do
+    -- init porque `fetch` suspende; falha aqui é silenciosa (só a mensagem,
+    -- que a tela de login não exibe).
     after(0, function(): ()
         Settings.update_app_check()
     end)
@@ -467,11 +496,9 @@ local function resolve_base(address: string): (string?, string?)
             else i18n.tr("sem resposta")
     end
     return nil,
-        i18n.tr("não deu para falar com ")
-            .. address
-            .. i18n.tr(" nem por https nem por http (")
-            .. last_error
-            .. ")"
+        i18n.tr("não deu para falar com ") .. address .. i18n.tr(
+            " nem por https nem por http ("
+        ) .. last_error .. ")"
 end
 
 -- on_submit/on_click do formulário de login: decodifica o token de conexão
@@ -482,7 +509,8 @@ end
 function connect(): ()
     local decoded_key, key_error = AccessKey.decode(ctx.access_key)
     if not decoded_key then
-        ctx.error_access_key = key_error or i18n.tr("token de conexão inválido")
+        ctx.error_access_key = key_error
+            or i18n.tr("token de conexão inválido")
         return
     end
     ctx.error_access_key = ""

@@ -10,7 +10,8 @@ component {
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
-        "{t('docker_containers.container_s', docker_containers_count=docker_containers_count)}",
+        "{t('docker_containers.container_s',
+          docker_containers_count=docker_containers_count)}",
         class = "u-muted u-fill",
       )
 

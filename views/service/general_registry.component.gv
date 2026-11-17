@@ -1,4 +1,5 @@
-// Sub-aba Registry do provider: escolhe repositório e tag do registry embutido; corpo do `if @provider_tab == "registry"` de general.component.gv.
+// Sub-aba Registry do provider: escolhe repositório e tag do registry
+// embutido; corpo do `if @provider_tab == "registry"` de general.component.gv.
 component {
   text(
     "{t('general_registry.pick_hint')}",
@@ -38,7 +39,10 @@ component {
 
   row(class = kv-list__row) {
     text("{t('general_registry.image')}", class = kv-list__key)
-    text("@registry_picker_image", class = "kv-list__val kv-list__val--compact")
+    text(
+      "@registry_picker_image",
+      class = "kv-list__val kv-list__val--compact"
+    )
   }
 
   field(label = "{t('common.port')}", label_class = u-label-cap) {

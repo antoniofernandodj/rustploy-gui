@@ -1,12 +1,28 @@
-// Seção `settings` (view = settings) das telas globais; importada por home.component.gv.
+// Seção `settings` (view = settings) das telas globais; importada por
+// home.component.gv.
 component {
   resources {
     style """
     .settings           { width: fill; height: fill; spacing: 24; }
-    .settings__nav      { width: 220; height: fill; spacing: 2; padding: 0 12 0 0; border_width: 0; }
-    .settings__nav-item { width: fill; padding: 8 12; border_radius: 5; color: var(--bg); cursor: pointer; }
+    .settings__nav {
+      width: 220;
+      height: fill;
+      spacing: 2;
+      padding: 0 12 0 0;
+      border_width: 0;
+    }
+    .settings__nav-item {
+      width: fill;
+      padding: 8 12;
+      border_radius: 5;
+      color: var(--bg);
+      cursor: pointer;
+    }
     .settings__nav-item:hover { background: var(--raised); }
-    .settings__nav-item--active       { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
+    .settings__nav-item--active {
+      color: var(--blue);
+      gradient: var(--blue-a) var(--blue-b);
+    }
     .settings__nav-item--active:hover { background: var(--blue-hover); }
     .settings__nav-label { size: 13; color: var(--muted); }
     .settings__nav-item--active > .settings__nav-label { color: var(--text); }
@@ -14,13 +30,41 @@ component {
     """
     link(rel = import, href = "settings/web.component.gv", as = SettingsWebTab)
     link(rel = import, href = "settings/git.component.gv", as = SettingsGitTab)
-    link(rel = import, href = "settings/maintenance.component.gv", as = SettingsMaintenanceTab)
-    link(rel = import, href = "settings/gitsync.component.gv", as = SettingsGitSyncTab)
-    link(rel = import, href = "settings/backups.component.gv", as = SettingsBackupsTab)
-    link(rel = import, href = "settings/recover.component.gv", as = SettingsRecoverTab)
-    link(rel = import, href = "settings/recoverykey.component.gv", as = SettingsRecoveryKeyTab)
-    link(rel = import, href = "settings/updates.component.gv", as = SettingsUpdatesTab)
-    link(rel = import, href = "settings/language.component.gv", as = SettingsLanguageTab)
+    link(
+      rel = import,
+      href = "settings/maintenance.component.gv",
+      as = SettingsMaintenanceTab
+    )
+    link(
+      rel = import,
+      href = "settings/gitsync.component.gv",
+      as = SettingsGitSyncTab
+    )
+    link(
+      rel = import,
+      href = "settings/backups.component.gv",
+      as = SettingsBackupsTab
+    )
+    link(
+      rel = import,
+      href = "settings/recover.component.gv",
+      as = SettingsRecoverTab
+    )
+    link(
+      rel = import,
+      href = "settings/recoverykey.component.gv",
+      as = SettingsRecoveryKeyTab
+    )
+    link(
+      rel = import,
+      href = "settings/updates.component.gv",
+      as = SettingsUpdatesTab
+    )
+    link(
+      rel = import,
+      href = "settings/language.component.gv",
+      as = SettingsLanguageTab
+    )
   }
 
   row(class = page-head) {
@@ -34,8 +78,9 @@ component {
     }
   }
 
-  // Menu vertical, como o "Settings" de um IDE: a lista das seções à esquerda, a seção aberta à
-  // direita (cada seção tem o próprio scroll). Era uma barra de abas horizontal.
+  // Menu vertical, como o "Settings" de um IDE: a lista das seções à esquerda,
+  // a seção aberta à direita (cada seção tem o próprio scroll). Era uma barra
+  // de abas horizontal.
   row(class = settings) {
     column(class = settings__nav) {
       each @settings_tabs as tab {
@@ -48,7 +93,11 @@ component {
           text("@tab.label", class = settings__nav-label)
         }
 
-        button(class = settings__nav-item, else, on_click = settings_tab_pick:@tab.id) {
+        button(
+          class = settings__nav-item,
+          else,
+          on_click = settings_tab_pick:@tab.id
+        ) {
           text("@tab.label", class = settings__nav-label)
         }
       }

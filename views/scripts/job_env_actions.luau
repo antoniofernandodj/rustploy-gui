@@ -1,9 +1,9 @@
 --!strict
 --!nolint FunctionUnused
--- job_env_actions.luau — as funções globais que os botões do painel das envs do job chamam
--- (components/job_env_panel.component.gv). Só repassam para job_env_core.luau. Carregado pelo app
--- (handlers/job_env.luau) e pela janela Novo/Editar job (new_job_window.luau): cada motor Luau
--- registra as suas.
+-- job_env_actions.luau — as funções globais que os botões do painel das envs
+-- do job chamam (components/job_env_panel.component.gv). Só repassam para
+-- job_env_core.luau. Carregado pelo app (handlers/job_env.luau) e pela janela
+-- Novo/Editar job (new_job_window.luau): cada motor Luau registra as suas.
 
 local Core = require("job_env_core")
 

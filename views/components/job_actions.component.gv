@@ -1,4 +1,5 @@
-// Botão "⋯" de uma linha de job, que abre o painel sobreposto com todas as ações do job.
+// Botão "⋯" de uma linha de job, que abre o painel sobreposto com todas as
+// ações do job.
 component {
   props {
     prop(name = job_id)

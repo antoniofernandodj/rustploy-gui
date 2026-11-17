@@ -1,12 +1,21 @@
 // Web Server (default)
 component {
-  form(error_prefix = error_, name = settings, on_submit = settings_save, class = form) {
+  form(
+    error_prefix = error_,
+    name = settings,
+    on_submit = settings_save,
+    class = form
+  ) {
     scrollable(direction = vertical, class = u-fill-all) {
       column(class = form-panel) {
         text("{t('settings_web.public_api_url')}", class = u-label-cap)
 
-        // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
-        inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:server_settings_public_base") {
+        // o valor num campo só de leitura, com o Copiar colado (inputgroup,
+        // glacier-ui 0.164)
+        inputgroup(
+          action = "{t('common.copy')}",
+          on_action = "copy_ctx:server_settings_public_base"
+        ) {
           input(:value = server_settings_public_base, readonly = true)
         }
 
@@ -18,7 +27,10 @@ component {
         text("{t('settings_web.connection_token')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("@server_access_key_short", class = "kv-list__val kv-list__val--compact")
+          text(
+            "@server_access_key_short",
+            class = "kv-list__val kv-list__val--compact"
+          )
 
           button(
             "{t('common.copy')}",
@@ -32,7 +44,10 @@ component {
           class = u-muted,
         )
 
-        text("{t('settings_web.connect_an_ai_agent_mcp')}", class = u-label-cap)
+        text(
+          "{t('settings_web.connect_an_ai_agent_mcp')}",
+          class = u-label-cap
+        )
 
         text("{t('settings_web.claude_code')}", class = u-label-cap)
 
@@ -49,7 +64,10 @@ component {
           )
         }
 
-        text("{t('settings_web.codex_codex_config_toml')}", class = u-label-cap)
+        text(
+          "{t('settings_web.codex_codex_config_toml')}",
+          class = u-label-cap
+        )
 
         row(class = kv-list__row) {
           text(
@@ -84,7 +102,11 @@ component {
           class = u-muted,
         )
 
-        field(label = "{t('settings_web.let_s_encrypt_email_automatic')}", label_class = u-label-cap, error = @error_server_settings_email) {
+        field(
+          label = "{t('settings_web.let_s_encrypt_email_automatic')}",
+          label_class = u-label-cap,
+          error = @error_server_settings_email
+        ) {
           input(
             placeholder = "{t('settings_web.you_example_com')}",
             class = field__input,
@@ -93,11 +115,14 @@ component {
         }
 
         text(
-          "{t('settings_web.tls_certificates_issued_automatically_requires_a')}",
+          "{t('settings_web.tls_certificates_issued_automatically')}",
           class = u-muted,
         )
 
-        field(label = "{t('settings_web.registry_domain_public_exposure')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_web.registry_domain_public_exposure')}",
+          label_class = u-label-cap
+        ) {
           input(
             placeholder = "{t('settings_web.registry_mysite_com')}",
             class = field__input,

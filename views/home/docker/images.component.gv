@@ -10,7 +10,8 @@ component {
   column(class = "panel panel--fill") {
     row(class = env__toolbar) {
       text(
-        "{t('docker_images.image_s', docker_images_count=docker_images_count)}",
+        "{t('docker_images.image_s',
+          docker_images_count=docker_images_count)}",
         class = "u-muted u-fill"
       )
 

@@ -358,7 +358,8 @@ function test_deployments_e_dominios__sem_dominio_da()
     assert_eq(SD.domains_json({ port = 80 } :: any), "[]")
 end
 
---- portas TCP: a lista nova, ou o host_port legado virando uma porta para a porta do serviço
+--- portas TCP: a lista nova, ou o host_port legado virando uma porta para a
+--- porta do serviço
 function test_deployments_e_dominios__portas_tcp_lista_e_legado()
     local linhas = json.decode(SD.tcp_ports_json({
         port = 9000,
@@ -373,7 +374,9 @@ function test_deployments_e_dominios__portas_tcp_lista_e_legado()
     assert_eq(linhas[2].container_port, "9001")
     assert_eq(linhas[2].label, "console")
 
-    local legado = json.decode(SD.tcp_ports_json({ port = 5432, host_port = 20000 } :: any))
+    local legado = json.decode(
+        SD.tcp_ports_json({ port = 5432, host_port = 20000 } :: any)
+    )
     assert_eq(#legado, 1)
     assert_eq(legado[1].host_port, "20000")
     assert_eq(legado[1].container_port, "5432")
@@ -381,12 +384,23 @@ function test_deployments_e_dominios__portas_tcp_lista_e_legado()
     assert_eq(SD.tcp_ports_json({ port = 80 } :: any), "[]")
 end
 
---- sugestões: o texto do botão traz porta, nome e "escutando agora" ou "interna"
+--- sugestões: o texto do botão traz porta, nome e "escutando agora" ou
+--- "interna"
 function test_deployments_e_dominios__sugestoes_de_porta()
     local linhas = json.decode(SD.port_suggestions_json({
-        { port = 9001, label = "console", sources = { "listening", "product" }, internal = false },
+        {
+            port = 9001,
+            label = "console",
+            sources = { "listening", "product" },
+            internal = false,
+        },
         { port = 3000, sources = { "image" }, internal = false },
-        { port = 25672, label = "cluster", sources = { "product" }, internal = true },
+        {
+            port = 25672,
+            label = "cluster",
+            sources = { "product" },
+            internal = true,
+        },
     }))
     assert_eq(linhas[1].port, "9001")
     assert_eq(linhas[1].label, "console")
@@ -630,8 +644,18 @@ end
 --- history_rows marca onde o container muda e devolve o último container
 function test_logs__history_rows_marca_a_troca_de_container()
     local entradas = {
-        { timestamp = "2026-11-05T01:00:00Z", container_id = "aaaaaaaaaaaa1234", stream = "Stdout", line = "velho" },
-        { timestamp = "2026-11-05T02:00:00Z", container_id = "bbbbbbbbbbbb9999", stream = "Stderr", line = "novo" },
+        {
+            timestamp = "2026-11-05T01:00:00Z",
+            container_id = "aaaaaaaaaaaa1234",
+            stream = "Stdout",
+            line = "velho",
+        },
+        {
+            timestamp = "2026-11-05T02:00:00Z",
+            container_id = "bbbbbbbbbbbb9999",
+            stream = "Stderr",
+            line = "novo",
+        },
     }
     local rows, ultimo = SD.history_rows(entradas, nil)
     assert_eq(#rows, 3)
@@ -640,18 +664,25 @@ function test_logs__history_rows_marca_a_troca_de_container()
     assert_eq(rows[3].line, "novo")
     assert_eq(rows[3].stream, "Stderr")
     assert_eq(ultimo, "bbbbbbbbbbbb")
-    -- encontro com o que já está na tela: container anterior diferente do primeiro
+    -- encontro com o que já está na tela: container anterior diferente do
+    -- primeiro
     local rows2 = SD.history_rows({ entradas[1] }, "cccccccccccc")
     assert_eq(#rows2, 2)
     assert_eq(string.find(rows2[1].line, "aaaaaaaaaaaa", 1, true) ~= nil, true)
 end
 
---- a fachada `format` reexporta history_rows (open_logs_window a chama por ela; faltou uma vez)
+--- a fachada `format` reexporta history_rows (open_logs_window a chama por
+--- ela; faltou uma vez)
 function test_logs__a_fachada_format_exporta_history_rows()
     local F = require("format")
     assert_eq(type(F.history_rows), "function")
     local rows = F.history_rows({
-        { timestamp = "2026-11-05T01:00:00Z", container_id = "aaaaaaaaaaaa1234", stream = "Stdout", line = "x" },
+        {
+            timestamp = "2026-11-05T01:00:00Z",
+            container_id = "aaaaaaaaaaaa1234",
+            stream = "Stdout",
+            line = "x",
+        },
     }, nil)
     assert_eq(#rows, 1)
 end
@@ -697,7 +728,8 @@ function test_logs__log_execution_rows_monta_a_lista_de_execucoes()
     assert_eq(string.find(rows[2].range, "→", 1, true) ~= nil, true)
 end
 
---- a data completa só entra nas linhas quando pedida (janela de uma execução passada)
+--- a data completa só entra nas linhas quando pedida (janela de uma execução
+--- passada)
 function test_logs__join_log_lines_com_data_completa()
     local entries = {
         { timestamp = "2026-11-05T10:00:00Z", line = "a" },
@@ -709,8 +741,9 @@ function test_logs__join_log_lines_com_data_completa()
     assert_eq(string.sub(com_data, -2), " a")
 end
 
---- a fachada `format` reexporta o que a aba Logs usa (o bug da 0.1.41: faltar aqui)
-function test_logs__a_fachada_format_exporta_log_execution_rows_e_date_time_full()
+--- a fachada `format` reexporta o que a aba Logs usa (o bug da 0.1.41: faltar
+--- aqui)
+function test_logs__fachada_format_exporta_execution_rows_e_date_time_full()
     local F = require("format")
     assert_eq(type(F.log_execution_rows), "function")
     assert_eq(type(F.date_time_full), "function")

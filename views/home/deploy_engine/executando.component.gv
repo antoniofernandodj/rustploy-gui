@@ -2,7 +2,10 @@
 component {
   resources {
     component(name = SemDeployAtivo) {
-      text("{t('deploy_engine_executando.no_deploy_in_progress')}", class = empty-state)
+      text(
+        "{t('deploy_engine_executando.no_deploy_in_progress')}",
+        class = empty-state
+      )
     }
   }
 
@@ -10,7 +13,8 @@ component {
     column(class = section) {
       row(class = section__head) {
         text(
-          "{t('deploy_engine_executando.running_now', deploy_engine_active_count=deploy_engine_active_count)}",
+          "{t('deploy_engine_executando.running_now',
+            deploy_engine_active_count=deploy_engine_active_count)}",
           class = section__title,
         )
       }
@@ -54,10 +58,18 @@ component {
             column(class = u-fill) {
               row(class = table__row) {
                 row(class = table__col-svc) {
-                  TableLink(kind = service, id = @a.service_id, label = @a.service)
+                  TableLink(
+                    kind = service,
+                    id = @a.service_id,
+                    label = @a.service
+                  )
                 }
                 row(class = table__col-proj) {
-                  TableLink(kind = project, id = @a.project_id, label = @a.project)
+                  TableLink(
+                    kind = project,
+                    id = @a.project_id,
+                    label = @a.project
+                  )
                 }
                 StateCell(kind = @a.state_kind, label = @a.state_label)
 
@@ -86,7 +98,10 @@ component {
 
               row(if = @a.is_deploy, equals = true, class = stepper) {
                 each @a.steps as st {
-                  text("@st.text", class = "stepper__step stepper__step--@st.status")
+                  text(
+                    "@st.text",
+                    class = "stepper__step stepper__step--@st.status"
+                  )
                 }
               }
 
@@ -105,7 +120,8 @@ component {
       column(class = "panel panel--round detail") {
         row(class = detail__head) {
           text(
-            "{t('deploy_engine_executando.deploy', deploy_engine_detail_title=deploy_engine_detail_title)}",
+            "{t('deploy_engine_executando.deploy',
+              deploy_engine_detail_title=deploy_engine_detail_title)}",
             class = detail__title
           )
 
@@ -131,13 +147,19 @@ component {
           row_class = "table__row table__cell table__row--divided",
           class = u-fill-all,
         ) {
-          tablecolumn(label = "{t('common.state')}", class = table__col-state) {
+          tablecolumn(
+            label = "{t('common.state')}",
+            class = table__col-state
+          ) {
             row(class = "state-cell state-cell--@d.kind") {
               text("@d.label", class = state-cell__label)
             }
           }
 
-          tablecolumn(label = "{t('common.duration')}", class = table__col-dur) {
+          tablecolumn(
+            label = "{t('common.duration')}",
+            class = table__col-dur
+          ) {
             text("@d.dur", class = u-muted)
           }
 

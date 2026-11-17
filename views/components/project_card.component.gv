@@ -21,7 +21,9 @@ component {
       }
 
       text(
-        "{t('project_card.service_s_running', service_count=service_count, running_count=running_count)}",
+        "{t('project_card.service_s_running',
+          service_count=service_count,
+          running_count=running_count)}",
         class = u-muted,
         size = 11,
       )

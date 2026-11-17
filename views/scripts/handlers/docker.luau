@@ -31,7 +31,10 @@ end
 function docker_prune_containers(): ()
     local confirmed = confirm {
         title = i18n.tr("Limpar containers parados?"),
-        message = i18n.tr("Todos os containers parados serão removidos (docker container prune). Ação irreversível."),
+        message = i18n.tr(
+            "Todos os containers parados serão removidos (docker container "
+                .. "prune). Ação irreversível."
+        ),
         confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
@@ -46,7 +49,10 @@ end
 function docker_prune_images(): ()
     local confirmed = confirm {
         title = i18n.tr("Limpar imagens sem uso?"),
-        message = i18n.tr("As imagens sem uso serão removidas agora. Essa limpeza não pode ser desfeita."),
+        message = i18n.tr(
+            "As imagens sem uso serão removidas agora. Essa limpeza não pode "
+                .. "ser desfeita."
+        ),
         confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
@@ -66,7 +72,10 @@ end
 function docker_prune_volumes(): ()
     local confirmed = confirm {
         title = i18n.tr("Limpar volumes sem uso?"),
-        message = i18n.tr("Os volumes sem uso serão removidos agora. Essa limpeza não pode ser desfeita."),
+        message = i18n.tr(
+            "Os volumes sem uso serão removidos agora. Essa limpeza não pode "
+                .. "ser desfeita."
+        ),
         confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
@@ -76,13 +85,19 @@ function docker_prune_volumes(): ()
     end
 
     local all = Helpers.is_true(ctx.docker_prune_all_volumes)
-    prune({ PruneVolumes = { all = all } }, i18n.tr("removendo volumes sem uso…"))
+    prune(
+        { PruneVolumes = { all = all } },
+        i18n.tr("removendo volumes sem uso…")
+    )
 end
 
 function docker_prune_networks(): ()
     local confirmed = confirm {
         title = i18n.tr("Limpar redes sem uso?"),
-        message = i18n.tr("As redes sem uso serão removidas agora. Essa limpeza não pode ser desfeita."),
+        message = i18n.tr(
+            "As redes sem uso serão removidas agora. Essa limpeza não pode "
+                .. "ser desfeita."
+        ),
         confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
@@ -121,7 +136,9 @@ end
 function docker_remove_container(container_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover container?"),
-        message = i18n.tr("O container parado será removido (docker rm). Ação irreversível."),
+        message = i18n.tr(
+            "O container parado será removido (docker rm). Ação irreversível."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -136,16 +153,18 @@ function docker_remove_container(container_id: string): ()
     )
 end
 
--- Para um container ÓRFÃO ("removido no git"): o daemon recusa o que ainda pertence a um
--- serviço do estado (um serviço se para pelo serviço; senão o watchdog o religa).
--- Depois de parar, o botão Remover (docker_remove_container) fica disponível.
+-- Para um container ÓRFÃO ("removido no git"): o daemon recusa o que ainda
+-- pertence a um serviço do estado (um serviço se para pelo serviço; senão o
+-- watchdog o religa). Depois de parar, o botão Remover
+-- (docker_remove_container) fica disponível.
 function docker_stop_container(container_id: string): ()
     local api = State.api
     if not api then
         return
     end
     ctx.docker_message = i18n.tr("parando container…")
-    local rpc_ok, rpc_response = api:rpc_checked { StopContainer = { id = container_id } }
+    local rpc_ok, rpc_response =
+        api:rpc_checked { StopContainer = { id = container_id } }
     if rpc_ok then
         ctx.docker_message = i18n.tr("parado")
         Stream.refresh_now()
@@ -157,7 +176,10 @@ end
 function docker_remove_image(image_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover imagem?"),
-        message = i18n.tr("A imagem será removida (docker rmi). Falha se algum container a referencia."),
+        message = i18n.tr(
+            "A imagem será removida (docker rmi). Falha se algum container a "
+                .. "referencia."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -166,13 +188,19 @@ function docker_remove_image(image_id: string): ()
         return
     end
 
-    remove_one({ RemoveImage = { id = image_id } }, i18n.tr("removendo imagem…"))
+    remove_one(
+        { RemoveImage = { id = image_id } },
+        i18n.tr("removendo imagem…")
+    )
 end
 
 function docker_remove_volume(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover volume?"),
-        message = i18n.tr("O volume será removido (docker volume rm). Falha se estiver em uso. Ação irreversível."),
+        message = i18n.tr(
+            "O volume será removido (docker volume rm). Falha se estiver em "
+                .. "uso. Ação irreversível."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -181,7 +209,10 @@ function docker_remove_volume(name: string): ()
         return
     end
 
-    remove_one({ RemoveVolume = { name = name } }, i18n.tr("removendo volume…"))
+    remove_one(
+        { RemoveVolume = { name = name } },
+        i18n.tr("removendo volume…")
+    )
 end
 
 -- "Somente em uso" (on_toggle="docker_only_used:<chave>"): grava a chave e
@@ -197,7 +228,10 @@ end
 function docker_remove_network(network_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover rede?"),
-        message = i18n.tr("A rede será removida (docker network rm). Falha se houver container anexado."),
+        message = i18n.tr(
+            "A rede será removida (docker network rm). Falha se houver "
+                .. "container anexado."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -206,5 +240,8 @@ function docker_remove_network(network_id: string): ()
         return
     end
 
-    remove_one({ RemoveNetwork = { id = network_id } }, i18n.tr("removendo rede…"))
+    remove_one(
+        { RemoveNetwork = { id = network_id } },
+        i18n.tr("removendo rede…")
+    )
 end

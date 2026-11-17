@@ -1,4 +1,5 @@
-// Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch; corpo do `if @provider_tab == "gitea"` de general.component.gv.
+// Sub-aba conta conectada (Gitea/GitHub): picker conta/repo/branch; corpo do
+// `if @provider_tab == "gitea"` de general.component.gv.
 component {
   text(
     "{t('general_gitea.select_the_connected_account_the_repository')}",
@@ -10,7 +11,10 @@ component {
     text("@gitea_message", class = u-muted)
   }
 
-  field(label = "{t('general_gitea.connected_account')}", label_class = u-label-cap) {
+  field(
+    label = "{t('general_gitea.connected_account')}",
+    label_class = u-label-cap
+  ) {
     select(
       class = form-select,
       :options = gitea_providers,
@@ -55,14 +59,20 @@ component {
 
   row(class = kv-list__row) {
     text("{t('general_gitea.repo_clone_url')}", class = kv-list__key)
-    text("@service_form_repo_url", class = "kv-list__val kv-list__val--compact")
+    text(
+      "@service_form_repo_url",
+      class = "kv-list__val kv-list__val--compact"
+    )
   }
 
   text("{t('general_gitea.build')}", class = u-label-cap)
 
   row(class = healthcheck__grid) {
     column(class = healthcheck__field) {
-      field(label = "{t('common.build_path_root')}", label_class = u-label-cap) {
+      field(
+        label = "{t('common.build_path_root')}",
+        label_class = u-label-cap
+      ) {
         input(
           class = field__input,
           form_control = service_form_build_path,
@@ -74,7 +84,11 @@ component {
     }
 
     column(class = healthcheck__field) {
-      field(label = "{t('common.port')}", label_class = u-label-cap, error = @error_service_form_general_port) {
+      field(
+        label = "{t('common.port')}",
+        label_class = u-label-cap,
+        error = @error_service_form_general_port
+      ) {
         input(
           class = field__input,
           form_control = service_form_general_port,
@@ -112,7 +126,10 @@ component {
     }
   }
 
-  field(label = "{t('common.watch_paths_comma_separated')}", label_class = u-label-cap) {
+  field(
+    label = "{t('common.watch_paths_comma_separated')}",
+    label_class = u-label-cap
+  ) {
     input(
       class = field__input,
       form_control = service_form_watch_paths,

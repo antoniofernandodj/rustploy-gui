@@ -1,6 +1,10 @@
-// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if @provider_tab == "zip"` de general.component.gv.
+// Sub-aba Zip do provider: upload local com Dockerfile na raiz; corpo do `if
+// @provider_tab == "zip"` de general.component.gv.
 component {
-  field(label = "{t('general_zip.zip_dockerfile')}", label_class = u-label-cap) {
+  field(
+    label = "{t('general_zip.zip_dockerfile')}",
+    label_class = u-label-cap
+  ) {
     input(
       class = field__input,
       form_control = service_form_archive_path,
@@ -34,7 +38,11 @@ component {
     }
   }
 
-  progressbar(if = @archive_upload_active, equals = true, :value = archive_upload_percent)
+  progressbar(
+    if = @archive_upload_active,
+    equals = true,
+    :value = archive_upload_percent
+  )
 
   row(class = env__add) {
     button(

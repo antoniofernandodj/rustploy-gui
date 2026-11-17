@@ -619,27 +619,53 @@ function test_projeto_env_em_modo_secret_e_sem_secrets()
     end
 end
 
---- linha editável no lugar: chave e valor são campos ligados às chaves da PRÓPRIA linha; o OK só
---- aparece depois de mexer; "usar secret" troca o campo do valor pela lista de secrets
+--- linha editável no lugar: chave e valor são campos ligados às chaves da
+--- PRÓPRIA linha; o OK só aparece depois de mexer; "usar secret" troca o campo
+--- do valor pela lista de secrets
 function test_projeto_linha_editavel_no_lugar()
     local tela = projeto()
     tela:set("project_tab", "env")
     tela:eval([[
         require("handlers/env_rows").publish("project", json.encode({
-            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "" },
-            { key = "S", key_display = "S", value = "🔒 secret:GITHUB_TOKEN", kind = "secret", secret_name = "GITHUB_TOKEN" },
+            {
+                key = "A",
+                key_display = "A",
+                value = "x",
+                kind = "plain",
+                secret_name = "",
+            },
+            {
+                key = "S",
+                key_display = "S",
+                value = "🔒 secret:GITHUB_TOKEN",
+                kind = "secret",
+                secret_name = "GITHUB_TOKEN",
+            },
         }))
     ]])
-    local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
+    local chaves =
+        tela:find_all({ kind = "textinput", class = "env__inline-key" })
     assert_eq(#chaves, 2)
     assert_eq(tela:get(chaves[1].attrs.value_var), "A")
     assert_eq(tela:get(chaves[2].attrs.value_var), "S")
-    local valores = tela:find_all({ kind = "textinput", class = "env__inline" })
-    assert_eq(#valores, 1, "a variável secret mostra a lista, não o campo do valor")
+    local valores =
+        tela:find_all({ kind = "textinput", class = "env__inline" })
+    assert_eq(
+        #valores,
+        1,
+        "a variável secret mostra a lista, não o campo do valor"
+    )
     assert_eq(tela:get(valores[1].attrs.value_var), "x")
     assert_eq(#tela:find_all({ class = "env__secret-select" }), 1)
-    assert_eq(#tela:find_all({ kind = "checkbox", class = "env__use-secret" }), 3, "2 linhas + o form de adicionar")
-    assert_false(tem_trecho(tela:buttons(), "OK"), "sem alteração não há OK")
+    assert_eq(
+        #tela:find_all({ kind = "checkbox", class = "env__use-secret" }),
+        3,
+        "2 linhas + o form de adicionar"
+    )
+    assert_false(
+        tem_trecho(tela:buttons(), "OK"),
+        "sem alteração não há OK"
+    )
 
     tela:call("project_env_row_value:A", "y")
     rende(tela)
@@ -647,29 +673,58 @@ function test_projeto_linha_editavel_no_lugar()
     assert_eq(tela:get(valores[1].attrs.value_var), "y")
 end
 
---- projeto: botões de mover (🔒 ↓ nas variáveis em claro, 🔓 nas que apontam para secret e nos secrets)
+--- projeto: botões de mover (🔒 ↓ nas variáveis em claro, 🔓 nas que apontam
+--- para secret e nos secrets)
 function test_projeto_movimentos_entre_escopos()
     local tela = projeto()
     seta(tela, {
         project_tab = "env",
         project_service_options = '[{"id":"svc1","display":"db"}]',
         project_env = {
-            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "" },
-            { key = "B", key_display = "B", value = "🔒 secret:B", kind = "secret", secret_name = "B" },
+            {
+                key = "A",
+                key_display = "A",
+                value = "x",
+                kind = "plain",
+                secret_name = "",
+            },
+            {
+                key = "B",
+                key_display = "B",
+                value = "🔒 secret:B",
+                kind = "secret",
+                secret_name = "B",
+            },
         },
     })
     local botoes = tela:buttons()
-    assert_true(tem_trecho(botoes, "🔒"), "variável em claro sem o botão → secret")
-    assert_true(tem_trecho(botoes, "↓"), "variável em claro sem o botão → serviço")
-    assert_true(tem_trecho(botoes, "🔓"), "variável que aponta para secret sem o botão → variável")
+    assert_true(
+        tem_trecho(botoes, "🔒"),
+        "variável em claro sem o botão → secret"
+    )
+    assert_true(
+        tem_trecho(botoes, "↓"),
+        "variável em claro sem o botão → serviço"
+    )
+    assert_true(
+        tem_trecho(botoes, "🔓"),
+        "variável que aponta para secret sem o botão → variável"
+    )
     -- aba Secrets: 🔓 e ↓ em cada secret
     tela:set("project_tab", "secrets")
     local botoes_secrets = tela:buttons()
-    assert_true(tem_trecho(botoes_secrets, "🔓"), "secret sem o botão → variável")
-    assert_true(tem_trecho(botoes_secrets, "↓"), "secret sem o botão → serviço")
+    assert_true(
+        tem_trecho(botoes_secrets, "🔓"),
+        "secret sem o botão → variável"
+    )
+    assert_true(
+        tem_trecho(botoes_secrets, "↓"),
+        "secret sem o botão → serviço"
+    )
 end
 
---- projeto: secret escondido mostra 👁 e "encrypted"; revelado mostra o valor, 🙈 e copiar
+--- projeto: secret escondido mostra 👁 e "encrypted"; revelado mostra o valor,
+--- 🙈 e copiar
 function test_projeto_secret_ver_valor()
     local Format = require("format")
     local tela = projeto()
@@ -678,21 +733,44 @@ function test_projeto_secret_ver_valor()
         project_secrets = Format.secret_rows({ "TOKEN" }, "project", {}),
         project_secrets_count = "1",
     })
-    assert_true(tem_trecho(tela:buttons(), "👁"), "botão de ver valor ausente")
-    assert_true(not tem_trecho(tela:buttons(), "🙈"), "botão de esconder não devia aparecer")
-    assert_true(tem_trecho(tela:texts(), "encrypted"), "rótulo encrypted ausente")
+    assert_true(
+        tem_trecho(tela:buttons(), "👁"),
+        "botão de ver valor ausente"
+    )
+    assert_true(
+        not tem_trecho(tela:buttons(), "🙈"),
+        "botão de esconder não devia aparecer"
+    )
+    assert_true(
+        tem_trecho(tela:texts(), "encrypted"),
+        "rótulo encrypted ausente"
+    )
     seta(tela, {
-        project_secrets = Format.secret_rows({ "TOKEN" }, "project", { ["project:TOKEN"] = "valor-revelado" }),
+        project_secrets = Format.secret_rows(
+            { "TOKEN" },
+            "project",
+            { ["project:TOKEN"] = "valor-revelado" }
+        ),
     })
-    assert_true(tem_trecho(tela:texts(), "valor-revelado"), "valor revelado ausente")
-    assert_true(tem_trecho(tela:buttons(), "🙈"), "botão de esconder ausente")
+    assert_true(
+        tem_trecho(tela:texts(), "valor-revelado"),
+        "valor revelado ausente"
+    )
+    assert_true(
+        tem_trecho(tela:buttons(), "🙈"),
+        "botão de esconder ausente"
+    )
     assert_true(tem_trecho(tela:buttons(), "📋"), "botão de copiar ausente")
-    assert_true(not tem_trecho(tela:buttons(), "👁"), "botão de ver não devia aparecer")
+    assert_true(
+        not tem_trecho(tela:buttons(), "👁"),
+        "botão de ver não devia aparecer"
+    )
 end
 
 -- ── configurações ───────────────────────────────────────────────────────────
 
---- Settings: menu vertical (lista à esquerda), um item ativo, clicar troca a seção
+--- Settings: menu vertical (lista à esquerda), um item ativo, clicar troca a
+--- seção
 function test_configuracoes_menu_vertical()
     local tela = app("settings", { settings_tab = "web" })
     rende(tela)
@@ -700,7 +778,11 @@ function test_configuracoes_menu_vertical()
     local ativos = tela:find_all({ class = "settings__nav-item--active" })
     assert_eq(#ativos, 1, "um item ativo só")
     assert_true(#itens + #ativos >= 9, "faltam itens no menu")
-    assert_eq(#tela:find_all({ kind = "tabbar" }), 0, "a barra de abas horizontal voltou")
+    assert_eq(
+        #tela:find_all({ kind = "tabbar" }),
+        0,
+        "a barra de abas horizontal voltou"
+    )
     tela:call("settings_tab_pick:updates")
     assert_eq(tela:get("settings_tab"), "updates")
     rende(tela)
@@ -755,48 +837,85 @@ function test_configuracoes_manutencao()
     end
 end
 
---- Sincronização com o git: desligada, ligada, pausada (divergência), commit recusado,
---- removidos no git e auditoria de valores em claro
+--- Sincronização com o git: desligada, ligada, pausada (divergência), commit
+--- recusado, removidos no git e auditoria de valores em claro
 function test_configuracoes_sincronizacao_git()
     local StateGit = require("format/state_git")
     local SHA = "da3da09aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    local tela = app("settings", { settings_tab = "gitsync", gitea_providers = "[]" })
+    local tela =
+        app("settings", { settings_tab = "gitsync", gitea_providers = "[]" })
     rende(tela) -- desligada, sem snapshot ainda
 
     -- ligada em modo sync, tudo certo
-    seta(tela, StateGit.context({
-        mode = "sync",
-        git_available = true,
-        recovery_configured = true,
-        last_commit = { sha = SHA, at = "2026-11-02T06:28:44Z", subject = "Atualiza projeto E2E" },
-        last_push_ok = true,
-        last_push_at = "2026-11-02T06:28:50Z",
-        last_fetch_at = "2026-11-02T06:29:00Z",
-    }, {}))
+    seta(
+        tela,
+        StateGit.context({
+            mode = "sync",
+            git_available = true,
+            recovery_configured = true,
+            last_commit = {
+                sha = SHA,
+                at = "2026-11-02T06:28:44Z",
+                subject = "Atualiza projeto E2E",
+            },
+            last_push_ok = true,
+            last_push_at = "2026-11-02T06:28:50Z",
+            last_fetch_at = "2026-11-02T06:29:00Z",
+        }, {})
+    )
     seta(tela, { state_git_form_mode = "sync" })
     rende(tela)
 
     -- pausada por divergência + commit recusado + removidos + auditoria
-    seta(tela, StateGit.context({
-        mode = "sync",
-        git_available = false,
-        recovery_configured = false,
-        ahead = 1,
-        behind = 1,
-        paused_reason = "o histórico divergiu",
-        incoming_rejected = { sha = SHA, reason = "traz 1 valor(es) em claro" },
-        removed_in_git = {
-            { id = "serviço:svc_web", kind = "serviço", name = "web", project = "E2E", sha = SHA, at = "2026-11-02T06:28:44Z" },
-        },
-    }, {
-        { definite = false, allowed = false, project = "E2E", scope = "projeto", what = "env PASSWORD_MIN_LENGTH" },
-        { definite = true, allowed = false, project = "E2E", scope = "serviço api", what = "token de webhook sem cifra" },
-    }))
+    seta(
+        tela,
+        StateGit.context({
+            mode = "sync",
+            git_available = false,
+            recovery_configured = false,
+            ahead = 1,
+            behind = 1,
+            paused_reason = "o histórico divergiu",
+            incoming_rejected = {
+                sha = SHA,
+                reason = "traz 1 valor(es) em claro",
+            },
+            removed_in_git = {
+                {
+                    id = "serviço:svc_web",
+                    kind = "serviço",
+                    name = "web",
+                    project = "E2E",
+                    sha = SHA,
+                    at = "2026-11-02T06:28:44Z",
+                },
+            },
+        }, {
+            {
+                definite = false,
+                allowed = false,
+                project = "E2E",
+                scope = "projeto",
+                what = "env PASSWORD_MIN_LENGTH",
+            },
+            {
+                definite = true,
+                allowed = false,
+                project = "E2E",
+                scope = "serviço api",
+                what = "token de webhook sem cifra",
+            },
+        })
+    )
     rende(tela)
-    -- Os painéis abaixo do formulário (situação, divergência, removidos) são irmãos dentro do
-    -- scrollable: já sumiram em silêncio quando ficaram fora de uma coluna só.
+    -- Os painéis abaixo do formulário (situação, divergência, removidos) são
+    -- irmãos dentro do scrollable: já sumiram em silêncio quando ficaram fora
+    -- de uma coluna só.
     local textos = tela:texts()
-    assert_true(tem_trecho(textos, "o histórico divergiu"), "painel de divergência ausente")
+    assert_true(
+        tem_trecho(textos, "o histórico divergiu"),
+        "painel de divergência ausente"
+    )
     assert_true(tem_trecho(textos, "web"), "lista de removidos no git ausente")
     for _, modo in { "off", "commit", "sync" } do
         tela:set("state_git_form_mode", modo)
@@ -825,8 +944,9 @@ function test_configuracoes_atualizacoes()
     })
     rende(tela)
 
-    -- Com o helper de instalação: botões de atualizar e reverter, e o resultado
-    -- da última tentativa (lido do daemon depois que a janela volta ao login).
+    -- Com o helper de instalação: botões de atualizar e reverter, e o
+    -- resultado da última tentativa (lido do daemon depois que a janela volta
+    -- ao login).
     seta(tela, {
         update_is_helper_available = "true",
         update_is_available = "true",
@@ -836,8 +956,9 @@ function test_configuracoes_atualizacoes()
     seta(tela, { update_is_available = "false", update_progress_message = "" })
     rende(tela)
 
-    -- Atualização do app: sem consulta, com versão nova instalável (.deb + pkexec) e com versão
-    -- nova num app que não veio de .deb (só o comando manual).
+    -- Atualização do app: sem consulta, com versão nova instalável (.deb +
+    -- pkexec) e com versão nova num app que não veio de .deb (só o comando
+    -- manual).
     seta(tela, {
         update_app_current_version = "0.1.21",
         update_app_latest_version = "0.1.21",
@@ -851,15 +972,18 @@ function test_configuracoes_atualizacoes()
         update_app_message = "Há uma versão nova do app: 0.1.22",
     })
     rende(tela)
-    -- Windows (zip do install.ps1): a mesma tela, com o texto da troca de arquivos.
+    -- Windows (zip do install.ps1): a mesma tela, com o texto da troca de
+    -- arquivos.
     seta(tela, {
         update_app_install_kind = "zip",
-        update_app_apply_hint = "O app baixa a versão nova e confere a assinatura; depois fecha, troca os arquivos e reabre sozinho.",
+        update_app_apply_hint = "O app baixa a versão nova e confere a "
+            .. "assinatura; depois fecha, troca os arquivos e reabre sozinho.",
     })
     rende(tela)
     seta(tela, {
         update_app_can_update = "false",
-        update_app_manual_command = "irm https://raw.githubusercontent.com/antoniofernandodj/rustploy/main/install.ps1 | iex",
+        update_app_manual_command = "irm https://raw.githubusercontent.com/"
+            .. "antoniofernandodj/rustploy/main/install.ps1 | iex",
     })
     rende(tela)
 end
@@ -913,7 +1037,8 @@ function test_servico_cada_aba()
     end)
 end
 
---- aba Domains: portas TCP (lista, sugestões clicáveis e botões) e o estado vazio
+--- aba Domains: portas TCP (lista, sugestões clicáveis e botões) e o estado
+--- vazio
 function test_servico_domains_portas_tcp()
     local Format = require("format")
     local tela = servico("domains")
@@ -928,25 +1053,43 @@ function test_servico_domains_portas_tcp()
         service_tcp_ports = Format.tcp_ports_json(spec :: any),
         service_tcp_ports_count = "2",
         service_port_suggestions = Format.port_suggestions_json({
-            { port = 15692, label = "métricas", sources = { "listening" }, internal = false },
+            {
+                port = 15692,
+                label = "métricas",
+                sources = { "listening" },
+                internal = false,
+            },
         }),
         service_port_suggestions_count = "1",
     })
     local textos = tela:texts()
-    assert_true(tem_trecho(textos, "HOST TCP PORTS (2)"), "título da lista ausente")
+    assert_true(
+        tem_trecho(textos, "HOST TCP PORTS (2)"),
+        "título da lista ausente"
+    )
     assert_true(tem_trecho(textos, "20003"), "porta do host ausente")
     assert_true(tem_trecho(textos, "→ 9001"), "porta do container ausente")
     assert_true(tem_trecho(textos, "console"), "rótulo ausente")
     local botoes = tela:buttons()
-    assert_true(tem_trecho(botoes, "Suggest container ports"), "botão de sugerir ausente")
-    assert_true(tem_trecho(botoes, "15692 metrics (listening now)"), "sugestão clicável ausente")
+    assert_true(
+        tem_trecho(botoes, "Suggest container ports"),
+        "botão de sugerir ausente"
+    )
+    assert_true(
+        tem_trecho(botoes, "15692 metrics (listening now)"),
+        "sugestão clicável ausente"
+    )
     assert_true(tem_trecho(botoes, "Add port"), "botão de adicionar ausente")
     -- sem portas: o estado vazio aparece
     seta(tela, { service_tcp_ports = "[]", service_tcp_ports_count = "0" })
-    assert_true(tem_trecho(tela:texts(), "No TCP port configured."), "estado vazio ausente")
+    assert_true(
+        tem_trecho(tela:texts(), "No TCP port configured."),
+        "estado vazio ausente"
+    )
 end
 
---- aba Environment: secrets do serviço aparecem (nome editável no lugar), com o botão "→ secret" nas variáveis em claro
+--- aba Environment: secrets do serviço aparecem (nome editável no lugar), com
+--- o botão "→ secret" nas variáveis em claro
 function test_servico_environment_secrets_do_servico()
     local tela = servico("environment")
     tela:eval([[
@@ -958,20 +1101,37 @@ function test_servico_environment_secrets_do_servico()
     ]])
     rende(tela)
     -- o nome é um campo sem borda (renomeia sozinho), sem botão ✏️
-    local nomes = tela:find_all({ kind = "textinput", class = "env__inline-name" })
+    local nomes =
+        tela:find_all({ kind = "textinput", class = "env__inline-name" })
     assert_eq(#nomes, 2)
     assert_eq(tela:get(nomes[1].attrs.value_var), "POSTGRES_PASSWORD")
     assert_eq(tela:get(nomes[2].attrs.value_var), "API_TOKEN")
-    assert_false(tem_trecho(tela:buttons(), "✏️"), "o botão de renomear voltou")
-    assert_true(tem_trecho(tela:buttons(), "🔒"), "botão de mover para secret ausente")
-    assert_true(tem_trecho(tela:buttons(), "↑"), "botão de subir para o projeto ausente")
-    assert_true(tem_trecho(tela:buttons(), "🔓"), "botão de voltar a variável ausente")
+    assert_false(
+        tem_trecho(tela:buttons(), "✏️"),
+        "o botão de renomear voltou"
+    )
+    assert_true(
+        tem_trecho(tela:buttons(), "🔒"),
+        "botão de mover para secret ausente"
+    )
+    assert_true(
+        tem_trecho(tela:buttons(), "↑"),
+        "botão de subir para o projeto ausente"
+    )
+    assert_true(
+        tem_trecho(tela:buttons(), "🔓"),
+        "botão de voltar a variável ausente"
+    )
     -- sem secrets: o estado vazio aparece
     seta(tela, { service_secrets = "[]", service_secrets_count = "0" })
-    assert_true(tem_trecho(tela:texts(), "No secret in this service yet."), "estado vazio ausente")
+    assert_true(
+        tem_trecho(tela:texts(), "No secret in this service yet."),
+        "estado vazio ausente"
+    )
 end
 
---- aba Advanced: dependências (lista, seletor e botão) e a caixa de religar no boot
+--- aba Advanced: dependências (lista, seletor e botão) e a caixa de religar no
+--- boot
 function test_servico_advanced_dependencias()
     local Format = require("format")
     local tela = servico("advanced")
@@ -983,22 +1143,36 @@ function test_servico_advanced_dependencias()
     local spec = { depends_on = { "svc_db" } }
     seta(tela, {
         service_dependencies = Format.dependency_rows(spec, servicos),
-        service_dependency_options = Format.dependency_options(spec, "svc_api", servicos),
+        service_dependency_options = Format.dependency_options(
+            spec,
+            "svc_api",
+            servicos
+        ),
         service_dependencies_count = "1",
         service_form_autostart = "true",
     })
     local textos = tela:texts()
     assert_true(tem_trecho(textos, "db"), "dependência atual ausente")
-    assert_true(tem_trecho(tela:buttons(), "Add dependency"), "botão de adicionar dependência ausente")
+    assert_true(
+        tem_trecho(tela:buttons(), "Add dependency"),
+        "botão de adicionar dependência ausente"
+    )
     -- sem dependências: o estado vazio aparece
     seta(tela, {
-        service_dependencies = Format.dependency_rows({ depends_on = {} }, servicos),
+        service_dependencies = Format.dependency_rows(
+            { depends_on = {} },
+            servicos
+        ),
         service_dependencies_count = "0",
     })
-    assert_true(tem_trecho(tela:texts(), "No dependencies."), "estado vazio ausente")
+    assert_true(
+        tem_trecho(tela:texts(), "No dependencies."),
+        "estado vazio ausente"
+    )
 end
 
---- o formatter: o próprio serviço e as dependências já postas não entram como candidatos
+--- o formatter: o próprio serviço e as dependências já postas não entram como
+--- candidatos
 function test_dependencias_candidatos_e_removido()
     local Format = require("format")
     local servicos = {
@@ -1006,11 +1180,15 @@ function test_dependencias_candidatos_e_removido()
         { id = "b", spec = { name = "b" } },
         { id = "c", spec = { name = "c" } },
     }
-    local candidatos = json.decode(Format.dependency_options({ depends_on = { "b" } }, "a", servicos))
+    local candidatos = json.decode(
+        Format.dependency_options({ depends_on = { "b" } }, "a", servicos)
+    )
     assert_eq(#candidatos, 1)
     assert_eq(candidatos[1].id, "c")
     -- id que sumiu aparece com rótulo próprio, para dar para remover
-    local linhas = json.decode(Format.dependency_rows({ depends_on = { "fantasma" } }, servicos))
+    local linhas = json.decode(
+        Format.dependency_rows({ depends_on = { "fantasma" } }, servicos)
+    )
     assert_true(string.find(linhas[1].name, "fantasma", 1, true) ~= nil)
 end
 
@@ -1297,17 +1475,22 @@ end
 
 -- Em `view = "service"`, as ações têm duas fileiras que se alternam por
 -- largura.
--- Desde a 0.1.69, Deploy/Reload/Rebuild/Warm/Exportar moram num `dropdownbutton`
--- (um `menu` do motor, não um `button`); só o Stop segue botão, à parte.
+-- Desde a 0.1.69, Deploy/Reload/Rebuild/Warm/Exportar moram num
+-- `dropdownbutton` (um `menu` do motor, não um `button`); só o Stop segue
+-- botão, à parte.
 local ACOES_TEXTO = { "Stop" }
 local ACOES_ICONE = { "■" }
 
---- aba Logs: a lista "Execuções anteriores" só aparece com execuções, e cada linha tem Ver logs / Excluir
+--- aba Logs: a lista "Execuções anteriores" só aparece com execuções, e cada
+--- linha tem Ver logs / Excluir
 function test_servico_aba_logs_lista_execucoes_anteriores()
     local SD = require("format/service_detail")
     local tela = servico("logs")
     -- sem execuções passadas: só o botão dos "Logs de execução"
-    seta(tela, { log_executions_visible = "false", log_executions = json.array({}) })
+    seta(
+        tela,
+        { log_executions_visible = "false", log_executions = json.array({}) }
+    )
     assert_has_button(tela, "Execution logs")
     assert_no_button(tela, "View logs")
     seta(tela, {
@@ -1329,12 +1512,18 @@ function test_servico_aba_logs_lista_execucoes_anteriores()
     assert_has_button(tela, "View logs")
     assert_has_button(tela, "Delete")
     assert_has_button(tela, "Select all")
-    assert_true(tem_trecho(tela:texts(), "dep_2"), "resumo da execução ausente")
+    assert_true(
+        tem_trecho(tela:texts(), "dep_2"),
+        "resumo da execução ausente"
+    )
     -- sem seleção o "Limpar selecionados" fica travado
     local travado = tela:find_all({ text = "Clear selected (0)" })
     assert_eq(#travado, 1)
     assert_eq(travado[1].attrs.disabled, true)
-    seta(tela, { log_selected_none = "false", log_selected_label = "Clear selected (1)" })
+    seta(tela, {
+        log_selected_none = "false",
+        log_selected_label = "Clear selected (1)",
+    })
     local livre = tela:find_all({ text = "Clear selected (1)" })
     assert_eq(#livre, 1)
     assert_eq(livre[1].attrs.disabled, false)
@@ -1357,7 +1546,11 @@ function test_acoes_do_servico_viram_icones_quando_estreito()
     }, { 0, 1 }, "em 980px espera o Stop em ícone e nenhum de texto")
 
     -- as duas fileiras (compacta e completa) têm o seu split button de Deploy
-    assert_eq(#tela:find_all({ kind = "menu" }), 2, "um dropdownbutton por fileira")
+    assert_eq(
+        #tela:find_all({ kind = "menu" }),
+        2,
+        "um dropdownbutton por fileira"
+    )
 end
 
 -- ── trava de ação em andamento ──────────────────────────────────────────────
@@ -1383,14 +1576,22 @@ function test_acao_em_andamento_trava_o_botao()
     )
 end
 
---- projeto: o ↓ de mover só destrava com um serviço de destino escolhido (a opção nula "escolha…" o trava)
+--- projeto: o ↓ de mover só destrava com um serviço de destino escolhido (a
+--- opção nula "escolha…" o trava)
 function test_projeto_mover_so_destrava_com_destino()
     local tela = projeto()
     seta(tela, {
         project_tab = "env",
-        project_service_options = '[{"id":"","display":"escolha"},{"id":"svc1","display":"db"}]',
+        project_service_options = '[{"id":"","display":"escolha"},'
+            .. '{"id":"svc1","display":"db"}]',
         project_env = {
-            { key = "A", key_display = "A", value = "x", kind = "plain", secret_name = "" },
+            {
+                key = "A",
+                key_display = "A",
+                value = "x",
+                kind = "plain",
+                secret_name = "",
+            },
         },
         move_target_service_id = "",
     })
@@ -1422,37 +1623,66 @@ function test_job_env_tela()
     tela:eval([[
         local EnvRows = require("handlers/env_rows")
         EnvRows.publish("job", ctx.job_env)
-        EnvRows.set_secret_options("job", { { name = "TOKEN", label = "TOKEN" } })
-        ctx.job_secrets = require("handlers/secret_rows").bind("job", ctx.job_secrets)
+        EnvRows.set_secret_options(
+            "job",
+            { { name = "TOKEN", label = "TOKEN" } }
+        )
+        ctx.job_secrets =
+            require("handlers/secret_rows").bind("job", ctx.job_secrets)
     ]])
     rende(tela)
     local textos = tela:texts()
     assert_true(tem_trecho(textos, "backup"), "nome do job ausente")
     for _, botao in { "🔒", "↑", "🔓", "👁" } do
-        assert_true(tem_trecho(tela:buttons(), botao), "botão " .. botao .. " ausente")
+        assert_true(
+            tem_trecho(tela:buttons(), botao),
+            "botão " .. botao .. " ausente"
+        )
     end
-    -- o nome do secret é um campo sem borda (renomeia sozinho, como o nome do projeto): sem ✏️
-    assert_false(tem_trecho(tela:buttons(), "✏️"), "o botão de renomear voltou")
-    local nomes = tela:find_all({ kind = "textinput", class = "env__inline-name" })
+    -- o nome do secret é um campo sem borda (renomeia sozinho, como o nome do
+    -- projeto): sem ✏️
+    assert_false(
+        tem_trecho(tela:buttons(), "✏️"),
+        "o botão de renomear voltou"
+    )
+    local nomes =
+        tela:find_all({ kind = "textinput", class = "env__inline-name" })
     assert_eq(#nomes, 1)
     assert_eq(tela:get(nomes[1].attrs.value_var), "TOKEN")
-    -- linha editável no lugar: chave e valor sem borda, "usar secret" com lista, OK só depois de mexer
-    local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
+    -- linha editável no lugar: chave e valor sem borda, "usar secret" com
+    -- lista, OK só depois de mexer
+    local chaves =
+        tela:find_all({ kind = "textinput", class = "env__inline-key" })
     assert_eq(#chaves, 2)
     assert_eq(tela:get(chaves[1].attrs.value_var), "OLA")
-    local valores = tela:find_all({ kind = "textinput", class = "env__inline" })
-    assert_eq(#valores, 1, "a variável secret mostra a lista, não o campo do valor")
+    local valores =
+        tela:find_all({ kind = "textinput", class = "env__inline" })
+    assert_eq(
+        #valores,
+        1,
+        "a variável secret mostra a lista, não o campo do valor"
+    )
     assert_eq(tela:get(valores[1].attrs.value_var), "mundo")
     assert_eq(#tela:find_all({ class = "env__secret-select" }), 1)
-    assert_eq(#tela:find_all({ kind = "checkbox", class = "env__use-secret" }), 3, "2 linhas + o form de adicionar")
-    assert_false(tem_trecho(tela:buttons(), "OK"), "sem alteração não há OK")
+    assert_eq(
+        #tela:find_all({ kind = "checkbox", class = "env__use-secret" }),
+        3,
+        "2 linhas + o form de adicionar"
+    )
+    assert_false(
+        tem_trecho(tela:buttons(), "OK"),
+        "sem alteração não há OK"
+    )
     tela:call("job_env_row_value:OLA", "terra")
     rende(tela)
     assert_true(tem_trecho(tela:buttons(), "OK"), "depois de mexer falta o OK")
     assert_eq(tela:get(valores[1].attrs.value_var), "terra")
     -- sem secrets: o estado vazio aparece
     seta(tela, { job_secrets = "[]", job_secrets_count = "0" })
-    assert_true(tem_trecho(tela:texts(), "No secret in this job yet."), "estado vazio ausente")
+    assert_true(
+        tem_trecho(tela:texts(), "No secret in this job yet."),
+        "estado vazio ausente"
+    )
     -- editor .env aberto
     seta(tela, { job_env_text_open = "true", job_env_text = "A=1" })
     rende(tela)

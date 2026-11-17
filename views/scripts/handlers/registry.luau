@@ -32,7 +32,8 @@ function registry_open_repo(name: string): ()
     else
         ctx.registry_tags = json.array({})
         ctx.registry_tags_count = "0"
-        ctx.registry_message = i18n.tr("erro: ") .. tostring(registry_tag_list_response)
+        ctx.registry_message = i18n.tr("erro: ")
+            .. tostring(registry_tag_list_response)
     end
     ctx.registry_tags_loading = "false"
 end
@@ -52,7 +53,13 @@ end
 function registry_remove_tag(tag_name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover tag?"),
-        message = i18n.tr("A tag será removida. Se outra tag apontar pro mesmo manifest (mesma imagem), ela também é removida — o delete é por digest, não por tag. O disco é liberado pelo botão \"Executar GC\". Ação irreversível."),
+        message = i18n.tr(
+            "A tag será removida. Se outra tag apontar pro mesmo manifest "
+                .. "(mesma imagem), ela também é removida — o delete é por "
+                .. "digest, não por tag. O disco é liberado pelo botão "
+                .. '"Executar '
+                .. 'GC". Ação irreversível.'
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -84,7 +91,11 @@ end
 function registry_remove_repo(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover repositório?"),
-        message = i18n.tr("Todas as tags e manifests do repositório serão removidos. O disco é liberado pelo botão \"Executar GC\". Ação irreversível."),
+        message = i18n.tr(
+            "Todas as tags e manifests do repositório serão removidos. O "
+                .. 'disco é liberado pelo botão "Executar GC". Ação '
+                .. "irreversível."
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -118,13 +129,22 @@ end
 -- Imagens taggeadas nunca são afetadas. Também roda sozinho 1x/dia no daemon.
 
 function registry_gc(): ()
-    local message = i18n.tr("Remove do disco blobs e manifests que nenhuma tag referencia (sobras de remoções e de tags republicadas) e uploads abandonados há mais de 24h. Imagens com tag não são afetadas.")
-    -- Com a retenção ligada o GC manual também a aplica: a confirmação tem de dizer.
+    local message = i18n.tr(
+        "Remove do disco blobs e manifests que nenhuma tag referencia (sobras "
+            .. "de remoções e de tags republicadas) e uploads abandonados há "
+            .. "mais de 24h. Imagens com tag não são afetadas."
+    )
+    -- Com a retenção ligada o GC manual também a aplica: a confirmação tem de
+    -- dizer.
     if ctx.registry_retention_saved_enabled == "true" then
         message = message
             .. " "
             .. string.format(
-                i18n.tr("A retenção de tags está ligada: as tags além das %s mais recentes de cada repositório também serão apagadas (menos as que um serviço usa)."),
+                i18n.tr(
+                    "A retenção de tags está ligada: as tags além das %s mais "
+                        .. "recentes de cada repositório também serão "
+                        .. "apagadas (menos as que um serviço usa)."
+                ),
                 tostring(ctx.registry_retention_saved_keep_last or "10")
             )
     end
@@ -155,7 +175,8 @@ function registry_gc(): ()
         )
         Stream.refresh_now()
     else
-        ctx.registry_message = i18n.tr("erro: ") .. tostring(registry_gc_response)
+        ctx.registry_message = i18n.tr("erro: ")
+            .. tostring(registry_gc_response)
     end
 end
 
@@ -170,7 +191,8 @@ function registry_retention_save(): ()
         tonumber(Helpers.trim(ctx.registry_retention_form_keep_last)) or 0
     )
     if keep_last < 1 then
-        ctx.registry_message = i18n.tr("informe quantas tags manter (mínimo 1)")
+        ctx.registry_message =
+            i18n.tr("informe quantas tags manter (mínimo 1)")
         return
     end
     local retention_set_ok, retention_set_response = api:rpc_checked {
@@ -185,7 +207,8 @@ function registry_retention_save(): ()
         ctx.registry_message = i18n.tr("retenção salva")
         Stream.refresh_now()
     else
-        ctx.registry_message = i18n.tr("erro: ") .. tostring(retention_set_response)
+        ctx.registry_message = i18n.tr("erro: ")
+            .. tostring(retention_set_response)
     end
 end
 
@@ -230,7 +253,10 @@ end
 function registry_remove_token(name: string): ()
     local confirmed = confirm {
         title = i18n.tr("Revogar token?"),
-        message = i18n.tr("Qualquer `docker login`/push/pull usando esse token deixa de funcionar imediatamente. Ação irreversível."),
+        message = i18n.tr(
+            "Qualquer `docker login`/push/pull usando esse token deixa de "
+                .. "funcionar imediatamente. Ação irreversível."
+        ),
         confirm_label = i18n.tr("Revogar"),
         destructive = true,
     }

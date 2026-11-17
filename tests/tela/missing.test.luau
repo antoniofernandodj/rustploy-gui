@@ -208,9 +208,10 @@ function test_janelas_auxiliares__novo_projeto()
     -- O motor lê `<error_prefix><campo>` de TODO form_control, mesmo sem
     -- `rules` (aqui a descrição é opcional) — uma leitura interna, não
     -- esquecimento do app. Desde a 0.1.67 todo form declara
-    -- `error_prefix = error_` (antes o motor lia `erro_`), e com isso a chave de
-    -- erro de um campo COM `rules` (error_new_project_name) passa a ser a que o
-    -- próprio motor publica — sai da lista; fica só a da descrição, sem regras.
+    -- `error_prefix = error_` (antes o motor lia `erro_`), e com isso a chave
+    -- de erro de um campo COM `rules` (error_new_project_name) passa a ser a
+    -- que o próprio motor publica — sai da lista; fica só a da descrição, sem
+    -- regras.
     confere(
         janela("views/new_project_form.screen.gv"),
         { "error_new_project_description" }
@@ -221,16 +222,11 @@ end
 function test_janelas_auxiliares__novo_token_do_registry()
     -- error_new_registry_token_name saiu da lista na 0.1.69: com o
     -- `error_prefix = error_` do form, é a chave que o motor publica.
-    confere(
-        janela("views/new_registry_token_window.screen.gv"),
-        {}
-    )
+    confere(janela("views/new_registry_token_window.screen.gv"), {})
 end
 
 --- exportar serviço
 function test_janelas_auxiliares__exportar_servico()
-    confere(
-        janela("views/service_export_window.screen.gv", { export_plan = "{}" }),
-        {}
-    )
+    local path = "views/service_export_window.screen.gv"
+    confere(janela(path, { export_plan = "{}" }), {})
 end

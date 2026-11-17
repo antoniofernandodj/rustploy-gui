@@ -1,15 +1,33 @@
-// Janela de LOGS AO VIVO (runtime OU build): motor Glacier próprio e ISOLADO do
-// app principal, aberta via open_window por handlers/services.luau
+// Janela de LOGS AO VIVO (runtime OU build): motor Glacier próprio e ISOLADO
+// do app principal, aberta via open_window por handlers/services.luau
 // (open_logs_window / open_build_logs_window).
 screen {
   resources {
     style """
-      .log-window__body   { width: fill; height: fill; padding: 14; spacing: 10; }
+      .log-window__body {
+        width: fill;
+        height: fill;
+        padding: 14;
+        spacing: 10;
+      }
       .log-window__head   { width: fill; align_y: center; spacing: 12; }
       .log-window__title  { size: 13; bold: true; color: var(--text); }
       .log-window__count  { width: fill; size: 11; color: var(--muted); }
-      .log-window__scroll { width: fill; height: fill; background: var(--surface); border_radius: 4; padding: 10; }
-      .log-window__editor { width: fill; height: fill; background: var(--surface); border_radius: 4; padding: 10 12; font: mono; }
+      .log-window__scroll {
+        width: fill;
+        height: fill;
+        background: var(--surface);
+        border_radius: 4;
+        padding: 10;
+      }
+      .log-window__editor {
+        width: fill;
+        height: fill;
+        background: var(--surface);
+        border_radius: 4;
+        padding: 10 12;
+        font: mono;
+      }
     """
 
     script(src = "scripts/log_window.luau")
@@ -82,14 +100,16 @@ screen {
             text("@log_window_title", class = log-window__title)
             // Execução passada: só histórico, não há "ao vivo".
             text(
-              "{t('log_window.lines_live', log_window_count=log_window_count)}",
+              "{t('log_window.lines_live',
+                log_window_count=log_window_count)}",
               if = @log_window_past,
               not_equals = true,
               class = log-window__count
             )
 
             text(
-              "{t('log_window.lines_past', log_window_count=log_window_count)}",
+              "{t('log_window.lines_past',
+                log_window_count=log_window_count)}",
               if = @log_window_past,
               equals = true,
               class = log-window__count
@@ -139,9 +159,15 @@ screen {
 
     // Borda inferior + cantos (s / sw / se)
     row(class = resize__bottom) {
-      column(class = "resize__corner resize__corner--sw", on_press = window:resize:sw)
+      column(
+        class = "resize__corner resize__corner--sw",
+        on_press = window:resize:sw
+      )
       column(class = resize__edge-h, on_press = window:resize:s)
-      column(class = "resize__corner resize__corner--se", on_press = window:resize:se)
+      column(
+        class = "resize__corner resize__corner--se",
+        on_press = window:resize:se
+      )
     }
   }
 }

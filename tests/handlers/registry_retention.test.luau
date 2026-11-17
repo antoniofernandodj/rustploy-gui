@@ -1,6 +1,7 @@
 --!nonstrict
 -- Retenção de tags do registry: o botão Salvar da sub-aba Docker > Registry.
--- Sem `State.api` o handler tem de ser inerte (a conexão pode cair no instante do clique).
+-- Sem `State.api` o handler tem de ser inerte (a conexão pode cair no instante
+-- do clique).
 
 local function nova(ctx_inicial)
     local tela = component("views/app.gv", ctx_inicial)

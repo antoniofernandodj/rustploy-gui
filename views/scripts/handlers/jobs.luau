@@ -93,7 +93,9 @@ function job_toggle(job_id: string): ()
     if not job then
         toast {
             message = tostring(
-                i18n.tr("job não encontrado (tela desatualizada — tenta de novo)")
+                i18n.tr(
+                    "job não encontrado (tela desatualizada — tenta de novo)"
+                )
             ),
             kind = "error",
         }
@@ -114,7 +116,10 @@ function job_toggle(job_id: string): ()
     }
     if job_update_ok then
         toast {
-            message = tostring(job.enabled and i18n.tr("Job pausado") or i18n.tr("Job ativado")),
+            message = tostring(
+                job.enabled and i18n.tr("Job pausado")
+                    or i18n.tr("Job ativado")
+            ),
             kind = "success",
         }
     else
@@ -174,7 +179,9 @@ function open_edit_job_window(job_id: string): ()
     if not job then
         toast {
             message = tostring(
-                i18n.tr("job não encontrado (tela desatualizada — tenta de novo)")
+                i18n.tr(
+                    "job não encontrado (tela desatualizada — tenta de novo)"
+                )
             ),
             kind = "error",
         }
@@ -195,7 +202,9 @@ function open_edit_job_window(job_id: string): ()
             -- abrir o clique em "Editar" fica sem NENHUM feedback visual.
             -- Só o toast avisa que algo está acontecendo nesse intervalo.
             toast {
-                message = tostring(i18n.tr("Carregando dados do repositório…")),
+                message = tostring(
+                    i18n.tr("Carregando dados do repositório…")
+                ),
                 kind = "info",
             }
             local git_provider_list_ok, git_provider_list_response =
@@ -292,7 +301,8 @@ function open_job_logs_window(job_run_id: string): ()
         data = {
             api_url = ctx.api_url or "",
             api_token = ctx.api_token or "",
-            log_window_title = i18n.tr("Job · ") .. string.sub(job_run_id, 1, 12),
+            log_window_title = i18n.tr("Job · ")
+                .. string.sub(job_run_id, 1, 12),
             log_window_stream_url = "/api/jobs/runs/" .. job_run_id .. "/logs",
             log_window_seed = seed,
         },
@@ -306,16 +316,17 @@ function job_delete(job_id: string): ()
     end
     -- Confirma antes de apagar, como a webui ("Remover este job? Ação
     -- irreversível.") e como os demais botões destrutivos do app. O painel ⋯
-    -- fecha ANTES: ele é uma camada flutuante e ficava por cima da confirmação,
-    -- escondendo-a (a janela só aparecia ao clicar fora do painel).
+    -- fecha ANTES: ele é uma camada flutuante e ficava por cima da
+    -- confirmação, escondendo-a (a janela só aparecia ao clicar fora do
+    -- painel).
     local job = State.jobs_by_id[job_id]
     local job_name = job and job.name or job_id
     close_job_actions()
     local confirmed = confirm {
         title = i18n.tr("Remover job?"),
-        message = i18n.tr("O job \"")
-            .. tostring(job_name)
-            .. i18n.tr("\" será removido e não poderá ser recuperado."),
+        message = i18n.tr('O job "') .. tostring(job_name) .. i18n.tr(
+            '" será removido e não poderá ser recuperado.'
+        ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -346,13 +357,18 @@ function job_rebuild(job_id: string): ()
     end
     local job = State.jobs_by_id[job_id]
     local job_name = job and job.name or job_id
-    -- O painel ⋯ fecha antes da confirmação (ficava por cima dela; ver `job_delete`).
+    -- O painel ⋯ fecha antes da confirmação (ficava por cima dela; ver
+    -- `job_delete`).
     close_job_actions()
     local confirmed = confirm {
         title = i18n.tr("Reconstruir sem cache?"),
-        message = i18n.tr("O job \"")
+        message = i18n.tr('O job "')
             .. tostring(job_name)
-            .. i18n.tr("\" será reconstruído do zero (sem cache e com as imagens base rebaixadas). Isso pode levar vários minutos e ocupa a fila de jobs enquanto roda."),
+            .. i18n.tr(
+                '" será reconstruído do zero (sem cache e com as imagens base '
+                    .. "rebaixadas). Isso pode levar vários minutos e ocupa a "
+                    .. "fila de jobs enquanto roda."
+            ),
         confirm_label = i18n.tr("Reconstruir"),
     }
     if not confirmed then
@@ -365,7 +381,10 @@ function job_rebuild(job_id: string): ()
         toast { message = tostring(job_rebuild_response), kind = "error" }
         return
     end
-    toast { message = tostring(i18n.tr("Reconstrução iniciada")), kind = "success" }
+    toast {
+        message = tostring(i18n.tr("Reconstrução iniciada")),
+        kind = "success",
+    }
     Stream.refresh_now()
 end
 
@@ -386,9 +405,15 @@ function job_warm(job_id: string): ()
         return
     end
     if job_warm_response.JobWarmRequested.already_warm then
-        toast { message = tostring(i18n.tr("Job já está aquecido")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Job já está aquecido")),
+            kind = "success",
+        }
     else
-        toast { message = tostring(i18n.tr("Aquecimento iniciado")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Aquecimento iniciado")),
+            kind = "success",
+        }
     end
     Stream.refresh_now()
 end

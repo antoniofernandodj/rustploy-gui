@@ -1,9 +1,11 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/service_backup.luau — aba Dados → "Backup no S3": os backups dos dados do serviço no S3
--- (docs/plano-backup-de-dados-para-s3.md, Fase 2). O backup e a restauração rodam em segundo plano no
--- daemon; aqui só se dispara e se acompanha `ServiceBackupList(.last_run)` a cada 3 s enquanto roda.
--- A webui faz o mesmo em `webui/screens/service_detail.js` (`loadBackups`…): mude os dois juntos.
+-- handlers/service_backup.luau — aba Dados → "Backup no S3": os backups dos
+-- dados do serviço no S3 (docs/plano-backup-de-dados-para-s3.md, Fase 2). O
+-- backup e a restauração rodam em segundo plano no daemon; aqui só se dispara
+-- e se acompanha `ServiceBackupList(.last_run)` a cada 3 s enquanto roda. A
+-- webui faz o mesmo em `webui/screens/service_detail.js` (`loadBackups`…):
+-- mude os dois juntos.
 
 local State = require("../state")
 local Helpers = require("../helpers")
@@ -37,7 +39,8 @@ function M.reset(): ()
     ctx.data_backup_next = ""
 end
 
---- Uma linha para a última operação: "backup · concluído 11/11 10:00:05 (3 MB)" / "· falhou: …".
+--- Uma linha para a última operação: "backup · concluído 11/11 10:00:05 (3
+--- MB)" / "· falhou: …".
 function M.run_label(run: any): string
     if run == nil then
         return ""
@@ -62,7 +65,8 @@ function M.run_label(run: any): string
     return what .. " · " .. i18n.tr("concluído") .. " " .. finished .. size
 end
 
---- O formulário (valores em texto, como moram no `ctx`) a partir da política do daemon. Pura.
+--- O formulário (valores em texto, como moram no `ctx`) a partir da política
+--- do daemon. Pura.
 function M.form_from_policy(policy: any): { [string]: string }
     local form = {
         enabled = tostring(policy ~= nil and policy.enabled == true),
@@ -87,7 +91,8 @@ function M.form_from_policy(policy: any): { [string]: string }
     return form
 end
 
---- O `BackupPolicy` do protocolo (horário em UTC) a partir dos valores do formulário. Pura.
+--- O `BackupPolicy` do protocolo (horário em UTC) a partir dos valores do
+--- formulário. Pura.
 function M.policy_from_values(form: { [string]: string }): any
     local recurrence: any
     if form.kind == "interval" then
@@ -167,7 +172,8 @@ local function apply(list: any, fill: boolean): ()
     end
 end
 
---- Lê os backups e a última operação; enquanto roda (e a aba segue aberta) repolla.
+--- Lê os backups e a última operação; enquanto roda (e a aba segue aberta)
+--- repolla.
 function M.load(fill: boolean?): ()
     if poll_timer then
         poll_timer:cancel()
@@ -294,7 +300,10 @@ function service_backup_delete(key: string): ()
         ServiceBackupDelete = { service_id = service_id, key = key },
     }
     if ok then
-        toast { message = tostring(i18n.tr("backup apagado")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("backup apagado")),
+            kind = "success",
+        }
         M.load()
     else
         toast { message = tostring(response), kind = "error" }

@@ -214,7 +214,8 @@ local function analyze_core(): boolean
         return false
     end
     if Helpers.trim(ctx.import_text) == "" then
-        ctx.import_error = i18n.tr("escolha um arquivo ou cole o texto do pacote")
+        ctx.import_error =
+            i18n.tr("escolha um arquivo ou cole o texto do pacote")
         return false
     end
 
@@ -261,7 +262,8 @@ function import_pick_file(): ()
 
     local read = fetch("file://" .. path)
     if not read.ok then
-        ctx.import_error = i18n.tr("erro ao ler o arquivo: ") .. tostring(read.error)
+        ctx.import_error = i18n.tr("erro ao ler o arquivo: ")
+            .. tostring(read.error)
         return
     end
 
@@ -318,7 +320,10 @@ function import_choice(key: string): ()
             title = i18n.tr("Sobrescrever no projeto?"),
             message = i18n.tr("Trocar ")
                 .. key
-                .. i18n.tr("no projeto altera o valor que os OUTROS serviços do projeto também enxergam."),
+                .. i18n.tr(
+                    "no projeto altera o valor que os OUTROS serviços do "
+                        .. "projeto também enxergam."
+                ),
             confirm_label = i18n.tr("Sobrescrever"),
             destructive = true,
         }
@@ -347,8 +352,9 @@ function import_create(): ()
         return
     end
     if Helpers.is_true(ctx.import_conflict) then
-        ctx.import_error =
-            i18n.tr("já existe um serviço com esse nome neste projeto — escolha outro")
+        ctx.import_error = i18n.tr(
+            "já existe um serviço com esse nome neste projeto — escolha outro"
+        )
         return
     end
     if Helpers.is_true(ctx.import_has_missing) then

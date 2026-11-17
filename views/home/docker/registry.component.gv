@@ -29,7 +29,10 @@ component {
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
-        "{t('docker_registry.registry_repository_ies', registry_status_label=registry_status_label, registry_repos_count=registry_repos_count, registry_storage_human=registry_storage_human)}",
+        "{t('docker_registry.registry_repository_ies',
+          registry_status_label=registry_status_label,
+          registry_repos_count=registry_repos_count,
+          registry_storage_human=registry_storage_human)}",
         class = "u-muted u-fill",
       )
 
@@ -52,7 +55,10 @@ component {
       )
 
       row(class = env__add) {
-        field(label = "{t('docker_registry.retention_keep')}", label_class = u-label-cap) {
+        field(
+          label = "{t('docker_registry.retention_keep')}",
+          label_class = u-label-cap
+        ) {
           spinbox(
             field_class = field__spin,
             form_control = registry_retention_form_keep_last,
@@ -165,7 +171,8 @@ component {
       }
 
       text(
-        "{t('docker_registry.access_tokens', registry_tokens_count=registry_tokens_count)}",
+        "{t('docker_registry.access_tokens',
+          registry_tokens_count=registry_tokens_count)}",
         class = u-label-cap,
       )
 
@@ -255,7 +262,9 @@ component {
     ) {
       row(class = env__head) {
         text(
-          "{t('docker_registry.tag_s', registry_selected_repo=registry_selected_repo, registry_tags_count=registry_tags_count)}",
+          "{t('docker_registry.tag_s',
+            registry_selected_repo=registry_selected_repo,
+            registry_tags_count=registry_tags_count)}",
           class = "u-muted u-fill",
         )
 

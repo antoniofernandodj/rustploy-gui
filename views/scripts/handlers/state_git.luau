@@ -1,7 +1,8 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/state_git.luau — Settings → Sync: a sincronização do estado de infra com
--- um repositório git (Fases 6 e 7 de docs/plano-backup-estado-em-git.md).
+-- handlers/state_git.luau — Settings → Sync: a sincronização do estado de
+-- infra com um repositório git (Fases 6 e 7 de
+-- docs/plano-backup-estado-em-git.md).
 --
 -- O STATUS não é buscado aqui: vem no snapshot (`snapshot.state_git`,
 -- `snapshot.infra_audit`) e handlers/stream.luau o espalha no `ctx` via
@@ -54,10 +55,11 @@ function state_git_save(): ()
     finish(ok, response, i18n.tr("sincronização configurada"))
 end
 
--- Limpa a configuração do sync: modo `off` e sem repositório, branch nem conta. O
--- daemon apaga as chaves (`StateGitConfigure` com tudo vazio) e para de commitar/empurrar;
--- a pasta local do histórico e o repositório remoto ficam como estão. Era a única saída
--- de uma configuração errada (ex.: servidor local apontando para o repositório de prod).
+-- Limpa a configuração do sync: modo `off` e sem repositório, branch nem
+-- conta. O daemon apaga as chaves (`StateGitConfigure` com tudo vazio) e para
+-- de commitar/empurrar; a pasta local do histórico e o repositório remoto
+-- ficam como estão. Era a única saída de uma configuração errada (ex.:
+-- servidor local apontando para o repositório de prod).
 function state_git_clear(): ()
     local api = State.api
     if not api then
@@ -66,7 +68,9 @@ function state_git_clear(): ()
     local confirmed = confirm {
         title = i18n.tr("Limpar a configuração da sincronização?"),
         message = i18n.tr(
-            "O servidor deixa de commitar e de empurrar o estado. O repositório remoto e o histórico já gravado não são apagados; dá para configurar de novo depois."
+            "O servidor deixa de commitar e de empurrar o estado. O "
+                .. "repositório remoto e o histórico já gravado não são "
+                .. "apagados; dá para configurar de novo depois."
         ),
         confirm_label = i18n.tr("Limpar"),
         destructive = true,
@@ -86,7 +90,8 @@ function state_git_clear(): ()
     finish(ok, response, i18n.tr("configuração da sincronização limpa"))
 end
 
--- "Sincronizar agora": commit pendente, fetch, aplicação do que veio de fora e push.
+-- "Sincronizar agora": commit pendente, fetch, aplicação do que veio de fora e
+-- push.
 function state_git_sync_now(): ()
     local api = State.api
     if not api then
@@ -96,8 +101,9 @@ function state_git_sync_now(): ()
     finish(ok, response, i18n.tr("sincronizado"))
 end
 
--- Depois de resolver à mão (por SSH): o daemon RELÊ a pasta e valida antes de voltar
--- a andar. Se o histórico continua divergido, pausa de novo — e o aviso diz isso.
+-- Depois de resolver à mão (por SSH): o daemon RELÊ a pasta e valida antes de
+-- voltar a andar. Se o histórico continua divergido, pausa de novo — e o aviso
+-- diz isso.
 function state_git_resume(): ()
     local api = State.api
     if not api then
@@ -137,7 +143,9 @@ function state_git_resolve_remote(): ()
     resolve(
         "UseRemote",
         i18n.tr(
-            "Usar o do repositório? O que só o servidor tem será descartado (fica salvo numa branch rustploy-backup/local-… no servidor)."
+            "Usar o do repositório? O que só o servidor tem será descartado "
+                .. "(fica salvo numa branch rustploy-backup/local-… no "
+                .. "servidor)."
         )
     )
 end
@@ -146,12 +154,15 @@ function state_git_resolve_local(): ()
     resolve(
         "UseLocal",
         i18n.tr(
-            "Usar o do servidor? O que só o repositório tem será sobrescrito (fica salvo numa branch rustploy-backup/remote-… no próprio repositório)."
+            "Usar o do servidor? O que só o repositório tem será sobrescrito "
+                .. "(fica salvo numa branch rustploy-backup/remote-… no "
+                .. "próprio repositório)."
         )
     )
 end
 
--- Esquece a marca "removido no git" (a pessoa decidiu manter o que ainda roda, ou já limpou).
+-- Esquece a marca "removido no git" (a pessoa decidiu manter o que ainda roda,
+-- ou já limpou).
 function state_git_dismiss_removal(removal_id: string): ()
     local api = State.api
     if not api then

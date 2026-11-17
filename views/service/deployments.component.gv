@@ -19,7 +19,10 @@ component {
       column(if = @service_webhook_url, not_equals = "", class = webhook) {
         // a URL inteira num campo só de leitura (rola dentro dele), com o
         // Copiar colado — o `_short` + tooltip só existiam para caber na linha
-        inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:service_webhook_url") {
+        inputgroup(
+          action = "{t('common.copy')}",
+          on_action = "copy_ctx:service_webhook_url"
+        ) {
           input(:value = service_webhook_url, readonly = true)
         }
 
@@ -46,14 +49,21 @@ component {
       )
     }
 
-    text("{t('deployments.deployments', service_deployments_count=service_deployments_count)}", class = u-muted)
+    text(
+      "{t('deployments.deployments',
+        service_deployments_count=service_deployments_count)}",
+      class = u-muted
+    )
 
     scrollable(direction = vertical, class = deployments__list-scroll) {
       column(class = u-fill) {
         each @service_deployments as d (fallback = SemDeploysDoServico) {
           column(class = u-fill) {
             row(class = table__row) {
-              text("@d.id", class = "table__cell table__cell--key table__col-dep-id")
+              text(
+                "@d.id",
+                class = "table__cell table__cell--key table__col-dep-id"
+              )
               StateCell(kind = @d.state_kind, label = @d.state_label)
               text("@d.duration", class = "table__cell table__col-dur")
               text("@d.start", class = "u-muted table__col-dep-start")

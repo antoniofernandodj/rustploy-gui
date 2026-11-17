@@ -107,9 +107,9 @@ local function update_open_project(): ()
         State.metrics_by_id,
         State.search_term
     )
-    -- Destinos dos movimentos "↓ para o serviço" (abas Variáveis e Secrets do projeto).
-    -- A primeira opção é o valor nulo (id vazio): selecionada, os botões ↓
-    -- ficam travados; qualquer serviço real os destrava.
+    -- Destinos dos movimentos "↓ para o serviço" (abas Variáveis e Secrets do
+    -- projeto). A primeira opção é o valor nulo (id vazio): selecionada, os
+    -- botões ↓ ficam travados; qualquer serviço real os destrava.
     local service_options = json.array {
         { id = "", display = i18n.tr("escolha o serviço de destino") },
     }
@@ -131,7 +131,8 @@ local function update_open_project(): ()
     -- nasce "Variáveis ()" até a primeira edição.
     local project_env_vars = found_project.env_vars or {}
     local project_comments = found_project.env_comments or {}
-    -- Via EnvRows: a lista ganha os campos editáveis de cada linha sem apagar um rascunho.
+    -- Via EnvRows: a lista ganha os campos editáveis de cada linha sem apagar
+    -- um rascunho.
     EnvRows.publish(
         "project",
         format.env_json_with_comments(project_env_vars, project_comments)
@@ -151,9 +152,13 @@ local function update_open_project(): ()
     -- (ver http_api.rs::snapshot), nunca o valor. A mesma lista alimenta os
     -- chips de "usar secret" da aba Variáveis.
     local secrets = found_project.secrets or {}
-    ctx.project_secrets = SecretRows.bind("project", format.secret_rows(secrets, "project", State.revealed_secrets))
+    ctx.project_secrets = SecretRows.bind(
+        "project",
+        format.secret_rows(secrets, "project", State.revealed_secrets)
+    )
     ctx.project_secrets_count = tostring(#secrets)
-    -- O "usar secret" de uma variável do projeto só oferece os secrets do projeto.
+    -- O "usar secret" de uma variável do projeto só oferece os secrets do
+    -- projeto.
     local secret_options = {}
     for _, name in ipairs(secrets) do
         table.insert(secret_options, { name = name, label = name })
@@ -241,19 +246,27 @@ local function apply_snapshot(snapshot: any): ()
         warm_by_id[warm.service_id] = warm
     end
     State.service_warm_by_id = warm_by_id
-    -- Sincronização do estado com o git: serviços com "mudança pendente de deploy"
-    -- (um commit externo mudou o declarado) e o resto da situação (aviso do topo,
-    -- tela Settings → Sync, órfãos). Ver format/state_git.luau.
+    -- Sincronização do estado com o git: serviços com "mudança pendente de
+    -- deploy" (um commit externo mudou o declarado) e o resto da situação
+    -- (aviso do topo, tela Settings → Sync, órfãos). Ver
+    -- format/state_git.luau.
     local pending_by_id = format.state_git_pending_ids(snapshot.state_git)
     for _, last_pair in ipairs(State.last_pairs) do
         last_pair.warm = warm_by_id[last_pair.svc.id]
         last_pair.pending_deploy = pending_by_id[last_pair.svc.id] == true
     end
-    ctx.service_pending_deploy_visible = pending_by_id[ctx.service_id] == true and "true" or "false"
-    for key, value in pairs(format.state_git_context(snapshot.state_git, snapshot.infra_audit)) do
+    ctx.service_pending_deploy_visible = pending_by_id[ctx.service_id] == true
+            and "true"
+        or "false"
+    for key, value in
+        pairs(
+            format.state_git_context(snapshot.state_git, snapshot.infra_audit)
+        )
+    do
         (ctx :: any)[key] = value
     end
-    -- O formulário parte do que o daemon tem gravado, uma vez só (depois é do usuário).
+    -- O formulário parte do que o daemon tem gravado, uma vez só (depois é do
+    -- usuário).
     if snapshot.state_git ~= nil and ctx.state_git_form_loaded ~= "true" then
         local status = snapshot.state_git
         ctx.state_git_form_mode = status.mode or "off"
@@ -356,8 +369,9 @@ local function apply_snapshot(snapshot: any): ()
             or "desabilitado"
         ctx.registry_storage_human =
             format.format_bytes(registry_status.storage_bytes or 0)
-        -- Retenção de tags: o estado salvo (usado na confirmação do GC) acompanha o
-        -- snapshot; o formulário parte dele uma vez só (depois é do usuário).
+        -- Retenção de tags: o estado salvo (usado na confirmação do GC)
+        -- acompanha o snapshot; o formulário parte dele uma vez só (depois é
+        -- do usuário).
         local retention = registry_status.retention
         if retention then
             local seen = tostring(retention.enabled == true)
@@ -367,8 +381,9 @@ local function apply_snapshot(snapshot: any): ()
                 tostring(retention.enabled == true)
             ctx.registry_retention_saved_keep_last =
                 tostring(retention.keep_last or 10)
-            -- O formulário parte do servidor e o segue quando o salvo muda (outro
-            -- cliente, daemon reiniciado); enquanto o salvo é o mesmo, é do usuário.
+            -- O formulário parte do servidor e o segue quando o salvo muda
+            -- (outro cliente, daemon reiniciado); enquanto o salvo é o mesmo,
+            -- é do usuário.
             if ctx.registry_retention_seen ~= seen then
                 ctx.registry_retention_form_enabled =
                     ctx.registry_retention_saved_enabled
@@ -443,7 +458,11 @@ M.refresh_now = refresh_now
 function deployments_clear_finished(): ()
     local confirmed = confirm {
         title = i18n.tr("Limpar deployments parados/falhos?"),
-        message = i18n.tr("Remove do histórico todo deployment em estado Stopped ou Failed, e seus build logs. Deployments em andamento não são afetados. Ação irreversível."),
+        message = i18n.tr(
+            "Remove do histórico todo deployment em estado Stopped ou Failed, "
+                .. "e seus build logs. Deployments em andamento não são "
+                .. "afetados. Ação irreversível."
+        ),
         confirm_label = i18n.tr("Limpar"),
         destructive = true,
     }
@@ -474,8 +493,10 @@ function deployments_clear_finished(): ()
         ctx.deployments_message = i18n.tr("nada para limpar")
         return
     end
-    ctx.deployments_message =
-        string.format(i18n.tr("removendo %d deployment(s)…"), #deployment_ids)
+    ctx.deployments_message = string.format(
+        i18n.tr("removendo %d deployment(s)…"),
+        #deployment_ids
+    )
     local removed = 0
     local failed = 0
     for _, deployment_id in ipairs(deployment_ids) do
@@ -489,10 +510,14 @@ function deployments_clear_finished(): ()
         end
     end
     if failed == 0 then
-        ctx.deployments_message = string.format(i18n.tr("%d removido(s)"), removed)
-    else
         ctx.deployments_message =
-            string.format(i18n.tr("%d removido(s), %d falharam"), removed, failed)
+            string.format(i18n.tr("%d removido(s)"), removed)
+    else
+        ctx.deployments_message = string.format(
+            i18n.tr("%d removido(s), %d falharam"),
+            removed,
+            failed
+        )
         toast {
             message = tostring(
                 string.format(
@@ -535,7 +560,9 @@ local function apply_bus_event(bus_event: any): ()
                     and (" — " .. tostring(service_warm_event.error))
                 or ""
             toast {
-                message = tostring(i18n.tr("falha ao aquecer o serviço") .. failure),
+                message = tostring(
+                    i18n.tr("falha ao aquecer o serviço") .. failure
+                ),
                 kind = "error",
             }
         end
@@ -556,7 +583,9 @@ local function apply_bus_event(bus_event: any): ()
                     or ""
                 toast {
                     message = tostring(
-                        warmed_job_name .. i18n.tr(": falha ao aquecer") .. failure
+                        warmed_job_name
+                            .. i18n.tr(": falha ao aquecer")
+                            .. failure
                     ),
                     kind = "error",
                 }
@@ -681,14 +710,12 @@ local function apply_bus_event(bus_event: any): ()
                 end
                 if deploy_event.service_id == ctx.selected_service then
                     ctx.service_deploy_running = "false"
-                    ctx.service_action_message = (
-                        live and i18n.tr("deploy concluído")
-                        or (
-                            failure_reason ~= ""
-                                and (i18n.tr("deploy falhou: ") .. failure_reason)
-                            or ("deploy: " .. tostring(deploy_event.state))
-                        )
-                    )
+                    local failed_message = if failure_reason ~= ""
+                        then i18n.tr("deploy falhou: ") .. failure_reason
+                        else "deploy: " .. tostring(deploy_event.state)
+                    ctx.service_action_message = if live
+                        then i18n.tr("deploy concluído")
+                        else failed_message
                     ctx.service_action_color = live and "#3FB950" or "#F85149"
                     Services.fetch_service_detail(deploy_event.service_id)
                 end
@@ -715,7 +742,8 @@ end
 -- crescente (1, 2, 4, 8, 16 s); o daemon manda um snapshot ao reconectar, que
 -- ressincroniza a tela. Esgotadas as tentativas, vale o caminho antigo
 -- ("conexão encerrada" + login). Um aviso de reinício (`restart_notice`, de
--- "Atualizar daemon") não reconecta: o daemon vai demorar e o aviso é do login.
+-- "Atualizar daemon") não reconecta: o daemon vai demorar e o aviso é do
+-- login.
 local RECONNECT_DELAYS_MS = { 1000, 2000, 4000, 8000, 16000 }
 local reconnect_attempts = 0
 
@@ -760,8 +788,8 @@ function M.open_stream(): ()
             local delay = RECONNECT_DELAYS_MS[reconnect_attempts + 1]
             if State.restart_notice == "" and delay ~= nil then
                 reconnect_attempts += 1
-                ctx.status_line =
-                    `conexão perdida — reconectando ({reconnect_attempts}/{#RECONNECT_DELAYS_MS})…`
+                ctx.status_line = `conexão perdida — reconectando `
+                    .. `({reconnect_attempts}/{#RECONNECT_DELAYS_MS})…`
                 after(delay, function(): ()
                     if
                         Helpers.is_true(ctx.connected)

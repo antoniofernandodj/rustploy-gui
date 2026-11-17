@@ -14,7 +14,8 @@ component {
   column(class = "section section--fill") {
     row(class = section__head) {
       text(
-        "{t('deploy_engine_historico.history_24h', deploy_engine_recent_count=deploy_engine_recent_count)}",
+        "{t('deploy_engine_historico.history_24h',
+          deploy_engine_recent_count=deploy_engine_recent_count)}",
         class = section__title,
       )
     }

@@ -105,8 +105,10 @@ end
 --- plano vazio ou ilegível não quebra: sem variáveis e lista []
 function test_janela_exportar_servico__plano_vazio_ou_ilegivel_nao_quebra_sem()
     for _, texto in { "{}", "isso não é json" } do
-        local tela =
-            janela("views/service_export_window.screen.gv", { export_plan = texto })
+        local tela = janela(
+            "views/service_export_window.screen.gv",
+            { export_plan = texto }
+        )
         assert_eq(tela:get("export_service"), "")
         assert_eq(
             tela:get("export_service_vars"),
@@ -174,16 +176,23 @@ end
 
 --- semente ilegível é tratada como vazia
 function test_janela_logs__semente_ilegivel_e_tratada_como_vazia()
-    local tela =
-        janela("views/log_window.screen.gv", { log_window_seed = "não é json" })
+    local tela = janela(
+        "views/log_window.screen.gv",
+        { log_window_seed = "não é json" }
+    )
     assert_eq(tela:get("log_window_count"), "0")
 end
 
 --- o título padrão é Logs, e o que o pai mandou vale
 function test_janela_logs__o_titulo_padrao_e_logs_e_o_que_o_pai_mandou_vale()
-    assert_eq(janela("views/log_window.screen.gv"):get("log_window_title"), "Logs")
-    local com_titulo =
-        janela("views/log_window.screen.gv", { log_window_title = "api · build" })
+    assert_eq(
+        janela("views/log_window.screen.gv"):get("log_window_title"),
+        "Logs"
+    )
+    local com_titulo = janela(
+        "views/log_window.screen.gv",
+        { log_window_title = "api · build" }
+    )
     assert_eq(com_titulo:get("log_window_title"), "api · build")
 end
 
@@ -196,8 +205,10 @@ function test_janela_novo_projeto__o_init_zera_mensagens_e_semeia_os_campos()
     assert_eq(tela:get("new_project_description"), "")
     assert_eq(tela:get("new_project_error"), "")
     assert_eq(tela:get("new_project_message"), "")
-    local preenchida =
-        janela("views/new_project_form.screen.gv", { new_project_name = "loja" })
+    local preenchida = janela(
+        "views/new_project_form.screen.gv",
+        { new_project_name = "loja" }
+    )
     assert_eq(preenchida:get("new_project_name"), "loja")
 end
 
@@ -211,8 +222,10 @@ end
 
 --- criar sem a conexão semeada manda reabrir a janela
 function test_janela_novo_projeto__criar_sem_a_conexao_semeada_manda_reabrir()
-    local tela =
-        janela("views/new_project_form.screen.gv", { new_project_name = "loja" })
+    local tela = janela(
+        "views/new_project_form.screen.gv",
+        { new_project_name = "loja" }
+    )
     tela:call("submit_project")
     assert_eq(
         tela:get("new_project_error"),
@@ -247,7 +260,9 @@ end
 --- o host do registry vem do pai, com um padrão local
 function test_janela_novo_token_do_registry__o_host_do_registry_vem_do_pai()
     assert_eq(
-        janela("views/new_registry_token_window.screen.gv"):get("registry_host"),
+        janela("views/new_registry_token_window.screen.gv"):get(
+            "registry_host"
+        ),
         "127.0.0.1:5100"
     )
     assert_eq(

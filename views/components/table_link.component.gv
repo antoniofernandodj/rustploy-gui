@@ -12,7 +12,13 @@ component {
 
   resources {
     style """
-    .table-link       { color: var(--surface); padding: 0; cursor: pointer; size: 13; text_color: var(--accent); }
+    .table-link {
+      color: var(--surface);
+      padding: 0;
+      cursor: pointer;
+      size: 13;
+      text_color: var(--accent);
+    }
     .table-link:hover { text_color: #A5D6FF; }
     """
   }

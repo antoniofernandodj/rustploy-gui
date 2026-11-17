@@ -10,14 +10,19 @@ component {
     }
   }
 
-  // A aba inteira rola (como a Avançado): os dois painéis juntos passam da altura da janela.
+  // A aba inteira rola (como a Avançado): os dois painéis juntos passam da
+  // altura da janela.
   scrollable(
     direction = vertical,
     class = u-fill-all,
   ) {
     column(class = service__main) {
       column(class = form-panel) {
-        text("{t('domains.domains', service_domains_count=service_domains_count)}", class = u-label-cap)
+        text(
+          "{t('domains.domains',
+            service_domains_count=service_domains_count)}",
+          class = u-label-cap
+        )
 
         text(
           "{t('domains.each_domain_can_point_to_a')}",
@@ -42,7 +47,11 @@ component {
           }
         }
 
-        field(label = "{t('domains.add_domain')}", label_class = u-label-cap, error = @error_service_form_domain) {
+        field(
+          label = "{t('domains.add_domain')}",
+          label_class = u-label-cap,
+          error = @error_service_form_domain
+        ) {
           input(
             class = field__input,
             form_control = service_form_domain,
@@ -52,7 +61,11 @@ component {
           )
         }
 
-        field(label = "{t('domains.container_port_optional')}", label_class = u-label-cap, error = @error_service_form_port) {
+        field(
+          label = "{t('domains.container_port_optional')}",
+          label_class = u-label-cap,
+          error = @error_service_form_port
+        ) {
           input(
             class = field__input,
             form_control = service_form_port,
@@ -81,9 +94,14 @@ component {
       }
 
       column(class = form-panel) {
-        // Portas TCP do host (docs/plano-multiplas-portas-tcp.md): cada uma liga uma porta do host a uma
-        // porta do container. Host vazio = Automática; container vazio = a porta padrão do serviço.
-        text("{t('domains.tcp_ports', service_tcp_ports_count=service_tcp_ports_count)}", class = u-label-cap)
+        // Portas TCP do host (docs/plano-multiplas-portas-tcp.md): cada uma
+        // liga uma porta do host a uma porta do container. Host vazio =
+        // Automática; container vazio = a porta padrão do serviço.
+        text(
+          "{t('domains.tcp_ports',
+            service_tcp_ports_count=service_tcp_ports_count)}",
+          class = u-label-cap
+        )
 
         text("{t('domains.tcp_ports_explanation')}", class = u-muted)
 
@@ -98,15 +116,22 @@ component {
               )
 
               text(class = env__sep)
-              // sem a largura fixa do env__key (400 px, feita para nomes de variável): a porta é curta
+              // sem a largura fixa do env__key (400 px, feita para nomes de
+              // variável): a porta é curta
               text("@p.host_port", class = kv-list__val)
-              text("→ @p.container_port", class = "kv-list__val kv-list__val--compact")
+              text(
+                "→ @p.container_port",
+                class = "kv-list__val kv-list__val--compact"
+              )
               text("@p.label", class = u-muted)
             }
           }
         }
 
-        field(label = "{t('domains.host_tcp_port_passthrough_optional')}", label_class = u-label-cap) {
+        field(
+          label = "{t('domains.host_tcp_port_passthrough_optional')}",
+          label_class = u-label-cap
+        ) {
           input(
             class = field__input,
             form_control = service_form_tcp_host_port,
@@ -116,7 +141,10 @@ component {
           )
         }
 
-        field(label = "{t('domains.container_port_optional')}", label_class = u-label-cap) {
+        field(
+          label = "{t('domains.container_port_optional')}",
+          label_class = u-label-cap
+        ) {
           input(
             class = field__input,
             form_control = service_form_tcp_container_port,
@@ -133,8 +161,9 @@ component {
           disabled = @busy_tcp_port_suggest
         )
 
-        // Sugestões: clicar preenche a porta do container (e o rótulo, se a porta tem nome).
-        // Some quando não há sugestões (senão sobra uma caixa vazia embaixo do botão).
+        // Sugestões: clicar preenche a porta do container (e o rótulo, se a
+        // porta tem nome). Some quando não há sugestões (senão sobra uma caixa
+        // vazia embaixo do botão).
         column(
           class = kv-list,
           height = shrink,
@@ -150,7 +179,11 @@ component {
           }
         }
 
-        field(label = "{t('domains.label_optional')}", label_class = u-label-cap, error = @error_service_form_tcp) {
+        field(
+          label = "{t('domains.label_optional')}",
+          label_class = u-label-cap,
+          error = @error_service_form_tcp
+        ) {
           input(
             class = field__input,
             form_control = service_form_tcp_label,

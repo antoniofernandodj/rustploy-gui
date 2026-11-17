@@ -164,8 +164,8 @@ end
 
 -- DeployState vem como string ("Live", "Failed", "BuildingImage", ...).
 -- Todo estado terminal tem rótulo próprio: `Pruning` (deploy que ficou no ar e
--- foi substituído por um mais novo) caía no "BUILDING" azul e pulsante, como se
--- ainda estivesse construindo. Par de webui/format.js::stateLabelKind.
+-- foi substituído por um mais novo) caía no "BUILDING" azul e pulsante, como
+-- se ainda estivesse construindo. Par de webui/format.js::stateLabelKind.
 function M.state_label_color(state: string?): (string, string)
     if state == "Live" then
         return i18n.tr("LIVE"), "#3FB950"
@@ -196,7 +196,8 @@ function M.state_kind(state: string?): string
     return "info"
 end
 
--- Estados em que o deployment não anda mais (domain::DeployState::is_terminal).
+-- Estados em que o deployment não anda mais
+-- (domain::DeployState::is_terminal).
 function M.deploy_state_terminal(state: string?): boolean
     return state == "Live"
         or state == "Stopped"
@@ -260,8 +261,9 @@ function M.source_summary(source: any): string
     return "—"
 end
 
--- tcp_routes(): a lista `tcp_ports` nova, ou o legado `host_port` (uma porta para a `port` do serviço).
--- Mesmo idioma de `ServiceSpec::tcp_routes` no lado Rust.
+-- tcp_routes(): a lista `tcp_ports` nova, ou o legado `host_port` (uma porta
+-- para a `port` do serviço). Mesmo idioma de `ServiceSpec::tcp_routes` no lado
+-- Rust.
 function M.tcp_routes(spec: ServiceSpec): { TcpPortRoute }
     local routes: { TcpPortRoute } = {}
     if spec.tcp_ports and #spec.tcp_ports > 0 then

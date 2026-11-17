@@ -12,7 +12,10 @@ component {
         class = u-muted,
       )
 
-      field(label = "{t('migrar.source_database_inside_this_database')}", label_class = u-label-cap) {
+      field(
+        label = "{t('migrar.source_database_inside_this_database')}",
+        label_class = u-label-cap
+      ) {
         input(
           class = field__input,
           form_control = service_form_migration_database,
@@ -34,7 +37,10 @@ component {
         )
       }
 
-      field(label = "{t('migrar.env_var_to_replace')}", label_class = u-label-cap) {
+      field(
+        label = "{t('migrar.env_var_to_replace')}",
+        label_class = u-label-cap
+      ) {
         input(
           class = field__input,
           form_control = service_form_migration_env,
@@ -71,7 +77,10 @@ component {
       }
 
       if @migration_has == "true" {
-        text("{t('migrar.progress', migration_status=migration_status)}", class = u-label-cap)
+        text(
+          "{t('migrar.progress', migration_status=migration_status)}",
+          class = u-label-cap
+        )
 
         column(class = kv-list) {
           row(class = kv-list__row, :for_each = migration_steps, var = s) {

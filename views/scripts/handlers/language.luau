@@ -1,9 +1,10 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/language.luau — idioma da interface: restaura o escolhido da última vez,
--- troca ao vivo e lembra. O catálogo está em locales/ (en.json e pt-BR.json); a locale
--- ativa é a chave `__locale` do contexto, e `i18n.set_locale` a espalha para todas as
--- janelas abertas. Inglês é o padrão.
+-- handlers/language.luau — idioma da interface: restaura o escolhido da última
+-- vez, troca ao vivo e lembra. O catálogo está em locales/ (en.json e
+-- pt-BR.json); a locale ativa é a chave `__locale` do contexto, e
+-- `i18n.set_locale` a espalha para todas as janelas abertas. Inglês é o
+-- padrão.
 
 local STORAGE_KEY = "language"
 local LANGUAGE_ENGLISH = "en"
@@ -15,16 +16,21 @@ local M = {}
 
 -- Aplica a locale na tela e marca qual dos dois botões está ativo.
 local function language_apply(locale: string): ()
-    -- A linha de status da tela de login é um texto gravado em estado (não se reavalia sozinha):
-    -- se ela ainda mostra o "pronto para conectar" da subida, reescreve no idioma novo.
+    -- A linha de status da tela de login é um texto gravado em estado (não se
+    -- reavalia sozinha): se ela ainda mostra o "pronto para conectar" da
+    -- subida, reescreve no idioma novo.
     local status_was_ready = ctx.status_line == i18n.tr("pronto para conectar")
     local active_locale = i18n.set_locale(locale) or LANGUAGE_ENGLISH
     if status_was_ready then
         ctx.status_line = i18n.tr("pronto para conectar")
     end
     local is_portuguese = string.sub(active_locale, 1, 2) == "pt"
-    ctx.language_english_class = if is_portuguese then CLASS_UNSELECTED else CLASS_SELECTED
-    ctx.language_portuguese_class = if is_portuguese then CLASS_SELECTED else CLASS_UNSELECTED
+    ctx.language_english_class = if is_portuguese
+        then CLASS_UNSELECTED
+        else CLASS_SELECTED
+    ctx.language_portuguese_class = if is_portuguese
+        then CLASS_SELECTED
+        else CLASS_UNSELECTED
 end
 
 -- Chamado uma vez na subida da janela principal.

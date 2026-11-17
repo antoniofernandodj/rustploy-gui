@@ -8,8 +8,9 @@
 local State = require("../state")
 local Helpers = require("../helpers")
 
--- A senha de banco/broker NÃO é gerada aqui: campo vazio = o daemon gera uma forte (
--- /dev/urandom) e a guarda como secret. Antes era `math.random` semeado por `os.time()`.
+-- A senha de banco/broker NÃO é gerada aqui: campo vazio = o daemon gera uma
+-- forte ( /dev/urandom) e a guarda como secret. Antes era `math.random`
+-- semeado por `os.time()`.
 
 local function new_service_is_broker(kind_id: string): boolean
     return kind_id == "kafka" or kind_id == "rabbitmq" or kind_id == "nats"
@@ -27,9 +28,10 @@ end
 -- handler é uma ação despachada, então o `fetch` do WizardCatalog resolve
 -- normalmente e a janela abre depois, já com o catálogo. Ao criar, a janela
 -- envia broadcast("service_created") e se fecha (ver new_service_create).
--- Substitui o antigo fluxo inline (view=new_service), removido do shell.component.gv.
--- `start` opcional ("import"): o ícone de importar do card de serviço abre o
--- wizard direto no passo Importar (`open_new_service_window:import`).
+-- Substitui o antigo fluxo inline (view=new_service), removido do
+-- shell.component.gv. `start` opcional ("import"): o ícone de importar do card
+-- de serviço abre o wizard direto no passo Importar
+-- (`open_new_service_window:import`).
 function open_new_service_window(start: string?): ()
     local project_id = ctx.selected_project_id or ""
     local api = State.api
@@ -154,8 +156,9 @@ function new_service_database(database_kind: string): ()
     end
 end
 
--- Storage escolhido (RustFS/MinIO): também compartilha o passo db_form. USER = access key;
--- PASSWORD = secret key. Os dois vazios = o daemon gera e guarda como secret.
+-- Storage escolhido (RustFS/MinIO): também compartilha o passo db_form. USER =
+-- access key; PASSWORD = secret key. Os dois vazios = o daemon gera e guarda
+-- como secret.
 function new_service_storage(storage_kind: string): ()
     local json_decode_ok, storage_options =
         Helpers.decode_list(ctx.new_service_storages)
@@ -228,8 +231,7 @@ function new_service_pick_template(template_id: string): ()
             ctx.new_service_template_vars = template.vars or json.array({})
 
             for _, variable in ipairs(template.vars or {}) do
-                ctx["new_service_template_variable_value_" .. variable.idx] =
-                    ""
+                ctx["new_service_template_value_" .. variable.idx] = ""
             end
             ctx.new_service_step = "template_form"
             return
@@ -305,8 +307,7 @@ function new_service_create(): ()
             for _, variable in ipairs(vars) do
                 table.insert(
                     tvals,
-                    ctx["new_service_template_variable_value_" .. variable.idx]
-                        or ""
+                    ctx["new_service_template_value_" .. variable.idx] or ""
                 )
             end
         end

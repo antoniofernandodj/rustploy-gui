@@ -15,8 +15,9 @@ component {
       )
     }
 
-    // Execuções anteriores: uma por container. "Ver logs" abre uma janela só dela, com data
-    // e hora; "Excluir" e "Limpar selecionados" apagam o log guardado (irreversível).
+    // Execuções anteriores: uma por container. "Ver logs" abre uma janela só
+    // dela, com data e hora; "Excluir" e "Limpar selecionados" apagam o log
+    // guardado (irreversível).
     column(class = form-panel, if = @log_executions_visible, equals = true) {
       row(class = env__head) {
         text("{t('logs.previous_executions')}", class = u-label-cap)
@@ -62,7 +63,11 @@ component {
                 text("@e.summary", class = u-muted)
               }
 
-              text("@e.outcome_label", class = badge__label, color = @e.outcome_color)
+              text(
+                "@e.outcome_label",
+                class = badge__label,
+                color = @e.outcome_color
+              )
               text("@e.partial", class = badge__label)
 
               button(

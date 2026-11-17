@@ -100,14 +100,23 @@ function new_registry_token_create(): ()
     )
     ctx.new_registry_token_step = "reveal"
 
-    -- O segredo só existe nesta resposta: grava o arquivo em Downloads na hora (sem diálogo).
+    -- O segredo só existe nesta resposta: grava o arquivo em Downloads na hora
+    -- (sem diálogo).
     local day = os.date("%Y%m%d")
-    local safe_host = string.gsub(tostring(ctx.registry_host), "[^%w%.%-]+", "_")
+    local safe_host =
+        string.gsub(tostring(ctx.registry_host), "[^%w%.%-]+", "_")
     local token_name = created.name or name
     local saved, where = Download.save(
-        string.format("rustploy-registry-token-%s-%s-%s.txt", token_name, safe_host, day),
         string.format(
-            "# Rustploy — token do registry (%s)\n# Guarde em um cofre: o segredo não é mostrado de novo.\nregistry: %s\nusuário: %s\ntoken: %s\n\n%s\n",
+            "rustploy-registry-token-%s-%s-%s.txt",
+            token_name,
+            safe_host,
+            day
+        ),
+        string.format(
+            "# Rustploy — token do registry (%s)\n"
+                .. "# Guarde em um cofre: o segredo não é mostrado de novo.\n"
+                .. "registry: %s\nusuário: %s\ntoken: %s\n\n%s\n",
             tostring(ctx.new_registry_token_scope),
             tostring(ctx.registry_host),
             token_name,

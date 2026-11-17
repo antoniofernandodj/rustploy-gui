@@ -51,7 +51,10 @@ component {
 
     row(class = kv-list__row) {
       text("{t('connection.external_url')}", class = kv-list__key)
-      text("@service_external_url_short", class = "kv-list__val kv-list__val--compact")
+      text(
+        "@service_external_url_short",
+        class = "kv-list__val kv-list__val--compact"
+      )
       text(" ")
 
       button(
@@ -63,7 +66,10 @@ component {
 
     row(class = kv-list__row) {
       text("{t('connection.internal_url')}", class = kv-list__key)
-      text("@service_internal_url_short", class = "kv-list__val kv-list__val--compact")
+      text(
+        "@service_internal_url_short",
+        class = "kv-list__val kv-list__val--compact"
+      )
       text(" ")
 
       button(
@@ -98,14 +104,18 @@ component {
 
     row(class = kv-list__row, if = @service_database_kind, not_equals = "—") {
       text("{t('connection.type')}", class = kv-list__key)
-      text("@service_database_kind", class = "kv-list__val kv-list__val--compact")
+      text(
+        "@service_database_kind",
+        class = "kv-list__val kv-list__val--compact"
+      )
     }
 
     // Containers reais em execução para este serviço (id + nome + estado).
     hr
 
     text(
-      "{t('connection.containers', service_containers_count=service_containers_count)}",
+      "{t('connection.containers',
+        service_containers_count=service_containers_count)}",
       class = u-label-cap,
     )
 

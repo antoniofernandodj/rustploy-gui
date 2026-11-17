@@ -1,9 +1,11 @@
 --!nonstrict
--- Settings → Sincronização → "Limpar configuração" (`state_git_clear`) e o projeto editado no
--- lugar (`project_title_change`). O `State.api` é um falso injetado na VM da tela com `tela:eval`
--- (cada `component()` tem a sua VM); ele guarda o último comando enviado ao daemon.
+-- Settings → Sincronização → "Limpar configuração" (`state_git_clear`) e o
+-- projeto editado no lugar (`project_title_change`). O `State.api` é um falso
+-- injetado na VM da tela com `tela:eval` (cada `component()` tem a sua VM);
+-- ele guarda o último comando enviado ao daemon.
 --
--- `confirm` suspende o handler: `tela:answer(true | false)` o retoma com o clique do usuário.
+-- `confirm` suspende o handler: `tela:answer(true | false)` o retoma com o
+-- clique do usuário.
 
 local function nova()
     local tela = component("views/app.gv", {})
@@ -22,14 +24,17 @@ local function com_api(tela)
                 State.ultimo = comando
                 return true, {}
             end,
-            -- Stream.refresh_now (chamado ao fim das ações) só lê; sem snapshot no teste.
+            -- Stream.refresh_now (chamado ao fim das ações) só lê; sem
+            -- snapshot no teste.
             rpc = function() return false, "sem snapshot no teste" end,
         }
     ]])
 end
 
 local function enviados(tela)
-    tela:eval([[ ctx.enviados = table.concat(require("state").enviados, ",") ]])
+    tela:eval(
+        [[ ctx.enviados = table.concat(require("state").enviados, ",") ]]
+    )
     return tela:get("enviados")
 end
 
@@ -38,17 +43,20 @@ function test_state_git_clear__flag_de_configurado()
     local tela = nova()
     tela:eval([[
         local status = { mode = "off" }
-        for k, v in pairs(require("format").state_git_context(status, nil)) do ctx[k] = v end
+        local context = require("format").state_git_context(status, nil)
+        for k, v in pairs(context) do ctx[k] = v end
     ]])
     assert_eq(tela:get("state_git_is_configured"), "false")
     tela:eval([[
         local status = { mode = "off", remote = "https://github.com/x/y.git" }
-        for k, v in pairs(require("format").state_git_context(status, nil)) do ctx[k] = v end
+        local context = require("format").state_git_context(status, nil)
+        for k, v in pairs(context) do ctx[k] = v end
     ]])
     assert_eq(tela:get("state_git_is_configured"), "true")
     tela:eval([[
         local status = { mode = "sync" }
-        for k, v in pairs(require("format").state_git_context(status, nil)) do ctx[k] = v end
+        local context = require("format").state_git_context(status, nil)
+        for k, v in pairs(context) do ctx[k] = v end
     ]])
     assert_eq(tela:get("state_git_is_configured"), "true")
 end
@@ -62,7 +70,8 @@ function test_state_git_clear__recusar_nao_envia()
     assert_eq(enviados(tela), "")
 end
 
---- confirmar manda StateGitConfigure em `off` sem repositório/branch/conta e limpa o formulário
+--- confirmar manda StateGitConfigure em `off` sem repositório/branch/conta e
+--- limpa o formulário
 function test_state_git_clear__confirmar_desliga_e_limpa_o_formulario()
     local tela = nova()
     com_api(tela)
@@ -86,7 +95,8 @@ function test_state_git_clear__confirmar_desliga_e_limpa_o_formulario()
     assert_eq(tela:get("state_git_form_provider_id"), "")
 end
 
---- projeto: digitar o nome marca "pendente" (o stream não pisa no campo) e não grava na hora
+--- projeto: digitar o nome marca "pendente" (o stream não pisa no campo) e não
+--- grava na hora
 function test_project_title__digitar_marca_pendente_sem_gravar_na_hora()
     local tela = nova()
     com_api(tela)

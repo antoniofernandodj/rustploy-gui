@@ -8,9 +8,21 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
       text("{t('common.no_projects_yet')}", class = u-muted)
     }
 
-    link(rel = import, href = "components/picker_row.component.gv", as = PickerRow)
-    link(rel = import, href = "components/tab_button.component.gv", as = TabButton)
-    link(rel = import, href = "components/job_env_panel.component.gv", as = JobEnvPanel)
+    link(
+      rel = import,
+      href = "components/picker_row.component.gv",
+      as = PickerRow
+    )
+    link(
+      rel = import,
+      href = "components/tab_button.component.gv",
+      as = TabButton
+    )
+    link(
+      rel = import,
+      href = "components/job_env_panel.component.gv",
+      as = JobEnvPanel
+    )
 
     script(src = "scripts/new_job_window.luau")
   }
@@ -23,7 +35,11 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
       }
 
       button("—", class = titlebar__btn, on_click = window:minimize)
-      button("✕", class = "titlebar__btn titlebar__btn--close", on_click = window:close)
+      button(
+        "✕",
+        class = "titlebar__btn titlebar__btn--close",
+        on_click = window:close
+      )
     }
 
     scrollable(class = dialog__body, direction = vertical) {
@@ -61,7 +77,8 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
         if @new_job_step == "pick_service" {
           text(
-            "{t('new_job_window.trigger_service_optional', new_job_project_name=new_job_project_name)}",
+            "{t('new_job_window.trigger_service_optional',
+              new_job_project_name=new_job_project_name)}",
             class = u-label-cap,
           )
 
@@ -116,7 +133,9 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
             )
           } else {
             text(
-              "{t('new_job_window.new_job', new_job_project_name=new_job_project_name, new_job_service_name=new_job_service_name)}",
+              "{t('new_job_window.new_job',
+                new_job_project_name=new_job_project_name,
+                new_job_service_name=new_job_service_name)}",
               class = u-label-cap,
             )
           }
@@ -137,7 +156,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               )
             }
 
-            field(label = "{t('new_job_window.compose_source')}", label_class = u-label-cap) {
+            field(
+              label = "{t('new_job_window.compose_source')}",
+              label_class = u-label-cap
+            ) {
               scroll(class = tabs__scroll, direction = horizontal) {
                 row(class = tabs__main) {
                   TabButton(
@@ -175,11 +197,15 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
             if @new_job_source == "git" {
               text(
-                "{t('new_job_window.select_the_connected_account_the_repository')}",
+                "{t('new_job_window.select_connected_account_repository')}",
                 class = u-muted,
               )
 
-              row(class = busy-row, if = @new_job_git_message, not_equals = "") {
+              row(
+                class = busy-row,
+                if = @new_job_git_message,
+                not_equals = ""
+              ) {
                 spinner(class = busy-row__spin, if = @new_job_git_busy)
                 text("@new_job_git_message", class = u-muted)
               }
@@ -234,7 +260,9 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               }
             }
 
-            field(label = "{t('new_job_window.main_service_name_inside_the')}") {
+            field(
+              label = "{t('new_job_window.main_service_name_inside_the')}"
+            ) {
               input(
                 class = dialog__input,
                 form_control = new_job_main_service,
@@ -257,8 +285,9 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                   )
                 }
               } else {
-                // Na criação as variáveis já entram aqui, numa lista local que vai no próprio JobCreate
-                // (new_job_window.luau → draft_env). Os secrets DO job só existem depois de criado.
+                // Na criação as variáveis já entram aqui, numa lista local que
+                // vai no próprio JobCreate (new_job_window.luau → draft_env).
+                // Os secrets DO job só existem depois de criado.
                 text("{t('new_job_window.env_hint_create')}", class = u-muted)
 
                 row(class = env__add) {
@@ -290,9 +319,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
 
                 }
 
-                // A chave e o valor (ou a lista de secrets) dividem a linha de cima; o "usar secret" e o
-                // Adicionar descem para a de baixo — numa linha só, a lista ficava estreita demais para
-                // ler os nomes dos secrets.
+                // A chave e o valor (ou a lista de secrets) dividem a linha de
+                // cima; o "usar secret" e o Adicionar descem para a de baixo —
+                // numa linha só, a lista ficava estreita demais para ler os
+                // nomes dos secrets.
                 row(class = env__add) {
                   checkbox(
                     class = env__use-secret,
@@ -311,7 +341,11 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                   )
                 }
 
-                column(class = kv-list, if = @new_job_env_count, not_equals = "0") {
+                column(
+                  class = kv-list,
+                  if = @new_job_env_count,
+                  not_equals = "0"
+                ) {
                   each @new_job_env_rows as e {
                     row(class = kv-list__row) {
                       button(
@@ -331,7 +365,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                       )
 
                       if @e.is_secret == "true" {
-                        text("🔒 @e.secret", class = "kv-list__val kv-list__val--compact")
+                        text(
+                          "🔒 @e.secret",
+                          class = "kv-list__val kv-list__val--compact"
+                        )
                       } else {
                         input(
                           class = env__inline,
@@ -346,7 +383,10 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               }
             }
 
-            field(label = "{t('common.recurrence')}", label_class = u-label-cap) {
+            field(
+              label = "{t('common.recurrence')}",
+              label_class = u-label-cap
+            ) {
               scroll(class = tabs__scroll, direction = horizontal) {
                 row(class = tabs__main) {
                   TabButton(
@@ -405,8 +445,8 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
             }
 
             if @new_job_kind == "weekly" {
-              // Mesma troca de home.component.gv: sete <TabButton> + handler viraram um
-              // <radiogroup>, que grava `new_job_weekday` sozinho.
+              // Mesma troca de home.component.gv: sete <TabButton> + handler
+              // viraram um <radiogroup>, que grava `new_job_weekday` sozinho.
               field(label = "{t('new_job_window.day_of_the_week')}") {
                 scroll(class = tabs__scroll, direction = horizontal) {
                   row(class = tabs__main) {
@@ -480,11 +520,15 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
           }
         }
 
-        // Passo "env": variáveis e secrets do job (painel compartilhado com a tela do app). Na edição
-        // vem do botão do formulário; na criação, logo depois de "Criar job".
+        // Passo "env": variáveis e secrets do job (painel compartilhado com a
+        // tela do app). Na edição vem do botão do formulário; na criação, logo
+        // depois de "Criar job".
         if @new_job_step == "env" {
           column(class = form-panel) {
-            text("{t('job_env.title', job_env_name=job_env_name)}", class = "u-label-cap")
+            text(
+              "{t('job_env.title', job_env_name=job_env_name)}",
+              class = "u-label-cap"
+            )
 
             text(
               "{t('new_job_window.job_created')}",

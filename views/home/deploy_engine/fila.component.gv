@@ -2,14 +2,18 @@
 component {
   resources {
     component(name = FilaVazia) {
-      text("{t('deploy_engine_fila.no_deploy_in_the_queue')}", class = empty-state)
+      text(
+        "{t('deploy_engine_fila.no_deploy_in_the_queue')}",
+        class = empty-state
+      )
     }
   }
 
   column(class = "section section--fill") {
     row(class = section__head) {
       text(
-        "{t('deploy_engine_fila.queued', deploy_engine_queued_count=deploy_engine_queued_count)}",
+        "{t('deploy_engine_fila.queued',
+          deploy_engine_queued_count=deploy_engine_queued_count)}",
         class = section__title
       )
 
@@ -36,7 +40,7 @@ component {
       // Uma condição da tela, não um evento: o aviso fica enquanto a fila
       // estiver pausada (alert, glacier-ui 0.161).
       alert(
-        description = "{t('deploy_engine_fila.queue_paused_deploys_wait_until')}",
+        description = "{t('deploy_engine_fila.queue_paused_deploys_wait')}",
         variant = warning,
         if = @deploy_engine_paused,
         equals = true,

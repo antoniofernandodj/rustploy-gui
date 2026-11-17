@@ -1,13 +1,13 @@
 --!strict
 --!nolint FunctionUnused
--- services_reorder_window.luau — script da JANELA "Reordenar serviços", um motor
--- Glacier próprio e ISOLADO do app principal (aberto via open_window por
--- handlers/projects.luau::open_services_reorder_window, que semeia a conexão, o
--- projeto e a lista atual: reorder_items = JSON [{id, name}]).
+-- services_reorder_window.luau — script da JANELA "Reordenar serviços", um
+-- motor Glacier próprio e ISOLADO do app principal (aberto via open_window por
+-- handlers/projects.luau::open_services_reorder_window, que semeia a conexão,
+-- o projeto e a lista atual: reorder_items = JSON [{id, name}]).
 --
--- O usuário arrasta as linhas (mesmo drag-and-drop das variáveis) e "Reordenar"
--- grava a ordem no daemon (ProjectServicesReorder → `service_order` do
--- project.yml); "Cancelar" só fecha.
+-- O usuário arrasta as linhas (mesmo drag-and-drop das variáveis) e
+-- "Reordenar" grava a ordem no daemon (ProjectServicesReorder →
+-- `service_order` do project.yml); "Cancelar" só fecha.
 
 local Api = require("net/api")
 
@@ -25,7 +25,10 @@ local items: { any } = {}
 local function render(): ()
     local rows = json.array {}
     for position, item in ipairs(items) do
-        table.insert(rows, { id = item.id, name = item.name, index = tostring(position) })
+        table.insert(
+            rows,
+            { id = item.id, name = item.name, index = tostring(position) }
+        )
     end
     ctx.reorder_rows = json.encode(rows)
 end
@@ -38,8 +41,9 @@ function init(): ()
     render()
 end
 
--- Arraste: `reorder_json` é um JSON array de ids na nova ordem (o `reorder_key`
--- do foreach é `id`). Reescreve a lista para as linhas refluírem ao vivo.
+-- Arraste: `reorder_json` é um JSON array de ids na nova ordem (o
+-- `reorder_key` do foreach é `id`). Reescreve a lista para as linhas refluírem
+-- ao vivo.
 function services_reorder_drag(reorder_json: string?): ()
     if not reorder_json then
         return
@@ -73,7 +77,8 @@ end
 function services_reorder_apply(): ()
     local api = client()
     if not api then
-        ctx.reorder_error = i18n.tr("sem conexão — reabra a janela pelo app")
+        ctx.reorder_error =
+            i18n.tr("sem conexão — reabra a janela pelo app")
         return
     end
     local ids = json.array {}

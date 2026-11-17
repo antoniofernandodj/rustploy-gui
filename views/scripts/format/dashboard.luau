@@ -182,8 +182,8 @@ local function service_card(
     end
     return {
         filler = "0",
-        -- "Mudança pendente de deploy": um commit do repositório mudou o serviço
-        -- (preenchido em handlers/stream.luau::apply_snapshot).
+        -- "Mudança pendente de deploy": um commit do repositório mudou o
+        -- serviço (preenchido em handlers/stream.luau::apply_snapshot).
         has_pending = pending and "true" or "false",
         has_warm = warm ~= nil and "true" or "false",
         warm_label = warm_label,
@@ -216,7 +216,13 @@ function M.services(
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
             table.insert(
                 rows,
-                service_card(pair.svc, pair.proj, metrics, pair.warm, pair.pending_deploy)
+                service_card(
+                    pair.svc,
+                    pair.proj,
+                    metrics,
+                    pair.warm,
+                    pair.pending_deploy
+                )
             )
         end
     end
@@ -235,7 +241,13 @@ function M.service_rows(
         if Util.matches(term, { pair.svc.spec.name, pair.proj }) then
             table.insert(
                 filtered,
-                service_card(pair.svc, pair.proj, metrics, pair.warm, pair.pending_deploy)
+                service_card(
+                    pair.svc,
+                    pair.proj,
+                    metrics,
+                    pair.warm,
+                    pair.pending_deploy
+                )
             )
         end
     end
@@ -413,7 +425,8 @@ function M.docker_images(
                         .. (image.service or "—"),
                     column_budgets.proj
                 ),
-                in_use_label = in_use and i18n.tr("EM USO") or i18n.tr("SEM USO"),
+                in_use_label = in_use and i18n.tr("EM USO")
+                    or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(in_use),
             })
         end
@@ -451,7 +464,8 @@ function M.docker_volumes(
                         and Time.format_bytes(item.size_bytes)
                     or "—",
                 size_bytes = item.size_bytes or -1,
-                in_use_label = item.in_use and i18n.tr("EM USO") or i18n.tr("SEM USO"),
+                in_use_label = item.in_use and i18n.tr("EM USO")
+                    or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(item.in_use),
             })
         end
@@ -488,7 +502,8 @@ function M.docker_networks(
                     column_budgets.proj
                 ),
                 containers = tostring(item.container_count or 0),
-                in_use_label = item.in_use and i18n.tr("EM USO") or i18n.tr("SEM USO"),
+                in_use_label = item.in_use and i18n.tr("EM USO")
+                    or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(item.in_use),
             })
         end
@@ -523,10 +538,11 @@ function M.docker_containers(containers: { any }?, term: string?): string
             })
         then
             local label, kind = Util.container_state(item.state)
-            -- O órfão ("removido no git": o serviço sumiu do estado por um commit
-            -- externo) é dito como tal; ver format/state_git.luau.
+            -- O órfão ("removido no git": o serviço sumiu do estado por um
+            -- commit externo) é dito como tal; ver format/state_git.luau.
             local owner = StateGit.container_owner(item)
-            local is_orphan = item.removed_in_git ~= nil and item.removed_in_git ~= ""
+            local is_orphan = item.removed_in_git ~= nil
+                and item.removed_in_git ~= ""
             -- A referência da imagem vira `sha256:<digest>` quando a tag
             -- original some (imagem removida/reconstruída) — sem espaços, não
             -- quebra linha e, sem truncar, estoura a coluna e sobrepõe as
@@ -544,8 +560,10 @@ function M.docker_containers(containers: { any }?, term: string?): string
                 state_label = label,
                 state_kind = kind,
                 can_remove = Util.container_stopped(item.state) and "1" or "0",
-                -- Só o órfão que ainda roda oferece "Parar" (depois, "Remover").
-                can_stop = (is_orphan and item.state == "running") and "1" or "0",
+                -- Só o órfão que ainda roda oferece "Parar" (depois,
+                -- "Remover").
+                can_stop = (is_orphan and item.state == "running") and "1"
+                    or "0",
             })
         end
     end
@@ -579,11 +597,11 @@ function M.ingress(service_pairs: { ServicePair }): (string, number)
     return Util.encode_array(rows), #rows
 end
 
--- Portas TCP de host: uma linha por porta TCP de cada serviço (a lista `tcp_ports`, ou o `host_port`
--- legado) —
--- exposição direta de porta TCP no host, independente das rotas HTTP de
--- domínio acima (um serviço pode ter as duas, só uma, ou nenhuma). Não
--- filtrado pela busca (mesma convenção de `M.ingress`).
+-- Portas TCP de host: uma linha por porta TCP de cada serviço (a lista
+-- `tcp_ports`, ou o `host_port` legado) — exposição direta de porta TCP no
+-- host, independente das rotas HTTP de domínio acima (um serviço pode ter as
+-- duas, só uma, ou nenhuma). Não filtrado pela busca (mesma convenção de
+-- `M.ingress`).
 function M.host_ports(service_pairs: { ServicePair }): (string, number)
     local column_budgets = Util.column_budgets()
     local rows = {}
@@ -699,10 +717,10 @@ local function deploy_stepper(info: any): { any }
         elseif index == current_step then
             status = "current"
         end
-        table.insert(
-            out,
-            { text = STEP_ICON[status] .. i18n.tr(step.label), status = status }
-        )
+        table.insert(out, {
+            text = STEP_ICON[status] .. i18n.tr(step.label),
+            status = status,
+        })
     end
     return out
 end
@@ -764,7 +782,9 @@ end
 
 -- O resumo do Deploy Engine traz só o id do serviço; o do projeto (link da
 -- coluna PROJETO) sai dos pares.
-local function project_by_service_id(service_pairs: { ServicePair }?): { [string]: string }
+local function project_by_service_id(
+    service_pairs: { ServicePair }?
+): { [string]: string }
     local map = {}
     for _, pair in ipairs(service_pairs or {}) do
         map[pair.svc.id] = pair.svc.spec.project_id
@@ -772,8 +792,9 @@ local function project_by_service_id(service_pairs: { ServicePair }?): { [string
     return map
 end
 
--- A fila do Deploy Engine tem deploys, execuções de job e aquecimentos de job. Os dois últimos
--- levam um selo antes do nome; só o deploy tem o detalhe por etapas.
+-- A fila do Deploy Engine tem deploys, execuções de job e aquecimentos de job.
+-- Os dois últimos levam um selo antes do nome; só o deploy tem o detalhe por
+-- etapas.
 local function item_label(info: any, budget: number): string
     local name = info.service_name
     if info.kind == "Job" then

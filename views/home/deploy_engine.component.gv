@@ -1,9 +1,22 @@
-// Seção `deploy_engine` (view = deploy_engine) das telas globais; importada por home.component.gv.
+// Seção `deploy_engine` (view = deploy_engine) das telas globais; importada
+// por home.component.gv.
 component {
   resources {
-    link(rel = import, href = "deploy_engine/fila.component.gv", as = EngineFilaTab)
-    link(rel = import, href = "deploy_engine/executando.component.gv", as = EngineExecutandoTab)
-    link(rel = import, href = "deploy_engine/historico.component.gv", as = EngineHistoricoTab)
+    link(
+      rel = import,
+      href = "deploy_engine/fila.component.gv",
+      as = EngineFilaTab
+    )
+    link(
+      rel = import,
+      href = "deploy_engine/executando.component.gv",
+      as = EngineExecutandoTab
+    )
+    link(
+      rel = import,
+      href = "deploy_engine/historico.component.gv",
+      as = EngineHistoricoTab
+    )
   }
 
   row(class = page-head) {
@@ -49,21 +62,24 @@ component {
   scroll(class = tabs__scroll, direction = horizontal) {
     row(class = tabs__main) {
       TabButton(
-        label = "{t('deploy_engine.queue', deploy_engine_queued_count=deploy_engine_queued_count)}",
+        label = "{t('deploy_engine.queue',
+          deploy_engine_queued_count=deploy_engine_queued_count)}",
         current = @deploy_engine_tab,
         target = fila,
         action = deploy_engine_tab:fila,
       )
 
       TabButton(
-        label = "{t('deploy_engine.running', deploy_engine_active_count=deploy_engine_active_count)}",
+        label = "{t('deploy_engine.running',
+          deploy_engine_active_count=deploy_engine_active_count)}",
         current = @deploy_engine_tab,
         target = executando,
         action = deploy_engine_tab:executando,
       )
 
       TabButton(
-        label = "{t('deploy_engine.history_24h', deploy_engine_recent_count=deploy_engine_recent_count)}",
+        label = "{t('deploy_engine.history_24h',
+          deploy_engine_recent_count=deploy_engine_recent_count)}",
         current = @deploy_engine_tab,
         target = historico,
         action = deploy_engine_tab:historico,

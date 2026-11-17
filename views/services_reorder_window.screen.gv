@@ -1,4 +1,5 @@
-// Janela "Reordenar serviços": motor Glacier próprio, aberto por open_window a partir do app principal (handlers/projects.luau).
+// Janela "Reordenar serviços": motor Glacier próprio, aberto por open_window a
+// partir do app principal (handlers/projects.luau).
 screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
   resources {
     script(src = "scripts/services_reorder_window.luau")
@@ -68,7 +69,12 @@ screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
           }
         }
 
-        text("@reorder_error", class = u-error, if = @reorder_error, not_equals = "")
+        text(
+          "@reorder_error",
+          class = u-error,
+          if = @reorder_error,
+          not_equals = ""
+        )
 
         row(class = dialog__actions) {
           button(

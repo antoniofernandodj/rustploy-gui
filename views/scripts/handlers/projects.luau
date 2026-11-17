@@ -53,9 +53,10 @@ function open_new_project_window(): ()
     }
 end
 
--- Abre a janela "Reordenar serviços" do projeto aberto, semeada com os serviços na
--- ordem atual (a do snapshot, que já é a do `service_order` do project.yml). Ao
--- gravar, a janela emite broadcast("services_reordered") — ver on_broadcast.
+-- Abre a janela "Reordenar serviços" do projeto aberto, semeada com os
+-- serviços na ordem atual (a do snapshot, que já é a do `service_order` do
+-- project.yml). Ao gravar, a janela emite broadcast("services_reordered") —
+-- ver on_broadcast.
 function open_services_reorder_window(): ()
     local project_id = ctx.selected_project_id or ""
     local items = json.array {}
@@ -100,7 +101,9 @@ function on_broadcast(event: string, payload: any): ()
     if event == "project_created" then
         toast {
             message = tostring(
-                i18n.tr("Projeto \"") .. (name ~= "" and name or "projeto") .. i18n.tr("\" criado")
+                i18n.tr('Projeto "')
+                    .. (name ~= "" and name or "projeto")
+                    .. i18n.tr('" criado')
             ),
             kind = "success",
         }
@@ -114,9 +117,9 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "service_created" then
         toast {
             message = tostring(
-                i18n.tr("Serviço \"")
+                i18n.tr('Serviço "')
                     .. (name ~= "" and name or i18n.tr("serviço"))
-                    .. i18n.tr("\" criado")
+                    .. i18n.tr('" criado')
             ),
             kind = "success",
         }
@@ -124,7 +127,9 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "job_created" then
         toast {
             message = tostring(
-                i18n.tr("Job \"") .. (name ~= "" and name or "job") .. i18n.tr("\" criado")
+                i18n.tr('Job "')
+                    .. (name ~= "" and name or "job")
+                    .. i18n.tr('" criado')
             ),
             kind = "success",
         }
@@ -132,7 +137,9 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "job_updated" then
         toast {
             message = tostring(
-                i18n.tr("Job \"") .. (name ~= "" and name or "job") .. i18n.tr("\" salvo")
+                i18n.tr('Job "')
+                    .. (name ~= "" and name or "job")
+                    .. i18n.tr('" salvo')
             ),
             kind = "success",
         }
@@ -140,7 +147,9 @@ function on_broadcast(event: string, payload: any): ()
     elseif event == "registry_token_created" then
         toast {
             message = tostring(
-                i18n.tr("Token \"") .. (name ~= "" and name or "token") .. i18n.tr("\" criado")
+                i18n.tr('Token "')
+                    .. (name ~= "" and name or "token")
+                    .. i18n.tr('" criado')
             ),
             kind = "success",
         }
@@ -178,7 +187,9 @@ function create_project(): ()
         ctx.new_project_inline_description = ""
         ctx.new_project_inline_message = i18n.tr("projeto criado")
         toast {
-            message = tostring(i18n.tr("Projeto \"") .. name .. i18n.tr("\" criado")),
+            message = tostring(
+                i18n.tr('Projeto "') .. name .. i18n.tr('" criado')
+            ),
             kind = "success",
         }
         Stream.refresh_now()
@@ -197,7 +208,10 @@ function delete_project(project_id: string): ()
     end
     local confirmed = confirm {
         title = i18n.tr("Remover projeto?"),
-        message = i18n.tr("O projeto será removido. Só é possível remover projetos sem serviços."),
+        message = i18n.tr(
+            "O projeto será removido. Só é possível remover projetos sem "
+                .. "serviços."
+        ),
         confirm_label = i18n.tr("Remover projeto"),
         destructive = true,
     }
@@ -217,10 +231,14 @@ function delete_project(project_id: string): ()
         History.drop("selected_project_id", project_id)
         ctx.selected_project_id = ""
         ctx.view = "projects"
-        toast { message = tostring(i18n.tr("Projeto removido")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Projeto removido")),
+            kind = "success",
+        }
         Stream.refresh_now()
     else
-        ctx.project_action_message = i18n.tr("erro: ") .. project_delete_response
+        ctx.project_action_message = i18n.tr("erro: ")
+            .. project_delete_response
         toast { message = tostring(project_delete_response), kind = "error" }
     end
 end
@@ -245,8 +263,9 @@ local function project_edit_save(): ()
     local api = State.api
     local name = Helpers.trim(ctx.edit_project_name)
     local description = Helpers.trim(ctx.edit_project_description)
-    -- Saiu do projeto no meio do debounce, nome vazio (nunca é gravado; o campo
-    -- volta ao nome real no próximo refresh) ou nada mudou: nada a gravar.
+    -- Saiu do projeto no meio do debounce, nome vazio (nunca é gravado; o
+    -- campo volta ao nome real no próximo refresh) ou nada mudou: nada a
+    -- gravar.
     if
         project_id == ""
         or not api
@@ -279,7 +298,8 @@ local function project_edit_save(): ()
             toast { message = i18n.tr("Projeto salvo"), kind = "success" }
         end)
     else
-        ctx.project_action_message = i18n.tr("erro: ") .. project_update_response
+        ctx.project_action_message = i18n.tr("erro: ")
+            .. project_update_response
         toast {
             message = tostring(project_update_response),
             kind = "error",
@@ -476,7 +496,12 @@ end
 function project_env_delete(key: string): ()
     local confirmed = confirm {
         title = i18n.tr("Remover variável?"),
-        message = i18n.tr('A variável "') .. key .. i18n.tr('" será removida do projeto; os serviços e jobs deixam de herdá-la.'),
+        message = i18n.tr('A variável "')
+            .. key
+            .. i18n.tr(
+                '" será removida do projeto; os serviços e jobs deixam de '
+                    .. "herdá-la."
+            ),
         confirm_label = i18n.tr("Remover"),
         destructive = true,
     }
@@ -542,12 +567,18 @@ end
 function project_env_import(): ()
     local vars, comments, errors = Helpers.parse_dotenv(ctx.project_env_text)
     if #errors > 0 then
-        toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        toast {
+            message = Helpers.dotenv_errors_message(errors),
+            kind = "error",
+        }
         return
     end
     local confirmed = confirm {
         title = i18n.tr("Substituir as variáveis?"),
-        message = i18n.tr('Todas as variáveis do projeto serão substituídas pelo texto do editor.'),
+        message = i18n.tr(
+            "Todas as variáveis do projeto serão substituídas pelo texto do "
+                .. "editor."
+        ),
         confirm_label = i18n.tr("Substituir"),
         destructive = true,
     }
@@ -581,7 +612,9 @@ end
 function service_stop_id(service_id: string): ()
     local confirmed = confirm {
         title = i18n.tr("Parar serviço?"),
-        message = i18n.tr("O tráfego para este serviço será interrompido até um novo deploy."),
+        message = i18n.tr(
+            "O tráfego para este serviço será interrompido até um novo deploy."
+        ),
         confirm_label = i18n.tr("Parar"),
         destructive = true,
     }
@@ -618,7 +651,10 @@ function stop_delete_service(service_id: string): ()
     if #deployment_names > 0 then
         table.sort(deployment_names)
         message = message
-            .. i18n.tr("Os jobs de Schedules que dependem dele também serão removidos, com histórico: ")
+            .. i18n.tr(
+                "Os jobs de Schedules que dependem dele também serão "
+                    .. "removidos, com histórico: "
+            )
             .. table.concat(deployment_names, ", ")
             .. "."
     end
@@ -642,7 +678,8 @@ function stop_delete_service(service_id: string): ()
     local service_stop_ok, service_stop_response =
         api:rpc_checked { ServiceStop = { service_id = service_id } }
     if not service_stop_ok then
-        ctx.project_action_message = i18n.tr("erro ao parar: ") .. service_stop_response
+        ctx.project_action_message = i18n.tr("erro ao parar: ")
+            .. service_stop_response
         toast { message = tostring(service_stop_response), kind = "error" }
         return
     end
@@ -653,7 +690,10 @@ function stop_delete_service(service_id: string): ()
         or (i18n.tr("erro ao remover: ") .. service_delete_response)
     if service_delete_ok then
         History.drop("selected_service", service_id)
-        toast { message = tostring(i18n.tr("Serviço removido")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Serviço removido")),
+            kind = "success",
+        }
     else
         toast { message = tostring(service_delete_response), kind = "error" }
     end
@@ -665,7 +705,10 @@ end
 function stop_all(): ()
     local confirmed = confirm {
         title = i18n.tr("Parar todos os serviços?"),
-        message = i18n.tr("Todos os serviços em execução serão parados agora. Você pode reiniciá-los depois com um novo deploy."),
+        message = i18n.tr(
+            "Todos os serviços em execução serão parados agora. Você pode "
+                .. "reiniciá-los depois com um novo deploy."
+        ),
         confirm_label = i18n.tr("Parar todos"),
         destructive = true,
     }

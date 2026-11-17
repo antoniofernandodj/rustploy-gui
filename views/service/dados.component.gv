@@ -8,9 +8,24 @@ component {
       text("{t('dados.title')}", class = u-label-cap)
       text("{t('dados.intro')}", class = u-muted)
 
-      text("@data_blocked", if = @data_blocked, not_equals = "", class = u-muted)
-      text("@data_parts_text", if = @data_parts_text, not_equals = "", class = kv-list__val)
-      text("@data_notes_text", if = @data_notes_text, not_equals = "", class = u-muted)
+      text(
+        "@data_blocked",
+        if = @data_blocked,
+        not_equals = "",
+        class = u-muted
+      )
+      text(
+        "@data_parts_text",
+        if = @data_parts_text,
+        not_equals = "",
+        class = kv-list__val
+      )
+      text(
+        "@data_notes_text",
+        if = @data_notes_text,
+        not_equals = "",
+        class = u-muted
+      )
 
       checkbox(
         if = @data_can_export,
@@ -31,12 +46,23 @@ component {
         )
       }
 
-      // ── Backup no S3 (Fase 2 de docs/plano-backup-de-dados-para-s3.md; handlers/service_backup.luau) ──
+      // ── Backup no S3 (Fase 2 de docs/plano-backup-de-dados-para-s3.md;
+      // handlers/service_backup.luau) ──
       text("{t('dados.s3_backup_title')}", class = u-label-cap)
       text("{t('dados.s3_backup_intro')}", class = u-muted)
 
-      text("@data_backup_blocked", if = @data_backup_blocked, not_equals = "", class = u-muted)
-      text("@data_backup_list_error", if = @data_backup_list_error, not_equals = "", class = u-error)
+      text(
+        "@data_backup_blocked",
+        if = @data_backup_blocked,
+        not_equals = "",
+        class = u-muted
+      )
+      text(
+        "@data_backup_list_error",
+        if = @data_backup_list_error,
+        not_equals = "",
+        class = u-error
+      )
 
       row(class = env__add, if = @data_backup_ready, equals = true) {
         button(
@@ -56,7 +82,10 @@ component {
       }
 
       column(spacing = 6, if = @data_backup_ready, equals = true) {
-        field(label = "{t('dados.s3_policy_title')}", label_class = u-label-cap) {
+        field(
+          label = "{t('dados.s3_policy_title')}",
+          label_class = u-label-cap
+        ) {
           toggle(
             :checked = data_backup_enabled,
             on_toggle = field:data_backup_enabled,
@@ -92,13 +121,26 @@ component {
             text("{t('dados.s3_policy_hours')}", class = u-muted)
           }
 
-          scroll(class = tabs__scroll, direction = horizontal, if = @data_backup_kind, equals = weekly) {
+          scroll(
+            class = tabs__scroll,
+            direction = horizontal,
+            if = @data_backup_kind,
+            equals = weekly
+          ) {
             row(class = tabs__main) {
-              radiogroup(:value = data_backup_weekday, :items = weekdays, layout = row)
+              radiogroup(
+                :value = data_backup_weekday,
+                :items = weekdays,
+                layout = row
+              )
             }
           }
 
-          row(class = env__add, if = @data_backup_kind, not_equals = interval) {
+          row(
+            class = env__add,
+            if = @data_backup_kind,
+            not_equals = interval
+          ) {
             text("{t('dados.s3_policy_at_utc')}", class = u-muted)
             timeedit(:value = data_backup_time)
           }
@@ -140,8 +182,18 @@ component {
         }
       }
 
-      text("@data_backup_run_label", if = @data_backup_run_label, not_equals = "", class = u-muted)
-      text("@data_backup_checks", if = @data_backup_checks, not_equals = "", class = u-muted)
+      text(
+        "@data_backup_run_label",
+        if = @data_backup_run_label,
+        not_equals = "",
+        class = u-muted
+      )
+      text(
+        "@data_backup_checks",
+        if = @data_backup_checks,
+        not_equals = "",
+        class = u-muted
+      )
 
       column(spacing = 4, if = @data_backups_count, not_equals = 0) {
         each @data_backups as b {
@@ -207,8 +259,18 @@ component {
         }
       }
 
-      text("@data_result_text", if = @data_result_text, not_equals = "", class = u-muted)
-      text("@data_message", if = @data_message, not_equals = "", class = u-muted)
+      text(
+        "@data_result_text",
+        if = @data_result_text,
+        not_equals = "",
+        class = u-muted
+      )
+      text(
+        "@data_message",
+        if = @data_message,
+        not_equals = "",
+        class = u-muted
+      )
     }
   }
 }

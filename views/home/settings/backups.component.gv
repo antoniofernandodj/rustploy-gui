@@ -1,7 +1,8 @@
 // Settings → Backups: o destino S3 dos backups de dados dos serviços (plano em
-// docs/plano-backup-de-dados-para-s3.md, Fase 1). Handlers em handlers/data_backup.luau; a webui faz o
-// mesmo em `webui/index.html` (aba "Backups"): mude os dois juntos. A chave secreta nunca volta do
-// daemon: o campo fica vazio e, vazio, mantém a que já está gravada.
+// docs/plano-backup-de-dados-para-s3.md, Fase 1). Handlers em
+// handlers/data_backup.luau; a webui faz o mesmo em `webui/index.html` (aba
+// "Backups"): mude os dois juntos. A chave secreta nunca volta do daemon: o
+// campo fica vazio e, vazio, mantém a que já está gravada.
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-stack) {
@@ -17,7 +18,11 @@ component {
           class = u-error,
         )
 
-        row(class = env__add, if = @backup_destination_recovery_missing, equals = true) {
+        row(
+          class = env__add,
+          if = @backup_destination_recovery_missing,
+          equals = true
+        ) {
           button(
             "{t('settings_recovery_key.generate_key')}",
             class = btn-secondary,
@@ -25,7 +30,10 @@ component {
           )
         }
 
-        field(label = "{t('settings_backups.endpoint')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_backups.endpoint')}",
+          label_class = u-label-cap
+        ) {
           input(
             placeholder = "https://s3.us-east-005.backblazeb2.com",
             class = field__input,
@@ -37,7 +45,10 @@ component {
 
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
-            field(label = "{t('settings_backups.bucket')}", label_class = u-label-cap) {
+            field(
+              label = "{t('settings_backups.bucket')}",
+              label_class = u-label-cap
+            ) {
               input(
                 placeholder = "meu-bucket",
                 class = field__input,
@@ -49,7 +60,10 @@ component {
           }
 
           column(class = healthcheck__field) {
-            field(label = "{t('settings_backups.region')}", label_class = u-label-cap) {
+            field(
+              label = "{t('settings_backups.region')}",
+              label_class = u-label-cap
+            ) {
               input(
                 placeholder = "us-east-1",
                 class = field__input,
@@ -61,7 +75,10 @@ component {
           }
         }
 
-        field(label = "{t('settings_backups.folder')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_backups.folder')}",
+          label_class = u-label-cap
+        ) {
           input(
             placeholder = "rustploy/meu-servidor",
             class = field__input,
@@ -79,7 +96,10 @@ component {
 
         text("{t('settings_backups.path_style_hint')}", class = u-muted)
 
-        field(label = "{t('settings_backups.access_key')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_backups.access_key')}",
+          label_class = u-label-cap
+        ) {
           input(
             placeholder = "",
             class = field__input,
@@ -89,7 +109,10 @@ component {
           )
         }
 
-        field(label = "{t('settings_backups.secret_key')}", label_class = u-label-cap) {
+        field(
+          label = "{t('settings_backups.secret_key')}",
+          label_class = u-label-cap
+        ) {
           input(
             placeholder = "{t('settings_backups.secret_key_placeholder')}",
             secure = true,

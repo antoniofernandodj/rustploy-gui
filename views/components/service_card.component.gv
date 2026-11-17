@@ -28,7 +28,12 @@ component {
     .card__stat      { width: fill; spacing: 4; }
     .card__stat-num  { size: 18; bold: true; color: var(--text-2); }
     .card__container { width: fill; spacing: 6; align_y: center; }
-    .card__copy      { color: var(--border); padding: 0 5; size: 11; border_radius: 3; }
+    .card__copy {
+      color: var(--border);
+      padding: 0 5;
+      size: 11;
+      border_radius: 3;
+    }
     .card__actions   { width: fill; spacing: 8; }
     .card__title     { size: 16; bold: true; color: var(--text); }
     .card__port      { size: 12; color: var(--muted); }

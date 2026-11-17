@@ -4,7 +4,10 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      field(label = "{t('settings_maintenance.automatic_cleanup')}", label_class = u-label-cap) {
+      field(
+        label = "{t('settings_maintenance.automatic_cleanup')}",
+        label_class = u-label-cap
+      ) {
         toggle(
           :checked = docker_cleanup_enabled,
           on_toggle = field:docker_cleanup_enabled,
@@ -17,7 +20,10 @@ component {
         class = u-muted,
       )
 
-      field(label = "{t('settings_maintenance.frequency')}", label_class = u-label-cap) {
+      field(
+        label = "{t('settings_maintenance.frequency')}",
+        label_class = u-label-cap
+      ) {
         scroll(class = tabs__scroll, direction = horizontal) {
           tabbar(
             :value = docker_cleanup_kind,
@@ -40,7 +46,10 @@ component {
         column(class = healthcheck__field) {
           // Teto de 168 = uma semana. Acima disso o usuário quer a
           // frequência "semanal", que é a aba ao lado.
-          field(label = "{t('settings_maintenance.every_hours')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_maintenance.every_hours')}",
+            label_class = u-label-cap
+          ) {
             spinbox(
               field_class = field__spin,
               form_control = docker_cleanup_hours,
@@ -61,11 +70,19 @@ component {
         equals = weekly
       ) {
         row(class = tabs__main) {
-          radiogroup(:value = docker_cleanup_weekday, :items = weekdays, layout = row)
+          radiogroup(
+            :value = docker_cleanup_weekday,
+            :items = weekdays,
+            layout = row
+          )
         }
       }
 
-      row(class = healthcheck__grid, if = @docker_cleanup_kind, not_equals = interval) {
+      row(
+        class = healthcheck__grid,
+        if = @docker_cleanup_kind,
+        not_equals = interval
+      ) {
         column(class = healthcheck__field) {
           field(label = "{t('common.time')}", label_class = u-label-cap) {
             timeedit(:value = docker_cleanup_time)
@@ -74,12 +91,16 @@ component {
       }
 
       text(
-        "{t('settings_maintenance.next_scheduled_run', docker_cleanup_next_run_label=docker_cleanup_next_run_label)}",
+        "{t('settings_maintenance.next_scheduled_run',
+          docker_cleanup_next_run_label=docker_cleanup_next_run_label)}",
         class = u-muted,
       )
 
       hr
-      field(label = "{t('settings_maintenance.what_to_clean')}", label_class = u-label-cap) {
+      field(
+        label = "{t('settings_maintenance.what_to_clean')}",
+        label_class = u-label-cap
+      ) {
         checkbox(
           :checked = docker_cleanup_containers,
           on_toggle = field:docker_cleanup_containers,
@@ -101,9 +122,16 @@ component {
         label = "{t('settings_maintenance.include_all_unused_not_just')}",
       )
 
-      row(class = healthcheck__grid, if = @docker_cleanup_images, equals = true) {
+      row(
+        class = healthcheck__grid,
+        if = @docker_cleanup_images,
+        equals = true
+      ) {
         column(class = healthcheck__field) {
-          field(label = "{t('settings_maintenance.only_images_created_more_than')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_maintenance.only_images_older_than')}",
+            label_class = u-label-cap
+          ) {
             spinbox(
               field_class = field__spin,
               form_control = docker_cleanup_images_older_than_hours,
@@ -134,9 +162,16 @@ component {
         label = "{t('settings_maintenance.build_cache')}",
       )
 
-      row(class = healthcheck__grid, if = @docker_cleanup_build_cache, equals = true) {
+      row(
+        class = healthcheck__grid,
+        if = @docker_cleanup_build_cache,
+        equals = true
+      ) {
         column(class = healthcheck__field) {
-          field(label = "{t('settings_maintenance.keep_the_cache_used_in')}", label_class = u-label-cap) {
+          field(
+            label = "{t('settings_maintenance.keep_the_cache_used_in')}",
+            label_class = u-label-cap
+          ) {
             spinbox(
               field_class = field__spin,
               form_control = docker_cleanup_build_cache_older_than_hours,
@@ -167,10 +202,13 @@ component {
       )
 
       hr
-      text("{t('settings_maintenance.volumes_careful')}", class = "u-label-cap u-error")
+      text(
+        "{t('settings_maintenance.volumes_careful')}",
+        class = "u-label-cap u-error"
+      )
 
       text(
-        "{t('settings_maintenance.unused_volumes_created_outside_rustploy_not')}",
+        "{t('settings_maintenance.unused_volumes_outside_rustploy')}",
         class = u-muted,
       )
 

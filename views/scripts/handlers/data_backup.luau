@@ -1,11 +1,12 @@
 --!strict
 --!nolint FunctionUnused
--- handlers/data_backup.luau — Settings → Backups: o destino S3 dos backups de dados dos serviços
--- (docs/plano-backup-de-dados-para-s3.md, Fase 1). A webui faz o mesmo em `webui/app.js`
--- (`backupDestination*`): mude os dois juntos.
+-- handlers/data_backup.luau — Settings → Backups: o destino S3 dos backups de
+-- dados dos serviços (docs/plano-backup-de-dados-para-s3.md, Fase 1). A webui
+-- faz o mesmo em `webui/app.js` (`backupDestination*`): mude os dois juntos.
 --
--- A chave secreta NUNCA volta do daemon: `backup_destination_secret_set` só diz se existe uma gravada.
--- O campo da chave fica vazio e, vazio, significa "manter a que já está lá".
+-- A chave secreta NUNCA volta do daemon: `backup_destination_secret_set` só
+-- diz se existe uma gravada. O campo da chave fica vazio e, vazio, significa
+-- "manter a que já está lá".
 
 local State = require("../state")
 local Helpers = require("../helpers")
@@ -88,7 +89,8 @@ function backup_destination_save(): ()
     end
 end
 
--- Grava, lê e apaga um objeto pequeno no S3, com o que está na tela (não precisa salvar antes).
+-- Grava, lê e apaga um objeto pequeno no S3, com o que está na tela (não
+-- precisa salvar antes).
 function backup_destination_test(): ()
     local api = State.api
     if not api then
@@ -119,7 +121,8 @@ function backup_destination_clear(): ()
         title = tostring(i18n.tr("Remover o destino de backup?")),
         message = tostring(
             i18n.tr(
-                "Os backups que já estão no S3 continuam lá. Os próximos não serão enviados até você configurar outro destino."
+                "Os backups que já estão no S3 continuam lá. Os próximos não "
+                    .. "serão enviados até você configurar outro destino."
             )
         ),
         confirm_label = tostring(i18n.tr("Remover")),

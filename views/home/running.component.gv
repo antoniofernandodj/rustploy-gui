@@ -1,5 +1,6 @@
-// Seção `running` (view = running) das telas globais; importada por home.component.gv.
-// Só projetos com serviço rodando e, dentro deles, só os serviços rodando.
+// Seção `running` (view = running) das telas globais; importada por
+// home.component.gv. Só projetos com serviço rodando e, dentro deles, só os
+// serviços rodando.
 component {
   resources {
     component(name = NadaRodando) {

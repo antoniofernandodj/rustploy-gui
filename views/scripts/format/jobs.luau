@@ -28,7 +28,8 @@ function M.recurrence_label(recurrence: any): string
         )
     end
     if recurrence.Weekly ~= nil then
-        local weekday_name = i18n.tr(WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1] or "?")
+        local weekday_name =
+            i18n.tr(WEEKDAYS[(recurrence.Weekly.weekday % 7) + 1] or "?")
         return string.format(
             i18n.tr("semanalmente %s às %02d:%02d"),
             weekday_name,
@@ -61,9 +62,9 @@ local FIXED_WARM_REASONS = {
     ["a definição do job mudou desde o último aquecimento"] = true,
 }
 
--- O motivo de "frio" vem do daemon em português, com partes variáveis (a imagem,
--- a data da limpeza). Aqui ele é casado com os formatos conhecidos e traduzido;
--- um motivo desconhecido (daemon mais novo) passa como veio.
+-- O motivo de "frio" vem do daemon em português, com partes variáveis (a
+-- imagem, a data da limpeza). Aqui ele é casado com os formatos conhecidos e
+-- traduzido; um motivo desconhecido (daemon mais novo) passa como veio.
 function M.warm_reason(reason: any): string
     if type(reason) ~= "string" or reason == "" then
         return ""
@@ -192,7 +193,8 @@ function M.pre_deploy_queue(spec: any, jobs: { any }?): string
     for position, job_id in ipairs(Util.pre_deploy_checks(spec)) do
         table.insert(rows, {
             id = job_id,
-            name = by_id[job_id] or (i18n.tr("(job removido: ") .. job_id .. ")"),
+            name = by_id[job_id]
+                or (i18n.tr("(job removido: ") .. job_id .. ")"),
             index = tostring(position),
         })
     end

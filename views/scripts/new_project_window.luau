@@ -38,7 +38,10 @@ end
 -- aqui é só o aviso.
 function new_project_show_validation_errors(_erros_json: string?): ()
     ctx.new_project_message = ""
-    toast { message = i18n.tr("Corrija os campos destacados"), kind = "warning" }
+    toast {
+        message = i18n.tr("Corrija os campos destacados"),
+        kind = "warning",
+    }
 end
 
 -- on_submit do form(...): só roda quando a validação (rules="required" no
@@ -48,7 +51,8 @@ end
 function submit_project(): ()
     local api = client()
     if not api then
-        ctx.new_project_error = i18n.tr("sem conexão — reabra a janela pelo app")
+        ctx.new_project_error =
+            i18n.tr("sem conexão — reabra a janela pelo app")
         return
     end
     ctx.new_project_error = ""

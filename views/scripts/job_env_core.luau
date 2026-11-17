@@ -1,15 +1,17 @@
 --!strict
 --!nolint FunctionUnused
--- job_env_core.luau — a lógica das envs e secrets de UM job, sem depender da janela principal
--- (sem State/Stream/History), para rodar tanto na tela `job_env` do app quanto dentro da janela
--- "Novo/Editar job" (que é um motor Luau isolado). Quem usa chama `setup` com a conexão e o job, e
--- põe nos botões as funções globais finas que chamam estas (handlers/job_env.luau e
+-- job_env_core.luau — a lógica das envs e secrets de UM job, sem depender da
+-- janela principal (sem State/Stream/History), para rodar tanto na tela
+-- `job_env` do app quanto dentro da janela "Novo/Editar job" (que é um motor
+-- Luau isolado). Quem usa chama `setup` com a conexão e o job, e põe nos
+-- botões as funções globais finas que chamam estas (handlers/job_env.luau e
 -- new_job_window.luau).
 --
--- Escopo de job = `job_id` nos comandos de secret/env (SecretSet, SecretMove, EnvKeyRename…). As envs
--- viajam no próprio `Job`; adicionar/remover/colar o .env reenvia o Job inteiro (`JobUpdate`). Depois
--- de cada mudança o job é relido (`JobList`). Toda operação que muda ou expõe uma env pede
--- confirmação (reordenar não).
+-- Escopo de job = `job_id` nos comandos de secret/env (SecretSet, SecretMove,
+-- EnvKeyRename…). As envs viajam no próprio `Job`; adicionar/remover/colar o
+-- .env reenvia o Job inteiro (`JobUpdate`). Depois de cada mudança o job é
+-- relido (`JobList`). Toda operação que muda ou expõe uma env pede confirmação
+-- (reordenar não).
 
 local Helpers = require("helpers")
 local format = require("format")
@@ -25,7 +27,12 @@ local raw: any = nil
 local revealed: { [string]: string } = {}
 local after_change: (() -> ())? = nil
 
-function Core.setup(opts: { api: any, project_id: string, job_id: string, after_change: (() -> ())? }): ()
+function Core.setup(opts: {
+    api: any,
+    project_id: string,
+    job_id: string,
+    after_change: (() -> ())?,
+}): ()
     api = opts.api
     project_id = opts.project_id
     job_id = opts.job_id
@@ -34,12 +41,18 @@ function Core.setup(opts: { api: any, project_id: string, job_id: string, after_
     revealed = {}
 end
 
--- O Job cru mais recente (envs atuais), para quem precisa reenviar o JobUpdate.
+-- O Job cru mais recente (envs atuais), para quem precisa reenviar o
+-- JobUpdate.
 function Core.job(): any
     return raw
 end
 
-local function ask(title: string, message: string, confirm_label: string, destructive: boolean?): boolean
+local function ask(
+    title: string,
+    message: string,
+    confirm_label: string,
+    destructive: boolean?
+): boolean
     return confirm {
         title = title,
         message = message,
@@ -66,18 +79,25 @@ function Core.reset_forms(): ()
     ctx.job_secret_new_value = ""
 end
 
--- Os nomes dos secrets de um escopo (do projeto, ou do serviço com `service_id`).
+-- Os nomes dos secrets de um escopo (do projeto, ou do serviço com
+-- `service_id`).
 local function secret_names(service_id: string?): { string }
-    local ok, response = api:rpc { SecretList = { project_id = project_id, service_id = service_id } }
-    if ok and type(response) == "table" and type(response.SecretNames) == "table" then
+    local ok, response = api:rpc {
+        SecretList = { project_id = project_id, service_id = service_id },
+    }
+    if
+        ok
+        and type(response) == "table"
+        and type(response.SecretNames) == "table"
+    then
         return response.SecretNames
     end
     return {}
 end
 
--- Os secrets que uma variável do job pode usar, na ordem em que o daemon procura (env_resolve):
--- os do job, os do serviço gatilho e os do projeto. Um nome que um escopo de cima já tem fica de
--- fora — é o de cima que vale.
+-- Os secrets que uma variável do job pode usar, na ordem em que o daemon
+-- procura (env_resolve): os do job, os do serviço gatilho e os do projeto. Um
+-- nome que um escopo de cima já tem fica de fora — é o de cima que vale.
 local function secret_options(job: any, job_names: { string }): { any }
     local options = {}
     local seen: { [string]: boolean } = {}
@@ -103,8 +123,13 @@ function Core.load(): ()
     if not api or project_id == "" or job_id == "" then
         return
     end
-    local job_list_ok, job_list_response = api:rpc { JobList = { project_id = project_id } }
-    if not job_list_ok or type(job_list_response) ~= "table" or type(job_list_response.Jobs) ~= "table" then
+    local job_list_ok, job_list_response =
+        api:rpc { JobList = { project_id = project_id } }
+    if
+        not job_list_ok
+        or type(job_list_response) ~= "table"
+        or type(job_list_response.Jobs) ~= "table"
+    then
         return
     end
     local job: any = nil
@@ -120,25 +145,40 @@ function Core.load(): ()
     end
     raw = job
     ctx.job_env_name = job.name
-    EnvRows.publish("job", format.env_json_with_comments(job.env_vars, job.env_comments))
+    EnvRows.publish(
+        "job",
+        format.env_json_with_comments(job.env_vars, job.env_comments)
+    )
     ctx.job_env_count = tostring(#(job.env_vars or {}))
-    local dotenv = format.env_dotenv_with_comments(job.env_vars, job.env_comments)
+    local dotenv =
+        format.env_dotenv_with_comments(job.env_vars, job.env_comments)
     ctx.job_env_text = dotenv
     ctx.job_env_text_original = dotenv
     local names: { string } = {}
     local secret_list_ok, secret_list_response = api:rpc {
         SecretList = { project_id = project_id, job_id = job_id },
     }
-    if secret_list_ok and type(secret_list_response) == "table" and type(secret_list_response.SecretNames) == "table" then
+    if
+        secret_list_ok
+        and type(secret_list_response) == "table"
+        and type(secret_list_response.SecretNames) == "table"
+    then
         names = secret_list_response.SecretNames
     end
-    ctx.job_secrets = SecretRows.bind("job", format.secret_rows(names, "job:" .. job_id, revealed))
+    ctx.job_secrets = SecretRows.bind(
+        "job",
+        format.secret_rows(names, "job:" .. job_id, revealed)
+    )
     ctx.job_secrets_count = tostring(#names)
     EnvRows.set_secret_options("job", secret_options(job, names))
 end
 
 -- Reenvia o Job inteiro com as envs novas (o daemon não tem PATCH parcial).
-local function save_env(vars: any, comments: any, done_message: string): boolean
+local function save_env(
+    vars: any,
+    comments: any,
+    done_message: string
+): boolean
     local job = raw
     if not api or not job then
         return false
@@ -195,16 +235,26 @@ function Core.add(): ()
             table.insert(kept, env_var)
         end
     end
-    table.insert(kept, { key = key, value = secret and { Secret = secret } or { Plain = raw_value } })
-    if save_env(kept, job.env_comments or json.array {}, i18n.tr("Variável salva")) then
+    table.insert(kept, {
+        key = key,
+        value = secret and { Secret = secret } or { Plain = raw_value },
+    })
+    if
+        save_env(
+            kept,
+            job.env_comments or json.array {},
+            i18n.tr("Variável salva")
+        )
+    then
         ctx.job_env_new_key = ""
         ctx.job_env_new_value = ""
         ctx.job_env_new_is_secret = "false"
     end
 end
 
--- Checkbox "usar secret" do form de adicionar: liga/desliga o modo e limpa o valor — num modo ele é
--- o texto digitado, no outro o NOME do secret escolhido na lista.
+-- Checkbox "usar secret" do form de adicionar: liga/desliga o modo e limpa o
+-- valor — num modo ele é o texto digitado, no outro o NOME do secret escolhido
+-- na lista.
 function Core.new_use_secret(value: any): ()
     ctx.job_env_new_is_secret = Helpers.is_true(value) and "true" or "false"
     ctx.job_env_new_value = ""
@@ -218,7 +268,9 @@ function Core.delete(key: string): ()
     if
         not ask(
             i18n.tr("Remover variável?"),
-            i18n.tr('A variável "') .. key .. i18n.tr('" será removida deste job.'),
+            i18n.tr('A variável "')
+                .. key
+                .. i18n.tr('" será removida deste job.'),
             i18n.tr("Remover"),
             true
         )
@@ -241,7 +293,8 @@ function Core.delete(key: string): ()
 end
 
 function Core.text_toggle(): ()
-    ctx.job_env_text_open = Helpers.is_true(ctx.job_env_text_open) and "false" or "true"
+    ctx.job_env_text_open = Helpers.is_true(ctx.job_env_text_open) and "false"
+        or "true"
 end
 
 function Core.text_cancel(): ()
@@ -252,13 +305,19 @@ end
 function Core.import(): ()
     local vars, comments, errors = Helpers.parse_dotenv(ctx.job_env_text or "")
     if #errors > 0 then
-        toast { message = Helpers.dotenv_errors_message(errors), kind = "error" }
+        toast {
+            message = Helpers.dotenv_errors_message(errors),
+            kind = "error",
+        }
         return
     end
     if
         not ask(
             i18n.tr("Substituir as variáveis?"),
-            i18n.tr("Todas as variáveis deste job serão substituídas pelo texto do editor."),
+            i18n.tr(
+                "Todas as variáveis deste job serão substituídas pelo texto "
+                    .. "do editor."
+            ),
             i18n.tr("Substituir"),
             true
         )
@@ -270,8 +329,8 @@ function Core.import(): ()
     end
 end
 
--- Reordena (arraste): `reorder_json` é um JSON array de keys na nova ordem (linhas `__c<idx>` são
--- comentários). Não pede confirmação.
+-- Reordena (arraste): `reorder_json` é um JSON array de keys na nova ordem
+-- (linhas `__c<idx>` são comentários). Não pede confirmação.
 function Core.reorder(reorder_json: string?): ()
     local job = raw
     if not reorder_json or not job then
@@ -305,7 +364,10 @@ function Core.reorder(reorder_json: string?): ()
                         break
                     end
                 end
-                table.insert(new_comments, { text = comment.text, before_key = anchor })
+                table.insert(
+                    new_comments,
+                    { text = comment.text, before_key = anchor }
+                )
             end
         elseif by_key[key] then
             table.insert(new_vars, by_key[key])
@@ -326,9 +388,10 @@ function Core.reorder(reorder_json: string?): ()
 end
 
 -- ── Linha editável no lugar (handlers/env_rows.luau) ───────────────────────
--- A chave e o valor são campos sem borda; o "usar secret" troca o valor por uma lista de secrets.
--- Digitar só muda o rascunho; o OK pede confirmação e grava: EnvValueSet (o valor) e depois
--- EnvKeyRename (a chave — o EnvValueSet ainda acha a variável pelo nome antigo).
+-- A chave e o valor são campos sem borda; o "usar secret" troca o valor por
+-- uma lista de secrets. Digitar só muda o rascunho; o OK pede confirmação e
+-- grava: EnvValueSet (o valor) e depois EnvKeyRename (a chave — o EnvValueSet
+-- ainda acha a variável pelo nome antigo).
 
 function Core.row_change(key: string, field: string, value: any): ()
     local row = EnvRows.row("job", key)
@@ -346,42 +409,67 @@ function Core.row_save(key: string): ()
     if not api or row == nil or job_id == "" then
         return
     end
-    local rename_to, new_value = EnvRows.changes(row, EnvRows.row_state("job", row))
+    local rename_to, new_value =
+        EnvRows.changes(row, EnvRows.row_state("job", row))
     if rename_to == nil and new_value == nil then
         return
     end
-    if not EnvRows.confirm_save(key, row, rename_to, new_value, i18n.tr("Vale na próxima execução.")) then
+    if
+        not EnvRows.confirm_save(
+            key,
+            row,
+            rename_to,
+            new_value,
+            i18n.tr("Vale na próxima execução.")
+        )
+    then
         return
     end
     if new_value ~= nil then
         local value_ok, value_response = api:rpc_checked {
-            EnvValueSet = { project_id = project_id, job_id = job_id, key = key, value = new_value },
+            EnvValueSet = {
+                project_id = project_id,
+                job_id = job_id,
+                key = key,
+                value = new_value,
+            },
         }
         if not value_ok then
-            -- O rascunho fica: o que foi digitado não se perde numa recusa do daemon.
+            -- O rascunho fica: o que foi digitado não se perde numa recusa do
+            -- daemon.
             toast { message = tostring(value_response), kind = "error" }
             return
         end
     end
     if rename_to ~= nil then
         local rename_ok, rename_response = api:rpc_checked {
-            EnvKeyRename = { project_id = project_id, job_id = job_id, from = key, to = rename_to },
+            EnvKeyRename = {
+                project_id = project_id,
+                job_id = job_id,
+                from = key,
+                to = rename_to,
+            },
         }
         if not rename_ok then
-            -- O valor (se mudou) já foi gravado; o rascunho fica, com a chave nova por gravar.
+            -- O valor (se mudou) já foi gravado; o rascunho fica, com a chave
+            -- nova por gravar.
             toast { message = tostring(rename_response), kind = "error" }
             changed()
             return
         end
     end
     EnvRows.reset("job", key)
-    toast { message = i18n.tr("Variável salva: ") .. (rename_to or key), kind = "success" }
+    toast {
+        message = i18n.tr("Variável salva: ") .. (rename_to or key),
+        kind = "success",
+    }
     changed()
 end
 
--- Substituído pela linha editável com OK + confirmação (logo acima), 2026-11-16. Fica comentado
--- para referência; pode ser apagado quando o desenho novo assentar.
--- -- ── Edição no lugar (✏️ chave, ✎ valor) ─────────────────────────────────────
+-- Substituído pela linha editável com OK + confirmação (logo acima),
+-- 2026-11-16. Fica comentado para referência; pode ser apagado quando o
+-- desenho novo assentar. -- ── Edição no lugar (✏️ chave, ✎ valor)
+-- ─────────────────────────────────────
 --
 -- local function env_row(key: string): any?
 --     local decode_ok, rows = pcall(function()
@@ -403,7 +491,8 @@ end
 --     local is_secret = row.kind == "secret"
 --     local draft = key
 --     if field == "value" then
---         draft = is_secret and ("secret:" .. tostring(row.secret_name)) or tostring(row.value)
+--         draft = is_secret and ("secret:" .. tostring(row.secret_name))
+--             or tostring(row.value)
 --     end
 --     ctx.job_env_edit_id = field .. ":" .. key
 --     ctx.job_env_edit_draft = draft
@@ -438,7 +527,12 @@ end
 --             return
 --         end
 --         edit_ok, edit_response = api:rpc_checked {
---             EnvKeyRename = { project_id = project_id, job_id = job_id, from = key, to = to },
+--             EnvKeyRename = {
+--                 project_id = project_id,
+--                 job_id = job_id,
+--                 from = key,
+--                 to = to,
+--             },
 --         }
 --     else
 --         edit_ok, edit_response = api:rpc_checked {
@@ -446,41 +540,59 @@ end
 --                 project_id = project_id,
 --                 job_id = job_id,
 --                 key = key,
---                 value = Helpers.env_value_from_draft(draft, Helpers.is_true(ctx.job_env_edit_was_secret)),
+--                 value = Helpers.env_value_from_draft(
+--                     draft,
+--                     Helpers.is_true(ctx.job_env_edit_was_secret)
+--                 ),
 --             },
 --         }
 --     end
 --     if edit_ok then
 --         toast {
---             message = (field == "key") and (i18n.tr("Renomeado: ") .. key) or (i18n.tr("Valor salvo: ") .. key),
+--             message = (field == "key")
+--                     and (i18n.tr("Renomeado: ") .. key)
+--                 or (i18n.tr("Valor salvo: ") .. key),
 --             kind = "success",
 --         }
 --         Core.edit_cancel()
 --         changed()
 --     else
---         -- Fica no modo de edição: o texto digitado não se perde numa recusa do daemon.
+--         -- Fica no modo de edição: o texto digitado não se perde numa
+--         -- recusa do daemon.
 --         toast { message = tostring(edit_response), kind = "error" }
 --     end
 -- end
 
 -- ── O nome de um secret do job, editado no lugar (SecretRename) ─────────────
--- Sem botão "Renomear": renomeia meio segundo depois da última tecla (handlers/secret_rows.luau).
+-- Sem botão "Renomear": renomeia meio segundo depois da última tecla
+-- (handlers/secret_rows.luau).
 
 function Core.secret_name_change(name: string, value: string): ()
-    SecretRows.change("job", "job_secrets", name, value, function(from: string, to: string): boolean
-        if not api or job_id == "" then
-            return false
+    SecretRows.change(
+        "job",
+        "job_secrets",
+        name,
+        value,
+        function(from: string, to: string): boolean
+            if not api or job_id == "" then
+                return false
+            end
+            local rename_ok, rename_response = api:rpc_checked {
+                SecretRename = {
+                    project_id = project_id,
+                    job_id = job_id,
+                    from = from,
+                    to = to,
+                },
+            }
+            if not rename_ok then
+                toast { message = tostring(rename_response), kind = "error" }
+                return false
+            end
+            changed()
+            return true
         end
-        local rename_ok, rename_response = api:rpc_checked {
-            SecretRename = { project_id = project_id, job_id = job_id, from = from, to = to },
-        }
-        if not rename_ok then
-            toast { message = tostring(rename_response), kind = "error" }
-            return false
-        end
-        changed()
-        return true
-    end)
+    )
 end
 
 -- ── Movimentos (SecretMove) ─────────────────────────────────────────────────
@@ -490,7 +602,12 @@ local function job_move(op: string, name: string, done_message: string): ()
         return
     end
     local move_ok, move_response = api:rpc_checked {
-        SecretMove = { project_id = project_id, job_id = job_id, name = name, op = op },
+        SecretMove = {
+            project_id = project_id,
+            job_id = job_id,
+            name = name,
+            op = op,
+        },
     }
     if move_ok then
         toast { message = done_message .. name, kind = "success" }
@@ -505,7 +622,9 @@ function Core.env_to_secret(key: string): ()
     if
         not ask(
             i18n.tr("Mover para secret?"),
-            i18n.tr('O valor de "') .. key .. i18n.tr('" passa a ser guardado cifrado.'),
+            i18n.tr('O valor de "')
+                .. key
+                .. i18n.tr('" passa a ser guardado cifrado.'),
             i18n.tr("Mover para secret")
         )
     then
@@ -521,7 +640,10 @@ function Core.secret_to_env(name: string): ()
             i18n.tr("Voltar para variável em claro?"),
             i18n.tr('O valor de "')
                 .. name
-                .. i18n.tr('" deixa de ser cifrado e passa a aparecer em claro na variável (e no estado versionado).'),
+                .. i18n.tr(
+                    '" deixa de ser cifrado e passa a aparecer em claro na '
+                        .. "variável (e no estado versionado)."
+                ),
             i18n.tr("Mover para variável"),
             true
         )
@@ -536,13 +658,21 @@ function Core.env_to_project(key: string): ()
     if
         not ask(
             i18n.tr("Subir para o projeto?"),
-            i18n.tr('A variável "') .. key .. i18n.tr('" passa a valer para todo o projeto (serviços e jobs).'),
+            i18n.tr('A variável "')
+                .. key
+                .. i18n.tr(
+                    '" passa a valer para todo o projeto (serviços e jobs).'
+                ),
             i18n.tr("Subir para o projeto")
         )
     then
         return
     end
-    job_move("EnvJobToProject", key, i18n.tr("Variável movida para o projeto: "))
+    job_move(
+        "EnvJobToProject",
+        key,
+        i18n.tr("Variável movida para o projeto: ")
+    )
 end
 
 -- ↑ secret do job → secret do projeto.
@@ -550,19 +680,30 @@ function Core.secret_to_project(name: string): ()
     if
         not ask(
             i18n.tr("Subir para o projeto?"),
-            i18n.tr('O secret "') .. name .. i18n.tr('" passa a valer para todo o projeto (serviços e jobs).'),
+            i18n.tr('O secret "')
+                .. name
+                .. i18n.tr(
+                    '" passa a valer para todo o projeto (serviços e jobs).'
+                ),
             i18n.tr("Subir para o projeto")
         )
     then
         return
     end
-    job_move("JobSecretToProject", name, i18n.tr("Secret movido para o projeto: "))
+    job_move(
+        "JobSecretToProject",
+        name,
+        i18n.tr("Secret movido para o projeto: ")
+    )
 end
 
 -- ── Secrets do job ──────────────────────────────────────────────────────────
 
 function Core.secret_add_show_validation_errors(): ()
-    toast { message = i18n.tr("Preencha nome e valor do secret"), kind = "warning" }
+    toast {
+        message = i18n.tr("Preencha nome e valor do secret"),
+        kind = "warning",
+    }
 end
 
 function Core.secret_add(): ()
@@ -582,7 +723,9 @@ function Core.secret_add(): ()
         ctx.job_secret_new_name = ""
         ctx.job_secret_new_value = ""
         toast {
-            message = i18n.tr('Secret "') .. name .. i18n.tr('" salvo — vale na próxima execução'),
+            message = i18n.tr('Secret "')
+                .. name
+                .. i18n.tr('" salvo — vale na próxima execução'),
             kind = "success",
         }
         Core.load()
@@ -598,7 +741,10 @@ function Core.secret_delete(name: string): ()
     if
         not ask(
             i18n.tr("Remover secret?"),
-            i18n.tr('O valor cifrado será apagado e não há como recuperá-lo. Variáveis que referenciam "')
+            i18n.tr(
+                "O valor cifrado será apagado e não há como recuperá-lo. "
+                    .. 'Variáveis que referenciam "'
+            )
                 .. name
                 .. i18n.tr('" vão falhar na próxima execução.'),
             i18n.tr("Remover secret"),
@@ -608,7 +754,11 @@ function Core.secret_delete(name: string): ()
         return
     end
     local secret_delete_ok, secret_delete_response = api:rpc_checked {
-        SecretDelete = { project_id = project_id, job_id = job_id, name = name },
+        SecretDelete = {
+            project_id = project_id,
+            job_id = job_id,
+            name = name,
+        },
     }
     if secret_delete_ok then
         toast { message = i18n.tr("Secret removido"), kind = "success" }
@@ -618,7 +768,8 @@ function Core.secret_delete(name: string): ()
     end
 end
 
--- 👁: pede o valor ao daemon (SecretReveal grava auditoria: quem, qual, quando; nunca o valor).
+-- 👁: pede o valor ao daemon (SecretReveal grava auditoria: quem, qual, quando;
+-- nunca o valor).
 function Core.secret_reveal(name: string): ()
     if not api or job_id == "" or name == "" then
         return
@@ -628,20 +779,33 @@ function Core.secret_reveal(name: string): ()
             i18n.tr("Ver o valor do secret?"),
             i18n.tr('O valor de "')
                 .. name
-                .. i18n.tr('" vai aparecer na tela. O acesso fica registrado na auditoria do servidor (quem, qual secret e quando; nunca o valor).'),
+                .. i18n.tr(
+                    '" vai aparecer na tela. O acesso fica registrado na '
+                        .. "auditoria do servidor (quem, qual secret e "
+                        .. "quando; nunca o valor)."
+                ),
             i18n.tr("Ver valor")
         )
     then
         return
     end
     local reveal_ok, reveal_response = api:rpc {
-        SecretReveal = { project_id = project_id, job_id = job_id, name = name },
+        SecretReveal = {
+            project_id = project_id,
+            job_id = job_id,
+            name = name,
+        },
     }
-    if not reveal_ok or type(reveal_response) ~= "table" or reveal_response.SecretValue == nil then
+    if
+        not reveal_ok
+        or type(reveal_response) ~= "table"
+        or reveal_response.SecretValue == nil
+    then
         toast { message = tostring(reveal_response), kind = "error" }
         return
     end
-    revealed["job:" .. job_id .. ":" .. name] = reveal_response.SecretValue :: string
+    revealed["job:" .. job_id .. ":" .. name] =
+        reveal_response.SecretValue :: string
     Core.load()
 end
 
@@ -657,7 +821,10 @@ function Core.secret_copy(ref: string): ()
         return
     end
     copy(value)
-    toast { message = i18n.tr("Valor copiado para a área de transferência"), kind = "success" }
+    toast {
+        message = i18n.tr("Valor copiado para a área de transferência"),
+        kind = "success",
+    }
 end
 
 return Core

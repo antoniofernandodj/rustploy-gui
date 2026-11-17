@@ -66,7 +66,8 @@ function nav_settings(): ()
     if (ctx.git_provider_mode or "") == "" then
         ctx.git_provider_mode = "oauth"
     end
-    -- Mesma ação do botão "Refresh git list": a aba Sync precisa da lista já carregada.
+    -- Mesma ação do botão "Refresh git list": a aba Sync precisa da lista já
+    -- carregada.
     Settings.git_provider_refresh_list()
     DataBackup.load()
     Recover.load()

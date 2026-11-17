@@ -1,6 +1,7 @@
 --!nonstrict
--- Settings → Recuperar: sem conexão os handlers são inertes (o botão pode ser clicado quando a sessão cai),
--- o formulário nasce vazio, e a linha de cada serviço traz o que a tela precisa.
+-- Settings → Recuperar: sem conexão os handlers são inertes (o botão pode ser
+-- clicado quando a sessão cai), o formulário nasce vazio, e a linha de cada
+-- serviço traz o que a tela precisa.
 
 local Recover = require("handlers/recover")
 
@@ -10,7 +11,8 @@ local function nova(ctx_inicial)
     return tela
 end
 
---- sem sessão, nada acontece (nem toast) e a chave NÃO é apagada: não houve envio
+--- sem sessão, nada acontece (nem toast) e a chave NÃO é apagada: não houve
+--- envio
 function test_recover__sem_conexao_e_inerte()
     local tela =
         nova({ recover_key = "AGE-SECRET-KEY-1ABC", recover_token = "tok" })
@@ -31,7 +33,8 @@ function test_recover__estado_inicial()
     assert_eq(tela:get("recover_token"), "")
 end
 
---- a linha de um serviço: banco/volume, projeto/nome, backup achado (ou "sobe vazio") e a etapa
+--- a linha de um serviço: banco/volume, projeto/nome, backup achado (ou "sobe
+--- vazio") e a etapa
 function test_recover__linha_do_servico()
     local banco = Recover.service_row({
         kind = "database",

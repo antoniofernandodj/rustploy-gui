@@ -33,13 +33,15 @@ declare function viewport(): Viewport
 
 -- HTTP, ou leitura de arquivo local quando a URL começa com `file://`
 -- (glacier-ui 0.49+): devolve o mesmo FetchResult, com o conteúdo no `body`.
--- `opts`: method, headers, body, body_base64, body_file (caminho: o corpo é o conteúdo cru do arquivo), timeout (ms), response ("base64"),
--- `max_redirects` (segue até N redirecionamentos; padrão 0), `max_bytes` (teto do corpo da resposta),
--- `cookies` (false = ignora o jar), `signal` (um `abort_controller()`),
--- `on_progress` (function(p: FetchProgress): envio e recebimento, ver abaixo),
--- `multipart` ({ fields = {…}, files = { { name, path, filename?, content_type? } } }).
--- `phase` é "upload" (corpo do pedido) ou "download" (corpo da resposta); `total` é o
--- tamanho do corpo enviado / o Content-Length da resposta (nil se não houver).
+-- `opts`: method, headers, body, body_base64, body_file (caminho: o corpo é o
+-- conteúdo cru do arquivo), timeout (ms), response ("base64"), `max_redirects`
+-- (segue até N redirecionamentos; padrão 0), `max_bytes` (teto do corpo da
+-- resposta), `cookies` (false = ignora o jar), `signal` (um
+-- `abort_controller()`), `on_progress` (function(p: FetchProgress): envio e
+-- recebimento, ver abaixo), `multipart` ({ fields = {…}, files = { { name,
+-- path, filename?, content_type? } } }). `phase` é "upload" (corpo do pedido)
+-- ou "download" (corpo da resposta); `total` é o tamanho do corpo enviado / o
+-- Content-Length da resposta (nil se não houver).
 export type FetchProgress = { phase: string, done: number, total: number?, fraction: number? }
 
 declare function fetch(url: string, opts: any?): FetchResult
@@ -150,7 +152,8 @@ export type HttpClient = {
     delete: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
     head: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
     options: (self: HttpClient, path: string, spec: HttpRequestSpec?) -> HttpResponse,
-    -- O método HTTP QUERY (RFC 10008): seguro e idempotente, com a consulta no corpo.
+    -- O método HTTP QUERY (RFC 10008): seguro e idempotente, com a consulta no
+    -- corpo.
     query: (self: HttpClient, path: string, body: any, spec: HttpRequestSpec?) -> HttpResponse,
     post: (self: HttpClient, path: string, body: any?, spec: HttpRequestSpec?) -> HttpResponse,
     put: (self: HttpClient, path: string, body: any?, spec: HttpRequestSpec?) -> HttpResponse,
@@ -172,9 +175,10 @@ declare function every(ms: number, callback: (() -> ()) | string): Timer
 -- falha.
 declare function write_file(path: string, contents: string): (boolean, string?)
 -- Idem, acrescentando ao fim (glacier-ui 0.49+).
--- Grava `contents` na pasta Downloads do sistema, sem diálogo e SEM sobrescrever (se `filename` existe,
--- grava `nome-1.ext`…); no Unix o arquivo nasce 0600 (glacier-ui 0.160+). Devolve `true, caminho` ou
--- `false, mensagem` (ex.: sem pasta Downloads — caia no `save_file`).
+-- Grava `contents` na pasta Downloads do sistema, sem diálogo e SEM
+-- sobrescrever (se `filename` existe, grava `nome-1.ext`…); no Unix o arquivo
+-- nasce 0600 (glacier-ui 0.160+). Devolve `true, caminho` ou `false, mensagem`
+-- (ex.: sem pasta Downloads — caia no `save_file`).
 declare function save_download(filename: string, contents: string): (boolean, string)
 declare function append_file(
     path: string,
@@ -256,14 +260,15 @@ declare json: {
 -- `get` devolve o valor guardado ou nil; `remove` apaga a chave. No rustploy
 -- grava em `~/.local/share/rustploy/.glacier-storage/app.json` (raiz definida
 -- no Rust via `GlacierDaemon::storage_dir`, glacier-ui 0.45+).
--- i18n (glacier-ui 0.147+): a locale ativa é a chave `__locale`; `set_locale` a espalha
--- para todas as janelas. Ver locales/ e handlers/language.luau.
+-- i18n (glacier-ui 0.147+): a locale ativa é a chave `__locale`; `set_locale`
+-- a espalha para todas as janelas. Ver locales/ e handlers/language.luau.
 declare i18n: {
     locale: () -> string,
     set_locale: (requested: string) -> string?,
     available: () -> { string },
     t: (key: string, args: { [string]: any }?) -> string,
-    -- Traduz pelo texto de origem (gettext): sem entrada no catálogo devolve o próprio texto.
+    -- Traduz pelo texto de origem (gettext): sem entrada no catálogo devolve o
+    -- próprio texto.
     tr: (source: string) -> string,
     num: (value: number, decimals: number?) -> string,
     date: (value: any) -> string,
@@ -313,9 +318,10 @@ declare date: {
     to_utc: (iso: string) -> string?,
 }
 
--- Ponte nativa do "Atualizar app" (src/app/updater.rs, registrada por `GlacierDaemon::lua_extension`).
--- Nenhuma destas funções instala algo sozinha: quem instala é o helper root, via pkexec, e só
--- aceita um pacote assinado pela chave do projeto. Em testes (`glacier test`) o global é nil.
+-- Ponte nativa do "Atualizar app" (src/app/updater.rs, registrada por
+-- `GlacierDaemon::lua_extension`). Nenhuma destas funções instala algo
+-- sozinha: quem instala é o helper root, via pkexec, e só aceita um pacote
+-- assinado pela chave do projeto. Em testes (`glacier test`) o global é nil.
 export type AppUpdateInfo = {
     version: string,
     -- "deb", "zip" (Windows, instalado pelo install.ps1) ou "other".
@@ -339,13 +345,15 @@ export type AppUpdatePlan = {
 declare app_update: {
     info: () -> AppUpdateInfo,
     plan: (release_json: string) -> (AppUpdatePlan?, string?),
-    -- Baixa (com progresso), autentica (pkexec) e instala numa thread; volta na hora.
+    -- Baixa (com progresso), autentica (pkexec) e instala numa thread; volta
+    -- na hora.
     install_start: (
         deb_url: string,
         signature_url: string,
         deb_name: string
     ) -> (boolean, string?),
-    -- `ok`/`message` só aparecem depois do fim; `total`/`percent` só com Content-Length.
+    -- `ok`/`message` só aparecem depois do fim; `total`/`percent` só com
+    -- Content-Length.
     install_status: () -> {
         running: boolean,
         phase: string,
@@ -357,6 +365,7 @@ declare app_update: {
     },
     install_cancel: () -> (),
     restart: () -> string?,
-    -- Windows: o resultado da troca feita antes desta janela abrir (`nil` se não houve).
+    -- Windows: o resultado da troca feita antes desta janela abrir (`nil` se
+    -- não houve).
     last_result: () -> (boolean?, string?),
 }?

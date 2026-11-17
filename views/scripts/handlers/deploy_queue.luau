@@ -20,7 +20,10 @@ function queue_cancel(deployment_id: string): ()
     local deploy_abort_ok, deploy_abort_response =
         api:rpc_checked { DeployAbort = { deployment_id = deployment_id } }
     if deploy_abort_ok then
-        toast { message = tostring(i18n.tr("Deploy cancelado")), kind = "success" }
+        toast {
+            message = tostring(i18n.tr("Deploy cancelado")),
+            kind = "success",
+        }
     else
         toast { message = tostring(deploy_abort_response), kind = "error" }
     end
@@ -81,7 +84,9 @@ function queue_toggle_pause(): ()
         api:rpc_checked { DeployQueuePause = { paused = paused } }
     if deploy_queue_pause_ok then
         toast {
-            message = tostring(paused and i18n.tr("Fila pausada") or i18n.tr("Fila retomada")),
+            message = tostring(
+                paused and i18n.tr("Fila pausada") or i18n.tr("Fila retomada")
+            ),
             kind = "success",
         }
     else

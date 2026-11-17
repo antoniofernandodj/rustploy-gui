@@ -131,7 +131,8 @@ function M.decode(
     end
     local text = base64_decode(key)
     if text == nil then
-        return nil, i18n.tr("token de conexão corrompido (cortado ao copiar?)")
+        return nil,
+            i18n.tr("token de conexão corrompido (cortado ao copiar?)")
     end
     -- Bytes que não são texto, ou sem o `::`: quase sempre o token da API
     -- colado no lugar do de conexão (todo token hex/base64url também
@@ -153,7 +154,11 @@ function M.decode(
     end
     if separator_at == nil then
         return nil,
-            i18n.tr("isso não é um token de conexão — cole o token de conexão inteiro (base64 de host:porta::token), não só o token da API")
+            i18n.tr(
+                "isso não é um token de conexão — cole o token de conexão "
+                    .. "inteiro (base64 de host:porta::token), não só o token "
+                    .. "da API"
+            )
     end
     local address = (
         string.gsub(

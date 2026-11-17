@@ -1,6 +1,7 @@
 --!nonstrict
--- Aba Dados → Backup no S3: sem conexão os handlers são inertes (o botão pode ser clicado quando a
--- sessão cai) e o texto da última operação cobre os três estados.
+-- Aba Dados → Backup no S3: sem conexão os handlers são inertes (o botão pode
+-- ser clicado quando a sessão cai) e o texto da última operação cobre os três
+-- estados.
 
 local ServiceBackup = require("handlers/service_backup")
 
@@ -56,7 +57,8 @@ function test_service_backup__linha_da_ultima_operacao()
     )
 end
 
---- o formulário da política ida e volta: semanal, a cada N horas, diário e "nunca configurada" (UTC)
+--- o formulário da política ida e volta: semanal, a cada N horas, diário e
+--- "nunca configurada" (UTC)
 function test_service_backup__formulario_da_politica_ida_e_volta()
     local semanal = ServiceBackup.policy_from_values({
         enabled = "true",

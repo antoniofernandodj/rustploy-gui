@@ -1,6 +1,7 @@
 --!nonstrict
--- Settings → Backups: o destino S3 dos backups. Sem `State.api` os handlers têm de ser inertes
--- (a conexão pode cair no instante do clique) e a chave secreta nunca pode ir parar no ctx.
+-- Settings → Backups: o destino S3 dos backups. Sem `State.api` os handlers
+-- têm de ser inertes (a conexão pode cair no instante do clique) e a chave
+-- secreta nunca pode ir parar no ctx.
 
 local function nova(ctx_inicial)
     local tela = component("views/app.gv", ctx_inicial)
@@ -25,7 +26,8 @@ function test_data_backup__testar_e_limpar_sem_conexao_sao_inertes()
     assert_eq(tela:get("backup_destination_message"), "")
 end
 
---- o formulário nasce com defaults seguros: região padrão, path-style ligado, nada configurado
+--- o formulário nasce com defaults seguros: região padrão, path-style ligado,
+--- nada configurado
 function test_data_backup__formulario_nasce_com_defaults()
     local tela = nova({})
     assert_eq(tela:get("backup_destination_region"), "us-east-1")

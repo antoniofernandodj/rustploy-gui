@@ -1,5 +1,6 @@
-// Atualizações: pergunta ao daemon se há release mais nova (Command::CheckUpdate).
-// Só consulta — instalar é manual por enquanto (docs/plano-updaters-daemon-e-gui.md).
+// Atualizações: pergunta ao daemon se há release mais nova
+// (Command::CheckUpdate). Só consulta — instalar é manual por enquanto
+// (docs/plano-updaters-daemon-e-gui.md).
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
@@ -7,17 +8,26 @@ component {
 
       row(class = kv-list__row) {
         text("{t('settings_updates.installed_version')}", class = kv-list__key)
-        text("@update_current_version", class = "kv-list__val kv-list__val--compact")
+        text(
+          "@update_current_version",
+          class = "kv-list__val kv-list__val--compact"
+        )
       }
 
       row(class = kv-list__row) {
         text("{t('settings_updates.latest_version')}", class = kv-list__key)
-        text("@update_latest_version", class = "kv-list__val kv-list__val--compact")
+        text(
+          "@update_latest_version",
+          class = "kv-list__val kv-list__val--compact"
+        )
       }
 
       row(class = kv-list__row) {
         text("{t('settings_updates.checked_at')}", class = kv-list__key)
-        text("@update_checked_at_label", class = "kv-list__val kv-list__val--compact")
+        text(
+          "@update_checked_at_label",
+          class = "kv-list__val kv-list__val--compact"
+        )
       }
 
       row(class = healthcheck__grid) {
@@ -31,7 +41,10 @@ component {
       text("@update_message", class = u-muted)
 
       if @update_is_helper_available == "true" {
-        text("{t('settings_updates.update_from_the_app')}", class = u-label-cap)
+        text(
+          "{t('settings_updates.update_from_the_app')}",
+          class = u-label-cap
+        )
 
         text(
           "{t('settings_updates.the_daemon_downloads_the_new_version')}",
@@ -61,13 +74,22 @@ component {
         text("{t('settings_updates.desktop_app')}", class = u-label-cap)
 
         row(class = kv-list__row) {
-          text("{t('settings_updates.installed_version')}", class = kv-list__key)
-          text("@update_app_current_version", class = "kv-list__val kv-list__val--compact")
+          text(
+            "{t('settings_updates.installed_version')}",
+            class = kv-list__key
+          )
+          text(
+            "@update_app_current_version",
+            class = "kv-list__val kv-list__val--compact"
+          )
         }
 
         row(class = kv-list__row) {
           text("{t('settings_updates.latest_version')}", class = kv-list__key)
-          text("@update_app_latest_version", class = "kv-list__val kv-list__val--compact")
+          text(
+            "@update_app_latest_version",
+            class = "kv-list__val kv-list__val--compact"
+          )
         }
 
         text("@update_app_message", class = u-muted)
@@ -82,7 +104,11 @@ component {
               )
             }
 
-            progressbar(if = @update_app_running, equals = true, :value = update_app_percent)
+            progressbar(
+              if = @update_app_running,
+              equals = true,
+              :value = update_app_percent
+            )
 
             row(class = healthcheck__grid) {
               button(
@@ -103,8 +129,12 @@ component {
               class = u-muted,
             )
 
-            // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
-            inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:update_app_manual_command") {
+            // o valor num campo só de leitura, com o Copiar colado
+            // (inputgroup, glacier-ui 0.164)
+            inputgroup(
+              action = "{t('common.copy')}",
+              on_action = "copy_ctx:update_app_manual_command"
+            ) {
               input(:value = update_app_manual_command, readonly = true)
             }
           }
@@ -112,21 +142,34 @@ component {
       }
 
       if @update_is_available == "true" {
-        text("{t('settings_updates.how_to_update_by_hand')}", class = u-label-cap)
+        text(
+          "{t('settings_updates.how_to_update_by_hand')}",
+          class = u-label-cap
+        )
 
         text(
           "{t('settings_updates.there_is_a_new_version_for')}",
           class = u-muted,
         )
 
-        // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
-        inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:update_install_command") {
+        // o valor num campo só de leitura, com o Copiar colado (inputgroup,
+        // glacier-ui 0.164)
+        inputgroup(
+          action = "{t('common.copy')}",
+          on_action = "copy_ctx:update_install_command"
+        ) {
           input(:value = update_install_command, readonly = true)
         }
 
         row(class = kv-list__row) {
-          text("{t('settings_updates.release_notes')}", class = "kv-list__key kv-list__key--fit")
-          text("@update_release_url", class = "kv-list__val kv-list__val--compact kv-list__val--wrap")
+          text(
+            "{t('settings_updates.release_notes')}",
+            class = "kv-list__key kv-list__key--fit"
+          )
+          text(
+            "@update_release_url",
+            class = "kv-list__val kv-list__val--compact kv-list__val--wrap"
+          )
 
           button(
             "{t('common.copy')}",

@@ -11,33 +11,40 @@
    Toda classe segue Bloco / Elemento / Modificador, em minúsculas com hífen
    dentro de cada palavra:
 
-     .bloco                 componente autônomo         .card, .kv-list, .btn
-     .bloco__elemento       parte que só existe nele    .card__head, .nav-item__icon
-     .bloco--modificador    variação ou estado          .btn--danger, .nav-item--active
+     .bloco               componente autônomo       .card, .kv-list, .btn
+     .bloco__elemento     parte que só existe nele  .card__head,
+                                                    .nav-item__icon
+     .bloco--modificador  variação ou estado        .btn--danger,
+                                                    .nav-item--active
 
    • O modificador NUNCA vem sozinho: o markup leva as duas classes
-     (`class = "btn btn--danger"`) e a regra do modificador só troca o que muda.
+     (`class = "btn btn--danger"`) e a regra do modificador só troca o que
+     muda.
    • Elemento não aninha elemento (`.a__b__c` não existe): o bloco é dono de
      todas as suas partes, por mais fundo que estejam na árvore.
-   • `u-*` são utilitários de uma propriedade só, sem bloco (`u-fill`, `u-muted`).
+   • `u-*` são utilitários de uma propriedade só, sem bloco (`u-fill`,
+     `u-muted`).
    • Um modificador declarado DEPOIS do base ganha dele (mesma especificidade).
 
    Seletores compostos e combinadores (glacier-ui 0.122+): como no CSS,
-     .a > .b      filho DIRETO de .a          .a .b     .b em QUALQUER profundidade
-     row.a        tag + classe                .a.b      as duas classes no mesmo nó
+     .a > .b   filho DIRETO de .a     .a .b  .b em QUALQUER profundidade
+     row.a     tag + classe           .a.b   as duas classes no mesmo nó
      .a > text:hover   :estado só vale no ÚLTIMO seletor
    A regra composta fica logo acima do tier simples (`.a > .b` vence `.b`) e
-   abaixo do `#id` simples e do inline. Fora da gramática — e ERRO de parse, não
-   regra ignorada: `+`, `~`, `[attr]`, `::pseudo`, `:not(…)` e `:estado` num
-   ancestral.
+   abaixo do `#id` simples e do inline. Fora da gramática — e ERRO de parse,
+   não regra ignorada: `+`, `~`, `[attr]`, `::pseudo`, `:not(…)` e `:estado`
+   num ancestral.
 
    Onde isto simplifica o app: um MODIFICADOR NA RAIZ do bloco recolore os
    filhos, em vez de cada filho carregar o seu par de classes de estado.
-     nav_item.component.gv   .nav-item--active > .nav-item__icon     (era *_on / *_off ×3)
-     state_cell.component.gv .state-cell--ok > text                  (a cor de ponto + rótulo)
-   Onde NÃO ajuda, e fica seletor simples de propósito: bloco cujo único estado é
-   uma propriedade do próprio nó (`.btn--primary`, `.service__actions--full`) — um
-   combinador só trocaria `.x` por `.y > .x` sem tirar nenhuma classe do markup. */
+     nav_item.component.gv    .nav-item--active > .nav-item__icon
+                              (era *_on / *_off ×3)
+     state_cell.component.gv  .state-cell--ok > text
+                              (a cor de ponto + rótulo)
+   Onde NÃO ajuda, e fica seletor simples de propósito: bloco cujo único estado
+   é uma propriedade do próprio nó (`.btn--primary`, `.service__actions--full`)
+   — um combinador só trocaria `.x` por `.y > .x` sem tirar nenhuma classe do
+   markup. */
 
 /* ── Design tokens (glacier-ui 0.8.0+) ─────────────────────────────────────
    Fonte única da paleta. Referenciados via var(--x) aqui e nos style dos
@@ -106,46 +113,87 @@
 .resize__corner--sw { cursor: resize-sw; }
 .resize__corner--se { cursor: resize-se; }
 
-.titlebar          { width: fill; height: 32; background: var(--surface); align_y: center; }
-.titlebar__drag    { width: fill; height: fill; align_y: center; padding: 0 0 0 16; spacing: 9; }
+.titlebar {
+  width: fill;
+  height: 32;
+  background: var(--surface);
+  align_y: center;
+}
+.titlebar__drag {
+  width: fill;
+  height: fill;
+  align_y: center;
+  padding: 0 0 0 16;
+  spacing: 9;
+}
 .titlebar__dot     { size: 10; color: var(--blue); }
 .titlebar__title   { size: 12; bold: true; color: var(--muted); }
-.titlebar__btn     { width: 48; padding: 5 0; color: var(--border); text_align: center; }
+.titlebar__btn {
+  width: 48;
+  padding: 5 0;
+  color: var(--border);
+  text_align: center;
+}
 .titlebar__btn--close { color: var(--danger); }
-.titlebar__icon-box { width: fill; height: 20.8; align_x: center; align_y: center; }  /* = altura de linha do "—" (16 × 1.3) */
+/* = altura de linha do "—" (16 × 1.3) */
+.titlebar__icon-box {
+  width: fill;
+  height: 20.8;
+  align_x: center;
+  align_y: center;
+}
 .titlebar__icon    { width: 12; height: 12; color: var(--text); }
 
 /* ── Sidebar / top bar ────────────────────────────────────────────────── */
-/* O item de navegação (`.nav-item`) mora no style de nav_item.component.gv. O antigo
-   `.nav_item` (botão-texto puro, sem ícone) ficou sem uso quando o componente
-   passou a montar ícone+rótulo; mantido comentado, não removido (é
+/* O item de navegação (`.nav-item`) mora no style de nav_item.component.gv. O
+   antigo `.nav_item` (botão-texto puro, sem ícone) ficou sem uso quando o
+   componente passou a montar ícone+rótulo; mantido comentado, não removido (é
    reutilizável). */
 /* .nav-item--text { width: fill; color: var(--surface); padding: 11 14; } */
 
 /* ── Tabs ─────────────────────────────────────────────────────────────── */
 .tabs               { width: fill; spacing: 4; }
-.tabs__tab          { color: var(--surface); padding: 7 14; border_radius: 5; size: 13 }
+.tabs__tab {
+  color: var(--surface);
+  padding: 7 14;
+  border_radius: 5;
+  size: 13;
+}
 .tabs__tab--active  { color: var(--blue); }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 /* `.btn` é o bloco; a cor vem de um modificador (--primary/--danger/--ghost/
    --blue) e o tamanho de outro (--sm/--xs/--wide). Os de tamanho vêm DEPOIS
    dos de cor porque o `--ghost` fixa o padding. */
-.btn           { color: var(--border); padding: 8 15; border_radius: 5; size: 13 }
-/* `gradient` pinta o fundo do botão (glacier-ui 0.141+); `color` fica de base. */
-.btn--primary  { color: var(--green); gradient: var(--green-a) var(--green-b); }
-.btn--danger   { color: var(--danger); gradient: var(--danger-a) var(--danger-b); }
+.btn {
+  color: var(--border);
+  padding: 8 15;
+  border_radius: 5;
+  size: 13;
+}
+/* `gradient` pinta o fundo do botão (glacier-ui 0.141+); `color` fica de
+   base. */
+.btn--primary {
+  color: var(--green);
+  gradient: var(--green-a) var(--green-b);
+}
+.btn--danger {
+  color: var(--danger);
+  gradient: var(--danger-a) var(--danger-b);
+}
 .btn--ghost    { color: var(--border); padding: 8 14; }
 .btn--blue     { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
 .btn--wide     { padding: 8 18; }
 .btn--sm       { padding: 6 11; border_radius: 4; size: 12 }
 .btn--xs       { padding: 4 10; border_radius: 4; size: 12 }
 /* `.btn-secondary` nunca teve regra (botão sem estilo); fica como marcador. */
-/* Ação em andamento (busy.luau liga `disabled = @busy_<ação>`): o botão apaga na hora. */
-/* Hover/pressionado com `transition` (glacier-ui 0.145, medido numa janela real): a cor sobe em
-   rampa em vez de saltar. A transição vale só para botões de cor SÓLIDA (ghost, secundário,
-   barra de título, abas); um gradiente de paradas diferentes troca de uma vez — por isso os
-   botões preenchidos clareiam para a parada de cima (`--*-a`) sem rampa. */
+/* Ação em andamento (busy.luau liga `disabled = @busy_<ação>`): o botão apaga
+   na hora. */
+/* Hover/pressionado com `transition` (glacier-ui 0.145, medido numa janela
+   real): a cor sobe em rampa em vez de saltar. A transição vale só para botões
+   de cor SÓLIDA (ghost, secundário, barra de título, abas); um gradiente de
+   paradas diferentes troca de uma vez — por isso os botões preenchidos
+   clareiam para a parada de cima (`--*-a`) sem rampa. */
 .btn           { transition: all 150ms ease-out; }
 .btn--primary:hover { background: var(--green-a); }
 .btn--danger:hover  { background: var(--danger-a); }
@@ -153,10 +201,14 @@
 .btn--ghost:hover   { background: var(--border-hover); }
 .titlebar__btn         { transition: all 150ms ease-out; }
 .titlebar__btn:hover   { background: var(--border-hover); }
-.titlebar__btn--close:hover { background: var(--danger); text_color: var(--text); }
+.titlebar__btn--close:hover {
+  background: var(--danger);
+  text_color: var(--text);
+}
 .tabs__tab             { transition: all 150ms ease-out; }
 .tabs__tab:hover       { background: var(--raised); }
-/* A aba ativa é azul: o hover dela clareia o azul (e não cai no cinza da aba inativa). */
+/* A aba ativa é azul: o hover dela clareia o azul (e não cai no cinza da aba
+   inativa). */
 .tabs__tab--active:hover { background: var(--blue-hover); }
 .btn:disabled          { text_color: var(--faint); }
 .btn--primary:disabled { color: var(--border); }
@@ -172,22 +224,59 @@
    (`--fill`) não arredonda — custa matemática por pixel nela toda para um
    detalhe de 7px que quase não se nota. Os cantos ficam nas caixas pequenas
    (cards, botões, abas), onde se veem e são baratos: `--round`. */
-.panel         { background: var(--surface); border_width: 1; border_color: var(--border); padding: 4; }
+.panel {
+  background: var(--surface);
+  border_width: 1;
+  border_color: var(--border);
+  padding: 4;
+}
 .panel--round  { border_radius: 7; }
 .panel--fill   { width: fill; height: fill; }
-.card       { width: fill; background: var(--raised); border_radius: 6; border_width: 1; border_color: var(--border); padding: 18; spacing: 10; }
-.panel-pad  { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 18; spacing: 8; }
+.card {
+  width: fill;
+  background: var(--raised);
+  border_radius: 6;
+  border_width: 1;
+  border_color: var(--border);
+  padding: 18;
+  spacing: 10;
+}
+.panel-pad {
+  width: fill;
+  background: var(--surface);
+  border_radius: 6;
+  border_width: 1;
+  border_color: var(--border);
+  padding: 18;
+  spacing: 8;
+}
 
 /* ── Typography / cabeçalho de página ─────────────────────────────────── */
 .page-head           { width: fill; align_y: start; }
 .page-head__titles   { width: fill; spacing: 6; }
 .page-head__title    { size: 30; bold: true; color: var(--text); }
 .page-head__subtitle { size: 13; color: var(--muted); }
-/* Nome/descrição do projeto editados no lugar (como o título do serviço): input sem borda. */
-.page-head__title-input          { width: fill; size: 30; bold: true; color: var(--text); background: var(--bg); border_width: 0; padding: 0 6; }
+/* Nome/descrição do projeto editados no lugar (como o título do serviço):
+   input sem borda. */
+.page-head__title-input {
+  width: fill;
+  size: 30;
+  bold: true;
+  color: var(--text);
+  background: var(--bg);
+  border_width: 0;
+  padding: 0 6;
+}
 .page-head__title-input:hover    { background: var(--surface); }
 .page-head__title-input:focus    { background: var(--surface); }
-.page-head__subtitle-input       { width: fill; size: 13; color: var(--muted); background: var(--bg); border_width: 0; padding: 0 6; }
+.page-head__subtitle-input {
+  width: fill;
+  size: 13;
+  color: var(--muted);
+  background: var(--bg);
+  border_width: 0;
+  padding: 0 6;
+}
 .page-head__subtitle-input:hover { background: var(--surface); }
 .page-head__subtitle-input:focus { background: var(--surface); }
 .page-head__stats    { spacing: 14; }
@@ -199,9 +288,20 @@
    linha é o `.table__row` (padding) com o texto do `.table__cell` nas células
    sem corpo, e o border-color do `--divided` é o fio entre uma linha e a
    próxima (o antigo `hr`). */
-.table__head       { width: fill; padding: 14 18; background: var(--raised); border_radius: 5; spacing: 0; }
+.table__head {
+  width: fill;
+  padding: 14 18;
+  background: var(--raised);
+  border_radius: 5;
+  spacing: 0;
+}
 .table__head-cell  { size: 11; bold: true; color: var(--faint); }
-.table__row        { width: fill; padding: 13 18; spacing: 0; align_y: center; }
+.table__row {
+  width: fill;
+  padding: 13 18;
+  spacing: 0;
+  align_y: center;
+}
 .table__row--divided { border_color: var(--border); }
 .table__cell       { size: 13; color: var(--text-2); }
 .table__cell--key  { bold: true; color: var(--accent); }
@@ -218,7 +318,12 @@
    estourar). */
 .table__col-img    { width: 340; }
 
-.stepper               { width: fill; padding: 0 18 12 18; spacing: 14; align_y: center; }
+.stepper {
+  width: fill;
+  padding: 0 18 12 18;
+  spacing: 14;
+  align_y: center;
+}
 .stepper__step         { size: 12; }
 .stepper__step--done    { color: var(--ok); }
 .stepper__step--current { color: var(--accent); bold: true; }
@@ -236,7 +341,14 @@
    histórico (longo) — e empilhar três `.panel--fill` dava a cada um um terço
    da altura: três caixas enormes e vazias quando não há deploy nenhum. Aqui
    a altura vem do conteúdo (`shrink`) e só o histórico recebe `--fill`. */
-.section       { width: fill; height: shrink; background: var(--surface); border_radius: 7; border_width: 1; border_color: var(--border); }
+.section {
+  width: fill;
+  height: shrink;
+  background: var(--surface);
+  border_radius: 7;
+  border_width: 1;
+  border_color: var(--border);
+}
 .section--fill { height: fill; }
 /* Cabeçalho da seção: título à esquerda, ação à direita. O `width: fill` no
    TÍTULO é o que empurra o botão — o iced não tem `justify-content`, e sem
@@ -250,7 +362,13 @@
 .section__scroll { width: fill; height: fill; padding: 0 6 6 6; }
 /* Vazio: centralizado e com respiro, em vez de uma frase solta no canto
    superior esquerdo de um painel de 300px de altura. */
-.empty-state   { width: fill; text_align: center; padding: 26 0; size: 12; color: var(--faint); }
+.empty-state {
+  width: fill;
+  text_align: center;
+  padding: 26 0;
+  size: 12;
+  color: var(--faint);
+}
 /* Só para a seção que recebe `--fill` (o histórico): sem isto o aviso de vazio
    fica encostado no topo de um card de várias centenas de pixels. É uma ROW
    de propósito — `align-y` centraliza no eixo cruzado, e numa column esse
@@ -271,7 +389,8 @@
 }
 /* O mesmo painel com os campos mais juntos (o formulário de renomear). */
 .form-panel--tight { spacing: 6; }
-/* Uma linha da lista + a linha extra de baixo (ex.: o valor revelado de um secret). */
+/* Uma linha da lista + a linha extra de baixo (ex.: o valor revelado de um
+   secret). */
 .kv-list__block { width: fill; height: shrink; }
 /* Pilha de painéis dentro de um scrollable (que só aceita um filho). */
 .form-stack { width: fill; height: shrink; spacing: 14; }
@@ -299,76 +418,166 @@
 .badge         { spacing: 7; align_y: center; }
 .badge__label  { size: 12; bold: true; }
 /* Ações do card (projeto e serviço): um botão cheio, no tamanho da coluna. */
-.card__action         { width: fill; color: var(--border); padding: 7 10; text_align: center; border_radius: 5; size: 13 }
+.card__action {
+  width: fill;
+  color: var(--border);
+  padding: 7 10;
+  text_align: center;
+  border_radius: 5;
+  size: 13;
+}
 .card__action--auto   { width: shrink; padding: 7 12; }
 .card__action--open   { padding: 7 12; }
 .card__action--icon   { padding: 7 0; }
 .card__action--danger { color: var(--danger); }
 
 /* ── Service detail (compartilhado) ───────────────────────────────────── */
-.kv-list       { width: fill; background: var(--surface); border_radius: 6; border_width: 1; border_color: var(--border); padding: 8 18; spacing: 0; }
+.kv-list {
+  width: fill;
+  background: var(--surface);
+  border_radius: 6;
+  border_width: 1;
+  border_color: var(--border);
+  padding: 8 18;
+  spacing: 0;
+}
 .kv-list__row  { width: fill; padding: 12 0; align_y: center; spacing: 6; }
 /* Linha agarrada durante o drag-and-drop (flag {var}.__dragging do
    glacier-ui): fundo elevado + borda de destaque enquanto o resto reflui. */
-.kv-list__row--dragging { padding: 12 10; background: var(--raised); border_radius: 4; border_width: 1; border_color: var(--accent); }
+.kv-list__row--dragging {
+  padding: 12 10;
+  background: var(--raised);
+  border_radius: 4;
+  border_width: 1;
+  border_color: var(--accent);
+}
 .kv-list__key  { width: fill; size: 13; color: var(--muted); }
 .kv-list__val  { size: 16; bold: true; color: var(--text); }
 .kv-list__val--compact { size: 13; color: var(--text-2); }
-/* Valor longo e sem espaços (URL, comando): ocupa o que sobra da linha e quebra ali, em vez de empurrar o botão para fora do painel. */
+/* Valor longo e sem espaços (URL, comando): ocupa o que sobra da linha e
+   quebra ali, em vez de empurrar o botão para fora do painel. */
 .kv-list__val--wrap { width: fill; }
 .kv-list__key--fit { width: shrink; }
-.form-select   { width: fill; padding: 12 14; background: var(--raised); border_radius: 4; border_width: 1; border_color: #30363D; color: var(--text-2); }
+.form-select {
+  width: fill;
+  padding: 12 14;
+  background: var(--raised);
+  border_radius: 4;
+  border_width: 1;
+  border_color: #30363D;
+  color: var(--text-2);
+}
 
 .env              { width: fill; height: fill; spacing: 10; }
 /* Aba inteira dentro de um scrollable (altura pelo conteúdo, não fill). */
-/* padding à direita: a barra de rolagem do scrollable fica por cima do conteúdo e cortava o último botão da linha. */
+/* padding à direita: a barra de rolagem do scrollable fica por cima do
+   conteúdo e cortava o último botão da linha. */
 .env--flow        { width: fill; spacing: 10; padding: 0 16 0 0; }
 .tabs__scroll     { width: fill; }
 .tabs__main       { width: shrink; spacing: 4; }
 .env__head        { width: fill; align_y: center; }
-/* Barra de ferramentas de uma aba (texto + checkboxes + botão): sem espaço entre os itens, o rótulo de
-   um checkbox encosta no box do seguinte. */
+/* Barra de ferramentas de uma aba (texto + checkboxes + botão): sem espaço
+   entre os itens, o rótulo de um checkbox encosta no box do seguinte. */
 .env__toolbar     { width: fill; align_y: center; spacing: 16; }
 .env__add         { width: fill; spacing: 8; align_y: center; }
 .env__input       { width: fill; padding: 9 12; }
-/* A chave ao lado de um valor `fill`: largura fixa, para o valor (ou a lista de secrets) ficar com o resto. */
+/* A chave ao lado de um valor `fill`: largura fixa, para o valor (ou a lista
+   de secrets) ficar com o resto. */
 .env__input-key   { width: 220; padding: 9 12; }
-/* Edição no lugar de chave/valor: o campo some a borda e herda a cara do texto que substitui; só o
-   foco desenha um filete. O wrapper (form) tem a largura da célula que ele ocupa. */
+/* Edição no lugar de chave/valor: o campo some a borda e herda a cara do texto
+   que substitui; só o foco desenha um filete. O wrapper (form) tem a largura
+   da célula que ele ocupa. */
 .env__edit        { width: fill; }
 .env__edit--key   { width: 230; }
-.env__inline      { width: fill; padding: 3 6; background: transparent; border_width: 0; size: 13; }
-.env__inline:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
-/* Linha de variável editável no lugar (handlers/env_rows.luau): a chave é um campo sem borda com a
-   cara do texto da chave; o mouse em cima clareia o fundo, a dica de que dá para clicar e editar. */
+.env__inline {
+  width: fill;
+  padding: 3 6;
+  background: transparent;
+  border_width: 0;
+  size: 13;
+}
+.env__inline:focus {
+  background: var(--raised);
+  border_width: 1;
+  border_color: var(--accent);
+}
+/* Linha de variável editável no lugar (handlers/env_rows.luau): a chave é um
+   campo sem borda com a cara do texto da chave; o mouse em cima clareia o
+   fundo, a dica de que dá para clicar e editar. */
 .env__inline:hover { background: var(--surface); }
-.env__inline-key  { width: 230; padding: 3 6; background: transparent; border_width: 0; size: 13; bold: true; color: var(--accent); }
+.env__inline-key {
+  width: 230;
+  padding: 3 6;
+  background: transparent;
+  border_width: 0;
+  size: 13;
+  bold: true;
+  color: var(--accent);
+}
 .env__inline-key:hover { background: var(--surface); }
-.env__inline-key:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
-/* O nome de um secret, editado no lugar (renomeia sozinho meio segundo depois da última tecla, como
-   o nome do projeto — handlers/secret_rows.luau). Mesma cara da chave da variável, na largura do
-   `.env__key` que ele substitui. */
-.env__inline-name { width: 400; padding: 3 6; background: transparent; border_width: 0; size: 13; bold: true; color: var(--accent); }
+.env__inline-key:focus {
+  background: var(--raised);
+  border_width: 1;
+  border_color: var(--accent);
+}
+/* O nome de um secret, editado no lugar (renomeia sozinho meio segundo depois
+   da última tecla, como o nome do projeto — handlers/secret_rows.luau). Mesma
+   cara da chave da variável, na largura do `.env__key` que ele substitui. */
+.env__inline-name {
+  width: 400;
+  padding: 3 6;
+  background: transparent;
+  border_width: 0;
+  size: 13;
+  bold: true;
+  color: var(--accent);
+}
 .env__inline-name:hover { background: var(--surface); }
-.env__inline-name:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
-/* A lista de secrets que toma o lugar do valor quando "usar secret" está marcado. */
-.env__secret-select { width: fill; padding: 4 8; background: var(--raised); border_radius: 4; border_width: 1; border_color: #30363D; color: var(--text-2); size: 13; }
+.env__inline-name:focus {
+  background: var(--raised);
+  border_width: 1;
+  border_color: var(--accent);
+}
+/* A lista de secrets que toma o lugar do valor quando "usar secret" está
+   marcado. */
+.env__secret-select {
+  width: fill;
+  padding: 4 8;
+  background: var(--raised);
+  border_radius: 4;
+  border_width: 1;
+  border_color: #30363D;
+  color: var(--text-2);
+  size: 13;
+}
 .env__use-secret  { size: 12; color: var(--muted); }
 .env__drag-handle { color: var(--faint); padding: 0 6 0 0; cursor: grab; }
 .env__drag-handle--dragging { cursor: grabbing; }
-.env__del         { color: var(--error); padding: 4 10; background: var(--border); border_radius: 4; }
+.env__del {
+  color: var(--error);
+  padding: 4 10;
+  background: var(--border);
+  border_radius: 4;
+}
 .env__del:disabled { color: var(--surface); text_color: var(--faint); }
 /* Respiro entre o botão ✕ e a chave da variável (evita que o vermelho encoste
    no texto). Usado nas linhas de env de serviço e de projeto. */
 .env__sep         { width: 10; }
 .reorder__index   { size: 13; bold: true; color: var(--accent); width: 32; }
 .env__key         { size: 13; bold: true; color: var(--accent); width: 400; }
-/* Editor .env (textarea + toggle), compartilhado por service.component.gv e shell.component.gv. */
+/* Editor .env (textarea + toggle), compartilhado por service.component.gv e
+   shell.component.gv. */
 .env__editor      { width: fill; height: 200; padding: 10 12; font: mono; }
 /* Webhook (aba Deployments): a URL ocupa a linha inteira — é longa demais para
    dividir espaço com os botões, que ficam na linha de baixo. */
 .webhook          { width: fill; spacing: 10; }
-.webhook__url     { width: fill; size: 13; bold: true; color: var(--text-2); font: mono; }
+.webhook__url {
+  width: fill;
+  size: 13;
+  bold: true;
+  color: var(--text-2);
+  font: mono;
+}
 .webhook__actions { spacing: 8; align_y: center; }
 .healthcheck__grid  { width: fill; spacing: 14; }
 .healthcheck__field { width: fill; spacing: 6; }
@@ -386,26 +595,29 @@
 .field-description { size: 12; color: var(--muted); }
 .field-error       { size: 12; color: var(--error); }
 /* Rótulo no estilo `u-label-cap` (o de boa parte dos formulários de serviço e
-   settings): `field(label_class = u-label-cap)`. A regra composta pesa mais que
-   as duas sozinhas, então a cor apagada do `u-label-cap` vence a do `.field-label`. */
+   settings): `field(label_class = u-label-cap)`. A regra composta pesa mais
+   que as duas sozinhas, então a cor apagada do `u-label-cap` vence a do
+   `.field-label`. */
 .field-label.u-label-cap { color: var(--faint); }
 
-/* Campo de um spinbox (`field_class="field__spin"`). O `.field__input` (padding
-   13 14 → ~44px de altura) desencontrava o campo dos degraus ▴▾, que somam
-   ~30px (2 × ~1,3 × glyph_size 11 — ver o builtin SpinBox do glacier-ui). Um
-   padding menor casa a altura dos dois. Sem `width`: cada spinbox passa a
-   largura do campo pela prop `width=`. */
+/* Campo de um spinbox (`field_class="field__spin"`). O `.field__input`
+   (padding 13 14 → ~44px de altura) desencontrava o campo dos degraus ▴▾, que
+   somam ~30px (2 × ~1,3 × glyph_size 11 — ver o builtin SpinBox do
+   glacier-ui). Um padding menor casa a altura dos dois. Sem `width`: cada
+   spinbox passa a largura do campo pela prop `width=`. */
 .field__spin    { padding: 6 12; }
 
 /* Janelas auxiliares (novo projeto/job/serviço/token, exportar): a casca de
-   tela e o corpo rolável são os mesmos; o resto mora no style de cada janela. */
+   tela e o corpo rolável são os mesmos; o resto mora no style de cada
+   janela. */
 .dialog__screen  { width: fill; height: fill; }
 .dialog__body    { width: fill; height: fill; }
 .dialog__input   { width: fill; }
 .dialog__actions { width: fill; spacing: 10; align_y: center; }
 
 /* Linha "ocupado": spinner + texto de status enquanto um RPC está no ar. O
-   spinner só aparece com a flag `*_busy` ligada; o texto acompanha o `*_msg`. */
+   spinner só aparece com a flag `*_busy` ligada; o texto acompanha o
+   `*_msg`. */
 .busy-row         { spacing: 9; align_y: center; }
 .busy-row__spin   { width: 15; height: 15; color: var(--spin); }
 
@@ -419,18 +631,20 @@
 .env__input:invalid     { border_width: 1; border_color: var(--error); }
 
 /* ── Responsivo (glacier-ui 0.9.0+) ────────────────────────────────────────
-   O motor só ajusta PROPRIEDADES (não reestrutura Row↔Column nem esconde), então
-   "mobile" aqui = modo compacto: menos padding, colunas/fontes menores conforme a
-   largura da janela encolhe. A sidebar/topbar têm os deles no style do shell. */
+   O motor só ajusta PROPRIEDADES (não reestrutura Row↔Column nem esconde),
+   então "mobile" aqui = modo compacto: menos padding, colunas/fontes menores
+   conforme a largura da janela encolhe. A sidebar/topbar têm os deles no style
+   do shell. */
 
 /* StatCards ao lado do título (page-head): o Row não quebra linha nem clipa,
    então com muitos cards eles invadem o título bem antes dos 560 que escondem
    .page-head__stats abaixo. Cada view marca a sua página com o modificador do
-   ponto em que ela deixa de caber, medido pela densidade: xl = 5 cards com valor
-   largo (Deploy Engine, ~1240px de janela com sidebar cheia), lg = 2 cards largos
-   (Deployments: STATUS + UPTIME "1d 11h 49m", ~950px), md = 4 cards compactos
-   (Docker/Monitoring/Schedules, ~700px com sidebar colapsada). Ingress (2
-   cards curtos) cabe até os 560 gerais e fica só com .page-head__stats. */
+   ponto em que ela deixa de caber, medido pela densidade: xl = 5 cards com
+   valor largo (Deploy Engine, ~1240px de janela com sidebar cheia), lg = 2
+   cards largos (Deployments: STATUS + UPTIME "1d 11h 49m", ~950px), md = 4
+   cards compactos (Docker/Monitoring/Schedules, ~700px com sidebar colapsada).
+   Ingress (2 cards curtos) cabe até os 560 gerais e fica só com
+   .page-head__stats. */
 @media (max-width: 1280) {
   .page-head__stats--hide-xl { hidden: true; }
 }
@@ -440,13 +654,15 @@
      • >1240px  → `--full`: rótulos por extenso, À DIREITA do título
                   (mesma linha — há espaço de sobra).
      • ≤1240px  → `--compact`: ícones + tooltip, EMPILHADOS abaixo do
-                  título/status (dentro da coluna page-head__titles, ver service.component.gv).
+                  título/status (dentro da coluna page-head__titles, ver
+                  service.component.gv).
    O empilhamento (em vez de encolher na mesma linha) é o que garante que os
-   botões nunca dividam linha com o nome quando aperta — antes eles transbordavam
-   por cima de "Landing page"/"Running". Base: full visível, compacta oculta; o
-   @media inverte as duas. O limiar é medido na largura da JANELA, mas o header
-   vive dentro do shell com a sidebar comendo espaço horizontal — 1240px dá a
-   folga para os rótulos por extenso só aparecerem quando realmente cabem. */
+   botões nunca dividam linha com o nome quando aperta — antes eles
+   transbordavam por cima de "Landing page"/"Running". Base: full visível,
+   compacta oculta; o @media inverte as duas. O limiar é medido na largura da
+   JANELA, mas o header vive dentro do shell com a sidebar comendo espaço
+   horizontal — 1240px dá a folga para os rótulos por extenso só aparecerem
+   quando realmente cabem. */
 .service__actions--full    { hidden: false; }
 .service__actions--compact { hidden: true; }
 @media (max-width: 1240) {
@@ -468,7 +684,8 @@
 @media (max-width: 760) {
   .page-head__stats--hide-md { hidden: true; }
   /* Título + botão de ação dividem a linha e o motor não empilha Row: sem o
-     subtítulo (que quebrava palavra por palavra) e com o título menor, cabem. */
+     subtítulo (que quebrava palavra por palavra) e com o título menor,
+     cabem. */
   .page-head__subtitle { hidden: true; }
   .page-head__title    { size: 20; }
 }

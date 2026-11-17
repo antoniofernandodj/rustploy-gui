@@ -67,10 +67,7 @@ end
 
 --- aquecimento: aquecendo vence quente, e nil conta como frio
 function test_estado__aquecimento_aquecendo_vence_quente_e_nil_conta_como()
-    assert_eq(
-        Jobs.warm_status({ warming = true, warm = true }),
-        "warming…"
-    )
+    assert_eq(Jobs.warm_status({ warming = true, warm = true }), "warming…")
     assert_eq(Jobs.warm_status({ warm = true }), "warm")
     assert_eq(Jobs.warm_status({}), "cold")
     assert_eq(Jobs.warm_status(nil), "cold")
@@ -86,7 +83,8 @@ function test_estado__servico_sem_build_nao_tem_selo()
     assert_eq(Jobs.service_warm_status({ warm = true }), "warm")
 end
 
---- o motivo de frio vem do daemon em português: os formatos conhecidos são traduzidos, o resto passa cru
+--- o motivo de frio vem do daemon em português: os formatos conhecidos são
+--- traduzidos, o resto passa cru
 function test_estado__motivo_de_frio_traduzido()
     assert_eq(Jobs.warm_reason("nunca aquecido"), "never warmed")
     assert_eq(
