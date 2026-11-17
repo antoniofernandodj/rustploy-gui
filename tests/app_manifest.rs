@@ -220,7 +220,7 @@ fn windows_declare_title_and_size() {
         (
             "new_job",
             Some("{t('new_job_window.new_job_rustploy')}"),
-            "560 700",
+            "760 760",
             "handlers/jobs.luau",
         ),
         (

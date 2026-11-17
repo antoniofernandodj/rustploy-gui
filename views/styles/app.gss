@@ -331,6 +331,8 @@
 .env__toolbar     { width: fill; align_y: center; spacing: 16; }
 .env__add         { width: fill; spacing: 8; align_y: center; }
 .env__input       { width: fill; padding: 9 12; }
+/* A chave ao lado de um valor `fill`: largura fixa, para o valor (ou a lista de secrets) ficar com o resto. */
+.env__input-key   { width: 220; padding: 9 12; }
 /* Edição no lugar de chave/valor: o campo some a borda e herda a cara do texto que substitui; só o
    foco desenha um filete. O wrapper (form) tem a largura da célula que ele ocupa. */
 .env__edit        { width: fill; }
@@ -343,6 +345,12 @@
 .env__inline-key  { width: 230; padding: 3 6; background: transparent; border_width: 0; size: 13; bold: true; color: var(--accent); }
 .env__inline-key:hover { background: var(--surface); }
 .env__inline-key:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
+/* O nome de um secret, editado no lugar (renomeia sozinho meio segundo depois da última tecla, como
+   o nome do projeto — handlers/secret_rows.luau). Mesma cara da chave da variável, na largura do
+   `.env__key` que ele substitui. */
+.env__inline-name { width: 400; padding: 3 6; background: transparent; border_width: 0; size: 13; bold: true; color: var(--accent); }
+.env__inline-name:hover { background: var(--surface); }
+.env__inline-name:focus { background: var(--raised); border_width: 1; border_color: var(--accent); }
 /* A lista de secrets que toma o lugar do valor quando "usar secret" está marcado. */
 .env__secret-select { width: fill; padding: 4 8; background: var(--raised); border_radius: 4; border_width: 1; border_color: #30363D; color: var(--text-2); size: 13; }
 .env__use-secret  { size: 12; color: var(--muted); }

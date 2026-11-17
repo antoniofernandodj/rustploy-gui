@@ -291,49 +291,13 @@ component {
           }
         }
 
-        if @rename_open == "service_secret" {
-          row(class = env__add) {
-            text("{t('rename.label', rename_from=rename_from)}", class = u-muted)
-
-            input(
-              class = env__input,
-              form_control = rename_to,
-              :value = rename_to,
-              on_change = field:rename_to,
-              placeholder = "{t('rename.new_name')}",
-            )
-
-            button(
-              "{t('rename.apply')}",
-              class = "btn btn--primary",
-              on_click = service_rename_apply,
-              disabled = @busy_service_rename_apply
-            )
-
-            button(
-              "{t('common.cancel')}",
-              class = "btn btn--ghost",
-              on_click = rename_cancel
-            )
-          }
-        }
-
         each @service_secrets as s (fallback = SemSecretsDoServico) {
-          column(class = kv-list__block) {
           row(class = kv-list__row) {
             button(
               "✕",
               class = env__del,
               on_click = service_secret_delete:@s.name,
               disabled = @busy_service_secret_delete
-            )
-
-            button(
-              "✏️",
-              class = "btn btn--ghost btn--sm",
-              on_click = service_secret_rename_pick:@s.name,
-              tooltip = "{t('environment.rename')}",
-              tooltip_delay = "500ms",
             )
 
             button(
@@ -386,12 +350,14 @@ component {
             )
 
             text(class = env__sep)
-            text("@s.name_display", class = env__key)
-          }
-
-          row(class = kv-list__row, if = @s.revealed, equals = true) {
-            text("@s.value", class = "kv-list__val")
-          }
+            input(
+              class = env__inline-name,
+              :value = "@s.bind_name",
+              on_change = service_secret_name_change:@s.name,
+              placeholder = "{t('common.name')}",
+            )
+            text("{t('project_secrets.encrypted')}", class = "kv-list__val kv-list__val--compact", if = @s.revealed, equals = false)
+            text("@s.value", class = "kv-list__val kv-list__val--compact", if = @s.revealed, equals = true)
           }
         }
 

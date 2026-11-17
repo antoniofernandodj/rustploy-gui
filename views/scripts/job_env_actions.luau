@@ -63,14 +63,8 @@ end
 -- function job_env_edit_apply(): ()
 --     Core.edit_apply()
 -- end
-function job_secret_rename_pick(name: string): ()
-    Core.secret_rename_pick(name)
-end
-function job_rename_cancel(): ()
-    Core.rename_cancel()
-end
-function job_rename_apply(): ()
-    Core.rename_apply()
+function job_secret_name_change(name: string, value: string): ()
+    Core.secret_name_change(name, value)
 end
 function job_env_to_secret(key: string): ()
     Core.env_to_secret(key)

@@ -1,6 +1,17 @@
 // Seção `settings` (view = settings) das telas globais; importada por home.component.gv.
 component {
   resources {
+    style """
+    .settings           { width: fill; height: fill; spacing: 24; }
+    .settings__nav      { width: 220; height: fill; spacing: 2; padding: 0 12 0 0; border_width: 0; }
+    .settings__nav-item { width: fill; padding: 8 12; border_radius: 5; color: var(--bg); cursor: pointer; }
+    .settings__nav-item:hover { background: var(--raised); }
+    .settings__nav-item--active       { color: var(--blue); gradient: var(--blue-a) var(--blue-b); }
+    .settings__nav-item--active:hover { background: var(--blue-hover); }
+    .settings__nav-label { size: 13; color: var(--muted); }
+    .settings__nav-item--active > .settings__nav-label { color: var(--text); }
+    .settings__body     { width: fill; height: fill; }
+    """
     link(rel = import, href = "settings/web.component.gv", as = SettingsWebTab)
     link(rel = import, href = "settings/git.component.gv", as = SettingsGitTab)
     link(rel = import, href = "settings/maintenance.component.gv", as = SettingsMaintenanceTab)
@@ -23,54 +34,62 @@ component {
     }
   }
 
-  scroll(class = tabs__scroll, direction = horizontal) {
-    tabbar(
-      :value = settings_tab,
-      active = @settings_tab,
-      :items = settings_tabs,
-      tab_class = tabs__tab,
-      tab_active_class = "tabs__tab tabs__tab--active",
-      padding = "9 16",
-      size = 14,
-      active_bold = false,
-    )
-  }
+  // Menu vertical, como o "Settings" de um IDE: a lista das seções à esquerda, a seção aberta à
+  // direita (cada seção tem o próprio scroll). Era uma barra de abas horizontal.
+  row(class = settings) {
+    column(class = settings__nav) {
+      each @settings_tabs as tab {
+        button(
+          class = "settings__nav-item settings__nav-item--active",
+          if = @settings_tab,
+          equals = "@tab.id",
+          on_click = settings_tab_pick:@tab.id,
+        ) {
+          text("@tab.label", class = settings__nav-label)
+        }
 
-  hr
+        button(class = settings__nav-item, else, on_click = settings_tab_pick:@tab.id) {
+          text("@tab.label", class = settings__nav-label)
+        }
+      }
+    }
 
-  if @settings_tab == "web" {
-    SettingsWebTab
-  }
+    column(class = settings__body) {
+      if @settings_tab == "web" {
+        SettingsWebTab
+      }
 
-  if @settings_tab == "git" {
-    SettingsGitTab
-  }
+      if @settings_tab == "git" {
+        SettingsGitTab
+      }
 
-  if @settings_tab == "maintenance" {
-    SettingsMaintenanceTab
-  }
+      if @settings_tab == "maintenance" {
+        SettingsMaintenanceTab
+      }
 
-  if @settings_tab == "gitsync" {
-    SettingsGitSyncTab
-  }
+      if @settings_tab == "gitsync" {
+        SettingsGitSyncTab
+      }
 
-  if @settings_tab == "backups" {
-    SettingsBackupsTab
-  }
+      if @settings_tab == "backups" {
+        SettingsBackupsTab
+      }
 
-  if @settings_tab == "recoverykey" {
-    SettingsRecoveryKeyTab
-  }
+      if @settings_tab == "recoverykey" {
+        SettingsRecoveryKeyTab
+      }
 
-  if @settings_tab == "recover" {
-    SettingsRecoverTab
-  }
+      if @settings_tab == "recover" {
+        SettingsRecoverTab
+      }
 
-  if @settings_tab == "updates" {
-    SettingsUpdatesTab
-  }
+      if @settings_tab == "updates" {
+        SettingsUpdatesTab
+      }
 
-  if @settings_tab == "language" {
-    SettingsLanguageTab
+      if @settings_tab == "language" {
+        SettingsLanguageTab
+      }
+    }
   }
 }

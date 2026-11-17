@@ -893,4 +893,9 @@ function update_rollback(): ()
     toast { message = i18n.tr("Reversão iniciada"), kind = "success" }
 end
 
+-- Item do menu vertical de Settings (home/settings.component.gv): abre a seção.
+function settings_tab_pick(id: string): ()
+    ctx.settings_tab = id
+end
+
 return M

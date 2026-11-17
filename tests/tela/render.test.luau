@@ -692,6 +692,21 @@ end
 
 -- ── configurações ───────────────────────────────────────────────────────────
 
+--- Settings: menu vertical (lista à esquerda), um item ativo, clicar troca a seção
+function test_configuracoes_menu_vertical()
+    local tela = app("settings", { settings_tab = "web" })
+    rende(tela)
+    local itens = tela:find_all({ class = "settings__nav-item" })
+    local ativos = tela:find_all({ class = "settings__nav-item--active" })
+    assert_eq(#ativos, 1, "um item ativo só")
+    assert_true(#itens + #ativos >= 9, "faltam itens no menu")
+    assert_eq(#tela:find_all({ kind = "tabbar" }), 0, "a barra de abas horizontal voltou")
+    tela:call("settings_tab_pick:updates")
+    assert_eq(tela:get("settings_tab"), "updates")
+    rende(tela)
+    assert_eq(#tela:find_all({ class = "settings__nav-item--active" }), 1)
+end
+
 --- Git: provedor OAuth e token
 function test_configuracoes_git()
     local tela = app("settings", { gitea_count = "1", settings_tab = "git" })
@@ -931,17 +946,23 @@ function test_servico_domains_portas_tcp()
     assert_true(tem_trecho(tela:texts(), "No TCP port configured."), "estado vazio ausente")
 end
 
---- aba Environment: secrets do serviço aparecem (nome + cadeado), com o botão "→ secret" nas variáveis em claro
+--- aba Environment: secrets do serviço aparecem (nome editável no lugar), com o botão "→ secret" nas variáveis em claro
 function test_servico_environment_secrets_do_servico()
-    local Format = require("format")
     local tela = servico("environment")
-    seta(tela, {
-        service_secrets = Format.secret_rows({ "POSTGRES_PASSWORD", "API_TOKEN" }),
-        service_secrets_count = "2",
-    })
-    local textos = tela:texts()
-    assert_true(tem_trecho(textos, "POSTGRES_PASSWORD"), "nome do secret do serviço ausente")
-    assert_true(tem_trecho(textos, "API_TOKEN"), "segundo secret ausente")
+    tela:eval([[
+        ctx.service_secrets = require("handlers/secret_rows").bind(
+            "service",
+            require("format").secret_rows({ "POSTGRES_PASSWORD", "API_TOKEN" })
+        )
+        ctx.service_secrets_count = "2"
+    ]])
+    rende(tela)
+    -- o nome é um campo sem borda (renomeia sozinho), sem botão ✏️
+    local nomes = tela:find_all({ kind = "textinput", class = "env__inline-name" })
+    assert_eq(#nomes, 2)
+    assert_eq(tela:get(nomes[1].attrs.value_var), "POSTGRES_PASSWORD")
+    assert_eq(tela:get(nomes[2].attrs.value_var), "API_TOKEN")
+    assert_false(tem_trecho(tela:buttons(), "✏️"), "o botão de renomear voltou")
     assert_true(tem_trecho(tela:buttons(), "🔒"), "botão de mover para secret ausente")
     assert_true(tem_trecho(tela:buttons(), "↑"), "botão de subir para o projeto ausente")
     assert_true(tem_trecho(tela:buttons(), "🔓"), "botão de voltar a variável ausente")
@@ -1402,14 +1423,19 @@ function test_job_env_tela()
         local EnvRows = require("handlers/env_rows")
         EnvRows.publish("job", ctx.job_env)
         EnvRows.set_secret_options("job", { { name = "TOKEN", label = "TOKEN" } })
+        ctx.job_secrets = require("handlers/secret_rows").bind("job", ctx.job_secrets)
     ]])
     rende(tela)
     local textos = tela:texts()
     assert_true(tem_trecho(textos, "backup"), "nome do job ausente")
-    assert_true(tem_trecho(textos, "TOKEN"), "secret ausente")
-    for _, botao in { "🔒", "↑", "🔓", "👁", "✏️" } do
+    for _, botao in { "🔒", "↑", "🔓", "👁" } do
         assert_true(tem_trecho(tela:buttons(), botao), "botão " .. botao .. " ausente")
     end
+    -- o nome do secret é um campo sem borda (renomeia sozinho, como o nome do projeto): sem ✏️
+    assert_false(tem_trecho(tela:buttons(), "✏️"), "o botão de renomear voltou")
+    local nomes = tela:find_all({ kind = "textinput", class = "env__inline-name" })
+    assert_eq(#nomes, 1)
+    assert_eq(tela:get(nomes[1].attrs.value_var), "TOKEN")
     -- linha editável no lugar: chave e valor sem borda, "usar secret" com lista, OK só depois de mexer
     local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
     assert_eq(#chaves, 2)

@@ -17,6 +17,7 @@ local Helpers = require("../helpers")
 local Stream = require("stream")
 local Services = require("services")
 local EnvRows = require("env_rows")
+local SecretRows = require("secret_rows")
 
 -- Nomes atualmente conhecidos (do snapshot já renderizado), para saber se um
 -- SecretSet cria ou substitui — o daemon não distingue os dois casos.
@@ -271,71 +272,27 @@ function project_env_to_service(key: string): ()
     )
 end
 
--- ── Renomear a chave de uma variável / o nome de um secret ──────────────────
--- EnvKeyRename / SecretRename: o valor nunca passa pela tela (nem pelo agente). O ✏️ da linha só
--- ARMA um mini-formulário (ctx.rename_open = "project_env" | "project_secret" | "service_env" |
--- "service_secret"); quem grava é project_rename_apply / service_rename_apply.
+-- ── O nome de um secret do projeto, editado no lugar ────────────────────────
+-- Sem botão "Renomear": o nome é um campo sem borda que renomeia (SecretRename — o valor nunca passa
+-- pela tela) meio segundo depois da última tecla, como o nome do projeto. Ver handlers/secret_rows.luau.
 
-local function rename_pick(tag: string, name: string): ()
-    ctx.rename_open = tag
-    ctx.rename_from = name
-    ctx.rename_to = name
-end
-
-function project_env_rename_pick(key: string): ()
-    rename_pick("project_env", key)
-end
-
-function project_secret_rename_pick(name: string): ()
-    rename_pick("project_secret", name)
-end
-
-function service_env_rename_pick(key: string): ()
-    rename_pick("service_env", key)
-end
-
-function service_secret_rename_pick(name: string): ()
-    rename_pick("service_secret", name)
-end
-
-function rename_cancel(): ()
-    ctx.rename_open = ""
-    ctx.rename_from = ""
-    ctx.rename_to = ""
-end
-
-function project_rename_apply(): ()
-    local project_id = ctx.selected_project_id or ""
-    local api = State.api
-    local from = ctx.rename_from or ""
-    local to = Helpers.trim(ctx.rename_to)
-    if project_id == "" or from == "" or not api then
-        return
-    end
-    if to == "" or to == from then
-        toast {
-            message = i18n.tr("Digite um nome novo, diferente do atual."),
-            kind = "warning",
+function project_secret_name_change(name: string, value: string): ()
+    SecretRows.change("project", "project_secrets", name, value, function(from: string, to: string): boolean
+        local project_id = ctx.selected_project_id or ""
+        local api = State.api
+        if project_id == "" or not api then
+            return false
+        end
+        local rename_ok, rename_response = api:rpc_checked {
+            SecretRename = { project_id = project_id, from = from, to = to },
         }
-        return
-    end
-    local body = { project_id = project_id, from = from, to = to }
-    local rename_ok, rename_response
-    if ctx.rename_open == "project_secret" then
-        rename_ok, rename_response = api:rpc_checked { SecretRename = body }
-    else
-        rename_ok, rename_response = api:rpc_checked { EnvKeyRename = body }
-    end
-    if rename_ok then
-        toast {
-            message = i18n.tr("Renomeado: ") .. from .. " → " .. to,
-            kind = "success",
-        }
-        rename_cancel()
+        if not rename_ok then
+            toast { message = tostring(rename_response), kind = "error" }
+            return false
+        end
         Stream.refresh_now()
-    else
-        toast { message = tostring(rename_response), kind = "error" }
-    end
+        return true
+    end)
 end
 
 -- ── Linha de variável editável no lugar (handlers/env_rows.luau) ────────────

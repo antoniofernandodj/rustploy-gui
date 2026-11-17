@@ -432,3 +432,62 @@ function test_novo_job_criar_so_ate_a_validacao_recusar__o_formulario()
     assert_eq(tela:get("new_job_busy"), "")
     assert_eq(tela:get("new_job_message"), "")
 end
+
+-- ── variáveis já na criação (lista local que vai no JobCreate) ─────────────
+
+--- ir ao formulário de um job novo zera a lista de variáveis e mostra o form de adicionar
+function test_novo_job_envs_na_criacao__o_formulario_tem_o_form_de_variaveis()
+    local tela = com_catalogo()
+    tela:call("new_job_pick_project", "p1")
+    tela:call("new_job_pick_service", "s2")
+    assert_eq(tela:get("new_job_env_rows"), "[]")
+    assert_eq(tela:get("new_job_env_count"), "0")
+    assert_not_nil(tela:render())
+    assert_true(#tela:find_all({ kind = "checkbox", class = "env__use-secret" }) == 1, "falta o \"usar secret\" do form")
+end
+
+--- adicionar, editar no lugar e remover mexem só na lista local
+function test_novo_job_envs_na_criacao__adicionar_editar_e_remover()
+    local tela = com_catalogo()
+    tela:call("new_job_pick_project", "p1")
+    tela:call("new_job_pick_no_service")
+    tela:set("new_job_env_key", "  OLA ")
+    tela:set("new_job_env_value", "mundo")
+    tela:call("new_job_env_add")
+    assert_eq(tela:get("new_job_env_count"), "1")
+    assert_eq(tela:get("new_job_env_key"), "", "o form esvazia depois de adicionar")
+    tela:set("new_job_env_key", "TOKEN")
+    tela:set("new_job_env_is_secret", "true")
+    tela:set("new_job_env_value", "API_TOKEN")
+    tela:call("new_job_env_add")
+    local linhas = json.decode(tela:get("new_job_env_rows"))
+    assert_eq(#linhas, 2)
+    assert_eq(linhas[1].key, "OLA")
+    assert_eq(linhas[2].is_secret, "true")
+    assert_eq(linhas[2].secret, "API_TOKEN")
+    -- a linha é editável no lugar: o campo lê a chave do ctx da posição
+    assert_not_nil(tela:render())
+    local chaves = tela:find_all({ kind = "textinput", class = "env__inline-key" })
+    assert_eq(#chaves, 2)
+    assert_eq(tela:get(chaves[1].attrs.value_var), "OLA")
+    tela:call("new_job_env_row_value:1", "terra")
+    assert_eq(tela:get("new_job_env_row_1_value"), "terra")
+    tela:call("new_job_env_delete:1")
+    linhas = json.decode(tela:get("new_job_env_rows"))
+    assert_eq(#linhas, 1)
+    assert_eq(linhas[1].key, "TOKEN")
+end
+
+--- secret sem escolher e chave vazia não entram
+function test_novo_job_envs_na_criacao__chave_vazia_e_secret_sem_nome_nao_entram()
+    local tela = com_catalogo()
+    tela:call("new_job_pick_project", "p1")
+    tela:call("new_job_pick_no_service")
+    tela:set("new_job_env_key", "")
+    tela:call("new_job_env_add")
+    tela:set("new_job_env_key", "X")
+    tela:set("new_job_env_is_secret", "true")
+    tela:set("new_job_env_value", "")
+    tela:call("new_job_env_add")
+    assert_eq(tela:get("new_job_env_count"), "0")
+end

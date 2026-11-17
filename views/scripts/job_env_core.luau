@@ -14,6 +14,7 @@
 local Helpers = require("helpers")
 local format = require("format")
 local EnvRows = require("handlers/env_rows")
+local SecretRows = require("handlers/secret_rows")
 
 local Core = {}
 
@@ -58,9 +59,6 @@ function Core.reset_forms(): ()
     ctx.job_env_text_open = "false"
     ctx.job_env_edit_id = ""
     ctx.job_env_edit_draft = ""
-    ctx.job_rename_open = ""
-    ctx.job_rename_from = ""
-    ctx.job_rename_to = ""
     ctx.job_env_new_key = ""
     ctx.job_env_new_value = ""
     ctx.job_env_new_is_secret = "false"
@@ -134,7 +132,7 @@ function Core.load(): ()
     if secret_list_ok and type(secret_list_response) == "table" and type(secret_list_response.SecretNames) == "table" then
         names = secret_list_response.SecretNames
     end
-    ctx.job_secrets = format.secret_rows(names, "job:" .. job_id, revealed)
+    ctx.job_secrets = SecretRows.bind("job", format.secret_rows(names, "job:" .. job_id, revealed))
     ctx.job_secrets_count = tostring(#names)
     EnvRows.set_secret_options("job", secret_options(job, names))
 end
@@ -465,44 +463,24 @@ end
 --     end
 -- end
 
--- ── Renomear (EnvKeyRename / SecretRename), sem o valor passar pela tela ────
+-- ── O nome de um secret do job, editado no lugar (SecretRename) ─────────────
+-- Sem botão "Renomear": renomeia meio segundo depois da última tecla (handlers/secret_rows.luau).
 
-function Core.secret_rename_pick(name: string): ()
-    ctx.job_rename_open = "job_secret"
-    ctx.job_rename_from = name
-    ctx.job_rename_to = name
-end
-
-function Core.rename_cancel(): ()
-    ctx.job_rename_open = ""
-    ctx.job_rename_from = ""
-    ctx.job_rename_to = ""
-end
-
-function Core.rename_apply(): ()
-    local from = ctx.job_rename_from or ""
-    local to = Helpers.trim(ctx.job_rename_to)
-    if not api or job_id == "" or from == "" then
-        return
-    end
-    if to == "" or to == from then
-        toast { message = i18n.tr("Digite um nome novo, diferente do atual."), kind = "warning" }
-        return
-    end
-    local body = { project_id = project_id, job_id = job_id, from = from, to = to }
-    local rename_ok, rename_response
-    if ctx.job_rename_open == "job_secret" then
-        rename_ok, rename_response = api:rpc_checked { SecretRename = body }
-    else
-        rename_ok, rename_response = api:rpc_checked { EnvKeyRename = body }
-    end
-    if rename_ok then
-        toast { message = i18n.tr("Renomeado: ") .. from .. " → " .. to, kind = "success" }
-        Core.rename_cancel()
+function Core.secret_name_change(name: string, value: string): ()
+    SecretRows.change("job", "job_secrets", name, value, function(from: string, to: string): boolean
+        if not api or job_id == "" then
+            return false
+        end
+        local rename_ok, rename_response = api:rpc_checked {
+            SecretRename = { project_id = project_id, job_id = job_id, from = from, to = to },
+        }
+        if not rename_ok then
+            toast { message = tostring(rename_response), kind = "error" }
+            return false
+        end
         changed()
-    else
-        toast { message = tostring(rename_response), kind = "error" }
-    end
+        return true
+    end)
 end
 
 -- ── Movimentos (SecretMove) ─────────────────────────────────────────────────

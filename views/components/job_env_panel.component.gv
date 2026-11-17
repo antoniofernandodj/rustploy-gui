@@ -283,9 +283,7 @@ component {
               msg = "{t('project_secrets.enter_a_value')}",
               placeholder = "{t('project_secrets.value_encrypted_on_save')}",
             )
-          }
 
-          row {
             button(
               "{t('project_secrets.save_secret')}",
               type = submit,
@@ -295,49 +293,13 @@ component {
           }
         }
 
-        if @job_rename_open == "job_secret" {
-          row(class = env__add) {
-            text("{t('rename.label', rename_from=job_rename_from)}", class = u-muted)
-
-            input(
-              class = env__input,
-              form_control = job_rename_to,
-              :value = job_rename_to,
-              on_change = field:job_rename_to,
-              placeholder = "{t('rename.new_name')}",
-            )
-
-            button(
-              "{t('rename.apply')}",
-              class = "btn btn--primary",
-              on_click = job_rename_apply,
-              disabled = @busy_job_rename_apply
-            )
-
-            button(
-              "{t('common.cancel')}",
-              class = "btn btn--ghost",
-              on_click = job_rename_cancel
-            )
-          }
-        }
-
         each @job_secrets as s (fallback = SemSecretsDoJob) {
-          column(class = kv-list__block) {
           row(class = kv-list__row) {
             button(
               "✕",
               class = env__del,
               on_click = job_secret_delete:@s.name,
               disabled = @busy_job_secret_delete
-            )
-
-            button(
-              "✏️",
-              class = "btn btn--ghost btn--sm",
-              on_click = job_secret_rename_pick:@s.name,
-              tooltip = "{t('environment.rename')}",
-              tooltip_delay = "500ms",
             )
 
             button(
@@ -390,12 +352,14 @@ component {
             )
 
             text(class = env__sep)
-            text("@s.name_display", class = env__key)
-          }
-
-          row(class = kv-list__row, if = @s.revealed, equals = true) {
-            text("@s.value", class = "kv-list__val")
-          }
+            input(
+              class = env__inline-name,
+              :value = "@s.bind_name",
+              on_change = job_secret_name_change:@s.name,
+              placeholder = "{t('common.name')}",
+            )
+            text("{t('project_secrets.encrypted')}", class = "kv-list__val kv-list__val--compact", if = @s.revealed, equals = false)
+            text("@s.value", class = "kv-list__val kv-list__val--compact", if = @s.revealed, equals = true)
           }
         }
 

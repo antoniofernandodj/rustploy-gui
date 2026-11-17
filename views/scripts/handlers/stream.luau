@@ -11,6 +11,7 @@ local format = require("../format")
 local Api = require("../net/api")
 local Services = require("services")
 local EnvRows = require("env_rows")
+local SecretRows = require("secret_rows")
 
 local M = {}
 
@@ -150,7 +151,7 @@ local function update_open_project(): ()
     -- (ver http_api.rs::snapshot), nunca o valor. A mesma lista alimenta os
     -- chips de "usar secret" da aba Variáveis.
     local secrets = found_project.secrets or {}
-    ctx.project_secrets = format.secret_rows(secrets, "project", State.revealed_secrets)
+    ctx.project_secrets = SecretRows.bind("project", format.secret_rows(secrets, "project", State.revealed_secrets))
     ctx.project_secrets_count = tostring(#secrets)
     -- O "usar secret" de uma variável do projeto só oferece os secrets do projeto.
     local secret_options = {}

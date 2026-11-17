@@ -22,7 +22,6 @@ function open_project(project_id: string): ()
     ctx.project_edit_pending = "false"
     ctx.project_action_message = ""
     ctx.project_env_text_open = "false"
-    ctx.rename_open = ""
     ctx.project_loading = "true"
     Stream.update_open_project()
 end

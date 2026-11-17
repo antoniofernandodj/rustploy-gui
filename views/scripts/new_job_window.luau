@@ -77,6 +77,14 @@ function init(): ()
     ctx.new_job_name = ""
     ctx.new_job_compose = ""
     ctx.new_job_main_service = ""
+    -- Variáveis do job novo (lista local, ver draft_env_start): publicadas já aqui para o markup
+    -- nunca ler chave inexistente.
+    ctx.new_job_env_key = ""
+    ctx.new_job_env_value = ""
+    ctx.new_job_env_is_secret = "false"
+    ctx.new_job_env_secret_options = json.array({})
+    ctx.new_job_env_rows = json.array({})
+    ctx.new_job_env_count = "0"
 
     -- Fonte do compose: "compose" (colado, default) | "git" (clona um repo
     -- a cada execução — mesmo picker conta→repo→branch da aba Gitea de
@@ -157,6 +165,146 @@ function init(): ()
             ctx.new_job_weekday = weekday
         end
     end
+end
+
+-- ── Variáveis do job já na criação ──────────────────────────────────────────
+-- O job ainda não existe, então as variáveis ficam numa lista local e vão no próprio JobCreate
+-- (`env_vars`). A chave e o valor de cada linha são campos sem borda que mudam a lista na hora —
+-- nada é gravado até "Criar job". "usar secret" escolhe um secret do serviço gatilho ou do projeto
+-- (os do próprio job só existem depois de criado: o passo seguinte cuida deles).
+
+type DraftEnv = { key: string, value: string, secret: string? }
+local draft_env: { DraftEnv } = {}
+
+local function draft_env_publish(): ()
+    local rows = {}
+    for index, env_var in ipairs(draft_env) do
+        local base = "new_job_env_row_" .. tostring(index)
+        ctx[base .. "_key"] = env_var.key
+        ctx[base .. "_value"] = env_var.value
+        table.insert(rows, {
+            index = tostring(index),
+            key = env_var.key,
+            secret = env_var.secret or "",
+            is_secret = env_var.secret ~= nil and "true" or "false",
+            bind_key = base .. "_key",
+            bind_value = base .. "_value",
+        })
+    end
+    ctx.new_job_env_rows = json.encode(json.array(rows))
+    ctx.new_job_env_count = tostring(#draft_env)
+end
+
+-- Os secrets que a variável pode usar, na ordem em que o daemon procura: serviço gatilho, projeto.
+local function draft_env_secret_options(): ()
+    local api = client()
+    local options = {}
+    local seen: { [string]: boolean } = {}
+    local function add(service_id: string?, suffix: string): ()
+        if not api then
+            return
+        end
+        local ok, response = api:rpc {
+            SecretList = { project_id = ctx.new_job_project_id, service_id = service_id },
+        }
+        if ok and type(response) == "table" and type(response.SecretNames) == "table" then
+            for _, name in ipairs(response.SecretNames) do
+                if not seen[name] then
+                    seen[name] = true
+                    table.insert(options, { name = name, label = name .. suffix })
+                end
+            end
+        end
+    end
+    if (ctx.new_job_service_id or "") ~= "" then
+        add(ctx.new_job_service_id, i18n.tr(" (serviço)"))
+    end
+    add(nil, i18n.tr(" (projeto)"))
+    ctx.new_job_env_secret_options = json.encode(json.array(options))
+end
+
+function draft_env_start(): ()
+    draft_env = {}
+    ctx.new_job_env_key = ""
+    ctx.new_job_env_value = ""
+    ctx.new_job_env_is_secret = "false"
+    draft_env_publish()
+    draft_env_secret_options()
+end
+
+function new_job_env_use_secret(value: any): ()
+    ctx.new_job_env_is_secret = Helpers.is_true(value) and "true" or "false"
+    ctx.new_job_env_value = ""
+end
+
+function new_job_env_add(): ()
+    local key = Helpers.trim(ctx.new_job_env_key)
+    local value = ctx.new_job_env_value or ""
+    if key == "" then
+        toast { message = i18n.tr("Informe a chave (KEY)"), kind = "warning" }
+        return
+    end
+    local secret: string? = nil
+    if Helpers.is_true(ctx.new_job_env_is_secret) then
+        secret = Helpers.trim(value)
+        if secret == "" then
+            toast { message = i18n.tr("escolha um secret"), kind = "warning" }
+            return
+        end
+        value = ""
+    end
+    -- A mesma chave duas vezes: a nova substitui a antiga, como no painel de um job já criado.
+    local kept: { DraftEnv } = {}
+    for _, env_var in ipairs(draft_env) do
+        if env_var.key ~= key then
+            table.insert(kept, env_var)
+        end
+    end
+    table.insert(kept, { key = key, value = value, secret = secret })
+    draft_env = kept
+    ctx.new_job_env_key = ""
+    ctx.new_job_env_value = ""
+    ctx.new_job_env_is_secret = "false"
+    draft_env_publish()
+end
+
+function new_job_env_delete(index: string): ()
+    local position = tonumber(index)
+    if position and draft_env[position] then
+        table.remove(draft_env, position)
+        draft_env_publish()
+    end
+end
+
+function new_job_env_row_key(index: string, value: string): ()
+    local env_var = draft_env[tonumber(index) or 0]
+    if env_var then
+        env_var.key = value or ""
+        ctx["new_job_env_row_" .. index .. "_key"] = env_var.key
+    end
+end
+
+function new_job_env_row_value(index: string, value: string): ()
+    local env_var = draft_env[tonumber(index) or 0]
+    if env_var then
+        env_var.value = value or ""
+        ctx["new_job_env_row_" .. index .. "_value"] = env_var.value
+    end
+end
+
+-- As linhas como o JobCreate as quer (`{ key, value = { Plain } | { Secret } }`); chave vazia sai.
+local function draft_env_vars(): any
+    local vars = json.array({})
+    for _, env_var in ipairs(draft_env) do
+        local key = Helpers.trim(env_var.key)
+        if key ~= "" then
+            table.insert(vars, {
+                key = key,
+                value = env_var.secret and { Secret = env_var.secret } or { Plain = env_var.value },
+            })
+        end
+    end
+    return vars
 end
 
 -- onChange dos inputs (mesma convenção `field:<chave>` do app principal).
@@ -294,6 +442,7 @@ function new_job_pick_service(service_id: string): ()
     end
     ctx.new_job_service_name = name
     ctx.new_job_step = "form"
+    draft_env_start()
 end
 
 -- Job 100% autônomo: sem serviço gatilho, só as env vars do projeto.
@@ -301,6 +450,7 @@ function new_job_pick_no_service(): ()
     ctx.new_job_service_id = ""
     ctx.new_job_service_name = i18n.tr("nenhum (autônomo)")
     ctx.new_job_step = "form"
+    draft_env_start()
 end
 
 function new_job_back(): ()
@@ -418,10 +568,13 @@ function new_job_create(): ()
     end
 
     local editing = ctx.new_job_edit_id ~= ""
-    -- Envs: na criação, vazias (o painel as edita depois, com o job criado); na edição, as mais
+    -- Envs: na criação, as da lista local (o passo seguinte cuida dos secrets do job); na edição, as mais
     -- recentes (do painel, se foi aberto; senão, as do job como vieram).
     local env_vars: any = json.array({})
     local env_comments: any = json.array({})
+    if not editing then
+        env_vars = draft_env_vars()
+    end
     if editing then
         local current = Core.job()
         if current then

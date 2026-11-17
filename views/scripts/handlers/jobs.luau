@@ -150,7 +150,7 @@ function open_new_job_window(): ()
     end
     open_window {
         component = "new_job",
-        size = "560 700",
+        size = "760 760",
         decorations = false,
         resizable = false,
         data = {
@@ -245,7 +245,7 @@ function open_edit_job_window(job_id: string): ()
 
     open_window {
         component = "new_job",
-        size = "560 700",
+        size = "760 760",
         decorations = false,
         -- Sobrepõe o `title` do <screen> ("Novo job"): só quem abre sabe que
         -- desta vez é edição.

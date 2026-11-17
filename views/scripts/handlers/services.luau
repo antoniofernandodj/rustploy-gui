@@ -11,6 +11,7 @@ local Helpers = require("../helpers")
 local format = require("../format")
 local History = require("history")
 local EnvRows = require("env_rows")
+local SecretRows = require("secret_rows")
 local ServiceBackup = require("service_backup")
 
 -- `open_service` (logo abaixo) chama estas três antes de elas serem definidas (mais adiante no
@@ -357,10 +358,9 @@ function M.fetch_service_detail(service_id: string): ()
     then
         service_secret_names = secret_list_response.SecretNames
     end
-    ctx.service_secrets = format.secret_rows(
-        service_secret_names,
-        service_id,
-        State.revealed_secrets
+    ctx.service_secrets = SecretRows.bind(
+        "service",
+        format.secret_rows(service_secret_names, service_id, State.revealed_secrets)
     )
     ctx.service_secrets_count = tostring(#service_secret_names)
     -- O "usar secret" de uma variável do serviço oferece os secrets dele e os do projeto — menos os
@@ -2033,48 +2033,26 @@ function secret_copy(ref: string): ()
     }
 end
 
--- Grava o mini-formulário de renomear (armado por service_env_rename_pick / service_secret_rename_pick
--- em handlers/secrets.luau) para a variável ou o secret do SERVIÇO aberto.
-function service_rename_apply(): ()
-    local service_id = ctx.selected_service or ""
-    local project_id = ctx.service_project_id or ""
-    local api = State.api
-    local from = ctx.rename_from or ""
-    local to = Helpers.trim(ctx.rename_to)
-    if service_id == "" or project_id == "" or from == "" or not api then
-        return
-    end
-    if to == "" or to == from then
-        toast {
-            message = i18n.tr("Digite um nome novo, diferente do atual."),
-            kind = "warning",
+-- O nome de um secret do SERVIÇO aberto, editado no lugar (handlers/secret_rows.luau): renomeia
+-- meio segundo depois da última tecla, como o título do serviço.
+function service_secret_name_change(name: string, value: string): ()
+    SecretRows.change("service", "service_secrets", name, value, function(from: string, to: string): boolean
+        local service_id = ctx.selected_service or ""
+        local project_id = ctx.service_project_id or ""
+        local api = State.api
+        if service_id == "" or project_id == "" or not api then
+            return false
+        end
+        local rename_ok, rename_response = api:rpc_checked {
+            SecretRename = { project_id = project_id, service_id = service_id, from = from, to = to },
         }
-        return
-    end
-    local body = {
-        project_id = project_id,
-        service_id = service_id,
-        from = from,
-        to = to,
-    }
-    local rename_ok, rename_response
-    if ctx.rename_open == "service_secret" then
-        rename_ok, rename_response = api:rpc_checked { SecretRename = body }
-    else
-        rename_ok, rename_response = api:rpc_checked { EnvKeyRename = body }
-    end
-    if rename_ok then
-        toast {
-            message = i18n.tr("Renomeado: ") .. from .. " → " .. to,
-            kind = "success",
-        }
-        ctx.rename_open = ""
-        ctx.rename_from = ""
-        ctx.rename_to = ""
+        if not rename_ok then
+            toast { message = tostring(rename_response), kind = "error" }
+            return false
+        end
         M.fetch_service_detail(service_id)
-    else
-        toast { message = tostring(rename_response), kind = "error" }
-    end
+        return true
+    end)
 end
 
 -- Move genérico (SecretMove) de uma coisa do SERVIÇO aberto; `done_message` é o aviso de sucesso.

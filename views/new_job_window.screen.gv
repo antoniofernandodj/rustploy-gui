@@ -257,7 +257,92 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                   )
                 }
               } else {
+                // Na criação as variáveis já entram aqui, numa lista local que vai no próprio JobCreate
+                // (new_job_window.luau → draft_env). Os secrets DO job só existem depois de criado.
                 text("{t('new_job_window.env_hint_create')}", class = u-muted)
+
+                row(class = env__add) {
+                  input(
+                    class = env__input-key,
+                    :value = new_job_env_key,
+                    on_change = field:new_job_env_key,
+                    placeholder = "{t('common.key')}",
+                  )
+
+                  if @new_job_env_is_secret == "true" {
+                    select(
+                      class = form-select,
+                      :options = new_job_env_secret_options,
+                      :value = new_job_env_value,
+                      on_change = field:new_job_env_value,
+                      label_field = label,
+                      value_field = name,
+                      placeholder = "{t('environment.pick_secret')}",
+                    )
+                  } else {
+                    input(
+                      class = env__input,
+                      :value = new_job_env_value,
+                      on_change = field:new_job_env_value,
+                      placeholder = "{t('common.value')}",
+                    )
+                  }
+
+                }
+
+                // A chave e o valor (ou a lista de secrets) dividem a linha de cima; o "usar secret" e o
+                // Adicionar descem para a de baixo — numa linha só, a lista ficava estreita demais para
+                // ler os nomes dos secrets.
+                row(class = env__add) {
+                  checkbox(
+                    class = env__use-secret,
+                    :checked = new_job_env_is_secret,
+                    on_toggle = new_job_env_use_secret,
+                    label = "{t('environment.use_secret')}",
+                  )
+
+                  column(class = u-fill)
+
+                  button(
+                    "{t('common.add')}",
+                    class = "btn btn--primary",
+                    on_click = new_job_env_add,
+                    disabled = @busy_new_job_env_add
+                  )
+                }
+
+                column(class = kv-list, if = @new_job_env_count, not_equals = "0") {
+                  each @new_job_env_rows as e {
+                    row(class = kv-list__row) {
+                      button(
+                        "✕",
+                        class = env__del,
+                        on_click = new_job_env_delete:@e.index,
+                        disabled = @busy_new_job_env_delete
+                      )
+
+                      text(class = env__sep)
+
+                      input(
+                        class = env__inline-key,
+                        :value = "@e.bind_key",
+                        on_change = new_job_env_row_key:@e.index,
+                        placeholder = "{t('common.key')}",
+                      )
+
+                      if @e.is_secret == "true" {
+                        text("🔒 @e.secret", class = "kv-list__val kv-list__val--compact")
+                      } else {
+                        input(
+                          class = env__inline,
+                          :value = "@e.bind_value",
+                          on_change = new_job_env_row_value:@e.index,
+                          placeholder = "{t('common.value')}",
+                        )
+                      }
+                    }
+                  }
+                }
               }
             }
 
