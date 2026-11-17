@@ -10,7 +10,7 @@ component {
     class = u-fill-all,
   ) {
     column(class = service__main) {
-      form(name = advanced, on_submit = advanced_save, class = form-panel) {
+      form(error_prefix = error_, name = advanced, on_submit = advanced_save, class = form-panel) {
         text("{t('advanced.replicas')}", class = u-label-cap)
 
         spinbox(

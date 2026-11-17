@@ -78,6 +78,7 @@ component {
       )
 
       form(
+        error_prefix = error_,
         name = git_provider,
         on_submit = git_provider_connect,
         class = "form form--gap-10",

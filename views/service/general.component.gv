@@ -21,6 +21,7 @@ component {
       }
 
       form(
+        error_prefix = error_,
         if = @service_loading,
         not_equals = true,
         name = general,

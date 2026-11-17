@@ -29,6 +29,7 @@ component {
     }
 
     form(
+      error_prefix = error_,
       name = env_add,
       on_submit = env_add,
       on_validation_error = env_show_validation_errors,
@@ -252,6 +253,7 @@ component {
         )
 
         form(
+          error_prefix = error_,
           name = service_secret_add,
           on_submit = service_secret_add,
           on_validation_error = service_secret_add_show_validation_errors,

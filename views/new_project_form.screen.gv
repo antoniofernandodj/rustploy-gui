@@ -45,6 +45,7 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
       }
 
       form(
+        error_prefix = error_,
         name = new_project_form,
         on_submit = submit_project,
         on_validation_error = new_project_show_validation_errors,
@@ -65,7 +66,7 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
             "@error_new_project_name",
             class = u-error,
             if = @error_new_project_name,
-            not_empty,
+            not_equals = "",
           )
         }
 

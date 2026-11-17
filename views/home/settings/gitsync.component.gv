@@ -73,7 +73,7 @@ component {
       if @state_git_form_mode == "sync" {
         text("{t('settings_gitsync.repository')}", class = u-label-cap)
 
-        form(name = state_git, on_submit = state_git_save, class = "form form--gap-8") {
+        form(error_prefix = error_, name = state_git, on_submit = state_git_save, class = "form form--gap-8") {
           input(
             placeholder = "{t('settings_gitsync.repository_placeholder')}",
             class = field__input,
@@ -103,6 +103,7 @@ component {
         text("{t('common.branch')}", class = u-label-cap)
 
         form(
+          error_prefix = error_,
           name = state_git_branch,
           on_submit = state_git_save,
           class = "form form--gap-8"

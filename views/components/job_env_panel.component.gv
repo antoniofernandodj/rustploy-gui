@@ -29,6 +29,7 @@ component {
     }
 
     form(
+      error_prefix = error_,
       name = job_env_add,
       on_submit = job_env_add,
       on_validation_error = job_env_show_validation_errors,
@@ -254,6 +255,7 @@ component {
         )
 
         form(
+          error_prefix = error_,
           name = job_secret_add,
           on_submit = job_secret_add,
           on_validation_error = job_secret_add_show_validation_errors,

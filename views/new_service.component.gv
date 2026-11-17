@@ -329,7 +329,7 @@ component {
 
     // ── Application ─────────────────────────────────────────────────────
     if @new_service_step == "app_form" {
-      form(name = new_service_app, on_submit = new_service_create, class = form) {
+      form(error_prefix = error_, name = new_service_app, on_submit = new_service_create, class = form) {
         column(class = form-panel) {
           text("{t('new_service.new_application')}", class = u-label-cap)
           text("{t('common.name')}", class = u-label-cap)
@@ -381,7 +381,7 @@ component {
 
     // ── Compose ─────────────────────────────────────────────────────────
     if @new_service_step == "compose_form" {
-      form(name = new_service_compose, on_submit = new_service_create, class = form) {
+      form(error_prefix = error_, name = new_service_compose, on_submit = new_service_create, class = form) {
         column(class = form-panel) {
           text("{t('new_service.new_compose_stack')}", class = u-label-cap)
           text("{t('common.name')}", class = u-label-cap)
@@ -434,7 +434,7 @@ component {
     // ── Database (form do banco escolhido) ──────────────────────────────
     if @new_service_step == "db_form" {
       scrollable(direction = vertical, class = u-fill-all) {
-        form(name = new_service_database, on_submit = new_service_create, class = form) {
+        form(error_prefix = error_, name = new_service_database, on_submit = new_service_create, class = form) {
           column(class = form-panel) {
             text(
               "{t('new_service.new', new_service_database_label=new_service_database_label)}",
@@ -576,7 +576,7 @@ component {
     // ── Template: configuração ───────────────────────────────────────────
     if @new_service_step == "template_form" {
       scrollable(direction = vertical, class = u-fill-all) {
-        form(name = new_service_template, on_submit = new_service_create, class = form) {
+        form(error_prefix = error_, name = new_service_template, on_submit = new_service_create, class = form) {
           column(class = form-panel) {
             text(
               "{t('new_service.configure', new_service_template_name=new_service_template_name)}",

@@ -122,6 +122,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
           }
 
           form(
+            error_prefix = error_,
             name = new_job_form,
             on_submit = new_job_create,
             class = "form form--gap-10",

@@ -68,7 +68,7 @@ screen(title = "{t('services_reorder_window.reorder_services_rustploy')}") {
           }
         }
 
-        text("@reorder_error", class = u-error, if = @reorder_error, not_empty)
+        text("@reorder_error", class = u-error, if = @reorder_error, not_equals = "")
 
         row(class = dialog__actions) {
           button(

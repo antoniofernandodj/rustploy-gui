@@ -54,6 +54,7 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
           )
 
           form(
+            error_prefix = error_,
             name = new_registry_token_form,
             on_submit = new_registry_token_create,
             on_validation_error = new_registry_token_show_validation_errors,
@@ -73,7 +74,7 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
               "@error_new_registry_token_name",
               class = u-error,
               if = @error_new_registry_token_name,
-              not_empty,
+              not_equals = "",
             )
 
             text("{t('common.scope')}", class = u-label-cap)

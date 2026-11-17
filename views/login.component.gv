@@ -41,7 +41,7 @@ component {
         }
       }
 
-      form(name = login, on_submit = connect, class = "form form--gap-16") {
+      form(error_prefix = error_, name = login, on_submit = connect, class = "form form--gap-16") {
         column(class = field) {
           row(class = field__row) {
             text("{t('login.connection_token')}", class = "field__label u-fill")

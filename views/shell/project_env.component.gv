@@ -54,6 +54,7 @@ component {
     }
 
     form(
+      error_prefix = error_,
       name = project_env_add,
       on_submit = project_env_add,
       on_validation_error = project_env_show_validation_errors,
@@ -111,7 +112,7 @@ component {
       "@error_project_env_new_key",
       class = u-error,
       if = @error_project_env_new_key,
-      not_empty,
+      not_equals = "",
     )
 
     column(class = env--flow) {
