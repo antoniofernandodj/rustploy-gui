@@ -60,22 +60,15 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
             on_validation_error = new_registry_token_show_validation_errors,
             class = "form form--gap-10",
           ) {
-            text("{t('common.name')}", class = field__label)
-
-            input(
-              class = dialog__input,
-              form_control = new_registry_token_name,
-              rules = required,
-              msg = "{t('common.enter_a_name')}",
-              placeholder = "{t('new_registry_token_window.e_g_ci_deploy')}",
-            )
-
-            text(
-              "@error_new_registry_token_name",
-              class = u-error,
-              if = @error_new_registry_token_name,
-              not_equals = "",
-            )
+            field(label = "{t('common.name')}", error = @error_new_registry_token_name) {
+              input(
+                class = dialog__input,
+                form_control = new_registry_token_name,
+                rules = required,
+                msg = "{t('common.enter_a_name')}",
+                placeholder = "{t('new_registry_token_window.e_g_ci_deploy')}",
+              )
+            }
 
             text("{t('common.scope')}", class = u-label-cap)
 

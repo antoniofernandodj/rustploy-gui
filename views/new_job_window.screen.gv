@@ -127,15 +127,15 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
             on_submit = new_job_create,
             class = "form form--gap-10",
           ) {
-            text("{t('common.name')}", class = field__label)
-
-            input(
-              class = dialog__input,
-              form_control = new_job_name,
-              :value = new_job_name,
-              on_change = field:new_job_name,
-              placeholder = "{t('new_job_window.e_g_backup_db')}",
-            )
+            field(label = "{t('common.name')}") {
+              input(
+                class = dialog__input,
+                form_control = new_job_name,
+                :value = new_job_name,
+                on_change = field:new_job_name,
+                placeholder = "{t('new_job_window.e_g_backup_db')}",
+              )
+            }
 
             text("{t('new_job_window.compose_source')}", class = u-label-cap)
 
@@ -158,19 +158,19 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
             }
 
             if @new_job_source == "compose" {
-              text("{t('new_job_window.docker_compose_yml')}", class = field__label)
-
-              textarea(
-                class = env__editor,
-                font = mono,
-                :value = new_job_compose,
-                placeholder = l"""
-                  services:
-                    job:
-                      image: busybox
-                      command: ["sh", "-c", "echo ok"]
-                """,
-              )
+              field(label = "{t('new_job_window.docker_compose_yml')}") {
+                textarea(
+                  class = env__editor,
+                  font = mono,
+                  :value = new_job_compose,
+                  placeholder = l"""
+                    services:
+                      job:
+                        image: busybox
+                        command: ["sh", "-c", "echo ok"]
+                  """,
+                )
+              }
             }
 
             if @new_job_source == "git" {
@@ -184,82 +184,81 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
                 text("@new_job_git_message", class = u-muted)
               }
 
-              text("{t('new_job_window.git_account')}", class = field__label)
+              field(
+                label = "{t('new_job_window.git_account')}",
+                description = "{t('common.connect_accounts_in_settings_git')}",
+              ) {
+                select(
+                  class = form-select,
+                  :options = new_job_git_providers,
+                  :value = new_job_git_provider_id,
+                  on_change = new_job_git_provider_pick,
+                  placeholder = "{t('common.select_the_account')}",
+                  label_field = display,
+                  value_field = id,
+                )
+              }
 
-              select(
-                class = form-select,
-                :options = new_job_git_providers,
-                :value = new_job_git_provider_id,
-                on_change = new_job_git_provider_pick,
-                placeholder = "{t('common.select_the_account')}",
-                label_field = display,
-                value_field = id,
-              )
+              field(label = "{t('common.repository')}") {
+                select(
+                  class = form-select,
+                  :options = new_job_git_repos,
+                  :value = new_job_git_repo,
+                  on_change = new_job_git_repo_pick,
+                  placeholder = "{t('common.select_the_repository')}",
+                  label_field = full_name,
+                  value_field = full_name,
+                )
+              }
 
-              text("{t('common.connect_accounts_in_settings_git')}", class = u-muted)
-              text("{t('common.repository')}", class = field__label)
+              field(label = "{t('common.branch')}") {
+                select(
+                  class = form-select,
+                  :options = new_job_git_branches,
+                  :value = new_job_git_branch,
+                  on_change = field:new_job_git_branch,
+                  placeholder = "{t('common.select_the_branch')}",
+                  label_field = name,
+                  value_field = name,
+                )
+              }
 
-              select(
-                class = form-select,
-                :options = new_job_git_repos,
-                :value = new_job_git_repo,
-                on_change = new_job_git_repo_pick,
-                placeholder = "{t('common.select_the_repository')}",
-                label_field = full_name,
-                value_field = full_name,
-              )
+              field(label = "{t('new_job_window.compose_path_in_the_repo')}") {
+                input(
+                  class = dialog__input,
+                  form_control = new_job_compose_path,
+                  :value = new_job_compose_path,
+                  on_change = field:new_job_compose_path,
+                  placeholder = "{t('new_job_window.docker_compose_yml_2')}",
+                )
+              }
+            }
 
-              text("{t('common.branch')}", class = field__label)
-
-              select(
-                class = form-select,
-                :options = new_job_git_branches,
-                :value = new_job_git_branch,
-                on_change = field:new_job_git_branch,
-                placeholder = "{t('common.select_the_branch')}",
-                label_field = name,
-                value_field = name,
-              )
-
-              text("{t('new_job_window.compose_path_in_the_repo')}", class = field__label)
-
+            field(label = "{t('new_job_window.main_service_name_inside_the')}") {
               input(
                 class = dialog__input,
-                form_control = new_job_compose_path,
-                :value = new_job_compose_path,
-                on_change = field:new_job_compose_path,
-                placeholder = "{t('new_job_window.docker_compose_yml_2')}",
+                form_control = new_job_main_service,
+                :value = new_job_main_service,
+                on_change = field:new_job_main_service,
+                placeholder = "{t('new_job_window.e_g_job')}",
               )
             }
 
-            text(
-              "{t('new_job_window.main_service_name_inside_the')}",
-              class = field__label,
-            )
+            field(label = "{t('new_job_window.env_section')}") {
+              if @new_job_edit_id != "" {
+                text("{t('new_job_window.env_hint_edit')}", class = u-muted)
 
-            input(
-              class = dialog__input,
-              form_control = new_job_main_service,
-              :value = new_job_main_service,
-              on_change = field:new_job_main_service,
-              placeholder = "{t('new_job_window.e_g_job')}",
-            )
-
-            text("{t('new_job_window.env_section')}", class = field__label)
-
-            if @new_job_edit_id != "" {
-              text("{t('new_job_window.env_hint_edit')}", class = u-muted)
-
-              row(class = env__add) {
-                button(
-                  "{t('new_job_window.open_env')}",
-                  class = "btn btn--ghost",
-                  on_click = new_job_open_env,
-                  disabled = @busy_new_job_open_env
-                )
+                row(class = env__add) {
+                  button(
+                    "{t('new_job_window.open_env')}",
+                    class = "btn btn--ghost",
+                    on_click = new_job_open_env,
+                    disabled = @busy_new_job_open_env
+                  )
+                }
+              } else {
+                text("{t('new_job_window.env_hint_create')}", class = u-muted)
               }
-            } else {
-              text("{t('new_job_window.env_hint_create')}", class = u-muted)
             }
 
             text("{t('common.recurrence')}", class = u-label-cap)
@@ -297,48 +296,46 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
             }
 
             if @new_job_kind == "interval" {
-              text("{t('new_job_window.every_how_many_hours')}", class = field__label)
-
               // Teto de 168 = uma semana, igual ao da limpeza automática em
               // home.component.gv. Acima disso existe a recorrência "Semanal".
-              spinbox(
-                field_class = field__spin,
-                form_control = new_job_hours,
-                :value = new_job_hours,
-                min = 1,
-                max = 168,
-                width = 90,
-                placeholder = 6,
-              )
+              field(label = "{t('new_job_window.every_how_many_hours')}") {
+                spinbox(
+                  field_class = field__spin,
+                  form_control = new_job_hours,
+                  :value = new_job_hours,
+                  min = 1,
+                  max = 168,
+                  width = 90,
+                  placeholder = 6,
+                )
+              }
             }
 
             if @new_job_kind == "daily" {
               row(class = env__add) {
-                column(class = field) {
-                  text("{t('common.time')}", class = field__label)
+                field(label = "{t('common.time')}") {
                   timeedit(:value = new_job_time)
                 }
               }
             }
 
             if @new_job_kind == "weekly" {
-              text("{t('new_job_window.day_of_the_week')}", class = field__label)
-
               // Mesma troca de home.component.gv: sete <TabButton> + handler viraram um
               // <radiogroup>, que grava `new_job_weekday` sozinho.
-              scroll(class = tabs__scroll, direction = horizontal) {
-                row(class = tabs__main) {
-                  radiogroup(
-                    :value = new_job_weekday,
-                    :items = weekdays,
-                    layout = row,
-                  )
+              field(label = "{t('new_job_window.day_of_the_week')}") {
+                scroll(class = tabs__scroll, direction = horizontal) {
+                  row(class = tabs__main) {
+                    radiogroup(
+                      :value = new_job_weekday,
+                      :items = weekdays,
+                      layout = row,
+                    )
+                  }
                 }
               }
 
               row(class = env__add) {
-                column(class = field) {
-                  text("{t('common.time')}", class = field__label)
+                field(label = "{t('common.time')}") {
                   timeedit(:value = new_job_time)
                 }
               }

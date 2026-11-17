@@ -51,9 +51,7 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
         on_validation_error = new_project_show_validation_errors,
         class = "form form--gap-14",
       ) {
-        column(class = field) {
-          text("{t('common.name')}", class = field__label)
-
+        field(label = "{t('common.name')}", error = @error_new_project_name) {
           input(
             class = dialog__input,
             form_control = new_project_name,
@@ -61,21 +59,9 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
             msg = "{t('common.enter_a_name')}",
             placeholder = "{t('common.project_name')}",
           )
-
-          text(
-            "@error_new_project_name",
-            class = u-error,
-            if = @error_new_project_name,
-            not_equals = "",
-          )
         }
 
-        column(class = field) {
-          text(
-            "{t('new_project_form.description_optional')}",
-            class = field__label
-          )
-
+        field(label = "{t('new_project_form.description_optional')}") {
           input(
             class = dialog__input,
             form_control = new_project_description,

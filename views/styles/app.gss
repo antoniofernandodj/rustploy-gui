@@ -369,9 +369,16 @@
 
 /* ── Forms ────────────────────────────────────────────────────────────── */
 .field          { width: fill; spacing: 6; }
-.field__row     { width: fill; }
 .field__label   { size: 11; bold: true; color: var(--muted); }
 .field__input   { width: fill; padding: 13 14; }
+
+/* O builtin `field` do glacier-ui (0.162) desenha rótulo, ajuda e erro com as
+   classes abaixo; repintadas aqui com a cara do `.field__label` de sempre.
+   Esta folha vem depois da da lib, então vence por ordem. */
+.field-label       { size: 11; bold: true; color: var(--muted); }
+.field-required    { size: 11; bold: true; color: var(--error); }
+.field-description { size: 12; color: var(--muted); }
+.field-error       { size: 12; color: var(--error); }
 
 /* Campo de um spinbox (`field_class="field__spin"`). O `.field__input` (padding
    13 14 → ~44px de altura) desencontrava o campo dos degraus ▴▾, que somam
