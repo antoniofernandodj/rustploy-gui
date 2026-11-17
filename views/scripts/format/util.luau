@@ -163,13 +163,20 @@ function M.status_kind(status: any): string
 end
 
 -- DeployState vem como string ("Live", "Failed", "BuildingImage", ...).
+-- Todo estado terminal tem rótulo próprio: `Pruning` (deploy que ficou no ar e
+-- foi substituído por um mais novo) caía no "BUILDING" azul e pulsante, como se
+-- ainda estivesse construindo. Par de webui/format.js::stateLabelKind.
 function M.state_label_color(state: string?): (string, string)
     if state == "Live" then
         return i18n.tr("LIVE"), "#3FB950"
     elseif state == "Stopped" then
         return i18n.tr("STOPPED"), "#8B949E"
+    elseif state == "Pruning" then
+        return i18n.tr("REPLACED"), "#8B949E"
     elseif state == "Failed" then
         return i18n.tr("FAILED"), "#F85149"
+    elseif state == "RollingBack" then
+        return i18n.tr("ROLLING BACK"), "#D29922"
     elseif state == "PreDeployCheck" then
         return i18n.tr("PRÉ-DEPLOY CHECK"), "#58A6FF"
     end
@@ -179,12 +186,22 @@ end
 function M.state_kind(state: string?): string
     if state == "Live" then
         return "ok"
-    elseif state == "Stopped" then
+    elseif state == "Stopped" or state == "Pruning" then
         return "muted"
     elseif state == "Failed" then
         return "bad"
+    elseif state == "RollingBack" then
+        return "warn"
     end
     return "info"
+end
+
+-- Estados em que o deployment não anda mais (domain::DeployState::is_terminal).
+function M.deploy_state_terminal(state: string?): boolean
+    return state == "Live"
+        or state == "Stopped"
+        or state == "Failed"
+        or state == "Pruning"
 end
 
 function M.in_use_kind(in_use: boolean): string

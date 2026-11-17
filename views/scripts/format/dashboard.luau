@@ -739,13 +739,7 @@ function M.deploy_engine_detail(info: any): string
                         - iso_to_epoch_seconds(transition.at)
                 )
             )
-        elseif
-            not (
-                transition.to == "Failed"
-                or transition.to == "Live"
-                or transition.to == "Stopped"
-            )
-        then
+        elseif not Util.deploy_state_terminal(transition.to) then
             duration = Time.format_seconds(info.current_state_secs)
         end
         local kind = "ok"

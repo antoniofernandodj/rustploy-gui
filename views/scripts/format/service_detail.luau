@@ -39,12 +39,7 @@ function M.containers(containers: { Types.ManagedContainer }?): string
     return Util.encode_array(rows)
 end
 
-local function is_terminal(state: string?): boolean
-    return state == "Live"
-        or state == "Stopped"
-        or state == "Failed"
-        or state == "Pruning"
-end
+local is_terminal = Util.deploy_state_terminal
 
 -- ServiceSource → (kind, detail, build_engine) — source_summary().
 function M.source_summary_parts(source: any): (string, string, string)

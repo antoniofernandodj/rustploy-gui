@@ -37,6 +37,7 @@ M.ellipsis = Util.ellipsis
 M.short_reason = Util.short_reason
 M.encode_array = Util.encode_array
 M.status_label_color = Util.status_label_color
+M.deploy_state_terminal = Util.deploy_state_terminal
 M.service_pair_list = Util.service_pair_list
 
 -- Dashboard: deployments/projects/services/docker/ingress/monitoring/engine

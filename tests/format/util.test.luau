@@ -131,6 +131,24 @@ function test_estados__estado_de_deploy_rotulo_cor_e_kind()
     assert_eq(Util.state_kind("Failed"), "bad")
     assert_eq(Util.state_kind("Stopped"), "muted")
     assert_eq(Util.state_kind("BuildingImage"), "info")
+    -- Pruning = substituído por um deploy mais novo: terminal, não "BUILDING".
+    local pruning_label, pruning_color = Util.state_label_color("Pruning")
+    assert_eq(pruning_label, "REPLACED")
+    assert_eq(pruning_color, "#8B949E")
+    assert_eq(Util.state_kind("Pruning"), "muted")
+    assert_eq(Util.state_label_color("RollingBack"), "ROLLING BACK")
+    assert_eq(Util.state_kind("RollingBack"), "warn")
+end
+
+--- deploy_state_terminal espelha domain::DeployState::is_terminal
+function test_estados__deploy_state_terminal()
+    assert_eq(Util.deploy_state_terminal("Live"), true)
+    assert_eq(Util.deploy_state_terminal("Stopped"), true)
+    assert_eq(Util.deploy_state_terminal("Failed"), true)
+    assert_eq(Util.deploy_state_terminal("Pruning"), true)
+    assert_eq(Util.deploy_state_terminal("RollingBack"), false)
+    assert_eq(Util.deploy_state_terminal("Promoting"), false)
+    assert_eq(Util.deploy_state_terminal(nil), false)
 end
 
 --- in_use_kind

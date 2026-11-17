@@ -602,10 +602,23 @@ local function apply_bus_event(bus_event: any): ()
         )
     elseif bus_event.DeployStateChanged then
         local deploy_event = bus_event.DeployStateChanged
-        if deploy_event.service_id == State.deploy_track.service_id then
-            local terminal = deploy_event.state == "Live"
-                or deploy_event.state == "Failed"
-                or deploy_event.state == "Stopped"
+        -- Só conta o deployment que ESTE cliente disparou e que ainda está em
+        -- voo. Casar só pelo serviço não basta: ao promover o novo deploy, o
+        -- daemon publica `Pruning` para o ANTERIOR (mesmo service_id), e o
+        -- reconcile/Stop publicam `Stopped` para o que estava no ar. Antes
+        -- disto o `Pruning` do antigo chegava logo depois do `Live` e religava
+        -- o selo "⏱" e a mensagem "deploy · Pruning" no cabeçalho, que ficavam
+        -- presos lá; e parar o serviço depois de um deploy notificava
+        -- "Deploy falhou: Stopped".
+        local deploy_track = State.deploy_track
+        local is_tracked_deploy = deploy_track.running
+            and deploy_event.service_id == deploy_track.service_id
+            and (
+                deploy_track.deployment_id == ""
+                or deploy_event.deployment_id == deploy_track.deployment_id
+            )
+        if is_tracked_deploy then
+            local terminal = format.deploy_state_terminal(deploy_event.state)
             if terminal then
                 State.deploy_track.running = false
                 local live = deploy_event.state == "Live"

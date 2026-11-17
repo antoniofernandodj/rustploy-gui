@@ -8,6 +8,8 @@
   "LIVE": "NO AR",
   "Running": "Rodando",
   "STOPPED": "PARADO",
+  "REPLACED": "SUBSTITUÍDO",
+  "ROLLING BACK": "REVERTENDO",
   "Stopped": "Parado",
   "Stopping": "Parando",
   "advanced.add_dependency": "ADICIONAR UMA DEPENDÊNCIA",
