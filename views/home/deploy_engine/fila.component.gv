@@ -33,11 +33,13 @@ component {
     }
 
     column(class = section__body) {
-      text(
-        "{t('deploy_engine_fila.queue_paused_deploys_wait_until')}",
+      // Uma condição da tela, não um evento: o aviso fica enquanto a fila
+      // estiver pausada (alert, glacier-ui 0.161).
+      alert(
+        description = "{t('deploy_engine_fila.queue_paused_deploys_wait_until')}",
+        variant = warning,
         if = @deploy_engine_paused,
         equals = true,
-        class = "banner banner--warn",
       )
     }
 

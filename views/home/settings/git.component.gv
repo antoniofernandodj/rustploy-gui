@@ -159,14 +159,9 @@ component {
             class = u-label-cap,
           )
 
-          row(class = kv-list__row) {
-            text("@git_provider_redirect", class = "kv-list__val kv-list__val--compact")
-
-            button(
-              "{t('common.copy')}",
-              class = "btn btn--ghost btn--xs",
-              on_click = copy_ctx:git_provider_redirect
-            )
+          // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
+          inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:git_provider_redirect") {
+            input(:value = git_provider_redirect, readonly = true)
           }
 
           text(

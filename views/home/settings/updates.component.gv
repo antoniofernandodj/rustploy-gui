@@ -103,14 +103,9 @@ component {
               class = u-muted,
             )
 
-            row(class = kv-list__row) {
-              text("@update_app_manual_command", class = "kv-list__val kv-list__val--compact")
-
-              button(
-                "{t('common.copy')}",
-                class = "btn btn--ghost btn--xs",
-                on_click = copy_ctx:update_app_manual_command
-              )
+            // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
+            inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:update_app_manual_command") {
+              input(:value = update_app_manual_command, readonly = true)
             }
           }
         }
@@ -124,14 +119,9 @@ component {
           class = u-muted,
         )
 
-        row(class = kv-list__row) {
-          text("@update_install_command", class = "kv-list__val kv-list__val--compact kv-list__val--wrap")
-
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:update_install_command
-          )
+        // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
+        inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:update_install_command") {
+          input(:value = update_install_command, readonly = true)
         }
 
         row(class = kv-list__row) {

@@ -920,7 +920,6 @@
   "service.runtime_logs": "Runtime logs",
   "service.stop": "Stop",
   "service.warm": "Warm",
-  "service.warm_builds_the_image_so": "Warm: builds the image so the next deploy finds the cache, without touching the running container",
   "service_card.change_pending_deploy": "change pending deploy",
   "service_card.copy_id": "Copy id",
   "service_card.copy_name": "Copy name",

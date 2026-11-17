@@ -188,7 +188,8 @@ component {
                   disabled = @busy_project_env_to_secret,
                   if = @e.kind,
                   equals = plain,
-                  tooltip = "{t('environment.to_secret')}"
+                  tooltip = "{t('environment.to_secret')}",
+                  tooltip_delay = "500ms",
                 )
 
                 template(if = @e.kind, equals = plain) {
@@ -198,7 +199,8 @@ component {
                     if = @move_target_service_id,
                     equals = "",
                     disabled = true,
-                    tooltip = "{t('project_env.choose_service')}"
+                    tooltip = "{t('project_env.choose_service')}",
+                    tooltip_delay = "500ms",
                   )
 
                   button(
@@ -208,7 +210,8 @@ component {
                     disabled = @busy_project_env_to_service,
                     if = @move_target_service_id,
                     not_equals = "",
-                    tooltip = "{t('project_env.env_to_service')}"
+                    tooltip = "{t('project_env.env_to_service')}",
+                    tooltip_delay = "500ms",
                   )
                 }
 
@@ -219,7 +222,8 @@ component {
                   disabled = @busy_project_secret_to_env,
                   if = @e.kind,
                   equals = secret,
-                  tooltip = "{t('environment.secret_to_env')}"
+                  tooltip = "{t('environment.secret_to_env')}",
+                  tooltip_delay = "500ms",
                 )
 
                 text(class = env__sep)
@@ -275,6 +279,7 @@ component {
                   if = @e.dirty,
                   equals = "true",
                   tooltip = "{t('environment.undo')}",
+                  tooltip_delay = "500ms",
                 )
               }
             }

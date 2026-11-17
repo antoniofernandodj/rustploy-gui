@@ -134,24 +134,10 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
           text("@new_registry_token_message", if = @new_registry_token_message, not_equals = "", class = u-ok)
 
           column(class = dialog__secret) {
-            text(
-              "{t('new_registry_token_window.docker_login_command')}",
-              class = field__label
-            )
-
-            text(
-              "@new_registry_token_login_command",
-              class = "kv-list__val kv-list__val--compact"
-            )
-
-            row(class = dialog__actions) {
-              column(class = u-fill)
-
-              button(
-                "{t('common.copy')}",
-                class = "btn btn--ghost btn--xs",
-                on_click = copy_ctx:new_registry_token_login_command
-              )
+            field(label = "{t('new_registry_token_window.docker_login_command')}") {
+              inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:new_registry_token_login_command") {
+                input(:value = new_registry_token_login_command, readonly = true)
+              }
             }
           }
 

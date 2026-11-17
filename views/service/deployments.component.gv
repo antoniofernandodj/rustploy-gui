@@ -17,19 +17,13 @@ component {
       text("{t('common.deploy_webhook')}", class = u-label-cap)
 
       column(if = @service_webhook_url, not_equals = "", class = webhook) {
-        text(
-          "@service_webhook_url_short",
-          class = webhook__url,
-          tooltip = @service_webhook_url,
-        )
+        // a URL inteira num campo só de leitura (rola dentro dele), com o
+        // Copiar colado — o `_short` + tooltip só existiam para caber na linha
+        inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:service_webhook_url") {
+          input(:value = service_webhook_url, readonly = true)
+        }
 
         row(class = webhook__actions) {
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:service_webhook_url
-          )
-
           button(
             "{t('deployments.regenerate')}",
             class = "btn btn--danger btn--xs",

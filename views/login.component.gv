@@ -127,13 +127,9 @@ component {
 
         if @update_app_can_update == "false" {
           text("{t('settings_updates.this_app_was_not_installed')}", class = u-muted)
-          row(class = login__status) {
-            text("@update_app_manual_command", class = "kv-list__val kv-list__val--compact")
-            button(
-              "{t('common.copy')}",
-              class = "btn btn--ghost btn--xs",
-              on_click = copy_ctx:update_app_manual_command
-            )
+          // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
+          inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:update_app_manual_command") {
+            input(:value = update_app_manual_command, readonly = true)
           }
         }
       }

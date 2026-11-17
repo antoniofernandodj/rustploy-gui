@@ -514,7 +514,6 @@
   "service.runtime_logs": "Logs de runtime",
   "service.stop": "Stop",
   "service.warm": "Aquecer",
-  "service.warm_builds_the_image_so": "Aquecer: constrói a imagem para o próximo deploy achar o cache, sem mexer no container no ar",
   "service_card.change_pending_deploy": "mudança pendente de deploy",
   "service_card.copy_id": "Copiar id",
   "service_card.copy_name": "Copiar nome",

@@ -71,7 +71,8 @@ component {
         if = @container_name_full,
         not_equals = "",
         on_click = copy_container_name:@container_name_full,
-        tooltip = "{t('service_card.copy_name')}"
+        tooltip = "{t('service_card.copy_name')}",
+        tooltip_delay = "500ms",
       )
 
       text(
@@ -87,7 +88,8 @@ component {
         if = @container_id_full,
         not_equals = "",
         on_click = copy_container_id:@container_id_full,
-        tooltip = "{t('service_card.copy_id')}"
+        tooltip = "{t('service_card.copy_id')}",
+        tooltip_delay = "500ms",
       )
 
       text(
@@ -132,7 +134,8 @@ component {
         class = "card__action card__action--icon",
         on_click = service_stop_id:@id,
         disabled = @busy_service_stop_id,
-        tooltip = "{t('common.stop')}"
+        tooltip = "{t('common.stop')}",
+        tooltip_delay = "500ms",
       )
 
       button(
@@ -140,7 +143,8 @@ component {
         class = "card__action card__action--icon card__action--danger",
         on_click = stop_delete_service:@id,
         disabled = @busy_stop_delete_service,
-        tooltip = "{t('common.remove')}"
+        tooltip = "{t('common.remove')}",
+        tooltip_delay = "500ms",
       )
 
       button(
@@ -148,7 +152,8 @@ component {
         class = "card__action card__action--icon",
         on_click = open_export_window:@id,
         disabled = @busy_open_export_window,
-        tooltip = "{t('service_card.export_service_a_file_to')}"
+        tooltip = "{t('service_card.export_service_a_file_to')}",
+        tooltip_delay = "500ms",
       )
     }
   }

@@ -1276,8 +1276,10 @@ end
 
 -- Em `view = "service"`, as ações têm duas fileiras que se alternam por
 -- largura.
-local ACOES_TEXTO = { "Deploy", "Reload", "Rebuild", "Stop" }
-local ACOES_ICONE = { "▶", "⟳", "⚙", "■" }
+-- Desde a 0.1.69, Deploy/Reload/Rebuild/Warm/Exportar moram num `dropdownbutton`
+-- (um `menu` do motor, não um `button`); só o Stop segue botão, à parte.
+local ACOES_TEXTO = { "Stop" }
+local ACOES_ICONE = { "■" }
 
 --- aba Logs: a lista "Execuções anteriores" só aparece com execuções, e cada linha tem Ver logs / Excluir
 function test_servico_aba_logs_lista_execucoes_anteriores()
@@ -1325,13 +1327,16 @@ function test_acoes_do_servico_viram_icones_quando_estreito()
     assert_eq({
         contagem(tela:buttons(), ACOES_TEXTO),
         contagem(tela:buttons(), ACOES_ICONE),
-    }, { 4, 0 }, "em 1400px espera 4 botões de texto e 0 ícones")
+    }, { 1, 0 }, "em 1400px espera o Stop de texto e nenhum ícone")
 
     tela:set_viewport(980, 820)
     assert_eq({
         contagem(tela:buttons(), ACOES_TEXTO),
         contagem(tela:buttons(), ACOES_ICONE),
-    }, { 0, 4 }, "em 980px espera 0 botões de texto e 4 ícones")
+    }, { 0, 1 }, "em 980px espera o Stop em ícone e nenhum de texto")
+
+    -- as duas fileiras (compacta e completa) têm o seu split button de Deploy
+    assert_eq(#tela:find_all({ kind = "menu" }), 2, "um dropdownbutton por fileira")
 end
 
 -- ── trava de ação em andamento ──────────────────────────────────────────────

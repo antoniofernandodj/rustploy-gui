@@ -5,14 +5,9 @@ component {
       column(class = form-panel) {
         text("{t('settings_web.public_api_url')}", class = u-label-cap)
 
-        row(class = kv-list__row) {
-          text("@server_settings_public_base", class = "kv-list__val kv-list__val--compact")
-
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_settings_public_base
-          )
+        // o valor num campo só de leitura, com o Copiar colado (inputgroup, glacier-ui 0.164)
+        inputgroup(action = "{t('common.copy')}", on_action = "copy_ctx:server_settings_public_base") {
+          input(:value = server_settings_public_base, readonly = true)
         }
 
         text(

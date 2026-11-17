@@ -160,7 +160,8 @@ component {
                 disabled = @busy_job_env_to_secret,
                 if = @e.kind,
                 equals = plain,
-                tooltip = "{t('environment.to_secret')}"
+                tooltip = "{t('environment.to_secret')}",
+                tooltip_delay = "500ms",
               )
 
               button(
@@ -170,7 +171,8 @@ component {
                 disabled = @busy_job_env_to_project,
                 if = @e.kind,
                 equals = plain,
-                tooltip = "{t('environment.env_to_project')}"
+                tooltip = "{t('environment.env_to_project')}",
+                tooltip_delay = "500ms",
               )
 
               button(
@@ -180,7 +182,8 @@ component {
                 disabled = @busy_job_secret_to_env,
                 if = @e.kind,
                 equals = secret,
-                tooltip = "{t('environment.secret_to_env')}"
+                tooltip = "{t('environment.secret_to_env')}",
+                tooltip_delay = "500ms",
               )
 
               text(class = env__sep)
@@ -236,6 +239,7 @@ component {
                 if = @e.dirty,
                 equals = "true",
                 tooltip = "{t('environment.undo')}",
+                tooltip_delay = "500ms",
               )
             }
           }
@@ -332,7 +336,8 @@ component {
               "✏️",
               class = "btn btn--ghost btn--sm",
               on_click = job_secret_rename_pick:@s.name,
-              tooltip = "{t('environment.rename')}"
+              tooltip = "{t('environment.rename')}",
+              tooltip_delay = "500ms",
             )
 
             button(
@@ -340,7 +345,8 @@ component {
               class = "btn btn--ghost btn--sm",
               on_click = job_secret_to_env:@s.name,
               disabled = @busy_job_secret_to_env,
-              tooltip = "{t('environment.secret_to_env')}"
+              tooltip = "{t('environment.secret_to_env')}",
+              tooltip_delay = "500ms",
             )
 
             button(
@@ -348,7 +354,8 @@ component {
               class = "btn btn--ghost btn--sm",
               on_click = job_secret_to_project:@s.name,
               disabled = @busy_job_secret_to_project,
-              tooltip = "{t('environment.secret_to_project')}"
+              tooltip = "{t('environment.secret_to_project')}",
+              tooltip_delay = "500ms",
             )
 
             button(
@@ -358,7 +365,8 @@ component {
               disabled = @busy_job_secret_reveal,
               if = @s.revealed,
               equals = false,
-              tooltip = "{t('environment.secret_reveal')}"
+              tooltip = "{t('environment.secret_reveal')}",
+              tooltip_delay = "500ms",
             )
 
             button(
@@ -367,7 +375,8 @@ component {
               on_click = job_secret_hide:@s.name,
               if = @s.revealed,
               equals = true,
-              tooltip = "{t('environment.secret_hide')}"
+              tooltip = "{t('environment.secret_hide')}",
+              tooltip_delay = "500ms",
             )
 
             button(
@@ -376,7 +385,8 @@ component {
               on_click = job_secret_copy:@s.ref,
               if = @s.revealed,
               equals = true,
-              tooltip = "{t('environment.secret_copy')}"
+              tooltip = "{t('environment.secret_copy')}",
+              tooltip_delay = "500ms",
             )
 
             text(class = env__sep)

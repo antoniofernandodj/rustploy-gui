@@ -258,8 +258,6 @@
 .empty-state__wrap { width: fill; height: fill; align_y: center; }
 /* Aviso de fila pausada: faixa com a cor de alerta, não um texto cinza que
    se confunde com o estado vazio logo abaixo. */
-.banner        { width: fill; padding: 9 16; size: 12; background: var(--raised); border_radius: 5; }
-.banner--warn  { color: var(--warn); }
 
 .form-panel {
    width: fill;
