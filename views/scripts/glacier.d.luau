@@ -173,7 +173,17 @@ declare function every(ms: number, callback: (() -> ()) | string): Timer
 -- Escrita de arquivo local (glacier-ui 0.49+), contraparte do
 -- `fetch("file://…")`. Devolve `true` no sucesso, ou `false, mensagem` na
 -- falha.
+-- `contents` é gravado como BYTES (glacier-ui 0.168+): pode ser binário.
 declare function write_file(path: string, contents: string): (boolean, string?)
+-- Lê o arquivo inteiro em bytes crus, sem suspender (glacier-ui 0.168+).
+-- Devolve o conteúdo ou `nil, mensagem`.
+declare function read_file(path: string): (string?, string?)
+-- Base64 <-> bytes (glacier-ui 0.168+): para gravar um binário que chegou num
+-- JSON. `decode` devolve os bytes ou `nil, mensagem`.
+declare base64: {
+    encode: (bytes: string) -> string,
+    decode: (text: string) -> (string?, string?),
+}
 -- Idem, acrescentando ao fim (glacier-ui 0.49+).
 -- Grava `contents` na pasta Downloads do sistema, sem diálogo e SEM
 -- sobrescrever (se `filename` existe, grava `nome-1.ext`…); no Unix o arquivo

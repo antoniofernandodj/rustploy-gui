@@ -5,11 +5,14 @@
 -- (`recoveryKey*`): mude os dois juntos.
 --
 -- O daemon guarda só a chave PÚBLICA; a privada volta uma única vez, na
--- resposta de `RecoveryKeyGenerate`. Ela é gravada em Downloads na hora e fica
--- no `ctx` só até a pessoa dizer "guardei" — nunca é relida.
+-- resposta de `RecoveryKeyGenerate`, dentro do arquivo de recuperação
+-- (`.rpkit`, binário) com o repositório da infra, a branch e o token da conta
+-- escolhida (docs/plano-arquivo-de-recuperacao.md). O arquivo é gravado em
+-- Downloads na hora e fica no `ctx` só até a pessoa dizer "guardei".
 
 local State = require("../state")
 local Download = require("../download")
+local Helpers = require("../helpers")
 
 local M = {}
 
@@ -29,6 +32,17 @@ local function set_defaults(): ()
     ctx.recovery_key_filename = ctx.recovery_key_filename or ""
     ctx.recovery_key_contents = ctx.recovery_key_contents or ""
     ctx.recovery_key_saved_message = ctx.recovery_key_saved_message or ""
+    ctx.recovery_key_warning = ctx.recovery_key_warning or ""
+    -- O formulário do arquivo começa com o que o Git Sync já usa.
+    if (ctx.recovery_key_infra_remote or "") == "" then
+        ctx.recovery_key_infra_remote = ctx.state_git_form_remote or ""
+    end
+    if (ctx.recovery_key_infra_branch or "") == "" then
+        ctx.recovery_key_infra_branch = ctx.state_git_form_branch or ""
+    end
+    if (ctx.recovery_key_provider_id or "") == "" then
+        ctx.recovery_key_provider_id = ctx.state_git_form_provider_id or ""
+    end
 end
 
 --- Deriva do estado (`configured`, `generated`) as flags e o rótulo que a tela
@@ -70,10 +84,17 @@ function M.load(): ()
 end
 
 local function save_file_now(): ()
+    -- o daemon manda o arquivo binário em base64 (é JSON); grava os bytes
+    local bytes, decode_error = base64.decode(ctx.recovery_key_contents)
+    if bytes == nil then
+        ctx.recovery_key_saved_message = tostring(decode_error)
+        toast { message = ctx.recovery_key_saved_message, kind = "error" }
+        return
+    end
     local saved, where = Download.save(
         ctx.recovery_key_filename,
-        ctx.recovery_key_contents,
-        i18n.tr("Salvar a chave de recuperação")
+        bytes,
+        i18n.tr("Salvar o arquivo de recuperação")
     )
     if saved then
         ctx.recovery_key_saved_message = i18n.tr("salvo em ") .. where
@@ -91,12 +112,43 @@ function recovery_key_open(): ()
     M.load()
 end
 
---- Gera a chave e já a baixa em Downloads. Havendo chave, pede confirmação (a
---- antiga deixa de cifrar).
+--- O `<select>` da conta Git só escreve na chave via `on_change`.
+function recovery_key_provider_pick(provider_id: string): ()
+    ctx.recovery_key_provider_id = provider_id or ""
+end
+
+--- O que falta para gerar o arquivo, ou `nil` se está tudo lá. O daemon
+--- confere de novo (e recusa antes de trocar a chave); isto só poupa a ida.
+function M.missing_field(): string?
+    local remote = Helpers.trim(ctx.recovery_key_infra_remote)
+    if remote == "" then
+        return i18n.tr("informe o repositório da infra")
+    end
+    local local_remote = remote:match("^file://") ~= nil
+        or remote:sub(1, 1) == "/"
+    if not local_remote and remote:match("^https://") == nil then
+        return i18n.tr(
+            "o repositório da infra precisa ser https://… (endereços SSH, "
+                .. "git@…, não são aceitos)"
+        )
+    end
+    if not local_remote and (ctx.recovery_key_provider_id or "") == "" then
+        return i18n.tr("escolha a conta Git cujo token vai no arquivo")
+    end
+    return nil
+end
+
+--- Gera a chave e já baixa o arquivo de recuperação em Downloads. Havendo
+--- chave, pede confirmação (a antiga deixa de cifrar).
 function recovery_key_generate(): ()
     set_defaults()
     local api = State.api
     if not api then
+        return
+    end
+    local missing = M.missing_field()
+    if missing ~= nil then
+        toast { message = missing, kind = "error" }
         return
     end
     local replace = ctx.recovery_key_configured == "true"
@@ -118,8 +170,16 @@ function recovery_key_generate(): ()
             return
         end
     end
-    local ok, response =
-        api:rpc_checked { RecoveryKeyGenerate = { replace = replace } }
+    local branch = Helpers.trim(ctx.recovery_key_infra_branch)
+    local provider_id = ctx.recovery_key_provider_id or ""
+    local ok, response = api:rpc_checked {
+        RecoveryKeyGenerate = {
+            replace = replace,
+            infra_remote = Helpers.trim(ctx.recovery_key_infra_remote),
+            infra_branch = if branch ~= "" then branch else nil,
+            provider_id = if provider_id ~= "" then provider_id else nil,
+        },
+    }
     if
         not ok
         or type(response) ~= "table"
@@ -135,7 +195,8 @@ function recovery_key_generate(): ()
     refresh_flags()
     ctx.recovery_key_private = generated.private_key
     ctx.recovery_key_filename = generated.suggested_filename
-    ctx.recovery_key_contents = generated.file_contents
+    ctx.recovery_key_contents = generated.file_base64 or ""
+    ctx.recovery_key_warning = generated.warning or ""
     -- o aviso de "sem chave" das abas Backups e Sincronização some sem esperar
     -- a releitura
     ctx.backup_destination_recovery_missing = "false"
@@ -165,6 +226,7 @@ function recovery_key_dismiss(): ()
     ctx.recovery_key_private = ""
     ctx.recovery_key_contents = ""
     ctx.recovery_key_saved_message = ""
+    ctx.recovery_key_warning = ""
     refresh_flags()
 end
 

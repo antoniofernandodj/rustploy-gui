@@ -599,8 +599,10 @@ são filhas dele (glacier-ui 0.117+).
 - **`size`, `min_size`, `icon`, `decorations`** são da janela **principal**. O ícone as
   filhas herdam; o tamanho de cada uma vai no `open_window("tela", { size = … })` dos
   handlers.
-- **Fonte e daemon.** A fonte padrão vale para todas as janelas (declarada no próprio
-  `app(...)`); o `application_id` do Linux casa a janela com o `rustploy-gui.desktop`.
+- **Fonte e daemon.** O `app(...)` **não** declara `font = …`: a interface usa a sans do
+  sistema (ver "Tipografia", logo abaixo). As duas JetBrains Mono continuam embutidas e
+  registradas pela família, para o que é código. O `application_id` do Linux casa a janela
+  com o `rustploy-gui.desktop`.
   O **MSAA x4** padrão do iced custa caro num fallback 100% por software (sem GPU
   compatível: o `wgpu` recusa adapters não-Vulkan-compliant e cai para a CPU), e telas de
   formulário e de lista não perdem legibilidade sem ele — por isso o `antialiasing` é
@@ -617,6 +619,45 @@ são filhas dele (glacier-ui 0.117+).
   `new_registry_token`): cada uma é um motor isolado que abre **só** a tela pedida
   (`open_window("log", …)`), com o próprio script — o `init` delas não roda na principal.
   Os tamanhos estão nos handlers.
+
+#### Tipografia: sans na interface, mono só no que é código
+
+Até a 0.1.73 o `app(...)` declarava `font = "JetBrains Mono"` e o `app.gss` se dizia
+"monospaced throughout". Na tela, eram **três** fontes, e ninguém tinha escolhido isso:
+
+- texto normal: JetBrains Mono (a padrão do `app`);
+- **todo `bold: true`**: a sans do sistema. No glacier-ui (0.167) o negrito monta
+  `Font { weight: Bold, ..Default::default() }`, e o `Default` do iced é a família
+  `SansSerif`, não a fonte padrão do app. Títulos, rótulos em caixa alta e valores em
+  negrito saíam numa fonte, o resto em outra;
+- `font: mono` / `font = mono`: o `Font::MONOSPACE` do iced, isto é, a mono **do
+  sistema** (DejaVu Sans Mono), não a JetBrains.
+
+Some-se a isso parágrafos de ajuda em mono de 12 px com linhas de ~200 caracteres, e a
+tela cansava a vista sem que desse para apontar o porquê. A saída, sem mexer no glacier:
+
+- **A interface é a sans do sistema**, a mesma em que o `bold` já caía: o normal e o
+  negrito passam a ser a mesma família;
+- **Mono só para código e valores** (URL, token, comando, chave, versão, hash), pela
+  família registrada: `font: JetBrains Mono` no `.gss` (o valor não leva aspas: o parser
+  não as tira) ou a classe `u-mono`. `font: mono` não aponta mais para nada aqui;
+- **mono não combina com negrito**: o negrito vence o `font` e cai na sans. Por isso
+  `u-mono` zera o `bold` e as classes de valor (`copy-row__text`, `info-row__value`) não
+  usam negrito.
+
+O conserto de raiz é o glacier herdar a família da fonte padrão no negrito (`font_for` e
+os `..Default::default()` de `widget.rs`). Ficou de fora porque o tree local do glacier
+divergiu do publicado (ver AGENTS.md, passo 0 do glacier).
+
+**Formulário em grupos.** Nos painéis de configuração, cada campo é um
+`field(label, description)`: rótulo, controle e ajuda a 6 px entre si, e o
+`form-panel--grouped` separa os grupos a 20 px. Antes era tudo irmão no mesmo `spacing:
+10`, e a ajuda de um campo ficava tão perto do rótulo seguinte quanto do próprio campo.
+As outras peças: `form-panel__head` (título + parágrafo que o explica),
+`form-panel__actions`, `copy-row` (valor em mono numa caixa + "Copiar", a mesma cara em
+todo lugar), `info-list`/`info-row` (rótulo → valor, linhas baixas) e `option-nested`
+(opção que só vale com a de cima marcada, recuada sob ela). O `text` do glacier ignora
+`padding`; por isso a caixa do `copy-row` é um `container` com o texto dentro.
 
 ### 6.3 O shell (`views/shell.component.gv` e `views/shell/`)
 

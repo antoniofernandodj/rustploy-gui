@@ -10,7 +10,7 @@ component {
 
   textarea(
     class = env__editor,
-    font = mono,
+    font = "JetBrains Mono",
     :value = service_compose,
     placeholder = l"""
       services:

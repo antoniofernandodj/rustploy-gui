@@ -6,10 +6,11 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-stack) {
-      column(class = form-panel) {
-        text("{t('settings_backups.s3_destination')}", class = u-label-cap)
-
-        text("{t('settings_backups.destination_hint')}", class = u-muted)
+      column(class = "form-panel form-panel--grouped") {
+        column(class = form-panel__head) {
+          text("{t('settings_backups.s3_destination')}", class = u-label-cap)
+          text("{t('settings_backups.destination_hint')}", class = u-muted)
+        }
 
         text(
           "{t('settings_backups.no_recovery_recipient')}",
@@ -19,13 +20,13 @@ component {
         )
 
         row(
-          class = env__add,
+          class = form-panel__actions,
           if = @backup_destination_recovery_missing,
           equals = true
         ) {
           button(
             "{t('settings_recovery_key.generate_key')}",
-            class = btn-secondary,
+            class = "btn btn--ghost",
             on_click = recovery_key_open
           )
         }
@@ -36,7 +37,7 @@ component {
         ) {
           input(
             placeholder = "https://s3.us-east-005.backblazeb2.com",
-            class = field__input,
+            class = "field__input u-mono",
             form_control = backup_destination_endpoint,
             :value = backup_destination_endpoint,
             on_change = field:backup_destination_endpoint,
@@ -88,13 +89,13 @@ component {
           )
         }
 
-        toggle(
-          :checked = backup_destination_path_style,
-          on_toggle = field:backup_destination_path_style,
-          label = "{t('settings_backups.path_style')}",
-        )
-
-        text("{t('settings_backups.path_style_hint')}", class = u-muted)
+        field(description = "{t('settings_backups.path_style_hint')}") {
+          toggle(
+            :checked = backup_destination_path_style,
+            on_toggle = field:backup_destination_path_style,
+            label = "{t('settings_backups.path_style')}",
+          )
+        }
 
         field(
           label = "{t('settings_backups.access_key')}",
@@ -121,16 +122,16 @@ component {
             :value = backup_destination_secret_key,
             on_change = field:backup_destination_secret_key,
           )
+
+          text(
+            "{t('settings_backups.secret_key_saved')}",
+            if = @backup_destination_secret_set,
+            equals = true,
+            class = u-muted,
+          )
         }
 
-        text(
-          "{t('settings_backups.secret_key_saved')}",
-          if = @backup_destination_secret_set,
-          equals = true,
-          class = u-muted,
-        )
-
-        row(class = env__add) {
+        row(class = form-panel__actions) {
           button(
             "{t('common.save')}",
             class = "btn btn--primary",

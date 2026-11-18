@@ -405,7 +405,7 @@ component {
 
           textarea(
             class = env__editor,
-            font = mono,
+            font = "JetBrains Mono",
             :value = service_env_text,
             placeholder = "{t('common.key_value_comment')}",
           )

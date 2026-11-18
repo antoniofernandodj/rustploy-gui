@@ -3,259 +3,266 @@
 // manuais da aba Runtime, disparadas por agendamento em vez de clique.
 component {
   scrollable(direction = vertical, class = u-fill-all) {
-    column(class = form-panel) {
-      field(
-        label = "{t('settings_maintenance.automatic_cleanup')}",
-        label_class = u-label-cap
-      ) {
-        toggle(
-          :checked = docker_cleanup_enabled,
-          on_toggle = field:docker_cleanup_enabled,
-          label = "{t('settings_maintenance.enable_automatic_cleanup')}",
-        )
-      }
-
-      text(
-        "{t('settings_maintenance.runs_by_itself_at_the_time')}",
-        class = u-muted,
-      )
-
-      field(
-        label = "{t('settings_maintenance.frequency')}",
-        label_class = u-label-cap
-      ) {
-        scroll(class = tabs__scroll, direction = horizontal) {
-          tabbar(
-            :value = docker_cleanup_kind,
-            active = @docker_cleanup_kind,
-            :items = docker_cleanup_kinds,
-            tab_class = tabs__tab,
-            tab_active_class = "tabs__tab tabs__tab--active",
-            padding = "9 16",
-            size = 14,
-            active_bold = false,
+    column(class = form-stack) {
+      // ── Quando ──
+      column(class = "form-panel form-panel--grouped") {
+        field(
+          label = "{t('settings_maintenance.automatic_cleanup')}",
+          label_class = u-label-cap,
+          description =
+            "{t('settings_maintenance.runs_by_itself_at_the_time')}",
+        ) {
+          toggle(
+            :checked = docker_cleanup_enabled,
+            on_toggle = field:docker_cleanup_enabled,
+            label = "{t('settings_maintenance.enable_automatic_cleanup')}",
           )
         }
-      }
 
-      row(
-        class = healthcheck__grid,
-        if = @docker_cleanup_kind,
-        equals = interval
-      ) {
-        column(class = healthcheck__field) {
-          // Teto de 168 = uma semana. Acima disso o usuário quer a
-          // frequência "semanal", que é a aba ao lado.
-          field(
-            label = "{t('settings_maintenance.every_hours')}",
-            label_class = u-label-cap
-          ) {
-            spinbox(
-              field_class = field__spin,
-              form_control = docker_cleanup_hours,
-              :value = docker_cleanup_hours,
-              min = 1,
-              max = 168,
-              width = 90,
-              placeholder = 6,
+        field(
+          label = "{t('settings_maintenance.frequency')}",
+          label_class = u-label-cap
+        ) {
+          scroll(class = tabs__scroll, direction = horizontal) {
+            tabbar(
+              :value = docker_cleanup_kind,
+              active = @docker_cleanup_kind,
+              :items = docker_cleanup_kinds,
+              tab_class = tabs__tab,
+              tab_active_class = "tabs__tab tabs__tab--active",
+              padding = "7 14",
+              size = 13,
+              active_bold = false,
             )
           }
         }
-      }
 
-      scroll(
-        class = tabs__scroll,
-        direction = horizontal,
-        if = @docker_cleanup_kind,
-        equals = weekly
-      ) {
-        row(class = tabs__main) {
-          radiogroup(
-            :value = docker_cleanup_weekday,
-            :items = weekdays,
-            layout = row
+        // Teto de 168 = uma semana. Acima disso o usuário quer a frequência
+        // "semanal", que é a aba ao lado.
+        field(
+          if = @docker_cleanup_kind,
+          equals = interval,
+          label = "{t('settings_maintenance.every_hours')}",
+          label_class = u-label-cap
+        ) {
+          spinbox(
+            field_class = field__spin,
+            form_control = docker_cleanup_hours,
+            :value = docker_cleanup_hours,
+            min = 1,
+            max = 168,
+            width = 90,
+            placeholder = 6,
           )
         }
-      }
 
-      row(
-        class = healthcheck__grid,
-        if = @docker_cleanup_kind,
-        not_equals = interval
-      ) {
-        column(class = healthcheck__field) {
-          field(label = "{t('common.time')}", label_class = u-label-cap) {
-            timeedit(:value = docker_cleanup_time)
+        scroll(
+          class = tabs__scroll,
+          direction = horizontal,
+          if = @docker_cleanup_kind,
+          equals = weekly
+        ) {
+          row(class = tabs__main) {
+            radiogroup(
+              :value = docker_cleanup_weekday,
+              :items = weekdays,
+              layout = row
+            )
           }
         }
+
+        field(
+          if = @docker_cleanup_kind,
+          not_equals = interval,
+          label = "{t('common.time')}",
+          label_class = u-label-cap,
+          description = "{t('settings_maintenance.next_scheduled_run',
+            docker_cleanup_next_run_label=docker_cleanup_next_run_label)}",
+        ) {
+          timeedit(:value = docker_cleanup_time)
+        }
+
+        text(
+          "{t('settings_maintenance.next_scheduled_run',
+            docker_cleanup_next_run_label=docker_cleanup_next_run_label)}",
+          if = @docker_cleanup_kind,
+          equals = interval,
+          class = u-muted,
+        )
       }
 
-      text(
-        "{t('settings_maintenance.next_scheduled_run',
-          docker_cleanup_next_run_label=docker_cleanup_next_run_label)}",
-        class = u-muted,
-      )
+      // ── O que limpar ──
+      column(class = "form-panel form-panel--grouped") {
+        text("{t('settings_maintenance.what_to_clean')}", class = u-label-cap)
 
-      hr
-      field(
-        label = "{t('settings_maintenance.what_to_clean')}",
-        label_class = u-label-cap
-      ) {
         checkbox(
           :checked = docker_cleanup_containers,
           on_toggle = field:docker_cleanup_containers,
           label = "{t('settings_maintenance.stopped_containers')}",
         )
-      }
 
-      checkbox(
-        :checked = docker_cleanup_images,
-        on_toggle = field:docker_cleanup_images,
-        label = "{t('settings_maintenance.unused_images')}",
-      )
+        column(class = option-group) {
+          checkbox(
+            :checked = docker_cleanup_images,
+            on_toggle = field:docker_cleanup_images,
+            label = "{t('settings_maintenance.unused_images')}",
+          )
 
-      checkbox(
-        if = @docker_cleanup_images,
-        equals = true,
-        :checked = docker_cleanup_images_all,
-        on_toggle = field:docker_cleanup_images_all,
-        label = "{t('settings_maintenance.include_all_unused_not_just')}",
-      )
-
-      row(
-        class = healthcheck__grid,
-        if = @docker_cleanup_images,
-        equals = true
-      ) {
-        column(class = healthcheck__field) {
-          field(
-            label = "{t('settings_maintenance.only_images_older_than')}",
-            label_class = u-label-cap
+          column(
+            class = option-nested,
+            if = @docker_cleanup_images,
+            equals = true
           ) {
-            spinbox(
-              field_class = field__spin,
-              form_control = docker_cleanup_images_older_than_hours,
-              :value = docker_cleanup_images_older_than_hours,
-              min = 0,
-              max = 8760,
-              width = 110,
-              placeholder = 168,
+            checkbox(
+              :checked = docker_cleanup_images_all,
+              on_toggle = field:docker_cleanup_images_all,
+              label =
+                "{t('settings_maintenance.include_all_unused_not_just')}",
             )
+
+            field(
+              label = "{t('settings_maintenance.only_images_older_than')}",
+              label_class = u-label-cap,
+              description =
+                "{t('settings_maintenance.0_does_not_filter_by_age')}",
+            ) {
+              spinbox(
+                field_class = field__spin,
+                form_control = docker_cleanup_images_older_than_hours,
+                :value = docker_cleanup_images_older_than_hours,
+                min = 0,
+                max = 8760,
+                width = 110,
+                placeholder = 168,
+              )
+            }
           }
+        }
+
+        checkbox(
+          :checked = docker_cleanup_networks,
+          on_toggle = field:docker_cleanup_networks,
+          label = "{t('settings_maintenance.unused_networks')}",
+        )
+
+        column(class = option-group) {
+          checkbox(
+            :checked = docker_cleanup_build_cache,
+            on_toggle = field:docker_cleanup_build_cache,
+            label = "{t('settings_maintenance.build_cache')}",
+          )
+
+          column(
+            class = option-nested,
+            if = @docker_cleanup_build_cache,
+            equals = true
+          ) {
+            field(
+              label = "{t('settings_maintenance.keep_the_cache_used_in')}",
+              label_class = u-label-cap,
+              description =
+                "{t('settings_maintenance.0_removes_all_unused_cache_with')}",
+            ) {
+              spinbox(
+                field_class = field__spin,
+                form_control = docker_cleanup_build_cache_older_than_hours,
+                :value = docker_cleanup_build_cache_older_than_hours,
+                min = 0,
+                max = 8760,
+                width = 110,
+                placeholder = 168,
+              )
+            }
+          }
+        }
+
+        column(class = option-group) {
+          checkbox(
+            :checked = docker_cleanup_warm_after,
+            on_toggle = field:docker_cleanup_warm_after,
+            label =
+              "{t('settings_maintenance.warm_the_builds_after_cleanup')}",
+          )
 
           text(
-            "{t('settings_maintenance.0_does_not_filter_by_age')}",
-            class = u-muted,
+            "{t('settings_maintenance.after_cleaning_rebuilds_the_image_of')}",
+            class = "u-muted option-hint",
           )
         }
       }
 
-      checkbox(
-        :checked = docker_cleanup_networks,
-        on_toggle = field:docker_cleanup_networks,
-        label = "{t('settings_maintenance.unused_networks')}",
-      )
-
-      checkbox(
-        :checked = docker_cleanup_build_cache,
-        on_toggle = field:docker_cleanup_build_cache,
-        label = "{t('settings_maintenance.build_cache')}",
-      )
-
-      row(
-        class = healthcheck__grid,
-        if = @docker_cleanup_build_cache,
-        equals = true
-      ) {
-        column(class = healthcheck__field) {
-          field(
-            label = "{t('settings_maintenance.keep_the_cache_used_in')}",
-            label_class = u-label-cap
-          ) {
-            spinbox(
-              field_class = field__spin,
-              form_control = docker_cleanup_build_cache_older_than_hours,
-              :value = docker_cleanup_build_cache_older_than_hours,
-              min = 0,
-              max = 8760,
-              width = 110,
-              placeholder = 168,
-            )
-          }
-
+      // ── Volumes ──
+      column(class = "form-panel form-panel--grouped") {
+        column(class = form-panel__head) {
           text(
-            "{t('settings_maintenance.0_removes_all_unused_cache_with')}",
+            "{t('settings_maintenance.volumes_careful')}",
+            class = "u-label-cap u-error"
+          )
+          text(
+            "{t('settings_maintenance.unused_volumes_outside_rustploy')}",
             class = u-muted,
           )
         }
+
+        column(class = option-group) {
+          checkbox(
+            :checked = docker_cleanup_volumes,
+            on_toggle = field:docker_cleanup_volumes,
+            label = "{t('settings_maintenance.unused_volumes')}",
+          )
+
+          column(
+            class = option-nested,
+            if = @docker_cleanup_volumes,
+            equals = true
+          ) {
+            checkbox(
+              :checked = docker_cleanup_volumes_all,
+              on_toggle = field:docker_cleanup_volumes_all,
+              label =
+                "{t('settings_maintenance.include_all_unused_not_just_2')}",
+            )
+          }
+        }
       }
 
-      checkbox(
-        :checked = docker_cleanup_warm_after,
-        on_toggle = field:docker_cleanup_warm_after,
-        label = "{t('settings_maintenance.warm_the_builds_after_cleanup')}",
-      )
+      // ── Salvar / última execução ──
+      column(class = "form-panel form-panel--grouped") {
+        row(class = form-panel__actions) {
+          button(
+            "{t('common.save')}",
+            class = "btn btn--primary",
+            on_click = docker_cleanup_save,
+            disabled = @busy_docker_cleanup_save
+          )
 
-      text(
-        "{t('settings_maintenance.after_cleaning_rebuilds_the_image_of')}",
-        class = u-muted,
-      )
+          button(
+            "{t('settings_maintenance.run_now')}",
+            class = "btn btn--ghost",
+            if = @docker_cleanup_running,
+            not_equals = true,
+            on_click = docker_cleanup_run_now,
+            disabled = @busy_docker_cleanup_run_now
+          )
 
-      hr
-      text(
-        "{t('settings_maintenance.volumes_careful')}",
-        class = "u-label-cap u-error"
-      )
+          button(
+            "{t('settings_maintenance.running')}",
+            class = "btn btn--ghost",
+            if = @docker_cleanup_running,
+            equals = true,
+            disabled = true
+          )
 
-      text(
-        "{t('settings_maintenance.unused_volumes_outside_rustploy')}",
-        class = u-muted,
-      )
+          text("@docker_cleanup_message", class = u-muted)
+        }
 
-      checkbox(
-        :checked = docker_cleanup_volumes,
-        on_toggle = field:docker_cleanup_volumes,
-        label = "{t('settings_maintenance.unused_volumes')}",
-      )
-
-      checkbox(
-        if = @docker_cleanup_volumes,
-        equals = true,
-        :checked = docker_cleanup_volumes_all,
-        on_toggle = field:docker_cleanup_volumes_all,
-        label = "{t('settings_maintenance.include_all_unused_not_just_2')}",
-      )
-
-      row(class = env__add) {
-        button(
-          "{t('common.save')}",
-          class = "btn btn--primary",
-          on_click = docker_cleanup_save,
-          disabled = @busy_docker_cleanup_save
-        )
-
-        button(
-          "{t('settings_maintenance.run_now')}",
-          class = tabs__tab,
-          if = @docker_cleanup_running,
-          not_equals = true,
-          on_click = docker_cleanup_run_now,
-          disabled = @busy_docker_cleanup_run_now
-        )
-
-        button(
-          "{t('settings_maintenance.running')}",
-          class = tabs__tab,
-          if = @docker_cleanup_running,
-          equals = true
-        )
-
-        text("@docker_cleanup_message", class = u-muted)
+        field(
+          label = "{t('common.last_run')}",
+          label_class = u-label-cap
+        ) {
+          text("@docker_cleanup_last_run_text", class = u-muted)
+        }
       }
-
-      hr
-      text("{t('common.last_run')}", class = u-label-cap)
-      text("@docker_cleanup_last_run_text", class = u-muted)
     }
   }
 }

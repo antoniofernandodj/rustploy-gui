@@ -1,5 +1,6 @@
 /* ── Rustploy — glacier-ui stylesheet.─────────────────────────────────────
-   Terminal-flavoured dark theme, monospaced throughout, matching design/.
+   Tema escuro; a interface em sans (a do sistema) e a mono (JetBrains Mono)
+   só no que é código ou valor — ver README, "Tipografia".
 
    Aqui ficam apenas os seletores COMPARTILHADOS por mais de um template (mais
    alguns utilitários ainda sem uso). Seletores usados por um único template
@@ -77,12 +78,12 @@
 }
 
 /* ── Utilitários (u-*) ────────────────────────────────────────────────── */
-.u-mono        { }
+.u-mono        { font: JetBrains Mono; bold: false; }
 .u-fill        { width: fill; }
 .u-fill-all    { width: fill; height: fill; }
 .u-center-fill { width: fill; height: fill; align_x: center; align_y: center; }
 .u-align-y-end { align_y: end; }
-.u-muted       { size: 12; color: var(--muted); }
+.u-muted       { size: 13; color: var(--muted); }
 .u-label-cap   { size: 11; bold: true; color: var(--faint); }
 .u-error       { color: var(--error); }
 .u-ok          { color: var(--ok); }
@@ -387,6 +388,44 @@
    padding: 24;
    spacing: 10;
 }
+/* Painel montado com `field(description = …)`: cada grupo (rótulo, controle
+   e ajuda, a 6 entre si) fica a 20 do próximo. Sem o modificador, a ajuda de
+   um campo ficava tão perto do rótulo seguinte quanto do próprio campo. */
+.form-panel--grouped { spacing: 20; }
+/* Título da seção + o parágrafo que a explica: juntos, e o resto do painel
+   (os grupos, a 20) bem separado deles. */
+.form-panel__head    { width: fill; spacing: 6; }
+.form-panel__title   { size: 12; bold: true; color: var(--text-2); }
+.form-panel__actions { width: fill; spacing: 8; align_y: center; }
+/* Um trecho condicional do painel (só aparece num estado): o mesmo espaço
+   entre grupos do painel em volta. */
+.form-panel__body    { width: fill; spacing: 20; }
+/* Parágrafos de explicação seguidos (o topo das abas Variáveis/Secrets). */
+.prose               { width: fill; max_width: 760; spacing: 8; }
+/* Valor para copiar (URL, token, comando): o texto em mono numa caixa, o
+   botão do lado — a mesma cara em todo lugar que tem "Copiar". */
+.copy-row        { width: fill; spacing: 8; align_y: center; }
+.copy-row__value {
+  width: fill;
+  padding: 8 12;
+  background: var(--bg);
+  border_radius: 4;
+  border_width: 1;
+  border_color: var(--border);
+}
+.copy-row__text  { width: fill; size: 13; color: var(--text-2);
+  font: JetBrains Mono; }
+/* Pares rótulo → valor dentro de um painel de formulário (versão instalada,
+   último commit…): linhas baixas; o `.kv-list__row`, com 12 de padding, é o
+   das listas de largura cheia. */
+.info-list        { width: fill; spacing: 10; }
+.info-row         { width: fill; spacing: 12; align_y: center; }
+.info-row__key    { width: fill; size: 13; color: var(--muted); }
+.info-row__value  { size: 13; color: var(--text); font: JetBrains Mono; }
+/* Opção que só vale com a de cima marcada: recuada sob ela. */
+.option-group     { width: fill; spacing: 10; }
+.option-nested    { width: fill; spacing: 8; padding: 0 0 0 28; }
+.option-hint      { width: fill; padding: 0 0 0 28; }
 /* O mesmo painel com os campos mais juntos (o formulário de renomear). */
 .form-panel--tight { spacing: 6; }
 /* Uma linha da lista + a linha extra de baixo (ex.: o valor revelado de um
@@ -460,7 +499,8 @@
 .kv-list__key--fit { width: shrink; }
 .form-select {
   width: fill;
-  padding: 12 14;
+  padding: 10 12;
+  size: 14;
   background: var(--raised);
   border_radius: 4;
   border_width: 1;
@@ -480,10 +520,10 @@
    entre os itens, o rótulo de um checkbox encosta no box do seguinte. */
 .env__toolbar     { width: fill; align_y: center; spacing: 16; }
 .env__add         { width: fill; spacing: 8; align_y: center; }
-.env__input       { width: fill; padding: 9 12; }
+.env__input       { width: fill; padding: 9 12; size: 14; }
 /* A chave ao lado de um valor `fill`: largura fixa, para o valor (ou a lista
    de secrets) ficar com o resto. */
-.env__input-key   { width: 220; padding: 9 12; }
+.env__input-key   { width: 220; padding: 9 12; size: 14; }
 /* Edição no lugar de chave/valor: o campo some a borda e herda a cara do texto
    que substitui; só o foco desenha um filete. O wrapper (form) tem a largura
    da célula que ele ocupa. */
@@ -567,16 +607,20 @@
 .env__key         { size: 13; bold: true; color: var(--accent); width: 400; }
 /* Editor .env (textarea + toggle), compartilhado por service.component.gv e
    shell.component.gv. */
-.env__editor      { width: fill; height: 200; padding: 10 12; font: mono; }
+.env__editor {
+  width: fill;
+  height: 200;
+  padding: 10 12;
+  font: JetBrains Mono;
+}
 /* Webhook (aba Deployments): a URL ocupa a linha inteira — é longa demais para
    dividir espaço com os botões, que ficam na linha de baixo. */
 .webhook          { width: fill; spacing: 10; }
 .webhook__url {
   width: fill;
   size: 13;
-  bold: true;
   color: var(--text-2);
-  font: mono;
+  font: JetBrains Mono;
 }
 .webhook__actions { spacing: 8; align_y: center; }
 .healthcheck__grid  { width: fill; spacing: 14; }
@@ -585,15 +629,15 @@
 /* ── Forms ────────────────────────────────────────────────────────────── */
 .field          { width: fill; spacing: 6; }
 .field__label   { size: 11; bold: true; color: var(--muted); }
-.field__input   { width: fill; padding: 13 14; }
+.field__input   { width: fill; padding: 10 12; size: 14; }
 
 /* O builtin `field` do glacier-ui (0.162) desenha rótulo, ajuda e erro com as
    classes abaixo; repintadas aqui com a cara do `.field__label` de sempre.
    Esta folha vem depois da da lib, então vence por ordem. */
 .field-label       { size: 11; bold: true; color: var(--muted); }
 .field-required    { size: 11; bold: true; color: var(--error); }
-.field-description { size: 12; color: var(--muted); }
-.field-error       { size: 12; color: var(--error); }
+.field-description { size: 13; color: var(--muted); }
+.field-error       { size: 13; color: var(--error); }
 /* Rótulo no estilo `u-label-cap` (o de boa parte dos formulários de serviço e
    settings): `field(label_class = u-label-cap)`. A regra composta pesa mais
    que as duas sozinhas, então a cor apagada do `u-label-cap` vence a do
@@ -605,7 +649,7 @@
    somam ~30px (2 × ~1,3 × glyph_size 11 — ver o builtin SpinBox do
    glacier-ui). Um padding menor casa a altura dos dois. Sem `width`: cada
    spinbox passa a largura do campo pela prop `width=`. */
-.field__spin    { padding: 6 12; }
+.field__spin    { padding: 6 12; size: 14; }
 
 /* Janelas auxiliares (novo projeto/job/serviço/token, exportar): a casca de
    tela e o corpo rolável são os mesmos; o resto mora no style de cada

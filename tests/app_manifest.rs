@@ -274,7 +274,7 @@ fn app_declares_fonts_and_daemon_settings() {
     let m = glacier_ui::parse_app_manifest(&xml, Some("views/app.gv"))
         .expect("app.gv parseia")
         .expect("app.gv tem raiz app");
-    assert_eq!(m.app.font.as_deref(), Some("JetBrains Mono"));
+    assert_eq!(m.app.font, None, "a interface usa a sans do sistema");
     assert_eq!(m.app.antialiasing, Some(false));
     assert_eq!(m.app.toast_period, Some(250));
     assert_eq!(m.app.application_id.as_deref(), Some("rustploy-gui"));

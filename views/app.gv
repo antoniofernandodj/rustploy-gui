@@ -6,7 +6,6 @@ app(
   min_size = "640 680",
   icon = "views/assets/rustploy.png",
   decorations = false,
-  font = "JetBrains Mono",
   application_id = "rustploy-gui",
   antialiasing = false,
   toast_period = 250,
@@ -15,7 +14,8 @@ app(
     link(rel = theme, href = "views/styles/theme.json")
     link(rel = stylesheet, href = "views/styles/app.gss")
 
-    // JetBrains Mono, embutida no binário de release (src/embedded.rs).
+    // JetBrains Mono (src/embedded.rs): só para código e valores (`u-mono`);
+    // a interface usa a sans do sistema, a mesma em que o `bold` cai.
     font(
       src = "assets/fonts/JetBrainsMono-Regular.ttf",
       family = "JetBrains Mono"

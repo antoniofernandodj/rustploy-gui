@@ -4,7 +4,12 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
   resources {
     style """
     .dialog__check { color: var(--surface); padding: 5 10; border_radius: 4; }
-    .dialog__yaml  { width: fill; height: 150; padding: 10 12; font: mono; }
+    .dialog__yaml  {
+      width: fill;
+      height: 150;
+      padding: 10 12;
+      font: JetBrains Mono;
+    }
     """
 
     script(src = "scripts/service_export_window.luau")
@@ -162,7 +167,11 @@ screen(title = "{t('service_export_window.export_service_rustploy')}") {
           )
 
           if @export_yaml != "" {
-            textarea(class = dialog__yaml, font = mono, :value = export_yaml)
+            textarea(
+              class = dialog__yaml,
+              font = "JetBrains Mono",
+              :value = export_yaml
+            )
             button(
               "{t('service_export_window.copy_text')}",
               class = "btn btn--ghost btn--xs",

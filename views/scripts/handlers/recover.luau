@@ -10,6 +10,7 @@
 
 local State = require("../state")
 local Helpers = require("../helpers")
+local RecoveryKit = require("../recovery_kit")
 
 local M = {}
 
@@ -90,6 +91,55 @@ end
 
 function recover_refresh(): ()
     M.load()
+end
+
+--- Preenche os quatro campos a partir de um kit já lido. Pura (só escreve no
+--- `ctx`), para os testes.
+function M.fill_from_kit(kit: RecoveryKit.Kit): ()
+    ctx.recover_remote = kit.infra_remote
+    ctx.recover_branch = kit.infra_branch
+    ctx.recover_token = kit.infra_token
+    ctx.recover_key = kit.private_key
+    local origin = if kit.server ~= "" then kit.server else "?"
+    ctx.recover_message = string.format(
+        i18n.tr(
+            "arquivo de recuperação de %s (%s) carregado: confira e restaure"
+        ),
+        origin,
+        string.sub(kit.created_at, 1, 10)
+    )
+end
+
+--- "Carregar arquivo de recuperação": lê o `.rpkit` gerado junto com a chave
+--- e preenche repositório, branch, token e chave.
+function recover_load_kit(): ()
+    local path = open_file {
+        title = i18n.tr("Arquivo de recuperação"),
+        filters = {
+            {
+                name = i18n.tr("Arquivo de recuperação"),
+                extensions = { "rpkit" },
+            },
+        },
+    }
+    if not path then
+        return
+    end
+    local bytes, read_error = read_file(path)
+    if bytes == nil then
+        ctx.recover_message = i18n.tr("erro ao ler o arquivo: ")
+            .. tostring(read_error)
+        toast { message = ctx.recover_message, kind = "error" }
+        return
+    end
+    local kit, decode_error = RecoveryKit.decode(bytes)
+    if kit == nil then
+        ctx.recover_message = tostring(decode_error)
+        toast { message = ctx.recover_message, kind = "error" }
+        return
+    end
+    M.fill_from_kit(kit)
+    toast { message = ctx.recover_message, kind = "success" }
 end
 
 --- Passo 1: traz a infra do git, recifra os segredos e lista o que foi achado.

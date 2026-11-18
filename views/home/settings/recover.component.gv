@@ -5,13 +5,30 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-stack) {
-      column(class = form-panel) {
-        text("{t('settings_recover.title')}", class = u-label-cap)
-        text("{t('settings_recover.intro')}", class = u-muted)
+      column(class = "form-panel form-panel--grouped") {
+        column(class = form-panel__head) {
+          text("{t('settings_recover.title')}", class = u-label-cap)
+          text("{t('settings_recover.intro')}", class = u-muted)
+        }
 
         // Formulário: só quando não há uma recuperação em curso (ou a última
         // falhou).
-        column(spacing = 6, if = @recover_services_count, equals = 0) {
+        column(
+          class = form-panel__body,
+          if = @recover_services_count,
+          equals = 0
+        ) {
+          field(description = "{t('settings_recover.load_file_hint')}") {
+            row(class = form-panel__actions) {
+              button(
+                "{t('settings_recover.load_file')}",
+                class = "btn btn--ghost",
+                on_click = recover_load_kit,
+                disabled = @busy_recover_load_kit
+              )
+            }
+          }
+
           text(
             "@recover_message",
             if = @recover_message,
@@ -25,7 +42,7 @@ component {
           ) {
             input(
               placeholder = "https://github.com/org/rustploy-estado.git",
-              class = field__input,
+              class = "field__input u-mono",
               form_control = recover_remote,
               :value = recover_remote,
               on_change = field:recover_remote,
@@ -61,21 +78,20 @@ component {
 
           field(
             label = "{t('settings_recover.key')}",
-            label_class = u-label-cap
+            label_class = u-label-cap,
+            description = "{t('settings_recover.key_hint')}",
           ) {
             input(
               placeholder = "AGE-SECRET-KEY-1…",
               secure = true,
-              class = field__input,
+              class = "field__input u-mono",
               form_control = recover_key,
               :value = recover_key,
               on_change = field:recover_key,
             )
           }
 
-          text("{t('settings_recover.key_hint')}", class = u-muted)
-
-          row(class = env__add) {
+          row(class = form-panel__actions) {
             button(
               "{t('settings_recover.restore_infra')}",
               class = "btn btn--primary",
@@ -132,7 +148,11 @@ component {
             class = u-error
           )
 
-          row(class = env__add, if = @recover_phase, equals = ready) {
+          row(
+            class = form-panel__actions,
+            if = @recover_phase,
+            equals = ready
+          ) {
             button(
               "{t('settings_recover.restore_data')}",
               class = "btn btn--primary",
@@ -141,7 +161,7 @@ component {
             )
             button(
               "{t('common.cancel')}",
-              class = btn-secondary,
+              class = "btn btn--ghost",
               on_click = recover_cancel,
               disabled = @busy_recover_cancel
             )

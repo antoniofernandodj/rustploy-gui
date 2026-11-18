@@ -147,6 +147,7 @@ return {
     "queue_promote",
     "queue_toggle_pause",
     "recover_cancel",
+    "recover_load_kit",
     "recover_run",
     "recover_start",
     "recovery_key_copy",

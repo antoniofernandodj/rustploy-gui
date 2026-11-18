@@ -183,7 +183,7 @@ screen(title = "{t('new_job_window.new_job_rustploy')}") {
               field(label = "{t('new_job_window.docker_compose_yml')}") {
                 textarea(
                   class = env__editor,
-                  font = mono,
+                  font = "JetBrains Mono",
                   :value = new_job_compose,
                   placeholder = l"""
                     services:

@@ -26,7 +26,7 @@ screen {
         background: var(--surface);
         border_radius: 4;
         padding: 10 12;
-        font: mono;
+        font: JetBrains Mono;
       }
     """
 
@@ -146,7 +146,7 @@ screen {
 
           textarea(
             class = log-window__editor,
-            font = mono,
+            font = "JetBrains Mono",
             read_only = true,
             :value = log_window_logs_text,
             placeholder = "{t('log_window.no_logs_yet_waiting_for')}",

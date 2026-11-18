@@ -175,7 +175,7 @@ component {
             text("{t('new_service.fill_in_the_value_after')}", class = u-muted)
             textarea(
               class = env__editor,
-              font = mono,
+              font = "JetBrains Mono",
               :value = import_service_text
             )
           }
@@ -188,7 +188,7 @@ component {
             text("{t('new_service.fill_in_the_value_after')}", class = u-muted)
             textarea(
               class = env__editor,
-              font = mono,
+              font = "JetBrains Mono",
               :value = import_project_text
             )
           }
@@ -204,7 +204,7 @@ component {
             )
             textarea(
               class = env__editor,
-              font = mono,
+              font = "JetBrains Mono",
               :value = import_secret_text
             )
           }
@@ -303,7 +303,7 @@ component {
           )
           textarea(
             class = env__editor,
-            font = mono,
+            font = "JetBrains Mono",
             :value = import_text,
             placeholder = l"""
               apiVersion: rustploy/v1

@@ -723,6 +723,33 @@ function test_projeto_movimentos_entre_escopos()
     )
 end
 
+--- projeto: "Mover para o serviço" só aparece com algum secret na lista (sem
+--- nenhum, era um seletor de destino para coisa nenhuma, acima do formulário)
+function test_projeto_secrets_mover_so_com_secret()
+    local Format = require("format")
+    local tela = projeto()
+    seta(tela, {
+        project_tab = "secrets",
+        project_secrets = json.array({}),
+        project_secrets_count = "0",
+    })
+    rende(tela)
+    assert_true(
+        not tem_trecho(tela:texts(), "Move to service"),
+        "seletor de destino sem nenhum secret"
+    )
+    assert_true(tem_trecho(tela:texts(), "New secret"), "rótulo do formulário")
+    seta(tela, {
+        project_secrets = Format.secret_rows({ "TOKEN" }, "project", {}),
+        project_secrets_count = "1",
+    })
+    rende(tela)
+    assert_true(
+        tem_trecho(tela:texts(), "Move to service"),
+        "seletor de destino ausente com secret"
+    )
+end
+
 --- projeto: secret escondido mostra 👁 e "encrypted"; revelado mostra o valor,
 --- 🙈 e copiar
 function test_projeto_secret_ver_valor()
@@ -805,6 +832,65 @@ function test_configuracoes_web()
         server_settings_public_base = "https://rustploy.meusite.com",
     })
     rende(tela)
+    local textos = tela:texts()
+    assert_true(
+        tem_trecho(textos, "https://rustploy.meusite.com"),
+        "URL pública ausente"
+    )
+    -- a ajuda vem do `field(description = …)`, logo abaixo do campo
+    assert_true(
+        tem_trecho(textos, "TLS certificates issued automatically"),
+        "ajuda do e-mail ausente"
+    )
+    assert_true(
+        tem_trecho(textos, "Derived from [api] domain/port"),
+        "ajuda da URL ausente"
+    )
+end
+
+--- Backups, chave de recuperação e recuperar: cada uma sobe, nos estados que
+--- trocam o painel (chave já configurada, recém-gerada, recuperação em curso)
+function test_configuracoes_backups_chave_e_recuperar()
+    local tela = app("settings", {
+        settings_tab = "backups",
+        backup_destination_secret_set = "true",
+        backup_destination_configured = "true",
+        backup_destination_recovery_missing = "false",
+    })
+    rende(tela)
+    for _, gerada in { "false", "true" } do
+        seta(tela, {
+            settings_tab = "recoverykey",
+            recovery_key_configured = "true",
+            recovery_key_public = "age1exemplo",
+            recovery_key_generated = gerada,
+            recovery_key_private = "AGE-SECRET-KEY-1EXEMPLO",
+        })
+        rende(tela)
+        assert_true(
+            tem_trecho(tela:texts(), "age1exemplo"),
+            "chave pública ausente"
+        )
+        -- antes de gerar, o formulário do arquivo de recuperação
+        assert_eq(
+            tem_trecho(tela:texts(), "RECOVERY FILE"),
+            gerada == "false",
+            "formulário do arquivo"
+        )
+    end
+    for _, quantos in { "0", "1" } do
+        seta(tela, {
+            settings_tab = "recover",
+            recover_services_count = quantos,
+            recover_phase = "ready",
+        })
+        rende(tela)
+        assert_eq(
+            tem_trecho(tela:buttons(), "Load recovery file"),
+            quantos == "0",
+            "botão de carregar o arquivo"
+        )
+    end
 end
 
 --- Manutenção: limpeza do Docker em cada recorrência

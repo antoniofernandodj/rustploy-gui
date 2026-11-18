@@ -7,142 +7,155 @@ component {
     class = form
   ) {
     scrollable(direction = vertical, class = u-fill-all) {
-      column(class = form-panel) {
-        text("{t('settings_web.public_api_url')}", class = u-label-cap)
+      column(class = form-stack) {
+        column(class = "form-panel form-panel--grouped") {
+          field(
+            label = "{t('settings_web.public_api_url')}",
+            label_class = u-label-cap,
+            description =
+              "{t('settings_web.derived_from_api_domain_port_in')}",
+          ) {
+            row(class = copy-row) {
+              container(class = copy-row__value) {
+                text("@server_settings_public_base", class = copy-row__text)
+              }
 
-        // o valor num campo só de leitura, com o Copiar colado (inputgroup,
-        // glacier-ui 0.164)
-        inputgroup(
-          action = "{t('common.copy')}",
-          on_action = "copy_ctx:server_settings_public_base"
-        ) {
-          input(:value = server_settings_public_base, readonly = true)
+              button(
+                "{t('common.copy')}",
+                class = "btn btn--ghost btn--sm",
+                on_click = copy_ctx:server_settings_public_base
+              )
+            }
+          }
+
+          field(
+            label = "{t('settings_web.connection_token')}",
+            label_class = u-label-cap,
+            description =
+              "{t('settings_web.base64_of_host_port_token_server')}",
+          ) {
+            row(class = copy-row) {
+              container(class = copy-row__value) {
+                text("@server_access_key_short", class = copy-row__text)
+              }
+
+              button(
+                "{t('common.copy')}",
+                class = "btn btn--ghost btn--sm",
+                on_click = copy_ctx:server_access_key
+              )
+            }
+          }
+
+          field(
+            label = "{t('settings_web.let_s_encrypt_email_automatic')}",
+            label_class = u-label-cap,
+            error = @error_server_settings_email,
+            description =
+              "{t('settings_web.tls_certificates_issued_automatically')}",
+          ) {
+            input(
+              placeholder = "{t('settings_web.you_example_com')}",
+              class = field__input,
+              form_control = server_settings_email,
+            )
+          }
+
+          field(
+            label = "{t('settings_web.registry_domain_public_exposure')}",
+            label_class = u-label-cap,
+            description =
+              "{t('settings_web.exposes_the_built_in_docker_registry')}",
+          ) {
+            input(
+              placeholder = "{t('settings_web.registry_mysite_com')}",
+              class = field__input,
+              form_control = server_settings_registry_domain,
+            )
+          }
+
+          row(class = form-panel__actions) {
+            button(
+              "{t('common.save_2')}",
+              class = "btn btn--primary",
+              type = submit,
+              disabled = @busy_settings_save
+            )
+            text("@settings_message", class = u-muted)
+          }
         }
 
-        text(
-          "{t('settings_web.derived_from_api_domain_port_in')}",
-          class = u-muted,
-        )
+        column(class = "form-panel form-panel--grouped") {
+          column(class = form-panel__head) {
+            text(
+              "{t('settings_web.connect_an_ai_agent_mcp')}",
+              class = u-label-cap
+            )
+            text(
+              "{t('settings_web.each_button_copies_this_server_s')}",
+              class = u-muted,
+            )
+          }
 
-        text("{t('settings_web.connection_token')}", class = u-label-cap)
+          field(
+            label = "{t('settings_web.claude_code')}",
+            label_class = u-label-cap
+          ) {
+            row(class = copy-row) {
+              container(class = copy-row__value) {
+                text(
+                  "{t('settings_web.claude_mcp_add_rustploy_mcp')}",
+                  class = copy-row__text
+                )
+              }
 
-        row(class = kv-list__row) {
-          text(
-            "@server_access_key_short",
-            class = "kv-list__val kv-list__val--compact"
-          )
+              button(
+                "{t('common.copy')}",
+                class = "btn btn--ghost btn--sm",
+                on_click = copy_ctx:server_mcp_command
+              )
+            }
+          }
 
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_access_key
-          )
-        }
+          field(
+            label = "{t('settings_web.codex_codex_config_toml')}",
+            label_class = u-label-cap
+          ) {
+            row(class = copy-row) {
+              container(class = copy-row__value) {
+                text(
+                  "{t('settings_web.mcp_servers_rustploy_url_mcp')}",
+                  class = copy-row__text
+                )
+              }
 
-        text(
-          "{t('settings_web.base64_of_host_port_token_server')}",
-          class = u-muted,
-        )
+              button(
+                "{t('common.copy')}",
+                class = "btn btn--ghost btn--sm",
+                on_click = copy_ctx:server_mcp_command_codex
+              )
+            }
+          }
 
-        text(
-          "{t('settings_web.connect_an_ai_agent_mcp')}",
-          class = u-label-cap
-        )
+          field(
+            label = "{t('settings_web.gemini_cli')}",
+            label_class = u-label-cap
+          ) {
+            row(class = copy-row) {
+              container(class = copy-row__value) {
+                text(
+                  "{t('settings_web.gemini_mcp_add_rustploy_mcp')}",
+                  class = copy-row__text
+                )
+              }
 
-        text("{t('settings_web.claude_code')}", class = u-label-cap)
-
-        row(class = kv-list__row) {
-          text(
-            "{t('settings_web.claude_mcp_add_rustploy_mcp')}",
-            class = "kv-list__val kv-list__val--compact"
-          )
-
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_mcp_command
-          )
-        }
-
-        text(
-          "{t('settings_web.codex_codex_config_toml')}",
-          class = u-label-cap
-        )
-
-        row(class = kv-list__row) {
-          text(
-            "{t('settings_web.mcp_servers_rustploy_url_mcp')}",
-            class = "kv-list__val kv-list__val--compact"
-          )
-
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_mcp_command_codex
-          )
-        }
-
-        text("{t('settings_web.gemini_cli')}", class = u-label-cap)
-
-        row(class = kv-list__row) {
-          text(
-            "{t('settings_web.gemini_mcp_add_rustploy_mcp')}",
-            class = "kv-list__val kv-list__val--compact"
-          )
-
-          button(
-            "{t('common.copy')}",
-            class = "btn btn--ghost btn--xs",
-            on_click = copy_ctx:server_mcp_command_gemini
-          )
-        }
-
-        text(
-          "{t('settings_web.each_button_copies_this_server_s')}",
-          class = u-muted,
-        )
-
-        field(
-          label = "{t('settings_web.let_s_encrypt_email_automatic')}",
-          label_class = u-label-cap,
-          error = @error_server_settings_email
-        ) {
-          input(
-            placeholder = "{t('settings_web.you_example_com')}",
-            class = field__input,
-            form_control = server_settings_email,
-          )
-        }
-
-        text(
-          "{t('settings_web.tls_certificates_issued_automatically')}",
-          class = u-muted,
-        )
-
-        field(
-          label = "{t('settings_web.registry_domain_public_exposure')}",
-          label_class = u-label-cap
-        ) {
-          input(
-            placeholder = "{t('settings_web.registry_mysite_com')}",
-            class = field__input,
-            form_control = server_settings_registry_domain,
-          )
-        }
-
-        text(
-          "{t('settings_web.exposes_the_built_in_docker_registry')}",
-          class = u-muted,
-        )
-
-        row(class = env__add) {
-          button(
-            "{t('common.save_2')}",
-            class = "btn btn--primary",
-            type = submit,
-            disabled = @busy_settings_save
-          )
-          text("@settings_message", class = u-muted)
+              button(
+                "{t('common.copy')}",
+                class = "btn btn--ghost btn--sm",
+                on_click = copy_ctx:server_mcp_command_gemini
+              )
+            }
+          }
         }
       }
     }
