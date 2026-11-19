@@ -81,7 +81,16 @@ component {
         )
       }
 
-      column(spacing = 6, if = @data_backup_ready, equals = true) {
+      // `width = fill` nos `column` deste bloco: sem ele o column encolhe até
+      // os filhos, que são todos `fill` (field, .env__add, .kv-list__row) —
+      // fill dentro de shrink dá largura zero e o bloco some, com a altura
+      // reservada (o buraco preto da aba Dados).
+      column(
+        spacing = 6,
+        width = fill,
+        if = @data_backup_ready,
+        equals = true
+      ) {
         field(
           label = "{t('dados.s3_policy_title')}",
           label_class = u-label-cap
@@ -93,7 +102,12 @@ component {
           )
         }
 
-        column(spacing = 6, if = @data_backup_enabled, equals = true) {
+        column(
+          spacing = 6,
+          width = fill,
+          if = @data_backup_enabled,
+          equals = true
+        ) {
           scroll(class = tabs__scroll, direction = horizontal) {
             tabbar(
               :value = data_backup_kind,
@@ -195,7 +209,12 @@ component {
         class = u-muted
       )
 
-      column(spacing = 4, if = @data_backups_count, not_equals = 0) {
+      column(
+        spacing = 4,
+        width = fill,
+        if = @data_backups_count,
+        not_equals = 0
+      ) {
         each @data_backups as b {
           row(class = kv-list__row) {
             button(
