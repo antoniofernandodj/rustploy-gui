@@ -144,6 +144,53 @@ impl Engine {
             }
         }
 
+        // RUSTPLOY (3): retângulo liso de cor sólida — o fundo de janela,
+        // painel, faixa de cabeçalho, linha de tabela — vai por `fill_rect`,
+        // de cobertura analítica nas bordas e cópia direta no miolo. O
+        // `fill_path` abaixo rasteriza qualquer forma por supersampling 4×4,
+        // e num fundo do tamanho da tela isso custava dezenas de ms a cada
+        // quadro de rolagem (tabela de Deployments: ~110 ms → ~38 ms).
+        // A máscara de recorte é só o retângulo `clip_bounds` (ver
+        // `adjust_clip_mask`), então recortar um retângulo é intersectar os
+        // dois — sem passar cada pixel pela máscara, que era o caminho quente:
+        // o fundo da janela, do conteúdo e do painel nunca cabem inteiros na
+        // região danificada e eram mesclados com máscara sobre ela toda.
+        if let Background::Color(color) = background
+            && fill_border_radius.iter().all(|r| *r == 0.0)
+        {
+            // Encaixe nos pixels pela regra do centro, a mesma da máscara sem
+            // anti-aliasing. NÃO deixar para o `fill_rect`: o `Rect::round`
+            // dele dá no mínimo 1px de largura/altura, e uma lasca de 0,3px
+            // que mal tocava a região virava uma linha inteira FORA dela — o
+            // fio de uma linha da tabela pintado por cima do cabeçalho fixo,
+            // que ali não é redesenhado.
+            let snapped = physical_bounds.intersection(&clip_bounds).map(|v| {
+                let x0 = v.x.round();
+                let y0 = v.y.round();
+                (x0, y0, (v.x + v.width).round() - x0, (v.y + v.height).round() - y0)
+            });
+            if let Some((x, y, width, height)) = snapped
+                && width >= 1.0
+                && height >= 1.0
+                && let Some(rect) = tiny_skia::Rect::from_xywh(x, y, width, height)
+            {
+                pixels.fill_rect(
+                    rect,
+                    &tiny_skia::Paint {
+                        shader: tiny_skia::Shader::SolidColor(into_color(
+                            *color,
+                        )),
+                        // Como a máscara (`adjust_clip_mask` usa `false`):
+                        // bordas suaves na fronteira da região danificada
+                        // deixavam meio pixel do quadro anterior aparecer.
+                        anti_alias: false,
+                        ..tiny_skia::Paint::default()
+                    },
+                    tiny_skia::Transform::identity(),
+                    None,
+                );
+            }
+        } else {
         pixels.fill_path(
             &path,
             &tiny_skia::Paint {
@@ -200,6 +247,7 @@ impl Engine {
             transform,
             clip_mask,
         );
+        }
 
         if border_width > 0.0 {
             // Border path is offset by half the border width
