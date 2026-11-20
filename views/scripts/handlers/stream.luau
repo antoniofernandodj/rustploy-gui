@@ -236,8 +236,91 @@ function M.apply_update_info(update_info: any): ()
         or i18n.tr("Você está na versão mais recente.")
 end
 
-local function apply_snapshot(snapshot: any): ()
+-- Status do daemon (versão, uptime, contagem de serviços). Separado porque é a
+-- seção que muda a TODO tick (uptime): com o patch do SSE, um tick em que só ela
+-- (e o engine) mudou não refaz as listas.
+local function apply_status_section(daemon_status: any): ()
+    if daemon_status then
+        ctx.daemon_version = daemon_status.version or ""
+        ctx.daemon_uptime = format.format_uptime(daemon_status.uptime_secs)
+        ctx.services_running = tostring(daemon_status.services_running or 0)
+        ctx.services_total = tostring(daemon_status.services_total or 0)
+        ctx.services_label = (
+            tostring(daemon_status.services_running or 0)
+            .. "/"
+            .. tostring(daemon_status.services_total or 0)
+        )
+    end
+end
+
+-- Deploy Engine: contadores, fila e o cronômetro do deploy em voo. Também muda a
+-- todo tick (uptime e `elapsed_secs`).
+local function apply_engine_section(engine: any): ()
+    if engine then
+        ctx.deploy_engine_active_count = tostring(#(engine.active or {}))
+        ctx.deploy_engine_success_24h = tostring(engine.successful_24h or 0)
+        ctx.deploy_engine_failed_24h = tostring(engine.failed_24h or 0)
+        ctx.deploy_engine_total_24h = tostring(engine.total_24h or 0)
+        ctx.deploy_engine_uptime = format.format_uptime(engine.uptime_secs)
+        ctx.deploy_engine_active =
+            format.deploy_engine_active(engine.active, State.last_pairs)
+        M.refresh_deploy_engine_detail(engine.active)
+        ctx.deploy_engine_recent =
+            format.deploy_engine_recent(engine.recent, State.last_pairs)
+        ctx.deploy_engine_recent_count = tostring(#(engine.recent or {}))
+        -- Fila global (um por vez): itens esperando + estado pausado.
+        ctx.deploy_engine_queued =
+            format.deploy_engine_queued(engine.queued, State.last_pairs)
+        ctx.deploy_engine_queued_count = tostring(#(engine.queued or {}))
+        ctx.deploy_engine_paused = (engine.paused and "true" or "false")
+
+        -- Timer decorrido do deploy em voo do serviço aberto (granularidade de
+        -- 2s — sem timer no Luau, vem do próprio snapshot; ver o plano de
+        -- migração). O desfecho terminal vem por DeployStateChanged
+        -- (apply_bus_event).
+        if
+            State.deploy_track.running
+            and ctx.selected_service == State.deploy_track.service_id
+        then
+            for _, active_deployment in ipairs(engine.active or {}) do
+                if
+                    active_deployment.service_id
+                    == State.deploy_track.service_id
+                then
+                    ctx.service_deploy_running = "true"
+                    ctx.service_deploy_elapsed =
+                        format.format_seconds(active_deployment.elapsed_secs)
+                    break
+                end
+            end
+        end
+    end
+end
+
+-- Seções que mudam a todo tick e não afetam as listas: um patch só com elas
+-- atualiza esses campos e para por aí (sem decodificar/refazer o resto).
+local LIGHT_SECTIONS = { status = true, engine = true }
+
+local function only_light_sections(changed: { [string]: boolean }): boolean
+    for name in pairs(changed) do
+        if not LIGHT_SECTIONS[name] then
+            return false
+        end
+    end
+    return true
+end
+
+-- `changed`: as seções que um `snapshot_patch` trouxe (nil = snapshot inteiro).
+local function apply_snapshot(
+    snapshot: any,
+    changed: { [string]: boolean }?
+): ()
     State.snap = snapshot
+    if changed ~= nil and only_light_sections(changed) then
+        apply_status_section(snapshot.status)
+        apply_engine_section(snapshot.engine)
+        return
+    end
     State.last_pairs = format.service_pair_list(snapshot.services)
     -- Selo "aquecido/frio": o daemon decide (ServiceWarmStatus), aqui só se
     -- anexa.
@@ -287,61 +370,8 @@ local function apply_snapshot(snapshot: any): ()
             and format.warm_reason(open_warm.reason)
         or ""
 
-    -- Status do daemon.
-    local daemon_status = snapshot.status
-    if daemon_status then
-        ctx.daemon_version = daemon_status.version or ""
-        ctx.daemon_uptime = format.format_uptime(daemon_status.uptime_secs)
-        ctx.services_running = tostring(daemon_status.services_running or 0)
-        ctx.services_total = tostring(daemon_status.services_total or 0)
-        ctx.services_label = (
-            tostring(daemon_status.services_running or 0)
-            .. "/"
-            .. tostring(daemon_status.services_total or 0)
-        )
-    end
-
-    -- Deploy Engine (inline, não filtrado pela busca).
-    local engine = snapshot.engine
-    if engine then
-        ctx.deploy_engine_active_count = tostring(#(engine.active or {}))
-        ctx.deploy_engine_success_24h = tostring(engine.successful_24h or 0)
-        ctx.deploy_engine_failed_24h = tostring(engine.failed_24h or 0)
-        ctx.deploy_engine_total_24h = tostring(engine.total_24h or 0)
-        ctx.deploy_engine_uptime = format.format_uptime(engine.uptime_secs)
-        ctx.deploy_engine_active =
-            format.deploy_engine_active(engine.active, State.last_pairs)
-        M.refresh_deploy_engine_detail(engine.active)
-        ctx.deploy_engine_recent =
-            format.deploy_engine_recent(engine.recent, State.last_pairs)
-        ctx.deploy_engine_recent_count = tostring(#(engine.recent or {}))
-        -- Fila global (um por vez): itens esperando + estado pausado.
-        ctx.deploy_engine_queued =
-            format.deploy_engine_queued(engine.queued, State.last_pairs)
-        ctx.deploy_engine_queued_count = tostring(#(engine.queued or {}))
-        ctx.deploy_engine_paused = (engine.paused and "true" or "false")
-
-        -- Timer decorrido do deploy em voo do serviço aberto (granularidade de
-        -- 2s — sem timer no Luau, vem do próprio snapshot; ver o plano de
-        -- migração). O desfecho terminal vem por DeployStateChanged
-        -- (apply_bus_event).
-        if
-            State.deploy_track.running
-            and ctx.selected_service == State.deploy_track.service_id
-        then
-            for _, active_deployment in ipairs(engine.active or {}) do
-                if
-                    active_deployment.service_id
-                    == State.deploy_track.service_id
-                then
-                    ctx.service_deploy_running = "true"
-                    ctx.service_deploy_elapsed =
-                        format.format_seconds(active_deployment.elapsed_secs)
-                    break
-                end
-            end
-        end
-    end
+    apply_status_section(snapshot.status)
+    apply_engine_section(snapshot.engine)
 
     -- Contagens.
     ctx.deployments_count = tostring(#(snapshot.deployments or {}))
@@ -752,7 +782,10 @@ function M.open_stream(): ()
         return
     end
 
-    local sse_url = ctx.api_url .. "/api/events"
+    -- `patch=1`: depois do primeiro snapshot, o daemon manda só as seções que
+    -- mudaram (`snapshot_patch`). Um daemon antigo ignora o parâmetro e segue
+    -- mandando o snapshot inteiro — o `snapshot` abaixo continua tratado.
+    local sse_url = ctx.api_url .. "/api/events?patch=1"
 
     State.state_conn = sse(sse_url, {
         -- Cada evento SSE traz um `data:` JSON auto-descritivo com `kind`.
@@ -770,6 +803,25 @@ function M.open_stream(): ()
             if decoded.kind == "snapshot" then
                 reconnect_attempts = 0
                 apply_snapshot(decoded)
+            elseif decoded.kind == "snapshot_patch" then
+                local snap = State.snap
+                if snap == nil then
+                    return
+                end
+                -- Junta as seções novas no último snapshot (seção trocada
+                -- inteira; `removed` lista as que sumiram).
+                local changed: { [string]: boolean } = {}
+                for name, value in pairs(decoded) do
+                    if name ~= "kind" and name ~= "removed" then
+                        snap[name] = value
+                        changed[name] = true
+                    end
+                end
+                for _, name in ipairs(decoded.removed or {}) do
+                    snap[name] = nil
+                    changed[name] = true
+                end
+                apply_snapshot(snap, changed)
             elseif decoded.kind == "bus" then
                 apply_bus_event(decoded.event)
             end
