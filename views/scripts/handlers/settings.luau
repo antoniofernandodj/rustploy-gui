@@ -256,6 +256,17 @@ function git_provider_delete(provider_id: string): ()
         if not confirmed then
             return
         end
+    elseif
+        not confirm {
+            title = i18n.tr("Remover a conta Git?"),
+            message = i18n.tr(
+                "A conta será removida deste servidor. Nenhum serviço ou job a usa hoje."
+            ),
+            confirm_label = i18n.tr("Remover"),
+            destructive = true,
+        }
+    then
+        return
     end
     local git_provider_delete_ok, git_provider_delete_response =
         api:rpc_checked {

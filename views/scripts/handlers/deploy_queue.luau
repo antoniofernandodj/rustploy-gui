@@ -13,6 +13,18 @@ local Stream = require("stream")
 -- Reaproveita o DeployAbort — no daemon ele remove da fila e devolve o serviço
 -- ao repouso.
 function queue_cancel(deployment_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Cancelar este deploy?"),
+            message = i18n.tr(
+                "O deploy sai da fila, ou é interrompido se já começou. A versão que está no ar continua."
+            ),
+            confirm_label = i18n.tr("Cancelar deploy"),
+            destructive = true,
+        }
+    then
+        return
+    end
     local api = State.api
     if not api or not deployment_id or deployment_id == "" then
         return

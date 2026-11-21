@@ -222,6 +222,18 @@ end
 
 --- "Guardei em lugar seguro": esquece a privada.
 function recovery_key_dismiss(): ()
+    if
+        not confirm {
+            title = i18n.tr("Fechar a chave de recuperação?"),
+            message = i18n.tr(
+                "A chave privada não será mostrada de novo. Confirme que você já a guardou num lugar seguro."
+            ),
+            confirm_label = i18n.tr("Já guardei, fechar"),
+            destructive = true,
+        }
+    then
+        return
+    end
     ctx.recovery_key_generated = "false"
     ctx.recovery_key_private = ""
     ctx.recovery_key_contents = ""

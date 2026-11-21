@@ -29,9 +29,23 @@ function test_recovery_key__dismiss_esquece_a_privada()
         recovery_key_contents = "# x\nAGE-SECRET-KEY-1ABC",
     })
     tela:call("recovery_key_dismiss")
+    tela:answer(true)
     assert_eq(tela:get("recovery_key_generated"), "false")
     assert_eq(tela:get("recovery_key_private"), "")
     assert_eq(tela:get("recovery_key_contents"), "")
+end
+
+--- fechar pede confirmação: recusar mantém a chave privada na tela
+function test_recovery_key__recusar_a_confirmacao_mantem_a_privada()
+    local tela = nova({
+        recovery_key_generated = "true",
+        recovery_key_private = "AGE-SECRET-KEY-1ABC",
+        recovery_key_contents = "# x\nAGE-SECRET-KEY-1ABC",
+    })
+    tela:call("recovery_key_dismiss")
+    tela:answer(false)
+    assert_eq(tela:get("recovery_key_generated"), "true")
+    assert_eq(tela:get("recovery_key_private"), "AGE-SECRET-KEY-1ABC")
 end
 
 --- o formulário do arquivo de recuperação começa com o repositório, a branch e

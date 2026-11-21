@@ -206,6 +206,18 @@ function recover_run(): ()
 end
 
 function recover_cancel(): ()
+    if
+        not confirm {
+            title = i18n.tr("Cancelar a recuperação?"),
+            message = i18n.tr(
+                "A recuperação do servidor será interrompida e os passos que ainda não rodaram não serão feitos."
+            ),
+            confirm_label = i18n.tr("Cancelar recuperação"),
+            destructive = true,
+        }
+    then
+        return
+    end
     local api = State.api
     if not api then
         return

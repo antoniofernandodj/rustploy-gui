@@ -158,6 +158,18 @@ end
 -- watchdog o religa). Depois de parar, o botão Remover
 -- (docker_remove_container) fica disponível.
 function docker_stop_container(container_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Parar container?"),
+            message = i18n.tr(
+                "O container será parado (docker stop). Se for de um serviço, ele fica fora do ar até o próximo deploy."
+            ),
+            confirm_label = i18n.tr("Parar"),
+            destructive = true,
+        }
+    then
+        return
+    end
     local api = State.api
     if not api then
         return

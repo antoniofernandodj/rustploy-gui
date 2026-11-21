@@ -164,6 +164,18 @@ end
 -- Esquece a marca "removido no git" (a pessoa decidiu manter o que ainda roda,
 -- ou já limpou).
 function state_git_dismiss_removal(removal_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Esquecer este aviso?"),
+            message = i18n.tr(
+                "A marca de removido no git sai da lista. Nada é apagado no servidor nem no repositório."
+            ),
+            confirm_label = i18n.tr("Esquecer"),
+            destructive = true,
+        }
+    then
+        return
+    end
     local api = State.api
     if not api then
         return

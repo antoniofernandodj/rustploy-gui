@@ -3,6 +3,14 @@ component {
     component(name = SemDependencias) {
       text("{t('advanced.no_dependencies')}", class = u-muted)
     }
+
+    component(name = SemVinculos) {
+      text("{t('advanced.no_links')}", class = u-muted)
+    }
+
+    component(name = SemConsumidores) {
+      text("{t('advanced.no_consumers')}", class = u-muted)
+    }
   }
 
   scrollable(
@@ -135,6 +143,151 @@ component {
             on_click = dependency_add,
             disabled = @busy_dependency_add
           )
+        }
+      }
+
+      // Vínculos: os serviços que este USA (docs/plano-recursos-e-vinculos.md).
+      column(class = form-panel) {
+        text(
+          "{t('advanced.links', service_links_count=service_links_count)}",
+          class = u-label-cap,
+        )
+
+        text("{t('advanced.links_hint')}", class = u-muted)
+
+        column(class = kv-list, height = shrink) {
+          each @service_links as l (fallback = SemVinculos) {
+            row(class = kv-list__row) {
+              button(
+                "✕",
+                class = env__del,
+                on_click = link_delete:@l.id,
+                disabled = @busy_link_delete
+              )
+
+              text(class = env__sep)
+              text("@l.index.", class = reorder__index)
+
+              column(width = fill) {
+                text("@l.name", class = "kv-list__val kv-list__val--compact")
+                text("@l.vars", class = u-muted)
+              }
+            }
+          }
+        }
+
+        field(label = "{t('advanced.add_link')}", label_class = u-label-cap) {
+          select(
+            class = form-select,
+            :options = service_link_options,
+            :value = service_form_link_add_id,
+            on_change = field:service_form_link_add_id,
+            placeholder = "{t('advanced.choose_service')}",
+            label_field = name,
+            value_field = id,
+          )
+        }
+
+        field(
+          label = "{t('advanced.link_prefix')}",
+          label_class = u-label-cap
+        ) {
+          input(
+            class = field__input,
+            :value = service_form_link_prefix,
+            on_change = field:service_form_link_prefix,
+            placeholder = "{t('advanced.link_prefix_placeholder')}",
+          )
+        }
+
+        row(class = env__add) {
+          button(
+            "{t('advanced.add_link_button')}",
+            class = "btn btn--primary",
+            if = @service_form_link_add_id,
+            equals = "",
+            disabled = true
+          )
+
+          button(
+            "{t('advanced.add_link_button')}",
+            class = "btn btn--primary",
+            if = @service_form_link_add_id,
+            not_equals = "",
+            on_click = link_add,
+            disabled = @busy_link_add
+          )
+        }
+      }
+
+      // Quem usa este serviço: a mesma edição, do lado de quem é usado.
+      column(class = form-panel) {
+        text(
+          "{t('advanced.consumers',
+            service_consumers_count=service_consumers_count)}",
+          class = u-label-cap,
+        )
+
+        text("{t('advanced.consumers_hint')}", class = u-muted)
+
+        column(class = kv-list, height = shrink) {
+          each @service_consumers as c (fallback = SemConsumidores) {
+            row(class = kv-list__row) {
+              button(
+                "✕",
+                class = env__del,
+                on_click = consumer_delete:@c.id,
+                disabled = @busy_consumer_delete
+              )
+
+              text(class = env__sep)
+              text("@c.name", class = "kv-list__val kv-list__val--compact")
+            }
+          }
+        }
+
+        field(
+          label = "{t('advanced.add_consumer')}",
+          label_class = u-label-cap
+        ) {
+          select(
+            class = form-select,
+            :options = service_consumer_options,
+            :value = service_form_consumer_add_id,
+            on_change = field:service_form_consumer_add_id,
+            placeholder = "{t('advanced.choose_service')}",
+            label_field = name,
+            value_field = id,
+          )
+        }
+
+        row(class = env__add) {
+          button(
+            "{t('advanced.add_consumer_button')}",
+            class = "btn btn--primary",
+            if = @service_form_consumer_add_id,
+            equals = "",
+            disabled = true
+          )
+
+          button(
+            "{t('advanced.add_consumer_button')}",
+            class = "btn btn--primary",
+            if = @service_form_consumer_add_id,
+            not_equals = "",
+            on_click = consumer_add,
+            disabled = @busy_consumer_add
+          )
+        }
+
+        if @service_is_shared_server == "true" {
+          toggle(
+            :checked = service_form_accept_links,
+            on_toggle = accept_links_toggle:shared,
+            label = "{t('advanced.accept_links')}",
+          )
+
+          text("{t('advanced.accept_links_hint')}", class = u-muted)
         }
       }
 

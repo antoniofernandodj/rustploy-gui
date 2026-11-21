@@ -61,6 +61,18 @@ end
 -- job_run novo), pode ainda apontar pro run ANTERIOR; o daemon devolve
 -- NotFound nesse caso (inofensivo, só o toast de erro).
 function job_run_cancel(job_run_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Cancelar a execução?"),
+            message = i18n.tr(
+                "A execução em andamento será interrompida. O que ela já fez não é desfeito."
+            ),
+            confirm_label = i18n.tr("Cancelar execução"),
+            destructive = true,
+        }
+    then
+        return
+    end
     close_job_actions()
     local api = State.api
     if not api or not job_run_id or job_run_id == "" then

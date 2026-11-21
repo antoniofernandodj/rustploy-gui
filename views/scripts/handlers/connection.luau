@@ -96,6 +96,18 @@ end
 -- pelo `host:porta` — um par salvo sem token (daemon sem `[api].token`) gera
 -- `host:porta::`, que antes não decodificava e por isso nunca era esquecido.
 function forget_server(): ()
+    if
+        not confirm {
+            title = i18n.tr("Esquecer este servidor?"),
+            message = i18n.tr(
+                "O endereço e o token salvos deste servidor serão apagados deste computador. Para entrar de novo, você vai precisar do token de conexão."
+            ),
+            confirm_label = i18n.tr("Esquecer"),
+            destructive = true,
+        }
+    then
+        return
+    end
     local decoded_key = AccessKey.decode(ctx.access_key)
     local address = if decoded_key then decoded_key.address else nil
     for index = #saved_servers, 1, -1 do
@@ -213,6 +225,17 @@ function init(): ()
     ctx.service_dependencies = ctx.service_dependencies or "[]"
     ctx.service_dependency_options = ctx.service_dependency_options or "[]"
     ctx.service_dependencies_count = ctx.service_dependencies_count or "0"
+    ctx.service_links = ctx.service_links or "[]"
+    ctx.service_links_count = ctx.service_links_count or "0"
+    ctx.service_link_options = ctx.service_link_options or "[]"
+    ctx.service_consumers = ctx.service_consumers or "[]"
+    ctx.service_consumers_count = ctx.service_consumers_count or "0"
+    ctx.service_consumer_options = ctx.service_consumer_options or "[]"
+    ctx.service_form_link_add_id = ctx.service_form_link_add_id or ""
+    ctx.service_form_link_prefix = ctx.service_form_link_prefix or ""
+    ctx.service_form_consumer_add_id = ctx.service_form_consumer_add_id or ""
+    ctx.service_is_shared_server = ctx.service_is_shared_server or "false"
+    ctx.service_form_accept_links = ctx.service_form_accept_links or "true"
     ctx.service_form_dependency_add_id = ctx.service_form_dependency_add_id
         or ""
     -- Valor nulo dos selects: os botões ligados a eles (`if = @chave, empty`)

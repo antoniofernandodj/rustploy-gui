@@ -199,6 +199,117 @@ function M.dependency_options(
     return Util.encode_array(rows)
 end
 
+-- ── Vínculos (aba Advanced) ─────────────────────────────────────────────────
+-- Ver docs/plano-recursos-e-vinculos.md. `pairs` = State.last_pairs ({svc, proj})
+-- de TODOS os projetos: um vínculo pode apontar para um banco compartilhado de
+-- outro projeto.
+
+-- O prefixo padrão das variáveis de um vínculo: o mesmo cálculo do daemon
+-- (`domain::link_env_prefix`): letras e dígitos em maiúsculas, o resto vira `_`.
+function M.link_env_prefix(name: string): string
+    local out = string.upper((string.gsub(name or "", "[^%w]", "_")))
+    if string.match(out, "^%d") then
+        out = "_" .. out
+    end
+    return out
+end
+
+local function pair_by_id(pairs_list: { any }?): { [string]: any }
+    local by_id = {}
+    for _, pair in ipairs(pairs_list or {}) do
+        if pair.svc and pair.svc.id then
+            by_id[pair.svc.id] = pair
+        end
+    end
+    return by_id
+end
+
+-- Nome para mostrar: "db", ou "pg-central (projeto infra)" se for de outro projeto.
+local function display_name(pair: any, own_project_id: string): string
+    local name = pair.svc.spec and pair.svc.spec.name or pair.svc.id
+    if pair.svc.spec and pair.svc.spec.project_id ~= own_project_id then
+        return name .. " (" .. i18n.tr("projeto") .. " " .. (pair.proj or "?") .. ")"
+    end
+    return name
+end
+
+-- Os vínculos deste serviço, com as variáveis que cada um entrega.
+function M.link_rows(spec: any, pairs_list: { any }?): string
+    local by_id = pair_by_id(pairs_list)
+    local rows = {}
+    for position, link in ipairs(spec.links or {}) do
+        local pair = by_id[link.service_id]
+        local name = pair and display_name(pair, spec.project_id)
+            or (i18n.tr("(serviço removido: ") .. tostring(link.service_id) .. ")")
+        local prefix = link.env_prefix
+            or M.link_env_prefix(pair and pair.svc.spec.name or "")
+        table.insert(rows, {
+            id = link.service_id,
+            index = tostring(position),
+            name = name,
+            vars = prefix .. "_HOST · " .. prefix .. "_PORT · " .. prefix .. "_URL",
+        })
+    end
+    return Util.encode_array(rows)
+end
+
+-- Quem pode virar vínculo: os outros serviços do projeto e os bancos
+-- compartilhados de outros projetos com a trava aceitando; nenhum já vinculado.
+function M.link_options(spec: any, self_id: string, pairs_list: { any }?): string
+    local already = {}
+    for _, link in ipairs(spec.links or {}) do
+        already[link.service_id] = true
+    end
+    local rows = {}
+    for _, pair in ipairs(pairs_list or {}) do
+        local svc = pair.svc
+        if svc and svc.id ~= self_id and not already[svc.id] then
+            local same = svc.spec.project_id == spec.project_id
+            local shared = svc.spec.shared
+            local open = shared ~= nil and shared.accept_links ~= false
+            if same or open then
+                table.insert(rows, { id = svc.id, name = display_name(pair, spec.project_id) })
+            end
+        end
+    end
+    return Util.encode_array(rows)
+end
+
+-- Quem usa este serviço (os vínculos dos outros que apontam para ele).
+function M.consumer_rows(self_id: string, own_project_id: string, pairs_list: { any }?): string
+    local rows = {}
+    for _, pair in ipairs(pairs_list or {}) do
+        for _, link in ipairs(pair.svc and pair.svc.spec.links or {}) do
+            if link.service_id == self_id then
+                table.insert(rows, { id = pair.svc.id, name = display_name(pair, own_project_id) })
+            end
+        end
+    end
+    return Util.encode_array(rows)
+end
+
+-- Quem ainda pode passar a usar este serviço: os outros serviços do projeto e,
+-- se este for um banco compartilhado, também os de outros projetos.
+function M.consumer_options(spec: any, self_id: string, pairs_list: { any }?): string
+    local rows = {}
+    for _, pair in ipairs(pairs_list or {}) do
+        local svc = pair.svc
+        if svc and svc.id ~= self_id then
+            local uses = false
+            for _, link in ipairs(svc.spec.links or {}) do
+                if link.service_id == self_id then
+                    uses = true
+                end
+            end
+            local same = svc.spec.project_id == spec.project_id
+            if not uses and (same or spec.shared ~= nil) then
+                table.insert(rows, { id = svc.id, name = display_name(pair, spec.project_id) })
+            end
+        end
+    end
+    return Util.encode_array(rows)
+end
+
 -- Env vars como linhas JSON, re-interleaving os comentários `# ...` ancorados
 -- (linha `__c<idx>`, idx = índice 0-based em env_comments).
 function M.env_json_with_comments(

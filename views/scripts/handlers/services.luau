@@ -480,6 +480,10 @@ function M.fetch_service_detail(service_id: string): ()
         format.dependency_options(spec, service_id, project_services)
     ctx.service_dependencies_count = tostring(#(spec.depends_on or {}))
     ctx.service_form_dependency_add_id = ""
+
+    -- Vínculos e "quem usa este serviço" (docs/plano-recursos-e-vinculos.md):
+    -- os candidatos vêm de todos os projetos (snapshot), não só deste.
+    M.refresh_links(spec, service_id)
     ctx.service_form_autostart = (spec.autostart ~= false) and "true"
         or "false"
     ctx.service_form_registry_auto_deploy = (spec.registry_auto_deploy == true)
@@ -1107,6 +1111,18 @@ function domain_add(): ()
 end
 
 function domain_delete(domain: string): ()
+    if
+        not confirm {
+            title = string.format(i18n.tr("Remover o domínio %s?"), domain),
+            message = i18n.tr(
+                "O domínio deixa de apontar para este serviço agora."
+            ),
+            confirm_label = i18n.tr("Remover"),
+            destructive = true,
+        }
+    then
+        return
+    end
     with_spec(function(spec: any): ()
         materialize_domains(spec)
         local kept = json.array {}
@@ -1220,6 +1236,18 @@ function tcp_port_add(): ()
 end
 
 function tcp_port_delete(host_port: string): ()
+    if
+        not confirm {
+            title = string.format(i18n.tr("Remover a porta TCP %s?"), host_port),
+            message = i18n.tr(
+                "A porta do host deixa de encaminhar para este serviço agora."
+            ),
+            confirm_label = i18n.tr("Remover"),
+            destructive = true,
+        }
+    then
+        return
+    end
     local target = tonumber(host_port)
     with_spec(function(spec: any): ()
         materialize_tcp_ports(spec)
@@ -1353,6 +1381,160 @@ function advanced_save(): ()
     end)
 end
 
+-- ── Vínculos ────────────────────────────────────────────────────────────────
+function M.refresh_links(spec: any, service_id: string): ()
+    local pairs_list = State.last_pairs
+    ctx.service_links = format.link_rows(spec, pairs_list)
+    ctx.service_links_count = tostring(#(spec.links or {}))
+    ctx.service_link_options = format.link_options(spec, service_id, pairs_list)
+    ctx.service_consumers = format.consumer_rows(service_id, spec.project_id, pairs_list)
+    local consumers = json.decode(ctx.service_consumers) or {}
+    ctx.service_consumers_count = tostring(#consumers)
+    ctx.service_consumer_options =
+        format.consumer_options(spec, service_id, pairs_list)
+    ctx.service_form_link_add_id = ""
+    ctx.service_form_link_prefix = ""
+    ctx.service_form_consumer_add_id = ""
+    ctx.service_is_shared_server = (spec.shared ~= nil) and "true" or "false"
+    ctx.service_form_accept_links = (spec.shared ~= nil and spec.shared.accept_links ~= false)
+            and "true"
+        or "false"
+end
+
+-- Grava o spec de OUTRO serviço (o consumidor), do mesmo jeito que o
+-- with_spec grava o deste: lê, muda, devolve. Recarrega a tela atual depois.
+local function with_other_spec(other_id: string, mutate: (spec: any) -> ()): ()
+    local api = State.api
+    if not api or other_id == "" then
+        return
+    end
+    local get_ok, get_response = api:rpc { ServiceGet = { id = other_id } }
+    if not get_ok or not get_response.Service then
+        toast { message = tostring(i18n.tr("erro ao carregar o serviço")), kind = "error" }
+        return
+    end
+    local spec = get_response.Service.spec
+    mutate(spec)
+    local update_ok, update_response =
+        api:rpc_checked { ServiceUpdate = { id = other_id, spec = spec } }
+    if update_ok then
+        toast { message = tostring(i18n.tr("salvo")), kind = "success" }
+        -- O snapshot só traz o spec novo no próximo tick: atualiza a cópia local
+        -- para "quem usa este serviço" já aparecer certo.
+        for _, pair in ipairs(State.last_pairs or {}) do
+            if pair.svc and pair.svc.id == other_id then
+                pair.svc.spec = spec
+            end
+        end
+        M.fetch_service_detail(ctx.selected_service)
+    else
+        toast { message = tostring(update_response), kind = "error" }
+    end
+end
+
+-- "Este serviço usa ...": acrescenta o vínculo. O daemon valida (outro projeto
+-- só banco compartilhado, trava, ciclo) e concede o acesso entre projetos.
+function link_add(): ()
+    local target_id = Helpers.trim(ctx.service_form_link_add_id)
+    if target_id == "" then
+        return
+    end
+    local prefix = string.upper(Helpers.trim(ctx.service_form_link_prefix or ""))
+    with_spec(function(spec: any): ()
+        local kept = json.array {}
+        for _, link in ipairs(spec.links or {}) do
+            if link.service_id ~= target_id then
+                table.insert(kept, link)
+            end
+        end
+        local link: any = { service_id = target_id }
+        if prefix ~= "" then
+            link.env_prefix = prefix
+        end
+        table.insert(kept, link)
+        spec.links = kept
+    end)
+end
+
+function link_delete(target_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Desfazer o vínculo?"),
+            message = i18n.tr(
+                "Este serviço deixa de esperar o outro subir e, no próximo deploy, deixa de receber as variáveis de conexão dele. As variáveis que você digitou continuam."
+            ),
+            confirm_label = i18n.tr("Desfazer vínculo"),
+            destructive = true,
+        }
+    then
+        return
+    end
+    with_spec(function(spec: any): ()
+        local kept = json.array {}
+        for _, link in ipairs(spec.links or {}) do
+            if link.service_id ~= target_id then
+                table.insert(kept, link)
+            end
+        end
+        spec.links = kept
+    end)
+end
+
+-- "Quem usa este serviço": a mesma edição, feita do lado de quem é usado (grava
+-- no serviço consumidor).
+function consumer_add(): ()
+    local consumer_id = Helpers.trim(ctx.service_form_consumer_add_id)
+    local self_id = ctx.selected_service
+    if consumer_id == "" or self_id == "" then
+        return
+    end
+    with_other_spec(consumer_id, function(spec: any): ()
+        local kept = json.array {}
+        for _, link in ipairs(spec.links or {}) do
+            if link.service_id ~= self_id then
+                table.insert(kept, link)
+            end
+        end
+        table.insert(kept, { service_id = self_id })
+        spec.links = kept
+    end)
+end
+
+function consumer_delete(consumer_id: string): ()
+    local self_id = ctx.selected_service
+    if
+        not confirm {
+            title = i18n.tr("Desfazer o vínculo?"),
+            message = i18n.tr(
+                "O outro serviço deixa de esperar este subir e, no próximo deploy, deixa de receber as variáveis de conexão dele. As variáveis que foram digitadas lá continuam."
+            ),
+            confirm_label = i18n.tr("Desfazer vínculo"),
+            destructive = true,
+        }
+    then
+        return
+    end
+    with_other_spec(consumer_id, function(spec: any): ()
+        local kept = json.array {}
+        for _, link in ipairs(spec.links or {}) do
+            if link.service_id ~= self_id then
+                table.insert(kept, link)
+            end
+        end
+        spec.links = kept
+    end)
+end
+
+-- A trava do banco compartilhado: aceita vínculos novos de outros projetos?
+function accept_links_toggle(_scope: string?, value: string?): ()
+    local accept = Helpers.is_true(value or "")
+    with_spec(function(spec: any): ()
+        if spec.shared ~= nil then
+            spec.shared.accept_links = accept
+        end
+    end)
+end
+
 -- Adiciona o serviço escolhido às dependências. O daemon valida (sem ciclo, só
 -- serviços do mesmo projeto) e a recusa aparece no toast de erro do with_spec.
 function dependency_add(): ()
@@ -1377,6 +1559,18 @@ function dependency_add(): ()
 end
 
 function dependency_delete(dependency_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Remover dependência?"),
+            message = i18n.tr(
+                "Este serviço deixa de esperar essa dependência subir antes dele."
+            ),
+            confirm_label = i18n.tr("Remover"),
+            destructive = true,
+        }
+    then
+        return
+    end
     with_spec(function(spec: any): ()
         local kept = json.array {}
         for _, existing_id in ipairs(spec.depends_on or {}) do
@@ -1421,6 +1615,18 @@ function pre_deploy_check_add(): ()
 end
 
 function pre_deploy_check_delete(job_id: string): ()
+    if
+        not confirm {
+            title = i18n.tr("Remover o check da fila?"),
+            message = i18n.tr(
+                "O job deixa de rodar antes de cada deploy deste serviço. O job em si não é apagado."
+            ),
+            confirm_label = i18n.tr("Remover"),
+            destructive = true,
+        }
+    then
+        return
+    end
     with_spec(function(spec: any): ()
         materialize_pre_deploy(spec)
         local kept = json.array {}

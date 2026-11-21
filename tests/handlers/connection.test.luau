@@ -211,3 +211,12 @@ function test_disconnect__nao_enumera_chaves_o_init_semeia_os_defaults_de()
     assert_eq(tela:get("projects"), "[]")
     assert_eq(tela:get("projects_count"), "…")
 end
+
+--- "Esquecer este servidor" pede confirmação: recusar não apaga nada (o caminho
+--- que confirma não é testado aqui porque gravaria o storage da máquina)
+function test_forget_server__recusar_a_confirmacao_nao_apaga()
+    local tela = nova()
+    tela:call("forget_server")
+    tela:answer(false)
+    assert_eq(tela:get("access_key"), CHAVE)
+end
