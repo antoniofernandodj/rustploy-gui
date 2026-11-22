@@ -1382,9 +1382,72 @@ function advanced_save(): ()
 end
 
 -- ── Vínculos ────────────────────────────────────────────────────────────────
+-- O formulário de vínculo guarda os sufixos em minúsculas nas chaves do ctx
+-- (`service_form_link_name_url`); o daemon usa maiúsculas (`URL`).
+local LINK_SUFFIXES = { "HOST", "PORT", "URL", "BUCKET", "DATABASE" }
+
+-- As variáveis digitadas no projeto e no serviço que está aberto (para o aviso
+-- "a digitada ganha"). Guardadas no refresh_links.
+local link_origins: { [string]: string } = {}
+-- O spec do serviço aberto (para o "Editar" achar o vínculo). Guardado no refresh_links.
+local link_spec: any = nil
+
+-- Esvazia o formulário de vínculo (adicionar e editar).
+local function link_form_reset(): ()
+    ctx.service_form_link_editing = ""
+    ctx.service_form_link_editing_name = ""
+    ctx.service_form_link_add_id = ""
+    ctx.service_form_link_add_kind = ""
+    ctx.service_form_link_prefix = ""
+    ctx.service_form_link_resource = ""
+    ctx.service_form_link_public_read = "false"
+    for _, suffix in ipairs(LINK_SUFFIXES) do
+        local key = string.lower(suffix)
+        ctx["service_form_link_name_" .. key] = ""
+        ctx["service_form_link_deliver_" .. key] = "true"
+        ctx["service_form_link_placeholder_" .. key] = ""
+        ctx["service_form_link_warning_" .. key] = ""
+    end
+end
+
+-- Recalcula a dica (o nome padrão) e o aviso de cada variável do formulário,
+-- a partir do serviço escolhido, do prefixo e dos nomes digitados.
+local function link_form_hints(): ()
+    local target_name = ""
+    for _, pair in ipairs(State.last_pairs or {}) do
+        if pair.svc and pair.svc.id == ctx.service_form_link_add_id then
+            target_name = pair.svc.spec.name or ""
+        end
+    end
+    local prefix = string.upper(Helpers.trim(ctx.service_form_link_prefix or ""))
+    if prefix == "" then
+        prefix = format.link_env_prefix(target_name)
+    end
+    for _, suffix in ipairs(LINK_SUFFIXES) do
+        local key = string.lower(suffix)
+        local default_name = prefix .. "_" .. suffix
+        ctx["service_form_link_placeholder_" .. key] = default_name
+        local typed = string.upper(Helpers.trim(ctx["service_form_link_name_" .. key] or ""))
+        local warning = ""
+        if Helpers.is_true(ctx["service_form_link_deliver_" .. key]) then
+            local effective = if typed ~= "" then typed else default_name
+            warning = format.link_shadow_warning({ effective }, link_origins)
+        end
+        ctx["service_form_link_warning_" .. key] = warning
+    end
+end
+
 function M.refresh_links(spec: any, service_id: string): ()
     local pairs_list = State.last_pairs
-    ctx.service_links = format.link_rows(spec, pairs_list)
+    local project_env = {}
+    for _, project in ipairs(State.snap and State.snap.projects or {}) do
+        if project.id == spec.project_id then
+            project_env = project.env_vars or {}
+        end
+    end
+    link_origins = format.typed_env_origins(spec, project_env)
+    link_spec = spec
+    ctx.service_links = format.link_rows(spec, pairs_list, link_origins)
     ctx.service_links_count = tostring(#(spec.links or {}))
     ctx.service_link_options = format.link_options(spec, service_id, pairs_list)
     ctx.service_consumers = format.consumer_rows(service_id, spec.project_id, pairs_list)
@@ -1392,11 +1455,7 @@ function M.refresh_links(spec: any, service_id: string): ()
     ctx.service_consumers_count = tostring(#consumers)
     ctx.service_consumer_options =
         format.consumer_options(spec, service_id, pairs_list)
-    ctx.service_form_link_add_id = ""
-    ctx.service_form_link_add_kind = ""
-    ctx.service_form_link_prefix = ""
-    ctx.service_form_link_resource = ""
-    ctx.service_form_link_public_read = "false"
+    link_form_reset()
     ctx.service_form_consumer_add_id = ""
     ctx.service_is_shared_server = (spec.shared ~= nil) and "true" or "false"
     ctx.service_form_accept_links = (spec.shared ~= nil and spec.shared.accept_links ~= false)
@@ -1438,10 +1497,62 @@ end
 -- Escolheu o serviço em "Vincular a": guarda o tipo dele (bucket/database) para
 -- mostrar só o campo de recurso que faz sentido, e limpa o que estava digitado.
 function link_target_pick(target_id: string): ()
+    link_form_reset()
     ctx.service_form_link_add_id = target_id or ""
     ctx.service_form_link_add_kind = format.link_target_kind(target_id, State.last_pairs)
-    ctx.service_form_link_resource = ""
-    ctx.service_form_link_public_read = "false"
+    link_form_hints()
+end
+
+-- Um campo do formulário de vínculo que muda a dica ou o aviso (prefixo, nome,
+-- "Entregar"): grava e recalcula.
+function link_form_field(key: string?, value: any): ()
+    if key then
+        ctx[key] = if type(value) == "boolean" then tostring(value) else (value or "")
+    end
+    link_form_hints()
+end
+
+-- "Editar": carrega o vínculo no formulário; salvar substitui o vínculo inteiro.
+function link_edit(target_id: string): ()
+    local spec = link_spec
+    local link = nil
+    for _, existing in ipairs(spec and spec.links or {}) do
+        if existing.service_id == target_id then
+            link = existing
+        end
+    end
+    if not link then
+        return
+    end
+    link_form_reset()
+    ctx.service_form_link_editing = target_id
+    ctx.service_form_link_add_id = target_id
+    ctx.service_form_link_add_kind = format.link_target_kind(target_id, State.last_pairs)
+    for _, pair in ipairs(State.last_pairs or {}) do
+        if pair.svc and pair.svc.id == target_id then
+            ctx.service_form_link_editing_name = pair.svc.spec.name or target_id
+        end
+    end
+    ctx.service_form_link_prefix = link.env_prefix or ""
+    if link.resource then
+        ctx.service_form_link_resource = link.resource.name or ""
+        ctx.service_form_link_public_read = link.resource.public_read and "true" or "false"
+    end
+    if type(link.env_names) == "table" then
+        for _, suffix in ipairs(LINK_SUFFIXES) do
+            local name = link.env_names[suffix]
+            if name ~= nil then
+                local key = string.lower(suffix)
+                ctx["service_form_link_name_" .. key] = tostring(name)
+                ctx["service_form_link_deliver_" .. key] = if name == "" then "false" else "true"
+            end
+        end
+    end
+    link_form_hints()
+end
+
+function link_edit_cancel(): ()
+    link_form_reset()
 end
 
 -- "Este serviço usa ...": acrescenta o vínculo. O daemon valida (outro projeto
@@ -1458,12 +1569,22 @@ function link_add(): ()
         resource_name = string.lower(Helpers.trim(ctx.service_form_link_resource or ""))
     end
     local public_read = kind == "bucket" and Helpers.is_true(ctx.service_form_link_public_read)
+    -- Nomes trocados: só os que a pessoa mexeu (em branco + entregar = o padrão,
+    -- fica fora do mapa). Só os sufixos que este tipo de serviço entrega.
+    local env_names = {}
+    for _, suffix in ipairs(format.link_suffixes(kind, kind ~= "")) do
+        local key = string.lower(suffix)
+        local typed = string.upper(Helpers.trim(ctx["service_form_link_name_" .. key] or ""))
+        if not Helpers.is_true(ctx["service_form_link_deliver_" .. key]) then
+            env_names[suffix] = ""
+        elseif typed ~= "" then
+            env_names[suffix] = typed
+        end
+    end
     with_spec(function(spec: any): ()
         local kept = json.array {}
         for _, link in ipairs(spec.links or {}) do
-            if link.service_id ~= target_id then
-                table.insert(kept, link)
-            end
+            table.insert(kept, link)
         end
         local link: any = { service_id = target_id }
         if prefix ~= "" then
@@ -1473,7 +1594,21 @@ function link_add(): ()
         if resource_name ~= "" then
             link.resource = { name = resource_name, public_read = public_read }
         end
-        table.insert(kept, link)
+        if next(env_names) ~= nil then
+            link.env_names = env_names
+        end
+        -- Editar mantém a posição do vínculo; adicionar põe no fim.
+        local position = nil
+        for index, existing in ipairs(kept) do
+            if existing.service_id == target_id then
+                position = index
+            end
+        end
+        if position then
+            kept[position] = link
+        else
+            table.insert(kept, link)
+        end
         spec.links = kept
     end)
 end

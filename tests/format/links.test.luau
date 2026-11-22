@@ -106,3 +106,38 @@ function test_vinculos__campo_de_recurso_segue_o_servico_escolhido()
     assert_eq(SD.link_target_kind("cache", pares), "")
     assert_eq(SD.link_target_kind("", pares), "")
 end
+
+--- nomes das variáveis: trocado, não entregar e o padrão (igual a ServiceLink::env_name)
+function test_vinculos__nome_da_variavel_trocado_ou_omitido()
+    local link = { service_id = "s3", env_prefix = "STORAGE", env_names = { URL = "S3_ENDPOINT", PORT = "" } }
+    assert_eq(SD.link_env_name(link, "S3", "URL"), "S3_ENDPOINT")
+    assert_eq(SD.link_env_name(link, "S3", "PORT"), nil)
+    assert_eq(SD.link_env_name(link, "S3", "HOST"), "STORAGE_HOST")
+    assert_eq(SD.link_env_name({ service_id = "s3" }, "S3", "URL"), "S3_URL")
+end
+
+--- a linha do vínculo mostra os nomes efetivos e avisa a variável já digitada
+function test_vinculos__linha_mostra_nomes_efetivos_e_aviso()
+    local pares = {
+        par("api", "api", "p1"),
+        par("s3", "s3", "p1", { product = "rustfs" }),
+    }
+    local spec = pares[1].svc.spec
+    spec.links = {
+        {
+            service_id = "s3",
+            resource = { name = "uploads" },
+            env_names = { URL = "S3_ENDPOINT", BUCKET = "S3_BUCKET_NAME_1", PORT = "" },
+        },
+    }
+    spec.env_vars = {}
+    local origins = SD.typed_env_origins(spec, { { key = "S3_ENDPOINT", value = { Plain = "x" } } })
+    local rows = json.decode(SD.link_rows(spec, pares, origins))
+    assert_eq(rows[1].vars, "S3_HOST · S3_ENDPOINT · S3_BUCKET_NAME_1")
+    assert_true(string.find(rows[1].warning, "S3_ENDPOINT", 1, true) ~= nil)
+    -- sem variável digitada com o mesmo nome, sem aviso
+    local quiet = json.decode(SD.link_rows(spec, pares, {}))
+    assert_eq(quiet[1].warning, "")
+    assert_eq(#SD.link_suffixes("bucket", true), 4)
+    assert_eq(#SD.link_suffixes("bucket", false), 3)
+end

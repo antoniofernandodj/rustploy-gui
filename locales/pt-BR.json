@@ -1428,5 +1428,13 @@
   "advanced.link_database": "Database (opcional)",
   "advanced.link_database_placeholder": "nome do database, ex.: pedidos",
   "advanced.link_database_hint": "O database é criado neste banco no próximo deploy deste serviço, antes das migrações, se ainda não existir. Este serviço recebe PREFIXO_DATABASE, e a PREFIXO_URL passa a apontar para ele. Desfazer o vínculo não apaga o database.",
-  "leitura pública": "leitura pública"
+  "leitura pública": "leitura pública",
+  "advanced.link_edit": "Editar",
+  "advanced.link_editing": "EDITANDO O VÍNCULO COM {name}",
+  "advanced.link_save": "Salvar vínculo",
+  "advanced.link_names": "NOMES DAS VARIÁVEIS",
+  "advanced.link_names_hint": "Em branco, vale o nome padrão (o prefixo + o sufixo). Troque para o nome que o seu código lê, ou desligue para não entregar.",
+  "advanced.link_deliver": "Entregar",
+  "Já digitada, a digitada ganha: ": "Já digitada, a digitada ganha: ",
+  "nenhuma variável": "nenhuma variável"
 }

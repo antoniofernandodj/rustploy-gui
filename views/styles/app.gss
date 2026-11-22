@@ -390,6 +390,9 @@
 }
 /* Campo de recurso do vínculo (bucket ou database): o mesmo espaçamento do painel. */
 .link-resource { width: fill; height: shrink; spacing: 10; }
+.link-name { width: fill; height: shrink; spacing: 10; align_y: center; }
+.link-name__suffix { width: 80; }
+.link-warning { color: var(--warn); size: 12; }
 /* Painel montado com `field(description = …)`: cada grupo (rótulo, controle
    e ajuda, a 6 entre si) fica a 20 do próximo. Sem o modificador, a ajuda de
    um campo ficava tão perto do rótulo seguinte quanto do próprio campo. */

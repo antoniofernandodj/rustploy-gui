@@ -256,33 +256,89 @@ function M.link_target_kind(target_id: string?, pairs_list: { any }?): string
     return ""
 end
 
--- Os vínculos deste serviço, com as variáveis que cada um entrega.
-function M.link_rows(spec: any, pairs_list: { any }?): string
+-- O nome com que a variável `suffix` entra no container (o mesmo de
+-- `ServiceLink::env_name` no daemon): trocado em `env_names` ("" = não entregar
+-- → nil), senão prefixo + sufixo. Ver docs/plano-nomes-das-variaveis-do-vinculo.md.
+function M.link_env_name(link: any, default_prefix: string, suffix: string): string?
+    local names = link.env_names
+    if type(names) == "table" and names[suffix] ~= nil then
+        local name = tostring(names[suffix])
+        return if name == "" then nil else name
+    end
+    return (link.env_prefix or default_prefix) .. "_" .. suffix
+end
+
+-- Os sufixos que um vínculo entrega: HOST, PORT, URL e, com recurso, BUCKET ou DATABASE.
+function M.link_suffixes(kind: string?, has_resource: boolean): { string }
+    local suffixes = { "HOST", "PORT", "URL" }
+    if has_resource and kind == "bucket" then
+        table.insert(suffixes, "BUCKET")
+    elseif has_resource and kind == "database" then
+        table.insert(suffixes, "DATABASE")
+    end
+    return suffixes
+end
+
+-- As variáveis digitadas no projeto e no serviço: nome → onde. Elas ganham das
+-- do vínculo, então um nome entregue que está aqui não chega ao container.
+function M.typed_env_origins(spec: any, project_env: { any }?): { [string]: string }
+    local origins = {}
+    for _, variable in ipairs(project_env or {}) do
+        origins[variable.key] = i18n.tr("projeto")
+    end
+    for _, variable in ipairs(spec.env_vars or {}) do
+        origins[variable.key] = i18n.tr("serviço")
+    end
+    return origins
+end
+
+-- "Já digitada, a digitada ganha: X (projeto)" para os nomes que já existem; "" se nenhum.
+function M.link_shadow_warning(names: { string }, origins: { [string]: string }?): string
+    local shadowed = {}
+    for _, name in ipairs(names) do
+        local origin = origins and origins[name]
+        if origin then
+            table.insert(shadowed, name .. " (" .. origin .. ")")
+        end
+    end
+    if #shadowed == 0 then
+        return ""
+    end
+    return i18n.tr("Já digitada, a digitada ganha: ") .. table.concat(shadowed, ", ")
+end
+
+-- Os vínculos deste serviço, com as variáveis que cada um entrega (nomes efetivos)
+-- e o aviso das que já estão digitadas.
+function M.link_rows(spec: any, pairs_list: { any }?, origins: { [string]: string }?): string
     local by_id = pair_by_id(pairs_list)
     local rows = {}
     for position, link in ipairs(spec.links or {}) do
         local pair = by_id[link.service_id]
         local name = pair and display_name(pair, spec.project_id)
             or (i18n.tr("(serviço removido: ") .. tostring(link.service_id) .. ")")
-        local prefix = link.env_prefix
-            or M.link_env_prefix(pair and pair.svc.spec.name or "")
-        local vars = prefix .. "_HOST · " .. prefix .. "_PORT · " .. prefix .. "_URL"
+        local default_prefix = M.link_env_prefix(pair and pair.svc.spec.name or "")
         local kind = M.resource_kind(pair and pair.svc.spec.product)
         if link.resource and kind == "bucket" then
-            vars = vars .. " · " .. prefix .. "_BUCKET"
             name = name .. " · bucket " .. link.resource.name
             if link.resource.public_read then
                 name = name .. " (" .. i18n.tr("leitura pública") .. ")"
             end
         elseif link.resource and kind == "database" then
-            vars = vars .. " · " .. prefix .. "_DATABASE"
             name = name .. " · database " .. link.resource.name
+        end
+        local names = {}
+        for _, suffix in ipairs(M.link_suffixes(kind, link.resource ~= nil)) do
+            local env_name = M.link_env_name(link, default_prefix, suffix)
+            if env_name then
+                table.insert(names, env_name)
+            end
         end
         table.insert(rows, {
             id = link.service_id,
             index = tostring(position),
             name = name,
-            vars = vars,
+            vars = if #names > 0 then table.concat(names, " · ") else i18n.tr("nenhuma variável"),
+            warning = M.link_shadow_warning(names, origins),
         })
     end
     return Util.encode_array(rows)

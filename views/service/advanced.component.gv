@@ -171,12 +171,38 @@ component {
               column(width = fill) {
                 text("@l.name", class = "kv-list__val kv-list__val--compact")
                 text("@l.vars", class = u-muted)
+                text("@l.warning", class = link-warning, if = @l.warning, not_equals = "")
               }
+
+              button(
+                "{t('advanced.link_edit')}",
+                class = "btn btn--ghost btn--xs",
+                on_click = link_edit:@l.id
+              )
             }
           }
         }
 
-        field(label = "{t('advanced.add_link')}", label_class = u-label-cap) {
+        // Editando um vínculo: no lugar do seletor, o nome do serviço e o Cancelar.
+        row(class = env__add, if = @service_form_link_editing, not_equals = "") {
+          text(
+            "{t('advanced.link_editing', name=service_form_link_editing_name)}",
+            class = u-label-cap,
+          )
+
+          button(
+            "{t('common.cancel')}",
+            class = "btn btn--ghost btn--xs",
+            on_click = link_edit_cancel
+          )
+        }
+
+        field(
+          label = "{t('advanced.add_link')}",
+          label_class = u-label-cap,
+          if = @service_form_link_editing,
+          equals = ""
+        ) {
           select(
             class = form-select,
             :options = service_link_options,
@@ -195,7 +221,7 @@ component {
           input(
             class = field__input,
             :value = service_form_link_prefix,
-            on_change = field:service_form_link_prefix,
+            on_change = link_form_field:service_form_link_prefix,
             placeholder = "{t('advanced.link_prefix_placeholder')}",
           )
         }
@@ -240,7 +266,140 @@ component {
           text("{t('advanced.link_database_hint')}", class = u-muted)
         }
 
-        row(class = env__add) {
+        // Nomes das variáveis (docs/plano-nomes-das-variaveis-do-vinculo.md): em
+        // branco vale o padrão; desligar "Entregar" não entrega.
+        column(class = link-resource, if = @service_form_link_add_id, not_equals = "") {
+          text("{t('advanced.link_names')}", class = u-label-cap)
+          text("{t('advanced.link_names_hint')}", class = u-muted)
+
+          row(class = link-name) {
+            text("HOST", class = link-name__suffix)
+
+            input(
+              class = field__input,
+              :value = service_form_link_name_host,
+              on_change = link_form_field:service_form_link_name_host,
+              placeholder = @service_form_link_placeholder_host,
+            )
+
+            toggle(
+              :checked = service_form_link_deliver_host,
+              on_toggle = link_form_field:service_form_link_deliver_host,
+              label = "{t('advanced.link_deliver')}",
+            )
+          }
+
+          text(
+            "@service_form_link_warning_host",
+            class = link-warning,
+            if = @service_form_link_warning_host,
+            not_equals = ""
+          )
+
+          row(class = link-name) {
+            text("PORT", class = link-name__suffix)
+
+            input(
+              class = field__input,
+              :value = service_form_link_name_port,
+              on_change = link_form_field:service_form_link_name_port,
+              placeholder = @service_form_link_placeholder_port,
+            )
+
+            toggle(
+              :checked = service_form_link_deliver_port,
+              on_toggle = link_form_field:service_form_link_deliver_port,
+              label = "{t('advanced.link_deliver')}",
+            )
+          }
+
+          text(
+            "@service_form_link_warning_port",
+            class = link-warning,
+            if = @service_form_link_warning_port,
+            not_equals = ""
+          )
+
+          row(class = link-name) {
+            text("URL", class = link-name__suffix)
+
+            input(
+              class = field__input,
+              :value = service_form_link_name_url,
+              on_change = link_form_field:service_form_link_name_url,
+              placeholder = @service_form_link_placeholder_url,
+            )
+
+            toggle(
+              :checked = service_form_link_deliver_url,
+              on_toggle = link_form_field:service_form_link_deliver_url,
+              label = "{t('advanced.link_deliver')}",
+            )
+          }
+
+          text(
+            "@service_form_link_warning_url",
+            class = link-warning,
+            if = @service_form_link_warning_url,
+            not_equals = ""
+          )
+
+          column(class = link-resource, if = @service_form_link_add_kind, equals = "bucket") {
+            row(class = link-name) {
+              text("BUCKET", class = link-name__suffix)
+
+              input(
+                class = field__input,
+                :value = service_form_link_name_bucket,
+                on_change = link_form_field:service_form_link_name_bucket,
+                placeholder = @service_form_link_placeholder_bucket,
+              )
+
+              toggle(
+                :checked = service_form_link_deliver_bucket,
+                on_toggle = link_form_field:service_form_link_deliver_bucket,
+                label = "{t('advanced.link_deliver')}",
+              )
+            }
+
+            text(
+              "@service_form_link_warning_bucket",
+              class = link-warning,
+              if = @service_form_link_warning_bucket,
+              not_equals = ""
+            )
+
+          }
+
+          column(class = link-resource, if = @service_form_link_add_kind, equals = "database") {
+            row(class = link-name) {
+              text("DATABASE", class = link-name__suffix)
+
+              input(
+                class = field__input,
+                :value = service_form_link_name_database,
+                on_change = link_form_field:service_form_link_name_database,
+                placeholder = @service_form_link_placeholder_database,
+              )
+
+              toggle(
+                :checked = service_form_link_deliver_database,
+                on_toggle = link_form_field:service_form_link_deliver_database,
+                label = "{t('advanced.link_deliver')}",
+              )
+            }
+
+            text(
+              "@service_form_link_warning_database",
+              class = link-warning,
+              if = @service_form_link_warning_database,
+              not_equals = ""
+            )
+
+          }
+        }
+
+        row(class = env__add, if = @service_form_link_editing, equals = "") {
           button(
             "{t('advanced.add_link_button')}",
             class = "btn btn--primary",
@@ -254,6 +413,15 @@ component {
             class = "btn btn--primary",
             if = @service_form_link_add_id,
             not_equals = "",
+            on_click = link_add,
+            disabled = @busy_link_add
+          )
+        }
+
+        row(class = env__add, if = @service_form_link_editing, not_equals = "") {
+          button(
+            "{t('advanced.link_save')}",
+            class = "btn btn--primary",
             on_click = link_add,
             disabled = @busy_link_add
           )

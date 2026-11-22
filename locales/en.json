@@ -1415,5 +1415,13 @@
   "advanced.link_database": "Database (optional)",
   "advanced.link_database_placeholder": "database name, e.g. orders",
   "advanced.link_database_hint": "The database is created on this server on this service's next deploy, before the migrations, if it does not exist yet. This service receives PREFIX_DATABASE, and PREFIX_URL points to it. Removing the link does not delete the database.",
-  "leitura pública": "public read"
+  "leitura pública": "public read",
+  "advanced.link_edit": "Edit",
+  "advanced.link_editing": "EDITING THE LINK TO {name}",
+  "advanced.link_save": "Save link",
+  "advanced.link_names": "VARIABLE NAMES",
+  "advanced.link_names_hint": "Blank means the default name (the prefix + the suffix). Change it to the name your code reads, or turn it off to not hand it over.",
+  "advanced.link_deliver": "Hand over",
+  "Já digitada, a digitada ganha: ": "Already typed, the typed one wins: ",
+  "nenhuma variável": "no variables"
 }
