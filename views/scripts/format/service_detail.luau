@@ -233,6 +233,18 @@ local function display_name(pair: any, own_project_id: string): string
     return name
 end
 
+-- Que recurso um provedor oferece, pelo `product` (o mesmo de `domain::resource_kind`):
+-- "bucket" (RustFS/MinIO), "database" (Postgres/MySQL/MariaDB) ou nil.
+function M.resource_kind(product: string?): string?
+    local p = string.lower(product or "")
+    if p == "rustfs" or p == "minio" then
+        return "bucket"
+    elseif p == "postgres" or p == "postgresql" or p == "mysql" or p == "mariadb" then
+        return "database"
+    end
+    return nil
+end
+
 -- Os vínculos deste serviço, com as variáveis que cada um entrega.
 function M.link_rows(spec: any, pairs_list: { any }?): string
     local by_id = pair_by_id(pairs_list)
@@ -243,11 +255,23 @@ function M.link_rows(spec: any, pairs_list: { any }?): string
             or (i18n.tr("(serviço removido: ") .. tostring(link.service_id) .. ")")
         local prefix = link.env_prefix
             or M.link_env_prefix(pair and pair.svc.spec.name or "")
+        local vars = prefix .. "_HOST · " .. prefix .. "_PORT · " .. prefix .. "_URL"
+        local kind = M.resource_kind(pair and pair.svc.spec.product)
+        if link.resource and kind == "bucket" then
+            vars = vars .. " · " .. prefix .. "_BUCKET"
+            name = name .. " · bucket " .. link.resource.name
+            if link.resource.public_read then
+                name = name .. " (" .. i18n.tr("leitura pública") .. ")"
+            end
+        elseif link.resource and kind == "database" then
+            vars = vars .. " · " .. prefix .. "_DATABASE"
+            name = name .. " · database " .. link.resource.name
+        end
         table.insert(rows, {
             id = link.service_id,
             index = tostring(position),
             name = name,
-            vars = prefix .. "_HOST · " .. prefix .. "_PORT · " .. prefix .. "_URL",
+            vars = vars,
         })
     end
     return Util.encode_array(rows)

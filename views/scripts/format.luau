@@ -70,6 +70,7 @@ M.secret_rows = ServiceDetail.secret_rows
 M.dependency_rows = ServiceDetail.dependency_rows
 M.dependency_options = ServiceDetail.dependency_options
 M.link_env_prefix = ServiceDetail.link_env_prefix
+M.resource_kind = ServiceDetail.resource_kind
 M.link_rows = ServiceDetail.link_rows
 M.link_options = ServiceDetail.link_options
 M.consumer_rows = ServiceDetail.consumer_rows

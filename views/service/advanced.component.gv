@@ -200,6 +200,26 @@ component {
           )
         }
 
+        field(
+          label = "{t('advanced.link_resource')}",
+          label_class = u-label-cap
+        ) {
+          input(
+            class = field__input,
+            :value = service_form_link_resource,
+            on_change = field:service_form_link_resource,
+            placeholder = "{t('advanced.link_resource_placeholder')}",
+          )
+        }
+
+        toggle(
+          :checked = service_form_link_public_read,
+          on_toggle = field:service_form_link_public_read,
+          label = "{t('advanced.link_public_read')}",
+        )
+
+        text("{t('advanced.link_resource_hint')}", class = u-muted)
+
         row(class = env__add) {
           button(
             "{t('advanced.add_link_button')}",

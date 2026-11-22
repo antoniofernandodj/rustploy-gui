@@ -233,6 +233,8 @@ function init(): ()
     ctx.service_consumer_options = ctx.service_consumer_options or "[]"
     ctx.service_form_link_add_id = ctx.service_form_link_add_id or ""
     ctx.service_form_link_prefix = ctx.service_form_link_prefix or ""
+    ctx.service_form_link_resource = ctx.service_form_link_resource or ""
+    ctx.service_form_link_public_read = ctx.service_form_link_public_read or "false"
     ctx.service_form_consumer_add_id = ctx.service_form_consumer_add_id or ""
     ctx.service_is_shared_server = ctx.service_is_shared_server or "false"
     ctx.service_form_accept_links = ctx.service_form_accept_links or "true"

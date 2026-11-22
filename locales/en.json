@@ -1407,5 +1407,10 @@
   "Este serviço deixa de esperar o outro subir e, no próximo deploy, deixa de receber as variáveis de conexão dele. As variáveis que você digitou continuam.": "This service stops waiting for the other to come up and, on the next deploy, stops receiving its connection variables. The variables you typed stay.",
   "O outro serviço deixa de esperar este subir e, no próximo deploy, deixa de receber as variáveis de conexão dele. As variáveis que foram digitadas lá continuam.": "The other service stops waiting for this one to come up and, on the next deploy, stops receiving its connection variables. The variables typed there stay.",
   "Desfazer vínculo": "Remove link",
-  "projeto": "project"
+  "projeto": "project",
+  "advanced.link_resource": "Resource (optional)",
+  "advanced.link_resource_placeholder": "bucket or database name",
+  "advanced.link_public_read": "Bucket with public read",
+  "advanced.link_resource_hint": "On an S3 (RustFS, MinIO), the resource is a bucket; on a Postgres, MySQL or MariaDB, a database. It is created on this service's next deploy, if it does not exist yet, and hands over PREFIX_BUCKET or PREFIX_DATABASE. Removing the link does not delete the resource.",
+  "leitura pública": "public read"
 }

@@ -1394,6 +1394,8 @@ function M.refresh_links(spec: any, service_id: string): ()
         format.consumer_options(spec, service_id, pairs_list)
     ctx.service_form_link_add_id = ""
     ctx.service_form_link_prefix = ""
+    ctx.service_form_link_resource = ""
+    ctx.service_form_link_public_read = "false"
     ctx.service_form_consumer_add_id = ""
     ctx.service_is_shared_server = (spec.shared ~= nil) and "true" or "false"
     ctx.service_form_accept_links = (spec.shared ~= nil and spec.shared.accept_links ~= false)
@@ -1440,6 +1442,8 @@ function link_add(): ()
         return
     end
     local prefix = string.upper(Helpers.trim(ctx.service_form_link_prefix or ""))
+    local resource_name = string.lower(Helpers.trim(ctx.service_form_link_resource or ""))
+    local public_read = Helpers.is_true(ctx.service_form_link_public_read)
     with_spec(function(spec: any): ()
         local kept = json.array {}
         for _, link in ipairs(spec.links or {}) do
@@ -1450,6 +1454,10 @@ function link_add(): ()
         local link: any = { service_id = target_id }
         if prefix ~= "" then
             link.env_prefix = prefix
+        end
+        -- Recurso (Fase 2): o daemon valida o nome e cria no próximo deploy.
+        if resource_name ~= "" then
+            link.resource = { name = resource_name, public_read = public_read }
         end
         table.insert(kept, link)
         spec.links = kept

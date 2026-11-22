@@ -73,3 +73,23 @@ function test_vinculos__quem_usa_e_quem_pode_passar_a_usar()
     local com_fora = json.decode(SD.consumer_options(db_spec, "db", pares))
     assert_eq(#com_fora, 2)
 end
+
+--- Fase 2: a linha mostra o recurso e a variável a mais; o tipo vem do product
+function test_vinculos__linha_mostra_o_recurso()
+    local pares = {
+        par("api", "api", "p1"),
+        par("s3", "s3", "p1", { product = "rustfs" }),
+        par("db", "db", "p1", { product = "postgres" }),
+    }
+    local spec = pares[1].svc.spec
+    spec.links = {
+        { service_id = "s3", resource = { name = "uploads", public_read = true } },
+        { service_id = "db", resource = { name = "pedidos" } },
+    }
+    local linhas = json.decode(SD.link_rows(spec, pares))
+    assert_true(string.find(linhas[1].name, "bucket uploads", 1, true) ~= nil)
+    assert_eq(linhas[1].vars, "S3_HOST · S3_PORT · S3_URL · S3_BUCKET")
+    assert_true(string.find(linhas[2].name, "database pedidos", 1, true) ~= nil)
+    assert_eq(linhas[2].vars, "DB_HOST · DB_PORT · DB_URL · DB_DATABASE")
+    assert_eq(SD.resource_kind("redis"), nil)
+end
