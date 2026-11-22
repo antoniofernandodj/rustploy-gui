@@ -245,6 +245,17 @@ function M.resource_kind(product: string?): string?
     return nil
 end
 
+-- O que o serviço escolhido em "Vincular a" oferece ("bucket", "database" ou ""):
+-- decide qual campo de recurso aparece no formulário.
+function M.link_target_kind(target_id: string?, pairs_list: { any }?): string
+    for _, pair in ipairs(pairs_list or {}) do
+        if pair.svc and pair.svc.id == target_id then
+            return M.resource_kind(pair.svc.spec.product) or ""
+        end
+    end
+    return ""
+end
+
 -- Os vínculos deste serviço, com as variáveis que cada um entrega.
 function M.link_rows(spec: any, pairs_list: { any }?): string
     local by_id = pair_by_id(pairs_list)

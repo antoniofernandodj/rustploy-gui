@@ -388,6 +388,8 @@
    padding: 24;
    spacing: 10;
 }
+/* Campo de recurso do vínculo (bucket ou database): o mesmo espaçamento do painel. */
+.link-resource { width: fill; height: shrink; spacing: 10; }
 /* Painel montado com `field(description = …)`: cada grupo (rótulo, controle
    e ajuda, a 6 entre si) fica a 20 do próximo. Sem o modificador, a ajuda de
    um campo ficava tão perto do rótulo seguinte quanto do próprio campo. */

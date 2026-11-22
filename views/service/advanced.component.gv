@@ -181,7 +181,7 @@ component {
             class = form-select,
             :options = service_link_options,
             :value = service_form_link_add_id,
-            on_change = field:service_form_link_add_id,
+            on_change = link_target_pick,
             placeholder = "{t('advanced.choose_service')}",
             label_field = name,
             value_field = id,
@@ -200,25 +200,45 @@ component {
           )
         }
 
-        field(
-          label = "{t('advanced.link_resource')}",
-          label_class = u-label-cap
-        ) {
-          input(
-            class = field__input,
-            :value = service_form_link_resource,
-            on_change = field:service_form_link_resource,
-            placeholder = "{t('advanced.link_resource_placeholder')}",
+        // Recurso: só o campo do tipo do serviço escolhido (bucket num S3,
+        // database num banco); nenhum nos outros.
+        column(class = link-resource, if = @service_form_link_add_kind, equals = "bucket") {
+          field(
+            label = "{t('advanced.link_bucket')}",
+            label_class = u-label-cap
+          ) {
+            input(
+              class = field__input,
+              :value = service_form_link_resource,
+              on_change = field:service_form_link_resource,
+              placeholder = "{t('advanced.link_bucket_placeholder')}",
+            )
+          }
+
+          toggle(
+            :checked = service_form_link_public_read,
+            on_toggle = field:service_form_link_public_read,
+            label = "{t('advanced.link_public_read')}",
           )
+
+          text("{t('advanced.link_bucket_hint')}", class = u-muted)
         }
 
-        toggle(
-          :checked = service_form_link_public_read,
-          on_toggle = field:service_form_link_public_read,
-          label = "{t('advanced.link_public_read')}",
-        )
+        column(class = link-resource, if = @service_form_link_add_kind, equals = "database") {
+          field(
+            label = "{t('advanced.link_database')}",
+            label_class = u-label-cap
+          ) {
+            input(
+              class = field__input,
+              :value = service_form_link_resource,
+              on_change = field:service_form_link_resource,
+              placeholder = "{t('advanced.link_database_placeholder')}",
+            )
+          }
 
-        text("{t('advanced.link_resource_hint')}", class = u-muted)
+          text("{t('advanced.link_database_hint')}", class = u-muted)
+        }
 
         row(class = env__add) {
           button(

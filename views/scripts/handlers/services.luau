@@ -1393,6 +1393,7 @@ function M.refresh_links(spec: any, service_id: string): ()
     ctx.service_consumer_options =
         format.consumer_options(spec, service_id, pairs_list)
     ctx.service_form_link_add_id = ""
+    ctx.service_form_link_add_kind = ""
     ctx.service_form_link_prefix = ""
     ctx.service_form_link_resource = ""
     ctx.service_form_link_public_read = "false"
@@ -1434,6 +1435,15 @@ local function with_other_spec(other_id: string, mutate: (spec: any) -> ()): ()
     end
 end
 
+-- Escolheu o serviço em "Vincular a": guarda o tipo dele (bucket/database) para
+-- mostrar só o campo de recurso que faz sentido, e limpa o que estava digitado.
+function link_target_pick(target_id: string): ()
+    ctx.service_form_link_add_id = target_id or ""
+    ctx.service_form_link_add_kind = format.link_target_kind(target_id, State.last_pairs)
+    ctx.service_form_link_resource = ""
+    ctx.service_form_link_public_read = "false"
+end
+
 -- "Este serviço usa ...": acrescenta o vínculo. O daemon valida (outro projeto
 -- só banco compartilhado, trava, ciclo) e concede o acesso entre projetos.
 function link_add(): ()
@@ -1442,8 +1452,12 @@ function link_add(): ()
         return
     end
     local prefix = string.upper(Helpers.trim(ctx.service_form_link_prefix or ""))
-    local resource_name = string.lower(Helpers.trim(ctx.service_form_link_resource or ""))
-    local public_read = Helpers.is_true(ctx.service_form_link_public_read)
+    local kind = ctx.service_form_link_add_kind or ""
+    local resource_name = ""
+    if kind ~= "" then
+        resource_name = string.lower(Helpers.trim(ctx.service_form_link_resource or ""))
+    end
+    local public_read = kind == "bucket" and Helpers.is_true(ctx.service_form_link_public_read)
     with_spec(function(spec: any): ()
         local kept = json.array {}
         for _, link in ipairs(spec.links or {}) do

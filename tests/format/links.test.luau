@@ -93,3 +93,16 @@ function test_vinculos__linha_mostra_o_recurso()
     assert_eq(linhas[2].vars, "DB_HOST · DB_PORT · DB_URL · DB_DATABASE")
     assert_eq(SD.resource_kind("redis"), nil)
 end
+
+--- o campo de recurso segue o tipo do serviço escolhido em "Vincular a"
+function test_vinculos__campo_de_recurso_segue_o_servico_escolhido()
+    local pares = {
+        par("s3", "s3", "p1", { product = "minio" }),
+        par("db", "db", "p1", { product = "mariadb" }),
+        par("cache", "cache", "p1", { product = "redis" }),
+    }
+    assert_eq(SD.link_target_kind("s3", pares), "bucket")
+    assert_eq(SD.link_target_kind("db", pares), "database")
+    assert_eq(SD.link_target_kind("cache", pares), "")
+    assert_eq(SD.link_target_kind("", pares), "")
+end
