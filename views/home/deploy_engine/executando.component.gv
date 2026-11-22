@@ -112,11 +112,10 @@ component {
       }
     }
 
-    popup(
-      value = deploy_engine_detail_open,
-      trigger = none,
-      on_close = deploy_engine_close_detail
-    ) {
+    // Detalhe do deploy: painel na própria aba, abaixo da tabela. Era um
+    // `popup` centrado, que não aparecia nesta tela (a chave abria, o overlay
+    // não era desenhado); no fluxo normal não depende de overlay.
+    column(class = u-fill, if = @deploy_engine_detail_open, equals = "true") {
       column(class = "panel panel--round detail") {
         row(class = detail__head) {
           text(

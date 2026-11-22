@@ -331,7 +331,7 @@
 .stepper__step--failed  { color: var(--error); bold: true; }
 .stepper__step--pending { color: var(--muted); }
 
-.detail        { width: 760; height: 480; padding: 14 18; spacing: 12; }
+.detail        { width: fill; height: 420; padding: 14 18; spacing: 12; }
 .detail__head  { width: fill; align_y: center; }
 .detail__title { width: fill; size: 14; bold: true; color: var(--text); }
 
