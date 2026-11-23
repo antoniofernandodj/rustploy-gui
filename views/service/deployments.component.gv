@@ -49,6 +49,66 @@ component {
       )
     }
 
+    // Janela "Comparar" de uma release, na própria aba: o que um "voltar
+    // para esta" mudaria (do declarado agora para a release).
+    column(
+      if = @release_diff_open,
+      equals = "1",
+      class = "form-panel release-diff",
+    ) {
+      row(class = release-diff__head) {
+        text("@release_diff_title", class = "u-label-cap u-fill")
+        button(
+          "{t('common.close')}",
+          class = "btn btn--ghost btn--xs",
+          on_click = release_diff_close,
+          disabled = @busy_release_diff_close
+        )
+      }
+
+      text(
+        "{t('deployments.nothing_changes')}",
+        if = @release_diff_is_empty,
+        equals = "1",
+        class = u-muted,
+      )
+
+      scrollable(direction = vertical, class = release-diff__scroll) {
+        column(class = release-diff__groups) {
+          each @release_diff_groups as g {
+            column(class = release-diff__group) {
+              text("@g.title", class = u-label-cap)
+              each @g.changes as c {
+                column(class = release-diff__change) {
+                  text("@c.field", class = release-diff__field)
+                  text("@c.before", class = release-diff__before)
+                  text("@c.after", class = release-diff__after)
+                }
+              }
+            }
+          }
+        }
+      }
+
+      row(
+        if = @release_diff_can_rollback,
+        equals = "1",
+        class = release-diff__actions,
+      ) {
+        button(
+          "{t('deployments.roll_back_to_this')}",
+          class = "btn btn--primary btn--xs",
+          on_click = release_rollback:@release_diff_release_id,
+          disabled = @busy_release_rollback
+        )
+      }
+    }
+
+    column(
+      if = @release_diff_open,
+      not_equals = "1",
+      class = deployments__history,
+    ) {
     text(
       "{t('deployments.deployments',
         service_deployments_count=service_deployments_count)}",
@@ -90,10 +150,54 @@ component {
             }
 
             text("@d.image", class = deployments__image)
+            text(
+              "@d.release_restored_label",
+              if = @d.release_restored_label,
+              not_equals = "",
+              class = deployments__image,
+            )
+            row(
+              if = @d.release_id,
+              not_equals = "",
+              class = deployments__release-actions,
+            ) {
+              row(class = release-badge) {
+                text("@d.release_label", class = release-badge__number)
+                text(
+                  "{t('deployments.current')}",
+                  if = @d.release_is_current,
+                  equals = "1",
+                  class = release-badge__current,
+                )
+              }
+              button(
+                "{t('deployments.compare')}",
+                class = "btn btn--ghost btn--xs",
+                on_click = release_compare:@d.release_id,
+                disabled = @busy_release_compare,
+                tooltip = "{t('deployments.compare_this_release')}"
+              )
+              button(
+                "{t('deployments.roll_back_to_this')}",
+                if = @d.release_can_rollback,
+                equals = "1",
+                class = "btn btn--ghost btn--xs",
+                on_click = release_rollback:@d.release_id,
+                disabled = @busy_release_rollback,
+                tooltip = "{t('deployments.roll_back_tooltip')}"
+              )
+            }
+            text(
+              "{t('deployments.release_image_deleted')}",
+              if = @d.release_image_missing,
+              equals = "1",
+              class = deployments__image,
+            )
             hr
           }
         }
       }
+    }
     }
   }
 }

@@ -27,6 +27,10 @@ type ServicesModule = {
 
 local M: ServicesModule = {} :: any
 
+-- Releases do serviço aberto (o `ReleaseList` do último fetch), por id: a
+-- confirmação do "voltar" precisa do número da release.
+local service_releases_by_id: { [string]: any } = {}
+
 -- Título editável do serviço (service.component.gv): cada tecla reinicia
 -- `title_save_timer` (debounce de 0,5 s antes de gravar) e `title_toast_timer`
 -- (o toast "Nome salvo" só sai depois de 2 s sem nenhuma gravação). Enquanto
@@ -99,6 +103,7 @@ function open_service(service_id: string): ()
         ctx.service_deploy_elapsed = ""
     end
     ctx.service_loading = "true"
+    ctx.release_diff_open = "0"
     M.fetch_service_detail(service_id)
 end
 
@@ -397,7 +402,17 @@ function M.fetch_service_detail(service_id: string): ()
         end
     end
     EnvRows.set_secret_options("service", secret_options)
-    ctx.service_deployments = format.deployments_detail(deployments)
+    local releases = {}
+    local release_list_ok, release_list_response =
+        api:rpc { ReleaseList = { service_id = service_id } }
+    if release_list_ok and release_list_response.Releases then
+        releases = release_list_response.Releases
+    end
+    service_releases_by_id = {}
+    for _, release in ipairs(releases) do
+        service_releases_by_id[release.id] = release
+    end
+    ctx.service_deployments = format.deployments_detail(deployments, releases)
     ctx.service_deployments_count = tostring(#deployments)
     -- Webhook de deploy (aba Deployments). Só serviços Application (Git ou
     -- Registry) têm token, e ele nasce no PRIMEIRO deploy — antes disso o
@@ -2742,6 +2757,84 @@ function delete_deployment(deployment_id: string): ()
         or ("erro: " .. deploy_delete_response)
     if not deploy_delete_ok then
         toast { message = tostring(deploy_delete_response), kind = "error" }
+    end
+    M.fetch_service_detail(ctx.selected_service)
+end
+
+-- ── Releases: comparar e voltar ─────────────────────────────────────────────
+
+-- "Comparar": o que um "voltar para esta" mudaria (do declarado agora para a
+-- release), num painel na própria aba Deployments.
+function release_compare(release_id: string): ()
+    local api = State.api
+    if not api or not release_id or release_id == "" then
+        return
+    end
+    local release_diff_ok, release_diff_response =
+        api:rpc_checked { ReleaseDiff = { release_id = release_id } }
+    if not release_diff_ok or not release_diff_response.ReleaseDiff then
+        toast { message = tostring(release_diff_response), kind = "error" }
+        return
+    end
+    local release = service_releases_by_id[release_id]
+    local number = release and tostring(release.number) or "?"
+    local changes = release_diff_response.ReleaseDiff.changes or {}
+    ctx.release_diff_open = "1"
+    ctx.release_diff_release_id = release_id
+    ctx.release_diff_title = string.format(i18n.tr("Atual → v%s"), number)
+    ctx.release_diff_groups = format.release_diff_groups(changes)
+    ctx.release_diff_is_empty = #changes == 0 and "1" or "0"
+    ctx.release_diff_can_rollback = (
+        release ~= nil
+        and release.is_current ~= true
+        and release.image_status ~= "Missing"
+    )
+            and "1"
+        or "0"
+end
+
+function release_diff_close(): ()
+    ctx.release_diff_open = "0"
+    ctx.release_diff_release_id = ""
+end
+
+-- "Voltar para esta": sobrescreve a configuração do serviço com a da release
+-- e faz o deploy com a imagem dela, sem build.
+function release_rollback(release_id: string): ()
+    local release = service_releases_by_id[release_id]
+    if not release then
+        return
+    end
+    local confirmed = confirm {
+        title = string.format(i18n.tr("Voltar para a v%d?"), release.number),
+        message = i18n.tr(
+            "A configuração do serviço será substituída pela desta release e o "
+                .. "deploy usará a imagem dela, sem build. As variáveis do projeto "
+                .. "não voltam, e os secrets valem com o valor atual."
+        ),
+        confirm_label = i18n.tr("Voltar para esta"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    local api = State.api
+    if not api then
+        return
+    end
+    local release_rollback_ok, release_rollback_response =
+        api:rpc_checked { ReleaseRollback = { release_id = release_id } }
+    if release_rollback_ok then
+        toast {
+            message = string.format(
+                i18n.tr("voltando para a v%d"),
+                release.number
+            ),
+            kind = "success",
+        }
+        release_diff_close()
+    else
+        toast { message = tostring(release_rollback_response), kind = "error" }
     end
     M.fetch_service_detail(ctx.selected_service)
 end

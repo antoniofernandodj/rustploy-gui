@@ -601,12 +601,41 @@ function M.history_rows(
     return rows, current
 end
 
--- Histórico de deployments de um serviço (aba Deployments).
-function M.deployments_detail(deployments: { any }?): string
+-- Histórico de deployments de um serviço (aba Deployments). `releases` (o
+-- `ReleaseList`) dá o "v12" de cada deploy que chegou a Live e as ações
+-- Comparar / Voltar para esta.
+function M.deployments_detail(deployments: { any }?, releases: { any }?): string
+    local release_by_deployment = {}
+    for _, release in ipairs(releases or {}) do
+        release_by_deployment[release.deployment_id] = release
+    end
     local rows = {}
     for _, deployment in ipairs(deployments or {}) do
         local label = Util.state_label_color(deployment.state)
+        local release = release_by_deployment[deployment.id]
+        local release_restored_label = ""
+        if release and release.restored_from_number then
+            release_restored_label = string.format(
+                i18n.tr("volta da v%d"),
+                release.restored_from_number
+            )
+        end
+        local release_can_rollback = release ~= nil
+            and release.is_current ~= true
+            and release.image_status ~= "Missing"
         table.insert(rows, {
+            release_id = release and release.id or "",
+            release_label = release and ("v" .. tostring(release.number)) or "",
+            release_is_current = (release and release.is_current == true)
+                    and "1"
+                or "0",
+            release_restored_label = release_restored_label,
+            release_can_rollback = release_can_rollback and "1" or "0",
+            release_image_missing = (
+                release and release.image_status == "Missing"
+            )
+                    and "1"
+                or "0",
             id = string.sub(deployment.id, 1, 12),
             id_full = deployment.id,
             image = deployment.image,
@@ -620,6 +649,41 @@ function M.deployments_detail(deployments: { any }?): string
         })
     end
     return Util.encode_array(rows)
+end
+
+-- Janela "Comparar" de uma release (`ReleaseDiff`): as mudanças agrupadas na
+-- ordem da tela. Os títulos ficam no texto de origem e são traduzidos aqui,
+-- no ponto de uso (nunca numa tabela no topo do módulo).
+local RELEASE_DIFF_SCOPES = { "image", "service", "service_env", "project_env" }
+local RELEASE_DIFF_TITLES = {
+    image = "Imagem",
+    service = "Configuração do serviço",
+    service_env = "Variáveis do serviço",
+    project_env = "Variáveis do projeto (não voltam)",
+}
+
+function M.release_diff_groups(changes: { any }?): string
+    local groups = {}
+    for _, scope in ipairs(RELEASE_DIFF_SCOPES) do
+        local rows = {}
+        for _, change in ipairs(changes or {}) do
+            if change.scope == scope then
+                table.insert(rows, {
+                    field = change.field,
+                    before = "− " .. (change.before or i18n.tr("(não existia)")),
+                    after = "+ " .. (change.after or i18n.tr("(removida)")),
+                })
+            end
+        end
+        if #rows > 0 then
+            table.insert(groups, {
+                scope = scope,
+                title = i18n.tr(RELEASE_DIFF_TITLES[scope]),
+                changes = rows,
+            })
+        end
+    end
+    return Util.encode_array(groups)
 end
 
 -- Portas TCP do host de um spec (aba Domains): uma linha por porta, com a

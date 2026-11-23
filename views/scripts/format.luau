@@ -87,6 +87,7 @@ M.join_log_lines = ServiceDetail.join_log_lines
 M.history_rows = ServiceDetail.history_rows
 M.log_execution_rows = ServiceDetail.log_execution_rows
 M.deployments_detail = ServiceDetail.deployments_detail
+M.release_diff_groups = ServiceDetail.release_diff_groups
 M.domains_json = ServiceDetail.domains_json
 M.tcp_ports_json = ServiceDetail.tcp_ports_json
 M.port_suggestions_json = ServiceDetail.port_suggestions_json

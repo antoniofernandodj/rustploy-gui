@@ -96,6 +96,42 @@ component {
       .deployments__wrap        { width: fill; height: fill; spacing: 8; }
       .deployments__list-scroll { width: fill; height: 240; }
       .deployments__actions     { spacing: 8; align_y: center; }
+      /* Releases: o selo "v12" na linha e o painel Comparar */
+      .release-badge            { spacing: 6; align_y: center; }
+      .release-badge__number {
+        size: 11;
+        bold: true;
+        padding: 1 6;
+        background: var(--raised);
+        border_radius: 4;
+      }
+      .release-badge__current   { size: 11; color: var(--ok); }
+      .deployments__release-actions { spacing: 8; padding: 4 0 0 0; align_y: center; }
+      .release-diff             { width: fill; height: fill; spacing: 12; }
+      .release-diff__scroll     { width: fill; height: fill; }
+      .release-diff__groups     { width: fill; spacing: 12; padding: 0 12 0 0; }
+      .deployments__history     { width: fill; height: fill; spacing: 8; }
+      .release-diff__head       { width: fill; align_y: center; }
+      .release-diff__group      { width: fill; spacing: 6; }
+      .release-diff__change {
+        width: fill;
+        spacing: 2;
+        padding: 6 8;
+        background: var(--raised);
+        border_radius: 6;
+      }
+      .release-diff__field      { size: 12; bold: true; }
+      .release-diff__before {
+        size: 12;
+        font: JetBrains Mono;
+        color: var(--error);
+      }
+      .release-diff__after {
+        size: 12;
+        font: JetBrains Mono;
+        color: var(--ok);
+      }
+      .release-diff__actions    { width: fill; align_x: end; }
       /* Logs (aba Logs = launcher da janela isolada; painel usado só p/
          layout) */
       .log-panel {
