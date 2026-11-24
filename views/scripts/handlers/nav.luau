@@ -13,6 +13,7 @@ local RecoveryKey = require("recovery_key")
 local Services = require("services")
 local Environments = require("environments")
 local Routes = require("routes")
+local Volumes = require("volumes")
 
 local function goto_view(view: string): ()
     if (ctx.view or "") ~= view or (ctx.selected_service or "") ~= "" then
@@ -48,6 +49,11 @@ end
 function nav_ingress(): ()
     goto_view("ingress")
     Routes.load()
+end
+
+function nav_volumes(): ()
+    goto_view("volumes")
+    Volumes.load()
 end
 
 function nav_docker(): ()

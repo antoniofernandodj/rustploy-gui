@@ -250,6 +250,12 @@ component {
       row(class = route-editor__row) {
         column(class = u-fill)
         button(
+          "{t('common.cancel')}",
+          class = "btn btn--ghost btn--sm",
+          on_click = route_editor_close,
+          disabled = @busy_route_editor_close
+        )
+        button(
           "{t('ingress.save')}",
           class = "btn btn--primary btn--sm",
           on_click = route_save,

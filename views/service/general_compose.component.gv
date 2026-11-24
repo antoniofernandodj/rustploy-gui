@@ -19,7 +19,48 @@ component {
     """,
   )
 
+  // "Usar volume existente": declara no arquivo o bloco `external` de um
+  // volume que já existe (um órfão, um banco antigo); a montagem no serviço
+  // (`- chave:/caminho`) é a pessoa que escreve.
+  column(
+    if = @compose_volume_open,
+    equals = "1",
+    class = route-editor,
+  ) {
+    text("{t('general_compose.existing_volume_hint')}", class = u-muted)
+    row(class = route-editor__row) {
+      select(
+        class = form-select,
+        :options = compose_volume_options,
+        :value = compose_volume_choice,
+        on_change = field:compose_volume_choice,
+        placeholder = "{t('dados.existing_volume')}",
+        label_field = label,
+        value_field = name,
+      )
+      button(
+        "{t('common.cancel')}",
+        class = "btn btn--ghost btn--sm",
+        on_click = compose_volume_cancel,
+        disabled = @busy_compose_volume_cancel
+      )
+      button(
+        "{t('general_compose.insert')}",
+        class = "btn btn--primary btn--sm",
+        on_click = compose_volume_insert,
+        disabled = @busy_compose_volume_insert
+      )
+    }
+  }
+
   row(class = env__add) {
+    button(
+      "{t('general_compose.use_existing_volume')}",
+      class = "btn btn--ghost",
+      on_click = compose_volume_pick,
+      disabled = @busy_compose_volume_pick
+    )
+
     button(
       "{t('general_compose.save_compose')}",
       class = "btn btn--primary",

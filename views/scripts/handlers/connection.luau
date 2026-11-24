@@ -336,6 +336,9 @@ function init(): ()
     }
     -- Editor de rota própria (tela Ingress) nasce fechado.
     ctx.route_editor_open = ctx.route_editor_open or "0"
+    -- Tela Volumes e o "usar volume existente" do Compose nascem fechados.
+    ctx.volumes_adopt_open = ctx.volumes_adopt_open or "0"
+    ctx.compose_volume_open = ctx.compose_volume_open or "0"
     ctx.healthcheck_kinds = {
         { id = "none", label = "None" },
         { id = "tcp", label = "Tcp" },
@@ -364,6 +367,7 @@ function init(): ()
         "deploy_engine_recent",
         "project_services",
         "custom_routes",
+        "volumes_rows",
     } do
         if not ctx[key] or ctx[key] == "" then
             ctx[key] = json.array({})
@@ -398,6 +402,7 @@ function init(): ()
         "services_running",
         "services_total",
         "custom_routes_count",
+        "volumes_count",
     } do
         if not ctx[key] or ctx[key] == "" then
             ctx[key] = "…"

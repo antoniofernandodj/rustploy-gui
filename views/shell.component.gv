@@ -193,6 +193,13 @@ component {
         target = docker,
         action = nav_docker
       )
+
+      NavItem(
+        label = "{t('shell.volumes')}",
+        icon = "▤",
+        target = volumes,
+        action = nav_volumes,
+      )
       text("{t('shell.management')}", class = sidebar__section)
 
       NavItem(

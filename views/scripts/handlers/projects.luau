@@ -11,6 +11,7 @@ local Stream = require("stream")
 local EnvRows = require("env_rows")
 local Registry = require("registry")
 local History = require("history")
+local Volumes = require("volumes")
 
 -- Abrir a lista de serviços de um projeto (grade read-only via snapshot).
 function open_project(project_id: string): ()
@@ -696,8 +697,31 @@ function stop_delete_service(service_id: string): ()
         cancel_label = i18n.tr("Manter os volumes"),
         destructive = true,
     }
+    -- Terceira pergunta, só se a stack usa volumes emprestados (externos):
+    -- eles já existiam antes dela e nunca saem sem uma escolha própria.
+    local delete_external = false
+    local borrowed = Volumes.borrowed_by(service_id)
+    if #borrowed > 0 then
+        delete_external = confirm {
+            title = i18n.tr("Apagar também os volumes emprestados?"),
+            message = string.format(
+                i18n.tr(
+                    "Este serviço usa volumes que já existiam antes dele (external): %s. "
+                        .. "Apagar = esses dados somem também. Manter = eles ficam no servidor."
+                ),
+                table.concat(borrowed, ", ")
+            ),
+            confirm_label = i18n.tr("Apagar os emprestados"),
+            cancel_label = i18n.tr("Manter os emprestados"),
+            destructive = true,
+        }
+    end
     local service_delete_ok, service_delete_response = api:rpc_checked {
-        ServiceDelete = { id = service_id, delete_volumes = delete_volumes == true },
+        ServiceDelete = {
+            id = service_id,
+            delete_volumes = delete_volumes == true,
+            delete_external_volumes = delete_external == true,
+        },
     }
     ctx.project_action_message = service_delete_ok
             and i18n.tr("serviço parado e removido")

@@ -15,6 +15,7 @@ component {
       as = HomeDeployEngine
     )
     link(rel = import, href = "home/docker.component.gv", as = HomeDocker)
+    link(rel = import, href = "home/volumes.component.gv", as = HomeVolumes)
     link(rel = import, href = "home/settings.component.gv", as = HomeSettings)
     link(
       rel = import,
@@ -71,6 +72,11 @@ component {
     // ── Docker ─────────────────────────────────────────────────────────
     if @view == "docker" {
       HomeDocker
+    }
+
+    // ── Volumes (os dados: quem monta, dono, órfão, backup) ───────────
+    if @view == "volumes" {
+      HomeVolumes
     }
 
     // ── Settings: sub-abas Web Server | Git ────────────────────────────
