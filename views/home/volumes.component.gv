@@ -13,6 +13,7 @@ component {
       column(class = page-head__titles) {
         text("{t('shell.volumes')}", class = page-head__title)
         text("{t('volumes.subtitle')}", class = page-head__subtitle)
+        text("{t('volumes.where_they_come_from')}", class = u-muted)
       }
       row(class = page-head__stats) {
         StatCard(label = "{t('shell.volumes')}", value = @volumes_count)
@@ -60,7 +61,7 @@ component {
           :value = volumes_adopt_target,
           on_change = field:volumes_adopt_target,
           placeholder = "{t('dados.path_in_the_container')}",
-          class = u-fill,
+          class = form-input,
         )
       }
       row(class = route-editor__row) {

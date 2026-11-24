@@ -118,7 +118,7 @@ component {
           :value = route_form_domain,
           on_change = field:route_form_domain,
           placeholder = "app.com",
-          class = u-fill,
+          class = form-input,
         )
         checkbox(
           :checked = route_form_tls,
@@ -206,7 +206,7 @@ component {
           :value = route_form_to,
           on_change = field:route_form_to,
           placeholder = "https://app.com",
-          class = u-fill,
+          class = form-input,
         )
         checkbox(
           :checked = route_form_permanent,
@@ -229,14 +229,14 @@ component {
           :value = route_form_auth_user,
           on_change = field:route_form_auth_user,
           placeholder = "{t('ingress.user')}",
-          class = u-fill,
+          class = form-input,
         )
         input(
           :value = route_form_auth_password,
           on_change = field:route_form_auth_password,
           placeholder = "{t('ingress.password_empty_keeps')}",
           secure = true,
-          class = u-fill,
+          class = form-input,
         )
       }
 

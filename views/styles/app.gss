@@ -513,6 +513,14 @@
   color: var(--text-2);
 }
 
+/* Campo de texto na mesma altura do .form-select: os dois lado a lado numa
+   linha ficavam com alturas diferentes. */
+.form-input {
+  width: fill;
+  padding: 10 12;
+  size: 14;
+}
+
 .env              { width: fill; height: fill; spacing: 10; }
 /* Aba inteira dentro de um scrollable (altura pelo conteúdo, não fill). */
 /* padding à direita: a barra de rolagem do scrollable fica por cima do
@@ -804,5 +812,5 @@
 }
 .route-editor__row       { width: fill; spacing: 8; align_y: center; }
 .route-editor__rules     { width: fill; spacing: 8; }
-.route-editor__path      { width: 140; }
-.route-editor__port      { width: 90; }
+.route-editor__path      { width: 140; padding: 10 12; size: 14; }
+.route-editor__port      { width: 90; padding: 10 12; size: 14; }

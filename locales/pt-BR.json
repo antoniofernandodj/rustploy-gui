@@ -1555,5 +1555,6 @@
   "Apagar também os volumes emprestados?": "Apagar também os volumes emprestados?",
   "Este serviço usa volumes que já existiam antes dele (external): %s. Apagar = esses dados somem também. Manter = eles ficam no servidor.": "Este serviço usa volumes que já existiam antes dele (external): %s. Apagar = esses dados somem também. Manter = eles ficam no servidor.",
   "Apagar os emprestados": "Apagar os emprestados",
-  "Manter os emprestados": "Manter os emprestados"
+  "Manter os emprestados": "Manter os emprestados",
+  "volumes.where_they_come_from": "Volumes nascem nos serviços: na aba Dados (serviço Application, campo “nome novo”) ou no arquivo Compose. Aqui você vê, adota e apaga."
 }

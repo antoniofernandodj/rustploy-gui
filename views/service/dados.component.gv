@@ -56,7 +56,7 @@ component {
             :value = service_volume_form_name,
             on_change = field:service_volume_form_name,
             placeholder = "{t('dados.or_a_new_name')}",
-            class = u-fill,
+            class = form-input,
           )
         }
         row(class = route-editor__row) {
@@ -64,7 +64,7 @@ component {
             :value = service_volume_form_target,
             on_change = field:service_volume_form_target,
             placeholder = "{t('dados.path_in_the_container')}",
-            class = u-fill,
+            class = form-input,
           )
           checkbox(
             :checked = service_volume_form_read_only,
