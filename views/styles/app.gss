@@ -474,6 +474,7 @@
 .card__action--open   { padding: 7 12; }
 .card__action--icon   { padding: 7 0; }
 .card__action--danger { color: var(--danger); }
+.card__action--deploy { color: var(--green); }
 
 /* ── Service detail (compartilhado) ───────────────────────────────────── */
 .kv-list {

@@ -135,6 +135,15 @@ component {
 
     row(class = card__actions) {
       button(
+        "▶",
+        class = "card__action card__action--icon card__action--deploy",
+        on_click = service_card_deploy:@id,
+        disabled = @busy_service_card_deploy,
+        tooltip = "{t('common.deploy')}",
+        tooltip_delay = "500ms",
+      )
+
+      button(
         "■",
         class = "card__action card__action--icon",
         on_click = service_stop_id:@id,

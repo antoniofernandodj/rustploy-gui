@@ -1543,5 +1543,19 @@
   "Este serviço usa volumes que já existiam antes dele (external): %s. Apagar = esses dados somem também. Manter = eles ficam no servidor.": "This service uses volumes that existed before it (external): %s. Delete = that data goes too. Keep = they stay on the server.",
   "Apagar os emprestados": "Delete the borrowed ones",
   "Manter os emprestados": "Keep the borrowed ones",
-  "volumes.where_they_come_from": "Volumes are born in services: in the Data tab (Application service, “new name” field) or in the Compose file. Here you see, adopt and delete them."
+  "volumes.where_they_come_from": "Volumes are born in services: in the Data tab (Application service, “new name” field) or in the Compose file. Here you see, adopt and delete them.",
+  "common.deploy": "Deploy",
+  "project_environments.also_delete_the_data": "Also delete the data (the volumes of these services). Unchecked = they stay on the server as orphans.",
+  "project_environments.destroy_environment": "Destroy environment",
+  "project_environments.destroy": "Destroy",
+  "Stack Compose: não há uma imagem só para levar. Faça o deploy em cada ambiente.": "Compose stack: there is no single image to carry. Deploy in each environment.",
+  "Nenhum dos dois lados tem uma release no ar. Faça um deploy em um deles.": "Neither side has a live release. Deploy one of them.",
+  "A origem não tem uma release no ar: só dá para promover daqui para lá.": "The origin has no live release: you can only promote from here to there.",
+  "Este ambiente ainda não tem deploy: traga a versão da origem ou faça um deploy.": "This environment has no deploy yet: bring the origin's version or deploy it.",
+  "No ar desde antes das releases: ao levar, a imagem que está rodando vira a release.": "Live since before releases existed: carrying it turns the running image into the release.",
+  "versão no ar": "live version",
+  "Destruir o ambiente %s": "Destroy the environment %s",
+  "Para e apaga todos os serviços, jobs e rotas deste ambiente, e o projeto. A origem não é tocada. Para confirmar, digite o nome do ambiente: %s": "Stops and deletes all of this environment's services, jobs and routes, and the project. The origin is not touched. To confirm, type the environment's name: %s",
+  "Digite o nome do ambiente (%s) para confirmar.": "Type the environment's name (%s) to confirm.",
+  "ambiente %s destruído": "environment %s destroyed"
 }

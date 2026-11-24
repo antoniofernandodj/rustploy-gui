@@ -10,6 +10,44 @@ component {
 
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = environments) {
+      // Destruir ambiente: o nome digitado é a confirmação.
+      column(
+        if = @environment_destroy_open,
+        equals = "1",
+        class = route-editor,
+      ) {
+        text("@environment_destroy_title", class = u-label-cap)
+        text("@environment_destroy_hint", class = u-muted)
+        row(class = route-editor__row) {
+          input(
+            :value = environment_destroy_typed,
+            on_change = field:environment_destroy_typed,
+            placeholder = "@environment_destroy_name",
+            class = form-input,
+          )
+        }
+        checkbox(
+          :checked = environment_destroy_volumes,
+          on_toggle = field:environment_destroy_volumes,
+          label = "{t('project_environments.also_delete_the_data')}",
+        )
+        row(class = route-editor__row) {
+          column(class = u-fill)
+          button(
+            "{t('common.cancel')}",
+            class = "btn btn--ghost btn--sm",
+            on_click = environment_destroy_cancel,
+            disabled = @busy_environment_destroy_cancel
+          )
+          button(
+            "{t('project_environments.destroy_environment')}",
+            class = "btn btn--danger btn--sm",
+            on_click = environment_destroy_confirm,
+            disabled = @busy_environment_destroy_confirm
+          )
+        }
+      }
+
       column(
         if = @environment_is_environment,
         not_equals = "1",
@@ -46,6 +84,12 @@ component {
                 on_click = environment_open:@e.project_id,
                 disabled = @busy_environment_open
               )
+              button(
+                "{t('project_environments.destroy')}",
+                class = "btn btn--danger btn--xs",
+                on_click = environment_destroy_ask:@e.project_id,
+                disabled = @busy_environment_destroy_ask
+              )
             }
           }
         }
@@ -70,6 +114,12 @@ component {
             on_click = environment_refresh,
             disabled = @busy_environment_refresh
           )
+          button(
+            "{t('project_environments.destroy_environment')}",
+            class = "btn btn--danger btn--xs",
+            on_click = environment_destroy_here,
+            disabled = @busy_environment_destroy_here
+          )
         }
 
         each @environment_pairs as p {
@@ -90,6 +140,12 @@ component {
                 class = u-warn,
               )
             }
+            text(
+              "@p.note_label",
+              if = @p.note_label,
+              not_equals = "",
+              class = u-muted,
+            )
             each @p.changes as c {
               text("@c.text", class = environments__change)
             }

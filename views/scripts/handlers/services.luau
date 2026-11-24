@@ -3271,6 +3271,12 @@ function service_deploy(): ()
     start_deploy(ctx.selected_service)
 end
 
+-- Botão ▶ do cartão do serviço na lista do projeto: o mesmo deploy da tela do
+-- serviço, sem abri-la.
+function service_card_deploy(service_id: string): ()
+    start_deploy(service_id)
+end
+
 function service_rebuild(): ()
     start_deploy(ctx.selected_service)
 end

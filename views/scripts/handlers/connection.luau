@@ -339,6 +339,7 @@ function init(): ()
     -- Tela Volumes e o "usar volume existente" do Compose nascem fechados.
     ctx.volumes_adopt_open = ctx.volumes_adopt_open or "0"
     ctx.compose_volume_open = ctx.compose_volume_open or "0"
+    ctx.environment_destroy_open = ctx.environment_destroy_open or "0"
     ctx.healthcheck_kinds = {
         { id = "none", label = "None" },
         { id = "tcp", label = "Tcp" },

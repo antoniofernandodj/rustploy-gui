@@ -37,6 +37,28 @@ local function release_label(number: number?): string
     return "v" .. tostring(number)
 end
 
+-- O que a tela diz quando um par não tem botão (ou o que o botão vai fazer).
+local function note_label(note: string?): string
+    if note == "compose" then
+        return i18n.tr(
+            "Stack Compose: não há uma imagem só para levar. Faça o deploy em cada ambiente."
+        )
+    elseif note == "no_release_anywhere" then
+        return i18n.tr("Nenhum dos dois lados tem uma release no ar. Faça um deploy em um deles.")
+    elseif note == "no_release_in_origin" then
+        return i18n.tr("A origem não tem uma release no ar: só dá para promover daqui para lá.")
+    elseif note == "no_release_here" then
+        return i18n.tr(
+            "Este ambiente ainda não tem deploy: traga a versão da origem ou faça um deploy."
+        )
+    elseif note == "running_without_release" then
+        return i18n.tr(
+            "No ar desde antes das releases: ao levar, a imagem que está rodando vira a release."
+        )
+    end
+    return ""
+end
+
 local function change_rows(changes: { any }?): { any }
     local rows = {}
     for _, change: any in ipairs(changes or {}) do
@@ -72,6 +94,8 @@ function M.load(): ()
         environment_pairs = environment_comparison.services or {}
         ctx.environment_origin_project_id =
             environment_comparison.origin_project_id
+        ctx.environment_here_project_id = project.id
+        ctx.environment_here_name = project.environment.name
         ctx.environment_compare_title = string.format(
             i18n.tr("Ambiente %s, comparado com %s"),
             project.environment.name,
@@ -79,6 +103,8 @@ function M.load(): ()
         )
         local rows = {}
         for index, pair in ipairs(environment_pairs) do
+            local both_released = pair.origin_release_number ~= nil
+                and pair.environment_release_number ~= nil
             table.insert(rows, {
                 index = tostring(index),
                 service_name = pair.service_name,
@@ -87,9 +113,16 @@ function M.load(): ()
                     release_label(pair.origin_release_number),
                     release_label(pair.environment_release_number)
                 ),
-                image_label = pair.same_image and i18n.tr("mesma imagem")
-                    or i18n.tr("imagens diferentes"),
-                image_class = pair.same_image and "u-ok" or "u-warn",
+                -- "imagens diferentes" só quando os dois lados têm imagem.
+                image_label = if pair.same_image
+                    then i18n.tr("mesma imagem")
+                    elseif both_released then i18n.tr("imagens diferentes")
+                    else "",
+                image_class = if pair.same_image
+                    then "u-ok"
+                    elseif both_released then "u-warn"
+                    else "none",
+                note_label = note_label(pair.note),
                 changes = json.array(change_rows(pair.changes)),
                 can_promote = pair.can_promote_to_origin and "1" or "0",
                 can_bring = pair.can_bring_from_origin and "1" or "0",
@@ -199,10 +232,12 @@ local function promote(index_text: string, direction: string): ()
         from_id, to_id = pair.origin_service_id, pair.environment_service_id
         number, target = pair.origin_release_number, project.name
     end
+    -- Sem número: o lado de origem está no ar desde antes das releases.
+    local version = if number == nil then i18n.tr("versão no ar") else release_label(number)
     local confirmed = confirm {
         title = string.format(
             i18n.tr("Levar a %s de %s para %s?"),
-            release_label(number),
+            version,
             pair.service_name,
             target
         ),
@@ -238,6 +273,91 @@ end
 
 function environment_bring_from_origin(index_text: string): ()
     promote(index_text, "environment")
+end
+
+-- ── Destruir ambiente ──────────────────────────────────────────────────────
+-- Painel com o nome digitado como confirmação (e a escolha dos dados). Abre de
+-- dentro do ambiente ou de uma linha da lista da origem.
+
+local function open_destroy(project_id: string, name: string): ()
+    ctx.environment_destroy_open = "1"
+    ctx.environment_destroy_project_id = project_id
+    ctx.environment_destroy_name = name
+    ctx.environment_destroy_title = string.format(i18n.tr("Destruir o ambiente %s"), name)
+    ctx.environment_destroy_hint = string.format(
+        i18n.tr(
+            "Para e apaga todos os serviços, jobs e rotas deste ambiente, e o projeto. "
+                .. "A origem não é tocada. Para confirmar, digite o nome do ambiente: %s"
+        ),
+        name
+    )
+    ctx.environment_destroy_typed = ""
+    ctx.environment_destroy_volumes = false
+end
+
+function environment_destroy_here(): ()
+    local project_id = ctx.environment_here_project_id or ""
+    if project_id ~= "" then
+        open_destroy(project_id, ctx.environment_here_name or "")
+    end
+end
+
+function environment_destroy_ask(project_id: string): ()
+    local list = json.decode(ctx.environment_list or "[]") or {}
+    for _, environment in ipairs(list) do
+        if environment.project_id == project_id then
+            open_destroy(project_id, environment.name)
+            return
+        end
+    end
+end
+
+function environment_destroy_cancel(): ()
+    ctx.environment_destroy_open = "0"
+end
+
+function environment_destroy_confirm(): ()
+    local api = State.api
+    local name = ctx.environment_destroy_name or ""
+    local typed = (tostring(ctx.environment_destroy_typed or "")):match("^%s*(.-)%s*$") or ""
+    if not api then
+        return
+    end
+    if typed ~= name then
+        toast {
+            message = string.format(i18n.tr("Digite o nome do ambiente (%s) para confirmar."), name),
+            kind = "error",
+        }
+        return
+    end
+    local delete_volumes = ctx.environment_destroy_volumes == true
+        or ctx.environment_destroy_volumes == "true"
+    local destroyed_here = ctx.environment_destroy_project_id == ctx.selected_project_id
+    local destroy_ok, destroy_response = api:rpc_checked {
+        EnvironmentDestroy = {
+            project_id = ctx.environment_destroy_project_id,
+            confirm_name = typed,
+            delete_volumes = delete_volumes,
+        },
+    }
+    if not destroy_ok then
+        toast { message = tostring(destroy_response), kind = "error" }
+        return
+    end
+    ctx.environment_destroy_open = "0"
+    toast {
+        message = string.format(i18n.tr("ambiente %s destruído"), name),
+        kind = "success",
+    }
+    Stream.refresh_now()
+    if destroyed_here then
+        local origin_id = ctx.environment_origin_project_id or ""
+        if origin_id ~= "" then
+            Projects.open_project(origin_id)
+            return
+        end
+    end
+    M.load()
 end
 
 return M
