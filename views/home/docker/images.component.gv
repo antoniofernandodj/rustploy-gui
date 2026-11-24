@@ -101,8 +101,8 @@ component {
       tablecolumn(label = "{t('common.action')}", class = table__col-act) {
         button(
           "{t('common.remove')}",
-          if = @i.in_use_label,
-          equals = "SEM USO",
+          if = @i.in_use,
+          equals = "0",
           class = "btn btn--danger btn--xs",
           on_click = docker_remove_image:@i.id_full,
           disabled = @busy_docker_remove_image

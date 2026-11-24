@@ -683,8 +683,22 @@ function stop_delete_service(service_id: string): ()
         toast { message = tostring(service_stop_response), kind = "error" }
         return
     end
-    local service_delete_ok, service_delete_response =
-        api:rpc_checked { ServiceDelete = { id = service_id } }
+    -- Segunda pergunta: os volumes (os dados) vão junto? Não = ficam no
+    -- servidor e aparecem como órfãos em Docker → Volumes.
+    local delete_volumes = confirm {
+        title = i18n.tr("Apagar também os volumes deste serviço (os dados)?"),
+        message = i18n.tr(
+            "Apagar = os dados são apagados, sem volta. Manter = os volumes "
+                .. "ficam no servidor e aparecem como órfãos na tela Docker → "
+                .. "Volumes."
+        ),
+        confirm_label = i18n.tr("Apagar os dados"),
+        cancel_label = i18n.tr("Manter os volumes"),
+        destructive = true,
+    }
+    local service_delete_ok, service_delete_response = api:rpc_checked {
+        ServiceDelete = { id = service_id, delete_volumes = delete_volumes == true },
+    }
     ctx.project_action_message = service_delete_ok
             and i18n.tr("serviço parado e removido")
         or (i18n.tr("erro ao remover: ") .. service_delete_response)
@@ -733,3 +747,7 @@ function stop_all(): ()
         ctx.status_line = "erro: " .. stop_all_managed_response
     end
 end
+
+-- Para os outros handlers abrirem um projeto pelo mesmo caminho do clique
+-- (handlers/environments.luau).
+return { open_project = open_project }

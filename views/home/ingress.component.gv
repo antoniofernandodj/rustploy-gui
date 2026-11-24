@@ -32,7 +32,240 @@ component {
     }
   }
 
-  column(class = "panel panel--fill") {
+  // Rotas próprias (handlers/routes.luau): o domínio fora do serviço —
+  // caminhos para vários serviços, redirect, senha. Valem na hora.
+  column(class = "panel custom-routes") {
+    row(class = env__head) {
+      text(
+        "{t('ingress.custom_routes', custom_routes_count=custom_routes_count)}",
+        class = "u-label-cap u-fill",
+      )
+      button(
+        "{t('ingress.new_route')}",
+        class = "btn btn--primary btn--sm",
+        on_click = route_new,
+        disabled = @busy_route_new
+      )
+    }
+
+    text(
+      "{t('ingress.no_custom_route')}",
+      if = @custom_routes_count,
+      equals = "0",
+      class = u-muted,
+    )
+
+    each @custom_routes as r {
+      row(
+        if = @route_editor_open,
+        not_equals = "1",
+        class = kv-list__row,
+      ) {
+        text("@r.domain", class = env__key)
+        text("@r.target", class = "custom-routes__target u-fill")
+        text("@r.tls", class = u-muted)
+        text(
+          "@r.auth",
+          if = @r.auth,
+          not_equals = "",
+          class = environment-badge,
+        )
+        button(
+          "{t('ingress.edit')}",
+          class = "btn btn--ghost btn--xs",
+          on_click = route_edit:@r.id,
+          disabled = @busy_route_edit
+        )
+        button(
+          "✕",
+          class = "btn btn--danger btn--xs",
+          on_click = route_delete:@r.id,
+          disabled = @busy_route_delete,
+          tooltip = "{t('ingress.delete_route')}"
+        )
+      }
+    }
+
+    // Editor (painel): projeto, domínio, TLS, caminhos ou redirect, senha.
+    scrollable(
+      if = @route_editor_open,
+      equals = "1",
+      direction = vertical,
+      class = route-editor__scroll,
+    ) {
+    column(class = route-editor) {
+      row(class = env__head) {
+        text("@route_editor_title", class = "u-label-cap u-fill")
+        button(
+          "{t('common.close')}",
+          class = "btn btn--ghost btn--xs",
+          on_click = route_editor_close,
+          disabled = @busy_route_editor_close
+        )
+      }
+
+      row(class = route-editor__row) {
+        select(
+          class = form-select,
+          :options = route_project_options,
+          :value = route_form_project_id,
+          on_change = route_form_project_change,
+          placeholder = "{t('ingress.project')}",
+          label_field = name,
+          value_field = id,
+        )
+        input(
+          :value = route_form_domain,
+          on_change = field:route_form_domain,
+          placeholder = "app.com",
+          class = u-fill,
+        )
+        checkbox(
+          :checked = route_form_tls,
+          on_toggle = field:route_form_tls,
+          label = "TLS",
+        )
+      }
+
+      row(class = route-editor__row) {
+        button(
+          "{t('ingress.forwards_to_services')}",
+          class = "btn btn--ghost btn--xs",
+          on_click = route_form_mode_forward,
+          disabled = @busy_route_form_mode_forward
+        )
+        button(
+          "{t('ingress.redirects')}",
+          class = "btn btn--ghost btn--xs",
+          on_click = route_form_mode_redirect,
+          disabled = @busy_route_form_mode_redirect
+        )
+        text("→ @route_form_mode", class = u-muted)
+      }
+
+      column(
+        if = @route_form_mode,
+        equals = "forward",
+        class = route-editor__rules,
+      ) {
+        each @route_form_rules as rule {
+          row(class = route-editor__row) {
+            input(
+              :value = "@rule.bind_path",
+              on_change = route_rule_path:@rule.index,
+              placeholder = "/api",
+              class = route-editor__path,
+            )
+            select(
+              class = form-select,
+              :options = route_service_options,
+              :value = "@rule.bind_service",
+              on_change = route_rule_service:@rule.index,
+              placeholder = "{t('ingress.service')}",
+              label_field = name,
+              value_field = id,
+            )
+            input(
+              :value = "@rule.bind_port",
+              on_change = route_rule_port:@rule.index,
+              placeholder = "{t('ingress.port')}",
+              class = route-editor__port,
+            )
+            checkbox(
+              :checked = "@rule.bind_strip",
+              on_toggle = route_rule_strip:@rule.index,
+              label = "{t('ingress.strip_prefix')}",
+            )
+            button(
+              "✕",
+              if = @rule.can_remove,
+              equals = "1",
+              class = "btn btn--ghost btn--xs",
+              on_click = route_rule_remove:@rule.index,
+              disabled = @busy_route_rule_remove
+            )
+          }
+        }
+        row(class = route-editor__row) {
+          button(
+            "{t('ingress.add_path')}",
+            class = "btn btn--ghost btn--xs",
+            on_click = route_rule_add,
+            disabled = @busy_route_rule_add
+          )
+          text("{t('ingress.longest_path_wins')}", class = u-muted)
+        }
+      }
+
+      row(
+        if = @route_form_mode,
+        equals = "redirect",
+        class = route-editor__row,
+      ) {
+        input(
+          :value = route_form_to,
+          on_change = field:route_form_to,
+          placeholder = "https://app.com",
+          class = u-fill,
+        )
+        checkbox(
+          :checked = route_form_permanent,
+          on_toggle = field:route_form_permanent,
+          label = "{t('ingress.permanent_301')}",
+        )
+      }
+
+      checkbox(
+        :checked = route_form_auth_enabled,
+        on_toggle = field:route_form_auth_enabled,
+        label = "{t('ingress.ask_user_and_password')}",
+      )
+      row(
+        if = @route_form_auth_enabled,
+        equals = true,
+        class = route-editor__row,
+      ) {
+        input(
+          :value = route_form_auth_user,
+          on_change = field:route_form_auth_user,
+          placeholder = "{t('ingress.user')}",
+          class = u-fill,
+        )
+        input(
+          :value = route_form_auth_password,
+          on_change = field:route_form_auth_password,
+          placeholder = "{t('ingress.password_empty_keeps')}",
+          secure = true,
+          class = u-fill,
+        )
+      }
+
+      text(
+        "@route_editor_error",
+        if = @route_editor_error,
+        not_equals = "",
+        class = u-error,
+      )
+
+      row(class = route-editor__row) {
+        column(class = u-fill)
+        button(
+          "{t('ingress.save')}",
+          class = "btn btn--primary btn--sm",
+          on_click = route_save,
+          disabled = @busy_route_save
+        )
+      }
+    }
+    }
+  }
+
+  // A tabela das rotas vivas sai da frente enquanto o editor está aberto.
+  column(
+    if = @route_editor_open,
+    not_equals = "1",
+    class = "panel panel--fill",
+  ) {
     tableview(
       :items = ingress,
       :sort = ingress_sort,

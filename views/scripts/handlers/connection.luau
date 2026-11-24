@@ -334,6 +334,8 @@ function init(): ()
         { id = "oauth", label = "OAuth2" },
         { id = "pat", label = "Token (PAT)" },
     }
+    -- Editor de rota própria (tela Ingress) nasce fechado.
+    ctx.route_editor_open = ctx.route_editor_open or "0"
     ctx.healthcheck_kinds = {
         { id = "none", label = "None" },
         { id = "tcp", label = "Tcp" },
@@ -361,6 +363,7 @@ function init(): ()
         "deploy_engine_active",
         "deploy_engine_recent",
         "project_services",
+        "custom_routes",
     } do
         if not ctx[key] or ctx[key] == "" then
             ctx[key] = json.array({})
@@ -394,6 +397,7 @@ function init(): ()
         "deploy_engine_total_24h",
         "services_running",
         "services_total",
+        "custom_routes_count",
     } do
         if not ctx[key] or ctx[key] == "" then
             ctx[key] = "…"

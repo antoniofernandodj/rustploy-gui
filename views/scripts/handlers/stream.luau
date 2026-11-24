@@ -53,7 +53,8 @@ local function rebuild_lists(): ()
     ctx.docker_volumes = format.docker_volumes(
         snap.docker_volumes,
         term,
-        Helpers.is_true(ctx.docker_volumes_only_used)
+        Helpers.is_true(ctx.docker_volumes_only_used),
+        Helpers.is_true(ctx.docker_volumes_only_orphan)
     )
     ctx.docker_networks = format.docker_networks(
         snap.docker_networks,

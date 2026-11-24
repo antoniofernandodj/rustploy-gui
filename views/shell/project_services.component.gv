@@ -9,6 +9,11 @@ component {
       as = ProjectSecretsTab
     )
     link(rel = import, href = "project_jobs.component.gv", as = ProjectJobsTab)
+    link(
+      rel = import,
+      href = "project_environments.component.gv",
+      as = ProjectEnvironmentsTab
+    )
 
     component(name = SemServicosNoProjeto) {
       text(
@@ -123,6 +128,13 @@ component {
           target = jobs,
           action = project_tab:jobs,
         )
+
+        TabButton(
+          label = "{t('project_services.environments')}",
+          current = @project_tab,
+          target = environments,
+          action = project_tab:environments,
+        )
       }
     }
 
@@ -144,6 +156,10 @@ component {
 
     if @project_tab == "jobs" {
       ProjectJobsTab
+    }
+
+    if @project_tab == "environments" {
+      ProjectEnvironmentsTab
     }
 
     if @project_tab == "services" {

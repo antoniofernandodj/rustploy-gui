@@ -1,5 +1,5 @@
-// Volumes — Rustploy só usa bind mounts, então volumes nomeados aqui são
-// sempre externos ao Rustploy (criados manualmente ou por VOLUME da imagem).
+// Volumes do motor, com o dono (serviço e projeto, pela etiqueta ou pela
+// stack Compose) ou, se o serviço foi apagado e o volume ficou, de quem era.
 component {
   resources {
     component(name = SemVolumes) {
@@ -20,6 +20,12 @@ component {
         :checked = docker_volumes_only_used,
         on_toggle = docker_only_used:docker_volumes_only_used,
         label = "{t('common.in_use_only')}",
+      )
+
+      checkbox(
+        :checked = docker_volumes_only_orphan,
+        on_toggle = docker_only_used:docker_volumes_only_orphan,
+        label = "{t('docker_volumes.orphans_only')}",
       )
 
       checkbox(
@@ -63,10 +69,23 @@ component {
       }
 
       tablecolumn(
-        key = driver,
-        label = "{t('common.driver')}",
+        key = owner_label,
+        label = "{t('docker_volumes.owner')}",
         class = table__col-proj
-      )
+      ) {
+        text(
+          "@v.owner_label",
+          if = @v.is_orphan,
+          equals = "1",
+          class = u-warn,
+        )
+        text(
+          "@v.owner_label",
+          if = @v.is_orphan,
+          not_equals = "1",
+          class = u-muted,
+        )
+      }
 
       tablecolumn(
         key = size,
@@ -97,8 +116,8 @@ component {
       ) {
         button(
           "{t('common.remove')}",
-          if = @v.in_use_label,
-          equals = "SEM USO",
+          if = @v.in_use,
+          equals = "0",
           class = "btn btn--danger btn--xs",
           on_click = docker_remove_volume:@v.name_full,
           disabled = @busy_docker_remove_volume

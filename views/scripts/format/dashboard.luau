@@ -270,6 +270,35 @@ function M.service_rows(
 end
 
 -- Card de projeto, agregando contagem de serviços de `pairs_`.
+-- Um ambiente aparece logo depois do projeto de origem (os demais, na ordem
+-- de antes).
+local function order_with_environments(projects: { any }?): { any }
+    local list = projects or {}
+    local ordered = {}
+    local placed = {}
+    for _, origin in ipairs(list) do
+        if origin.environment == nil then
+            table.insert(ordered, origin)
+            placed[origin.id] = true
+            for _, environment in ipairs(list) do
+                if
+                    environment.environment ~= nil
+                    and environment.environment.origin_project_id == origin.id
+                then
+                    table.insert(ordered, environment)
+                    placed[environment.id] = true
+                end
+            end
+        end
+    end
+    for _, project in ipairs(list) do
+        if not placed[project.id] then
+            table.insert(ordered, project)
+        end
+    end
+    return ordered
+end
+
 local function project_card(project: any, service_pairs: { ServicePair })
     local count, running = 0, 0
     for _, pair in ipairs(service_pairs) do
@@ -288,6 +317,12 @@ local function project_card(project: any, service_pairs: { ServicePair })
         service_count = tostring(count),
         running_count = tostring(running),
         can_delete = (count == 0) and "1" or "0",
+        environment_label = project.environment
+                and string.format(
+                    i18n.tr("ambiente: %s"),
+                    project.environment.name
+                )
+            or "",
     }
 end
 
@@ -297,7 +332,7 @@ function M.projects(
     term: string?
 ): string
     local rows = {}
-    for _, project in ipairs(projects or {}) do
+    for _, project in ipairs(order_with_environments(projects)) do
         if Util.matches(term, { project.name, project.description or "" }) then
             table.insert(rows, project_card(project, service_pairs))
         end
@@ -311,7 +346,7 @@ function M.project_rows(
     term: string?
 ): string
     local filtered: { GridCard } = {}
-    for _, project in ipairs(projects or {}) do
+    for _, project in ipairs(order_with_environments(projects)) do
         if Util.matches(term, { project.name, project.description or "" }) then
             table.insert(filtered, project_card(project, service_pairs))
         end
@@ -428,6 +463,7 @@ function M.docker_images(
                 in_use_label = in_use and i18n.tr("EM USO")
                     or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(in_use),
+                in_use = in_use and "1" or "0",
             })
         end
     end
@@ -437,7 +473,8 @@ end
 function M.docker_volumes(
     volumes: { any }?,
     term: string?,
-    only_used: boolean?
+    only_used: boolean?,
+    only_orphan: boolean?
 ): string
     local column_budgets = Util.column_budgets()
     local sorted = {}
@@ -452,8 +489,29 @@ function M.docker_volumes(
         if
             Util.matches(term, { item.name, item.driver })
             and (item.in_use or not only_used)
+            and (item.orphan_of ~= nil or not only_orphan)
         then
+            -- Dono (abstração Volume): o serviço, ou de quem era quando o
+            -- serviço foi apagado.
+            local owner_label = "—"
+            if item.service then
+                owner_label = item.service
+                if item.project then
+                    owner_label = owner_label .. " (" .. item.project .. ")"
+                end
+                if item.has_backup_policy then
+                    owner_label = owner_label .. " · backup"
+                end
+            elseif item.orphan_of then
+                owner_label =
+                    string.format(i18n.tr("órfão: %s"), item.orphan_of)
+            end
             table.insert(rows, {
+                owner_label = owner_label,
+                is_orphan = item.orphan_of and "1" or "0",
+                -- Não traduzido: o template decide o botão Remover por aqui
+                -- (comparar com o rótulo "SEM USO" falhava em inglês).
+                in_use = item.in_use and "1" or "0",
                 -- Nome truncado só pra exibição; a ação de remover usa v.name
                 -- completo via `name_full`.
                 name = Util.ellipsis(item.name, column_budgets.svc),
@@ -505,6 +563,7 @@ function M.docker_networks(
                 in_use_label = item.in_use and i18n.tr("EM USO")
                     or i18n.tr("SEM USO"),
                 in_use_kind = Util.in_use_kind(item.in_use),
+                in_use = item.in_use and "1" or "0",
             })
         end
     end

@@ -1,0 +1,140 @@
+// Aba Ambientes do projeto (handlers/environments.luau). Num projeto de
+// origem: a lista e o Criar ambiente. Num ambiente: a comparação com a origem
+// e Promover / Trazer, serviço a serviço.
+component {
+  resources {
+    component(name = SemAmbientes) {
+      text("{t('project_environments.no_environment_yet')}", class = u-muted)
+    }
+  }
+
+  scrollable(direction = vertical, class = u-fill-all) {
+    column(class = environments) {
+      column(
+        if = @environment_is_environment,
+        not_equals = "1",
+        class = environments__block,
+      ) {
+        text(
+          "{t('project_environments.an_environment_is_a_copy')}",
+          class = u-muted,
+        )
+
+        row(class = env__add) {
+          input(
+            :value = environment_new_name,
+            on_change = environment_name_change,
+            placeholder = "{t('project_environments.environment_name')}",
+            class = u-fill,
+          )
+          button(
+            "{t('project_environments.create_environment')}",
+            class = "btn btn--primary btn--sm",
+            on_click = environment_create,
+            disabled = @busy_environment_create
+          )
+        }
+
+        column(class = kv-list) {
+          each @environment_list as e (fallback = SemAmbientes) {
+            row(class = kv-list__row) {
+              text("@e.name", class = env__key)
+              text("@e.project_name", class = "u-muted u-fill")
+              button(
+                "{t('common.open')}",
+                class = "btn btn--ghost btn--xs",
+                on_click = environment_open:@e.project_id,
+                disabled = @busy_environment_open
+              )
+            }
+          }
+        }
+      }
+
+      column(
+        if = @environment_is_environment,
+        equals = "1",
+        class = environments__block,
+      ) {
+        row(class = env__head) {
+          text("@environment_compare_title", class = "u-muted u-fill")
+          button(
+            "{t('project_environments.open_the_origin')}",
+            class = "btn btn--ghost btn--xs",
+            on_click = environment_open_origin,
+            disabled = @busy_environment_open_origin
+          )
+          button(
+            "{t('project_environments.refresh')}",
+            class = "btn btn--ghost btn--xs",
+            on_click = environment_refresh,
+            disabled = @busy_environment_refresh
+          )
+        }
+
+        each @environment_pairs as p {
+          column(class = environments__pair) {
+            row(class = environments__pair-head) {
+              text("@p.service_name", class = env__key)
+              text("@p.releases_label", class = u-muted)
+              text(
+                "@p.image_label",
+                if = @p.image_class,
+                equals = "u-ok",
+                class = u-ok,
+              )
+              text(
+                "@p.image_label",
+                if = @p.image_class,
+                equals = "u-warn",
+                class = u-warn,
+              )
+            }
+            each @p.changes as c {
+              text("@c.text", class = environments__change)
+            }
+            row(class = environments__actions) {
+              button(
+                "{t('project_environments.promote_to_the_origin')}",
+                if = @p.can_promote,
+                equals = "1",
+                class = "btn btn--ghost btn--xs",
+                on_click = environment_promote_to_origin:@p.index,
+                disabled = @busy_environment_promote_to_origin
+              )
+              button(
+                "{t('project_environments.bring_from_the_origin')}",
+                if = @p.can_bring,
+                equals = "1",
+                class = "btn btn--ghost btn--xs",
+                on_click = environment_bring_from_origin:@p.index,
+                disabled = @busy_environment_bring_from_origin
+              )
+            }
+          }
+        }
+
+        column(
+          if = @environment_project_env_count,
+          not_equals = "0",
+          class = environments__pair,
+        ) {
+          text(
+            "{t('project_environments.project_variables_that_differ')}",
+            class = u-label-cap,
+          )
+          each @environment_project_env_rows as c {
+            text("@c.text", class = environments__change)
+          }
+        }
+
+        text(
+          "@environment_only_label",
+          if = @environment_only_label,
+          not_equals = "",
+          class = u-muted,
+        )
+      }
+    }
+  }
+}

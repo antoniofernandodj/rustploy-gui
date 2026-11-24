@@ -771,3 +771,38 @@
   .page-head__stats    { hidden: true; }
   .table__col-start    { hidden: true; }
 }
+
+/* Ambientes (aba do projeto e selo no card) */
+.environment-badge       { size: 11; color: var(--accent); }
+.environments            { width: fill; spacing: 12; padding: 0 12 0 0; }
+.environments__block     { width: fill; spacing: 10; }
+.environments__pair {
+  width: fill;
+  spacing: 4;
+  padding: 8 10;
+  background: var(--raised);
+  border_radius: 6;
+}
+.environments__pair-head { spacing: 12; align_y: center; }
+.environments__change {
+  size: 12;
+  font: JetBrains Mono;
+  color: var(--muted);
+}
+.environments__actions   { spacing: 8; padding: 4 0 0 0; }
+
+/* Rotas próprias (tela Ingress) */
+.custom-routes           { width: fill; spacing: 8; }
+.route-editor__scroll    { width: fill; height: fill; }
+.custom-routes__target   { size: 12; font: JetBrains Mono; color: var(--muted); }
+.route-editor {
+  width: fill;
+  spacing: 10;
+  padding: 12 24 12 12;
+  background: var(--raised);
+  border_radius: 6;
+}
+.route-editor__row       { width: fill; spacing: 8; align_y: center; }
+.route-editor__rules     { width: fill; spacing: 8; }
+.route-editor__path      { width: 140; }
+.route-editor__port      { width: 90; }

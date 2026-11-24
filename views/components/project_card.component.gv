@@ -10,6 +10,7 @@ component {
     prop(name = description)
     prop(name = can_delete)
     prop(name = filler)
+    prop(name = environment_label, default = "")
   }
 
   if @filler == "1" {
@@ -18,6 +19,12 @@ component {
     column(class = card) {
       row(class = card__head) {
         text("@name", class = card__name)
+        text(
+          "@environment_label",
+          if = @environment_label,
+          not_equals = "",
+          class = environment-badge,
+        )
       }
 
       text(
