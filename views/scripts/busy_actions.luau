@@ -213,6 +213,8 @@ return {
     "service_secret_to_project",
     "service_stop",
     "service_stop_id",
+    "service_volume_attach",
+    "service_volume_detach",
     "service_warm",
     "services_reorder_apply",
     "settings_save",

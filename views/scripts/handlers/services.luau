@@ -413,6 +413,7 @@ function M.fetch_service_detail(service_id: string): ()
         service_releases_by_id[release.id] = release
     end
     ctx.service_deployments = format.deployments_detail(deployments, releases)
+    M.publish_volumes(service_record)
     ctx.service_deployments_count = tostring(#deployments)
     -- Webhook de deploy (aba Deployments). Só serviços Application (Git ou
     -- Registry) têm token, e ele nasce no PRIMEIRO deploy — antes disso o
@@ -2757,6 +2758,148 @@ function delete_deployment(deployment_id: string): ()
         or ("erro: " .. deploy_delete_response)
     if not deploy_delete_ok then
         toast { message = tostring(deploy_delete_response), kind = "error" }
+    end
+    M.fetch_service_detail(ctx.selected_service)
+end
+
+-- ── Volumes montados (aba Dados) ────────────────────────────────────────────
+
+-- As montagens do spec e as opções do "volume existente" (os órfãos e os sem
+-- dono da lista de volumes do snapshot). Só serviço Application: um Compose
+-- declara os volumes no próprio arquivo.
+local service_volume_mounts: { any } = {}
+
+function M.publish_volumes(service_record: any): ()
+    local spec = service_record.spec
+    local supported = spec.source.Compose == nil
+    ctx.service_volumes_supported = supported and "1" or "0"
+    service_volume_mounts = spec.volumes or {}
+    local rows = {}
+    for index, mount in ipairs(service_volume_mounts) do
+        table.insert(rows, {
+            index = tostring(index),
+            source = mount.host_path,
+            target = mount.container_path,
+            mode = mount.read_only and i18n.tr("só leitura") or "",
+        })
+    end
+    ctx.service_volume_rows = json.array(rows)
+    ctx.service_volume_count = tostring(#rows)
+    local options = {}
+    local snap = State.snap
+    for _, volume in ipairs((snap and snap.docker_volumes) or {}) do
+        -- Sem dono, e não anônimo (nome de 64 hex: o motor criou para um
+        -- VOLUME da imagem; não há o que adotar).
+        local anonymous = #volume.name == 64 and volume.name:match("^%x+$") ~= nil
+        if volume.service == nil and not anonymous then
+            local label = volume.name
+            if volume.orphan_of then
+                label = label
+                    .. " — "
+                    .. string.format(i18n.tr("órfão: %s"), volume.orphan_of)
+            end
+            table.insert(options, {
+                name = volume.name,
+                label = label,
+                orphan = volume.orphan_of ~= nil,
+            })
+        end
+    end
+    table.sort(options, function(left: any, right: any)
+        if left.orphan ~= right.orphan then
+            return left.orphan
+        end
+        return left.name < right.name
+    end)
+    ctx.service_volume_options = json.array(options)
+    ctx.service_volume_form_existing = ctx.service_volume_form_existing or ""
+    ctx.service_volume_form_name = ctx.service_volume_form_name or ""
+    ctx.service_volume_form_target = ctx.service_volume_form_target or ""
+    ctx.service_volume_form_read_only = ctx.service_volume_form_read_only or false
+end
+
+function service_volume_attach(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local trim = function(text: any): string
+        return (tostring(text or "")):match("^%s*(.-)%s*$") or ""
+    end
+    local source = trim(ctx.service_volume_form_name)
+    if source == "" then
+        source = trim(ctx.service_volume_form_existing)
+    end
+    local target = trim(ctx.service_volume_form_target)
+    if source == "" or target == "" then
+        toast {
+            message = i18n.tr("Escolha um volume (ou digite um nome) e o caminho no container."),
+            kind = "error",
+        }
+        return
+    end
+    local attach_ok, attach_response = api:rpc_checked {
+        ServiceVolumeAttach = {
+            service_id = ctx.selected_service,
+            volume = {
+                host_path = source,
+                container_path = target,
+                read_only = ctx.service_volume_form_read_only == true
+                    or ctx.service_volume_form_read_only == "true",
+            },
+        },
+    }
+    if attach_ok then
+        toast {
+            message = string.format(
+                i18n.tr("%s montado em %s: vale no próximo deploy"),
+                source,
+                target
+            ),
+            kind = "success",
+        }
+        ctx.service_volume_form_existing = ""
+        ctx.service_volume_form_name = ""
+        ctx.service_volume_form_target = ""
+        ctx.service_volume_form_read_only = false
+    else
+        toast { message = tostring(attach_response), kind = "error" }
+    end
+    M.fetch_service_detail(ctx.selected_service)
+end
+
+function service_volume_detach(index_text: string): ()
+    local mount = service_volume_mounts[tonumber(index_text) or 0]
+    local api = State.api
+    if not mount or not api then
+        return
+    end
+    local confirmed = confirm {
+        title = string.format(
+            i18n.tr("Desmontar %s de %s?"),
+            mount.host_path,
+            mount.container_path
+        ),
+        message = i18n.tr(
+            "O serviço deixa de ver esses dados no próximo deploy. Os dados "
+                .. "ficam no servidor."
+        ),
+        confirm_label = i18n.tr("Desmontar"),
+        destructive = true,
+    }
+    if not confirmed then
+        return
+    end
+    local detach_ok, detach_response = api:rpc_checked {
+        ServiceVolumeDetach = {
+            service_id = ctx.selected_service,
+            container_path = mount.container_path,
+        },
+    }
+    if detach_ok then
+        toast { message = i18n.tr("desmontado: vale no próximo deploy"), kind = "success" }
+    else
+        toast { message = tostring(detach_response), kind = "error" }
     end
     M.fetch_service_detail(ctx.selected_service)
 end

@@ -4,6 +4,84 @@ component {
     direction = vertical,
     class = u-fill-all,
   ) {
+    // Um filho só no scrollable: os dois painéis numa coluna.
+    column(width = fill, spacing = 12) {
+    // Volumes montados (Application): adotar um órfão ou montar um nome
+    // novo; desmontar não apaga os dados. Vale no próximo deploy.
+    column(width = fill, spacing = 8, class = form-panel) {
+      text("{t('dados.volumes')}", class = u-label-cap)
+      text(
+        "{t('dados.compose_declares_volumes')}",
+        if = @service_volumes_supported,
+        not_equals = "1",
+        class = u-muted,
+      )
+      column(
+        if = @service_volumes_supported,
+        equals = "1",
+        width = fill,
+        spacing = 8,
+      ) {
+        text(
+          "{t('dados.no_volume_mounted')}",
+          if = @service_volume_count,
+          equals = "0",
+          class = u-muted,
+        )
+        each @service_volume_rows as m {
+          row(class = kv-list__row) {
+            text("@m.source", class = env__key)
+            text("→ @m.target", class = "custom-routes__target u-fill")
+            text("@m.mode", class = u-muted)
+            button(
+              "✕",
+              class = "btn btn--danger btn--xs",
+              on_click = service_volume_detach:@m.index,
+              disabled = @busy_service_volume_detach,
+              tooltip = "{t('dados.unmount')}"
+            )
+          }
+        }
+        row(class = route-editor__row) {
+          select(
+            class = form-select,
+            :options = service_volume_options,
+            :value = service_volume_form_existing,
+            on_change = field:service_volume_form_existing,
+            placeholder = "{t('dados.existing_volume')}",
+            label_field = label,
+            value_field = name,
+          )
+          input(
+            :value = service_volume_form_name,
+            on_change = field:service_volume_form_name,
+            placeholder = "{t('dados.or_a_new_name')}",
+            class = u-fill,
+          )
+        }
+        row(class = route-editor__row) {
+          input(
+            :value = service_volume_form_target,
+            on_change = field:service_volume_form_target,
+            placeholder = "{t('dados.path_in_the_container')}",
+            class = u-fill,
+          )
+          checkbox(
+            :checked = service_volume_form_read_only,
+            on_toggle = field:service_volume_form_read_only,
+            label = "{t('dados.read_only')}",
+          )
+          button(
+            "{t('dados.mount')}",
+            class = "btn btn--primary btn--sm",
+            on_click = service_volume_attach,
+            disabled = @busy_service_volume_attach
+          )
+        }
+        text("{t('dados.applies_on_next_deploy')}", class = u-muted)
+      }
+    }
+
     column(width = fill, spacing = 8, class = form-panel) {
       text("{t('dados.title')}", class = u-label-cap)
       text("{t('dados.intro')}", class = u-muted)
@@ -290,6 +368,7 @@ component {
         not_equals = "",
         class = u-muted
       )
+    }
     }
   }
 }

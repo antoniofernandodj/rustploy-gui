@@ -1497,5 +1497,22 @@
   "Apagar também os volumes deste serviço (os dados)?": "Also delete this service's volumes (the data)?",
   "Apagar = os dados são apagados, sem volta. Manter = os volumes ficam no servidor e aparecem como órfãos na tela Docker → Volumes.": "Delete = the data is deleted, for good. Keep = the volumes stay on the server and show up as orphans on the Docker → Volumes screen.",
   "Apagar os dados": "Delete the data",
-  "Manter os volumes": "Keep the volumes"
+  "Manter os volumes": "Keep the volumes",
+  "dados.volumes": "VOLUMES",
+  "dados.compose_declares_volumes": "A Compose service declares its volumes in its own file.",
+  "dados.no_volume_mounted": "No volume mounted.",
+  "dados.unmount": "Unmount (the data stays)",
+  "dados.existing_volume": "existing volume",
+  "dados.or_a_new_name": "or a new name (or an absolute folder)",
+  "dados.path_in_the_container": "path in the container (e.g. /data)",
+  "dados.read_only": "read-only",
+  "dados.mount": "Mount",
+  "dados.applies_on_next_deploy": "Mounting and unmounting apply on the next deploy. Adopting an orphan brings back the data of a deleted service.",
+  "só leitura": "read-only",
+  "Escolha um volume (ou digite um nome) e o caminho no container.": "Pick a volume (or type a name) and the path in the container.",
+  "%s montado em %s: vale no próximo deploy": "%s mounted at %s: applies on the next deploy",
+  "Desmontar %s de %s?": "Unmount %s from %s?",
+  "O serviço deixa de ver esses dados no próximo deploy. Os dados ficam no servidor.": "The service stops seeing this data on the next deploy. The data stays on the server.",
+  "Desmontar": "Unmount",
+  "desmontado: vale no próximo deploy": "unmounted: applies on the next deploy"
 }
