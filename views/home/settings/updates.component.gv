@@ -6,12 +6,12 @@ component {
     column(class = form-stack) {
       // ── Daemon ──
       column(class = "form-panel form-panel--grouped") {
-        text("{t('settings_updates.daemon')}", class = u-label-cap)
+        text(t("settings_updates.daemon"), class = u-label-cap)
 
         column(class = info-list) {
           row(class = info-row) {
             text(
-              "{t('settings_updates.installed_version')}",
+              t("settings_updates.installed_version"),
               class = info-row__key
             )
             text("@update_current_version", class = info-row__value)
@@ -19,21 +19,21 @@ component {
 
           row(class = info-row) {
             text(
-              "{t('settings_updates.latest_version')}",
+              t("settings_updates.latest_version"),
               class = info-row__key
             )
             text("@update_latest_version", class = info-row__value)
           }
 
           row(class = info-row) {
-            text("{t('settings_updates.checked_at')}", class = info-row__key)
+            text(t("settings_updates.checked_at"), class = info-row__key)
             text("@update_checked_at_label", class = info-row__value)
           }
         }
 
         row(class = form-panel__actions) {
           button(
-            "{t('settings_updates.check_for_updates')}",
+            t("settings_updates.check_for_updates"),
             class = "btn btn--ghost",
             on_click = update_check_now
           )
@@ -44,11 +44,11 @@ component {
           column(class = form-panel__body) {
             column(class = form-panel__head) {
               text(
-                "{t('settings_updates.update_from_the_app')}",
+                t("settings_updates.update_from_the_app"),
                 class = u-label-cap
               )
               text(
-                "{t('settings_updates.the_daemon_downloads_the_new_version')}",
+                t("settings_updates.the_daemon_downloads_the_new_version"),
                 class = u-muted,
               )
             }
@@ -56,14 +56,14 @@ component {
             row(class = form-panel__actions) {
               if @update_is_available == "true" {
                 button(
-                  "{t('settings_updates.update_daemon')}",
+                  t("settings_updates.update_daemon"),
                   class = "btn btn--primary",
                   on_click = update_apply
                 )
               }
 
               button(
-                "{t('settings_updates.roll_back_to_the_previous')}",
+                t("settings_updates.roll_back_to_the_previous"),
                 class = "btn btn--ghost",
                 on_click = update_rollback
               )
@@ -73,18 +73,17 @@ component {
 
         text(
           "@update_progress_message",
-          if = @update_progress_message,
-          not_equals = "",
+          if = @update_progress_message != "",
           class = u-muted
         )
 
         if @update_is_available == "true" {
           field(
-            label = "{t('settings_updates.how_to_update_by_hand')}",
+            label = t("settings_updates.how_to_update_by_hand"),
             label_class = u-label-cap
           ) {
             text(
-              "{t('settings_updates.there_is_a_new_version_for')}",
+              t("settings_updates.there_is_a_new_version_for"),
               class = u-muted,
             )
 
@@ -93,15 +92,15 @@ component {
                 text("@update_install_command", class = copy-row__text)
               }
               button(
-                "{t('common.copy')}",
+                t("common.copy"),
                 class = "btn btn--ghost btn--sm",
-                on_click = copy_ctx:update_install_command
+                on_click = copy_ctx("update_install_command")
               )
             }
           }
 
           field(
-            label = "{t('settings_updates.release_notes')}",
+            label = t("settings_updates.release_notes"),
             label_class = u-label-cap
           ) {
             row(class = copy-row) {
@@ -109,9 +108,9 @@ component {
                 text("@update_release_url", class = copy-row__text)
               }
               button(
-                "{t('common.copy')}",
+                t("common.copy"),
                 class = "btn btn--ghost btn--sm",
-                on_click = copy_ctx:update_release_url
+                on_click = copy_ctx("update_release_url")
               )
             }
           }
@@ -121,12 +120,12 @@ component {
       // ── App desktop ──
       if @update_app_current_version != "" {
         column(class = "form-panel form-panel--grouped") {
-          text("{t('settings_updates.desktop_app')}", class = u-label-cap)
+          text(t("settings_updates.desktop_app"), class = u-label-cap)
 
           column(class = info-list) {
             row(class = info-row) {
               text(
-                "{t('settings_updates.installed_version')}",
+                t("settings_updates.installed_version"),
                 class = info-row__key
               )
               text("@update_app_current_version", class = info-row__value)
@@ -134,7 +133,7 @@ component {
 
             row(class = info-row) {
               text(
-                "{t('settings_updates.latest_version')}",
+                t("settings_updates.latest_version"),
                 class = info-row__key
               )
               text("@update_app_latest_version", class = info-row__value)
@@ -147,23 +146,21 @@ component {
             if @update_app_can_update == "true" {
               row(class = form-panel__actions) {
                 button(
-                  "{t('settings_updates.update_app')}",
+                  t("settings_updates.update_app"),
                   class = "btn btn--primary",
                   on_click = update_app_apply
                 )
 
                 button(
-                  "{t('common.cancel')}",
+                  t("common.cancel"),
                   class = "btn btn--ghost",
                   on_click = update_app_cancel,
-                  if = @update_app_running,
-                  equals = true
+                  if = @update_app_running == "true"
                 )
               }
 
               progressbar(
-                if = @update_app_running,
-                equals = true,
+                if = @update_app_running == "true",
                 :value = update_app_percent
               )
 
@@ -173,7 +170,7 @@ component {
             if @update_app_can_update == "false" {
               column(class = form-panel__head) {
                 text(
-                  "{t('settings_updates.this_app_was_not_installed')}",
+                  t("settings_updates.this_app_was_not_installed"),
                   class = u-muted,
                 )
 
@@ -182,9 +179,9 @@ component {
                     text("@update_app_manual_command", class = copy-row__text)
                   }
                   button(
-                    "{t('common.copy')}",
+                    t("common.copy"),
                     class = "btn btn--ghost btn--sm",
-                    on_click = copy_ctx:update_app_manual_command
+                    on_click = copy_ctx("update_app_manual_command")
                   )
                 }
               }

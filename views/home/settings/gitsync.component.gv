@@ -6,10 +6,10 @@
 component {
   resources {
     component(name = SemRemovidosNoGit) {
-      text("{t('settings_gitsync.nothing_removed')}", class = u-muted)
+      text(t("settings_gitsync.nothing_removed"), class = u-muted)
     }
     component(name = SemValoresEmClaro) {
-      text("{t('settings_gitsync.no_plaintext_value')}", class = u-muted)
+      text(t("settings_gitsync.no_plaintext_value"), class = u-muted)
     }
   }
 
@@ -19,34 +19,32 @@ component {
     column(class = form-stack) {
     column(class = "form-panel form-panel--grouped") {
       column(class = form-panel__head) {
-        text("{t('settings_gitsync.git_sync')}", class = u-label-cap)
-        text("{t('settings_gitsync.versions_the_state')}", class = u-muted)
+        text(t("settings_gitsync.git_sync"), class = u-label-cap)
+        text(t("settings_gitsync.versions_the_state"), class = u-muted)
       }
 
       text(
-        "{t('settings_gitsync.git_not_installed')}",
-        if = @state_git_git_missing,
-        equals = true,
+        t("settings_gitsync.git_not_installed"),
+        if = @state_git_git_missing == "true",
         class = u-error,
       )
 
       text(
-        "{t('settings_gitsync.no_recovery_recipient')}",
-        if = @state_git_recovery_missing,
-        equals = true,
+        t("settings_gitsync.no_recovery_recipient"),
+        if = @state_git_recovery_missing == "true",
         class = u-muted,
       )
 
-      row(class = env__add, if = @state_git_recovery_missing, equals = true) {
+      row(class = env__add, if = @state_git_recovery_missing == "true") {
         button(
-          "{t('settings_recovery_key.generate_key')}",
+          t("settings_recovery_key.generate_key"),
           class = btn-secondary,
           on_click = recovery_key_open
         )
       }
 
       field(
-        label = "{t('settings_gitsync.mode')}",
+        label = t("settings_gitsync.mode"),
         label_class = u-label-cap
       ) {
         scroll(class = tabs__scroll, direction = horizontal) {
@@ -63,21 +61,21 @@ component {
         }
 
         text(
-          "{t('settings_gitsync.commit_hint')}",
-          if = @state_git_form_mode, equals = commit,
+          t("settings_gitsync.commit_hint"),
+          if = @state_git_form_mode == "commit",
           class = u-muted
         )
 
         text(
-          "{t('settings_gitsync.sync_hint')}",
-          if = @state_git_form_mode, equals = sync,
+          t("settings_gitsync.sync_hint"),
+          if = @state_git_form_mode == "sync",
           class = u-muted
         )
       }
 
       if @state_git_form_mode == "sync" {
         field(
-          label = "{t('settings_gitsync.repository')}",
+          label = t("settings_gitsync.repository"),
           label_class = u-label-cap
         ) {
           form(
@@ -87,7 +85,7 @@ component {
             class = "form form--gap-8"
           ) {
             input(
-              placeholder = "{t('settings_gitsync.repository_placeholder')}",
+              placeholder = t("settings_gitsync.repository_placeholder"),
               class = "field__input u-mono",
               form_control = state_git_form_remote,
             )
@@ -95,16 +93,16 @@ component {
         }
 
         field(
-          label = "{t('settings_gitsync.git_account')}",
+          label = t("settings_gitsync.git_account"),
           label_class = u-label-cap,
-          description = "{t('settings_gitsync.connect_accounts_hint')}",
+          description = t("settings_gitsync.connect_accounts_hint"),
         ) {
           select(
             class = form-select,
             :options = gitea_providers,
             :value = state_git_form_provider_id,
             on_change = state_git_provider_pick,
-            placeholder = "{t('common.select_the_account')}",
+            placeholder = t("common.select_the_account"),
             label_field = display,
             value_field = id,
           )
@@ -112,7 +110,7 @@ component {
       }
 
       if @state_git_is_enabled == "true" {
-        field(label = "{t('common.branch')}", label_class = u-label-cap) {
+        field(label = t("common.branch"), label_class = u-label-cap) {
           form(
             error_prefix = error_,
             name = state_git_branch,
@@ -130,7 +128,7 @@ component {
 
       row(class = form-panel__actions) {
         button(
-          "{t('settings_gitsync.save_and_apply')}",
+          t("settings_gitsync.save_and_apply"),
           class = "btn btn--primary",
           on_click = state_git_save,
           disabled = @busy_state_git_save
@@ -138,7 +136,7 @@ component {
 
         if @state_git_is_sync == "true" {
           button(
-            "{t('settings_gitsync.sync_now')}",
+            t("settings_gitsync.sync_now"),
             class = "btn btn--ghost",
             on_click = state_git_sync_now,
             disabled = @busy_state_git_sync_now
@@ -147,7 +145,7 @@ component {
 
         if @state_git_is_configured == "true" {
           button(
-            "{t('settings_gitsync.clear_config')}",
+            t("settings_gitsync.clear_config"),
             class = "btn btn--danger",
             on_click = state_git_clear,
             disabled = @busy_state_git_clear
@@ -161,23 +159,23 @@ component {
     // ── Situação ────────────────────────────────────────────────────────────
     if @state_git_is_enabled == "true" {
       column(class = "form-panel form-panel--grouped") {
-        text("{t('settings_gitsync.status')}", class = u-label-cap)
+        text(t("settings_gitsync.status"), class = u-label-cap)
 
         column(class = info-list) {
           row(class = info-row) {
-            text("{t('settings_gitsync.last_commit')}", class = info-row__key)
+            text(t("settings_gitsync.last_commit"), class = info-row__key)
             text("@state_git_last_commit_label", class = info-row__value)
           }
 
           if @state_git_is_sync == "true" {
             row(class = info-row) {
-              text("{t('settings_gitsync.last_push')}", class = info-row__key)
+              text(t("settings_gitsync.last_push"), class = info-row__key)
               text("@state_git_last_push_label", class = info-row__value)
             }
 
             row(class = info-row) {
               text(
-                "{t('settings_gitsync.last_check')}",
+                t("settings_gitsync.last_check"),
                 class = info-row__key
               )
               text("@state_git_last_fetch_label", class = info-row__value)
@@ -185,7 +183,7 @@ component {
 
             row(class = info-row) {
               text(
-                "{t('settings_gitsync.ahead_behind')}",
+                t("settings_gitsync.ahead_behind"),
                 class = info-row__key
               )
               text("@state_git_ahead_behind_label", class = info-row__value)
@@ -195,8 +193,7 @@ component {
 
         text(
           "@state_git_last_error",
-          if = @state_git_last_error,
-          not_equals = "",
+          if = @state_git_last_error != "",
           class = u-error
         )
       }
@@ -205,30 +202,30 @@ component {
     // ── Divergência: o servidor não decide qual lado vence ──────────────────
     if @state_git_is_paused == "true" {
       column(class = "form-panel form-panel--grouped") {
-        text("{t('settings_gitsync.diverged_title')}", class = u-label-cap)
+        text(t("settings_gitsync.diverged_title"), class = u-label-cap)
         text("@state_git_paused_reason", class = u-error)
-        text("{t('settings_gitsync.diverged_explain')}", class = u-muted)
+        text(t("settings_gitsync.diverged_explain"), class = u-muted)
 
         row(class = env__add) {
           button(
-            "{t('settings_gitsync.use_repository')}",
+            t("settings_gitsync.use_repository"),
             class = "btn btn--danger",
             on_click = state_git_resolve_remote,
             disabled = @busy_state_git_resolve_remote
           )
           button(
-            "{t('settings_gitsync.use_server')}",
+            t("settings_gitsync.use_server"),
             class = "btn btn--danger",
             on_click = state_git_resolve_local,
             disabled = @busy_state_git_resolve_local
           )
         }
 
-        text("{t('settings_gitsync.diverged_manual_hint')}", class = u-muted)
+        text(t("settings_gitsync.diverged_manual_hint"), class = u-muted)
 
         row(class = env__add) {
           button(
-            "{t('settings_gitsync.resume')}",
+            t("settings_gitsync.resume"),
             class = "btn btn--ghost",
             on_click = state_git_resume,
             disabled = @busy_state_git_resume
@@ -240,10 +237,10 @@ component {
     // ── Commit do repositório recusado ──────────────────────────────────────
     if @state_git_has_rejected == "true" {
       column(class = "form-panel form-panel--grouped") {
-        text("{t('settings_gitsync.rejected_title')}", class = u-label-cap)
+        text(t("settings_gitsync.rejected_title"), class = u-label-cap)
         text("@state_git_rejected_label", class = u-muted)
         text("@state_git_rejected_reason", class = u-error)
-        text("{t('settings_gitsync.rejected_hint')}", class = u-muted)
+        text(t("settings_gitsync.rejected_hint"), class = u-muted)
       }
     }
 
@@ -252,8 +249,8 @@ component {
     if @state_git_removed_count != "0" {
       column(class = "form-panel form-panel--grouped") {
         column(class = form-panel__head) {
-          text("{t('settings_gitsync.removed_title')}", class = u-label-cap)
-          text("{t('settings_gitsync.removed_explain')}", class = u-muted)
+          text(t("settings_gitsync.removed_title"), class = u-label-cap)
+          text(t("settings_gitsync.removed_explain"), class = u-muted)
         }
 
         column(class = kv-list) {
@@ -265,9 +262,9 @@ component {
               }
 
               button(
-                "{t('settings_gitsync.dismiss')}",
+                t("settings_gitsync.dismiss"),
                 class = "btn btn--ghost btn--xs",
-                on_click = state_git_dismiss_removal:@removal.id,
+                on_click = state_git_dismiss_removal(@removal.id),
                 disabled = @busy_state_git_dismiss_removal
               )
             }
@@ -280,12 +277,11 @@ component {
     column(class = "form-panel form-panel--grouped") {
       column(class = form-panel__head) {
         text(
-          "{t('settings_gitsync.plaintext_title',
-            count=state_git_audit_count)}",
+          t("settings_gitsync.plaintext_title", count = state_git_audit_count),
           class = u-label-cap
         )
         text(
-          "{t('settings_gitsync.plaintext_explain')}",
+          t("settings_gitsync.plaintext_explain"),
           class = u-muted
         )
       }
@@ -299,20 +295,18 @@ component {
             }
 
             button(
-              "{t('settings_gitsync.not_a_secret')}",
-              if = @finding.can_allow,
-              equals = 1,
+              t("settings_gitsync.not_a_secret"),
+              if = @finding.can_allow == "1",
               class = "btn btn--ghost btn--xs",
-              on_click = state_git_allow_finding:@finding.index,
+              on_click = state_git_allow_finding(@finding.index),
               disabled = @busy_state_git_allow_finding
             )
 
             button(
-              "{t('settings_gitsync.block_again')}",
-              if = @finding.can_block_again,
-              equals = 1,
+              t("settings_gitsync.block_again"),
+              if = @finding.can_block_again == "1",
               class = "btn btn--ghost btn--xs",
-              on_click = state_git_block_again:@finding.index,
+              on_click = state_git_block_again(@finding.index),
               disabled = @busy_state_git_block_again
             )
           }
@@ -326,15 +320,15 @@ component {
     column(class = "form-panel form-panel--grouped") {
       column(class = form-panel__head) {
         text(
-          "{t('settings_gitsync.download_infra_title')}",
+          t("settings_gitsync.download_infra_title"),
           class = u-label-cap
         )
-        text("{t('settings_gitsync.download_infra_help')}", class = u-muted)
+        text(t("settings_gitsync.download_infra_help"), class = u-muted)
       }
 
       row(class = form-panel__actions) {
         button(
-          "{t('settings_gitsync.download_infra')}",
+          t("settings_gitsync.download_infra"),
           class = "btn btn--primary",
           on_click = infra_download,
           disabled = @busy_infra_download

@@ -33,12 +33,12 @@ component {
       svg(
         class = tpl-row__logo,
         src = @logo,
-        if = @logo_kind, equals = svg
+        if = @logo_kind == "svg"
       )
       image(
         class = tpl-row__logo,
         src = @logo,
-        if = @logo_kind, equals = img
+        if = @logo_kind == "img"
       )
     }
 
@@ -48,13 +48,12 @@ component {
       text(
         "@description",
         class = u-muted,
-        if = @description,
-        not_equals = "",
+        if = @description != "",
       )
     }
 
     button(
-      "{t('template_row.choose')}",
+      t("template_row.choose"),
       class = "btn btn--primary",
       on_click = @action
     )

@@ -89,13 +89,13 @@ component {
       HomeSchedules
     }
 
-    column(class = u-center-fill, if = @view, equals = support) {
+    column(class = u-center-fill, if = @view == "support") {
       text(
-        "{t('common.support')}",
+        t("common.support"),
         class = page-head__title
       )
       text(
-        "{t('home.github_com_antoniofernandodj_rustploy')}",
+        t("home.github_com_antoniofernandodj_rustploy"),
         class = page-head__subtitle
       )
     }

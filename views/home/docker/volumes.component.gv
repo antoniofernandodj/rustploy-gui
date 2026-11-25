@@ -3,39 +3,38 @@
 component {
   resources {
     component(name = SemVolumes) {
-      text("{t('docker_volumes.no_volumes')}", class = u-muted)
+      text(t("docker_volumes.no_volumes"), class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__toolbar) {
       text(
-        "{t('docker_volumes.volume_s',
-          docker_volumes_count=docker_volumes_count)}",
+        t("docker_volumes.volume_s", docker_volumes_count = docker_volumes_count),
         class = "u-muted u-fill"
       )
 
       // O filtro mora em format.docker_volumes — ver images.component.gv.
       checkbox(
         :checked = docker_volumes_only_used,
-        on_toggle = docker_only_used:docker_volumes_only_used,
-        label = "{t('common.in_use_only')}",
+        on_toggle = docker_only_used("docker_volumes_only_used"),
+        label = t("common.in_use_only"),
       )
 
       checkbox(
         :checked = docker_volumes_only_orphan,
-        on_toggle = docker_only_used:docker_volumes_only_orphan,
-        label = "{t('docker_volumes.orphans_only')}",
+        on_toggle = docker_only_used("docker_volumes_only_orphan"),
+        label = t("docker_volumes.orphans_only"),
       )
 
       checkbox(
         :checked = docker_prune_all_volumes,
         on_toggle = field:docker_prune_all_volumes,
-        label = "{t('docker_volumes.a_clean_everything_not_just')}",
+        label = t("docker_volumes.a_clean_everything_not_just"),
       )
 
       button(
-        "{t('common.clean_unused')}",
+        t("common.clean_unused"),
         class = "btn btn--danger",
         on_click = docker_prune_volumes,
         disabled = @busy_docker_prune_volumes
@@ -44,8 +43,7 @@ component {
 
     text(
       "@docker_message",
-      if = @docker_message,
-      not_equals = "",
+      if = @docker_message != "",
       class = u-muted,
     )
 
@@ -59,7 +57,7 @@ component {
     ) {
       tablecolumn(
         key = name,
-        label = "{t('common.name')}",
+        label = t("common.name"),
         class = table__col-svc
       ) {
         text(
@@ -70,19 +68,17 @@ component {
 
       tablecolumn(
         key = owner_label,
-        label = "{t('docker_volumes.owner')}",
+        label = t("docker_volumes.owner"),
         class = table__col-proj
       ) {
         text(
           "@v.owner_label",
-          if = @v.is_orphan,
-          equals = "1",
+          if = @v.is_orphan == "1",
           class = u-warn,
         )
         text(
           "@v.owner_label",
-          if = @v.is_orphan,
-          not_equals = "1",
+          if = @v.is_orphan != "1",
           class = u-muted,
         )
       }
@@ -90,7 +86,7 @@ component {
       tablecolumn(
         key = size,
         sort_key = size_bytes,
-        label = "{t('common.size')}",
+        label = t("common.size"),
         class = table__col-dur,
       ) {
         text(
@@ -101,7 +97,7 @@ component {
 
       tablecolumn(
         key = in_use_label,
-        label = "{t('common.usage')}",
+        label = t("common.usage"),
         class = table__col-state
       ) {
         StateCell(
@@ -111,15 +107,14 @@ component {
       }
 
       tablecolumn(
-        label = "{t('common.action')}",
+        label = t("common.action"),
         class = table__col-act
       ) {
         button(
-          "{t('common.remove')}",
-          if = @v.in_use,
-          equals = "0",
+          t("common.remove"),
+          if = @v.in_use == "0",
           class = "btn btn--danger btn--xs",
-          on_click = docker_remove_volume:@v.name_full,
+          on_click = docker_remove_volume(@v.name_full),
           disabled = @busy_docker_remove_volume
         )
       }

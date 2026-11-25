@@ -7,29 +7,29 @@ component {
     """
 
     component(name = SemJobs) {
-      text("{t('common.no_jobs_registered_yet')}", class = u-muted)
+      text(t("common.no_jobs_registered_yet"), class = u-muted)
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("{t('common.schedules')}", class = page-head__title)
+      text(t("common.schedules"), class = page-head__title)
 
       text(
-        "{t('schedules.one_shot_tasks_docker_compose_scheduled')}",
+        t("schedules.one_shot_tasks_docker_compose_scheduled"),
         class = page-head__subtitle,
       )
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
       StatCard(
-        label = "{t('schedules.jobs')}",
+        label = t("schedules.jobs"),
         value = @jobs_count
       )
     }
 
     button(
-      "{t('common.new_job')}",
+      t("common.new_job"),
       class = "btn btn--primary",
       on_click = open_new_job_window,
       disabled = @busy_open_new_job_window
@@ -47,7 +47,7 @@ component {
     ) {
       tablecolumn(
         key = name,
-        label = "{t('common.name')}",
+        label = t("common.name"),
         class = table__col-svc
       ) {
         text("@j.name", class = "table__cell table__cell--key")
@@ -55,13 +55,13 @@ component {
 
       tablecolumn(
         key = owner,
-        label = "{t('schedules.project_trigger')}",
+        label = t("schedules.project_trigger"),
         class = table__col-proj
       )
 
       tablecolumn(
         key = last_run_label,
-        label = "{t('common.last_run')}",
+        label = t("common.last_run"),
         class = table__col-state,
       ) {
         StateCell(
@@ -72,7 +72,7 @@ component {
 
       tablecolumn(
         key = recurrence,
-        label = "{t('common.recurrence')}",
+        label = t("common.recurrence"),
         class = table__col-dur
       ) {
         text("@j.recurrence", class = u-muted)
@@ -80,14 +80,14 @@ component {
 
       tablecolumn(
         key = next_run_at,
-        label = "{t('schedules.next_run')}",
+        label = t("schedules.next_run"),
         class = table__col-dur,
       ) {
         text("@j.next_run_at", class = "u-muted schedules__next-run")
       }
 
       tablecolumn(
-        label = "{t('schedules.warm_up')}",
+        label = t("schedules.warm_up"),
         class = table__col-state
       ) {
         StateCell(
@@ -97,7 +97,7 @@ component {
       }
 
       tablecolumn(
-        label = "{t('schedules.actions')}",
+        label = t("schedules.actions"),
         class = table__col-act-2,
         align = right
       ) {

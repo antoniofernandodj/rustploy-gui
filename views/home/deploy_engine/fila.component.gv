@@ -3,7 +3,7 @@ component {
   resources {
     component(name = FilaVazia) {
       text(
-        "{t('deploy_engine_fila.no_deploy_in_the_queue')}",
+        t("deploy_engine_fila.no_deploy_in_the_queue"),
         class = empty-state
       )
     }
@@ -12,24 +12,21 @@ component {
   column(class = "section section--fill") {
     row(class = section__head) {
       text(
-        "{t('deploy_engine_fila.queued',
-          deploy_engine_queued_count=deploy_engine_queued_count)}",
+        t("deploy_engine_fila.queued", deploy_engine_queued_count = deploy_engine_queued_count),
         class = section__title
       )
 
       button(
-        "{t('deploy_engine_fila.resume_queue')}",
-        if = @deploy_engine_paused,
-        equals = true,
+        t("deploy_engine_fila.resume_queue"),
+        if = @deploy_engine_paused == "true",
         class = "btn btn--ghost btn--xs",
         on_click = queue_toggle_pause,
         disabled = @busy_queue_toggle_pause
       )
 
       button(
-        "{t('deploy_engine_fila.pause_queue')}",
-        if = @deploy_engine_paused,
-        not_equals = true,
+        t("deploy_engine_fila.pause_queue"),
+        if = @deploy_engine_paused != "true",
         class = "btn btn--ghost btn--xs",
         on_click = queue_toggle_pause,
         disabled = @busy_queue_toggle_pause
@@ -40,22 +37,15 @@ component {
       // Uma condição da tela, não um evento: o aviso fica enquanto a fila
       // estiver pausada (alert, glacier-ui 0.161).
       alert(
-        description = "{t('deploy_engine_fila.queue_paused_deploys_wait')}",
+        description = t("deploy_engine_fila.queue_paused_deploys_wait"),
         variant = warning,
-        if = @deploy_engine_paused,
-        equals = true,
+        if = @deploy_engine_paused == "true",
       )
     }
 
     scrollable(direction = vertical, class = section__scroll) {
       column(class = u-fill) {
-        template(
-          :for_each = deploy_engine_queued,
-          foreach_fallback = FilaVazia,
-          var = q,
-          on_reorder = queue_reorder,
-          reorder_key = deployment_id,
-        ) {
+        each @deploy_engine_queued as q (foreach_fallback = FilaVazia, on_reorder = queue_reorder, key = deployment_id) {
           row(class = table__row) {
             text("⋮", class = env__drag-handle, drag_handle = true)
             row(class = table__col-svc, spacing = 6) {
@@ -67,16 +57,16 @@ component {
             }
 
             button(
-              "{t('deploy_engine_fila.top')}",
+              t("deploy_engine_fila.top"),
               class = "btn btn--ghost btn--xs",
-              on_click = queue_promote:@q.deployment_id,
+              on_click = queue_promote(@q.deployment_id),
               disabled = @busy_queue_promote
             )
 
             button(
               "✕",
               class = env__del,
-              on_click = queue_cancel:@q.deployment_id,
+              on_click = queue_cancel(@q.deployment_id),
               disabled = @busy_queue_cancel
             )
           }

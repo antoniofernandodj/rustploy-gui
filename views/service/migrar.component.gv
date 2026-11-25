@@ -5,15 +5,15 @@ component {
     class = u-fill-all,
   ) {
     column(width = fill, spacing = 8, class = form-panel) {
-      text("{t('migrar.migrate_to_a_shared_database')}", class = u-label-cap)
+      text(t("migrar.migrate_to_a_shared_database"), class = u-label-cap)
 
       text(
-        "{t('migrar.first_create_the_destination_database_on')}",
+        t("migrar.first_create_the_destination_database_on"),
         class = u-muted,
       )
 
       field(
-        label = "{t('migrar.source_database_inside_this_database')}",
+        label = t("migrar.source_database_inside_this_database"),
         label_class = u-label-cap
       ) {
         input(
@@ -21,24 +21,24 @@ component {
           form_control = service_form_migration_database,
           :value = service_form_migration_database,
           on_change = field:service_form_migration_database,
-          placeholder = "{t('migrar.database_name')}",
+          placeholder = t("migrar.database_name"),
         )
       }
 
-      field(label = "{t('migrar.destination')}", label_class = u-label-cap) {
+      field(label = t("migrar.destination"), label_class = u-label-cap) {
         select(
           class = form-select,
           :options = migration_destinations,
           :value = service_form_migration_destination,
           on_change = field:service_form_migration_destination,
-          placeholder = "{t('migrar.destination_database')}",
+          placeholder = t("migrar.destination_database"),
           label_field = name,
           value_field = id,
         )
       }
 
       field(
-        label = "{t('migrar.env_var_to_replace')}",
+        label = t("migrar.env_var_to_replace"),
         label_class = u-label-cap
       ) {
         input(
@@ -46,30 +46,28 @@ component {
           form_control = service_form_migration_env,
           :value = service_form_migration_env,
           on_change = field:service_form_migration_env,
-          placeholder = "{t('migrar.default_database_url_mongodb_uri')}",
+          placeholder = t("migrar.default_database_url_mongodb_uri"),
         )
       }
 
       row(class = env__add) {
         button(
-          "{t('common.migrate')}",
+          t("common.migrate"),
           class = "btn btn--primary",
-          if = @service_form_migration_destination,
-          equals = "",
+          if = @service_form_migration_destination == "",
           disabled = true
         )
 
         button(
-          "{t('common.migrate')}",
+          t("common.migrate"),
           class = "btn btn--primary",
-          if = @service_form_migration_destination,
-          not_equals = "",
+          if = @service_form_migration_destination != "",
           on_click = migration_start,
           disabled = @busy_migration_start
         )
 
         button(
-          "{t('migrar.refresh')}",
+          t("migrar.refresh"),
           class = "btn btn--ghost",
           on_click = migration_refresh,
           disabled = @busy_migration_refresh
@@ -78,12 +76,12 @@ component {
 
       if @migration_has == "true" {
         text(
-          "{t('migrar.progress', migration_status=migration_status)}",
+          t("migrar.progress", migration_status = migration_status),
           class = u-label-cap
         )
 
         column(class = kv-list) {
-          row(class = kv-list__row, :for_each = migration_steps, var = s) {
+          row(class = kv-list__row, each = @migration_steps as s) {
             text("@s.icon", class = env__key)
             text("@s.name", class = "kv-list__val kv-list__val--compact")
             text("@s.detail", class = u-muted)
@@ -92,20 +90,20 @@ component {
 
         if @migration_can_finish == "true" {
           text(
-            "{t('migrar.migration_finished_the_old_database_was')}",
+            t("migrar.migration_finished_the_old_database_was"),
             class = u-muted,
           )
 
           row(class = env__add) {
             button(
-              "{t('migrar.roll_back')}",
+              t("migrar.roll_back"),
               class = "btn btn--ghost",
               on_click = migration_rollback,
               disabled = @busy_migration_rollback
             )
 
             button(
-              "{t('migrar.discard_the_old_database')}",
+              t("migrar.discard_the_old_database"),
               class = "btn btn--ghost",
               on_click = migration_discard,
               disabled = @busy_migration_discard

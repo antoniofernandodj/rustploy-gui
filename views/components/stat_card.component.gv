@@ -30,7 +30,7 @@ component {
     text(
       "@value",
       class = "stat-card__num stat-card__num--ok",
-      if = @accent, equals = 1
+      if = @accent == "1"
     )
     text(
       "@value",

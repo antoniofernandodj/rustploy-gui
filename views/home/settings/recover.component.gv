@@ -7,21 +7,20 @@ component {
     column(class = form-stack) {
       column(class = "form-panel form-panel--grouped") {
         column(class = form-panel__head) {
-          text("{t('settings_recover.title')}", class = u-label-cap)
-          text("{t('settings_recover.intro')}", class = u-muted)
+          text(t("settings_recover.title"), class = u-label-cap)
+          text(t("settings_recover.intro"), class = u-muted)
         }
 
         // Formulário: só quando não há uma recuperação em curso (ou a última
         // falhou).
         column(
           class = form-panel__body,
-          if = @recover_services_count,
-          equals = 0
+          if = @recover_services_count == "0"
         ) {
-          field(description = "{t('settings_recover.load_file_hint')}") {
+          field(description = t("settings_recover.load_file_hint")) {
             row(class = form-panel__actions) {
               button(
-                "{t('settings_recover.load_file')}",
+                t("settings_recover.load_file"),
                 class = "btn btn--ghost",
                 on_click = recover_load_kit,
                 disabled = @busy_recover_load_kit
@@ -31,13 +30,12 @@ component {
 
           text(
             "@recover_message",
-            if = @recover_message,
-            not_equals = "",
+            if = @recover_message != "",
             class = u-muted
           )
 
           field(
-            label = "{t('settings_recover.repository')}",
+            label = t("settings_recover.repository"),
             label_class = u-label-cap
           ) {
             input(
@@ -50,7 +48,7 @@ component {
           }
 
           field(
-            label = "{t('settings_recover.token')}",
+            label = t("settings_recover.token"),
             label_class = u-label-cap
           ) {
             input(
@@ -64,7 +62,7 @@ component {
           }
 
           field(
-            label = "{t('settings_recover.branch')}",
+            label = t("settings_recover.branch"),
             label_class = u-label-cap
           ) {
             input(
@@ -77,9 +75,9 @@ component {
           }
 
           field(
-            label = "{t('settings_recover.key')}",
+            label = t("settings_recover.key"),
             label_class = u-label-cap,
-            description = "{t('settings_recover.key_hint')}",
+            description = t("settings_recover.key_hint"),
           ) {
             input(
               placeholder = "AGE-SECRET-KEY-1…",
@@ -93,7 +91,7 @@ component {
 
           row(class = form-panel__actions) {
             button(
-              "{t('settings_recover.restore_infra')}",
+              t("settings_recover.restore_infra"),
               class = "btn btn--primary",
               on_click = recover_start,
               disabled = @busy_recover_start
@@ -102,15 +100,14 @@ component {
         }
 
         // Resumo e acompanhamento.
-        column(spacing = 6, if = @recover_services_count, not_equals = 0) {
+        column(spacing = 6, if = @recover_services_count != "0") {
           text(
-            "{t('settings_recover.found', recover_projects=recover_projects)}",
+            t("settings_recover.found", recover_projects = recover_projects),
             class = u-label-cap,
           )
           text(
             "@recover_destination_error",
-            if = @recover_destination_error,
-            not_equals = "",
+            if = @recover_destination_error != "",
             class = u-error
           )
 
@@ -124,43 +121,38 @@ component {
           }
 
           text(
-            "{t('settings_recover.ready_hint')}",
-            if = @recover_phase,
-            equals = ready,
+            t("settings_recover.ready_hint"),
+            if = @recover_phase == "ready",
             class = u-muted
           )
           text(
-            "{t('settings_recover.running')}",
-            if = @recover_phase,
-            equals = running,
+            t("settings_recover.running"),
+            if = @recover_phase == "running",
             class = u-muted
           )
           text(
-            "{t('settings_recover.done')}",
-            if = @recover_phase,
-            equals = done,
+            t("settings_recover.done"),
+            if = @recover_phase == "done",
             class = u-muted
           )
           text(
             "@recover_message",
-            if = @recover_message,
-            not_equals = "",
+            if = @recover_message != "",
             class = u-error
           )
 
           row(
             class = form-panel__actions,
-            if = @recover_phase,
-            equals = ready
+            if = @recover_phase == "ready"
           ) {
             button(
-              "{t('settings_recover.restore_data')}",
+              t("settings_recover.restore_data"),
               class = "btn btn--primary",
               on_click = recover_run,
               disabled = @busy_recover_run
             )
             button(
-              "{t('common.cancel')}",
+              t("common.cancel"),
               class = "btn btn--ghost",
               on_click = recover_cancel,
               disabled = @busy_recover_cancel

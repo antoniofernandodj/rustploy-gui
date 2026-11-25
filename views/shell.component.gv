@@ -108,7 +108,7 @@ component {
       .proj-bar          { width: fill; align_y: center; }
       .proj-bar__actions { spacing: 8; align_y: center; }
       @media (max-width: 1100) {
-        .topbar__status { hidden: true; }
+        .topbar__status { display: none; }
       }
 
       @media (max-width: 900) {
@@ -118,12 +118,12 @@ component {
       /* Com a sidebar aberta sobram ~350px de conteúdo aqui: a busca some
          antes de espremer os botões de ação (ficava "Search d"). */
       @media (max-width: 760) {
-        .topbar__search { hidden: true; }
+        .topbar__search { display: none; }
       }
 
       @media (max-width: 560) {
-        .topbar__search { hidden: true; }
-        .topbar__status { hidden: true; }
+        .topbar__search { display: none; }
+        .topbar__status { display: none; }
       }
     """
   }
@@ -139,71 +139,71 @@ component {
       panel_class = sidebar,
     ) {
       column(class = brand) {
-        text("{t('common.rustploy')}", class = brand__name)
-        text("{t('shell.production_cluster')}", class = brand__sub)
+        text(t("common.rustploy"), class = brand__name)
+        text(t("shell.production_cluster"), class = brand__sub)
       }
 
-      text("{t('shell.deployment_ops')}", class = sidebar__section)
+      text(t("shell.deployment_ops"), class = sidebar__section)
 
       NavItem(
-        label = "{t('common.running')}",
+        label = t("common.running"),
         icon = "●",
         target = running,
         action = nav_running,
       )
 
       NavItem(
-        label = "{t('common.deployments')}",
+        label = t("common.deployments"),
         icon = "▶",
         target = deployments,
         action = nav_deployments,
       )
 
       NavItem(
-        label = "{t('common.deploy_engine')}",
+        label = t("common.deploy_engine"),
         icon = "⚡",
         target = deploy_engine,
         action = nav_deploy_engine,
       )
 
       NavItem(
-        label = "{t('common.monitoring')}",
+        label = t("common.monitoring"),
         icon = "◔",
         target = monitoring,
         action = nav_monitoring,
       )
 
       NavItem(
-        label = "{t('common.schedules')}",
+        label = t("common.schedules"),
         icon = "◫",
         target = schedules,
         action = nav_schedules,
       )
 
       NavItem(
-        label = "{t('common.ingress')}",
+        label = t("common.ingress"),
         icon = "↦",
         target = ingress,
         action = nav_ingress,
       )
 
       NavItem(
-        label = "{t('common.runtime')}",
+        label = t("common.runtime"),
         icon = "◉",
         target = docker,
         action = nav_docker
       )
 
       NavItem(
-        label = "{t('shell.volumes')}",
+        label = t("shell.volumes"),
         icon = "▤",
         target = volumes,
         action = nav_volumes,
       )
-      text("{t('shell.management')}", class = sidebar__section)
+      text(t("shell.management"), class = sidebar__section)
 
       NavItem(
-        label = "{t('shell.projects', projects_count=projects_count)}",
+        label = t("shell.projects", projects_count = projects_count),
         icon = "◧",
         target = "projects project_services service",
         action = nav_projects,
@@ -213,7 +213,7 @@ component {
       hr
 
       NavItem(
-        label = "{t('common.settings')}",
+        label = t("common.settings"),
         icon = "⌥",
         target = settings,
         action = nav_settings,
@@ -221,7 +221,7 @@ component {
       )
 
       NavItem(
-        label = "{t('common.support')}",
+        label = t("common.support"),
         icon = "◊",
         target = support,
         action = nav_support,
@@ -236,32 +236,30 @@ component {
           "☰",
           class = topbar__menu,
           on_click = app:drawer::toggle:menu,
-          tooltip = "{t('shell.show_hide_the_menu')}"
+          tooltip = t("shell.show_hide_the_menu")
         )
 
         input(
           class = topbar__search,
           :value = search,
           on_change = search_changed,
-          placeholder = "{t('shell.search_deployments_nodes')}",
+          placeholder = t("shell.search_deployments_nodes"),
         )
 
         text(
-          "{t('shell.daemon_v',
-            connected_server=connected_server,
-            daemon_version=daemon_version)}",
+          t("shell.daemon_v", connected_server = connected_server, daemon_version = daemon_version),
           class = "u-muted topbar__status",
         )
 
         flow(class = topbar__actions) {
           button(
-            "{t('shell.stop_all')}",
+            t("shell.stop_all"),
             class = "btn btn--danger",
             on_click = stop_all,
             disabled = @busy_stop_all
           )
           button(
-            "{t('shell.disconnect')}",
+            t("shell.disconnect"),
             class = "btn btn--ghost",
             on_click = disconnect,
             disabled = @busy_disconnect
@@ -277,7 +275,7 @@ component {
       if @state_git_alert_message != "" {
         alert(description = @state_git_alert_message, variant = warning) {
           button(
-            "{t('common.open')}",
+            t("common.open"),
             class = "btn btn--ghost btn--xs",
             on_click = state_git_open
           )

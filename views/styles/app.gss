@@ -710,7 +710,7 @@
    Ingress (2 cards curtos) cabe até os 560 gerais e fica só com
    .page-head__stats. */
 @media (max-width: 1280) {
-  .page-head__stats--hide-xl { hidden: true; }
+  .page-head__stats--hide-xl { display: none; }
 }
 
 /* Ações da tela de serviço (Deploy/Reload/Rebuild/Stop). Dois arranjos que se
@@ -727,30 +727,30 @@
    JANELA, mas o header vive dentro do shell com a sidebar comendo espaço
    horizontal — 1240px dá a folga para os rótulos por extenso só aparecerem
    quando realmente cabem. */
-.service__actions--full    { hidden: false; }
-.service__actions--compact { hidden: true; }
+.service__actions--full    { display: flex; }
+.service__actions--compact { display: none; }
 @media (max-width: 1240) {
-  .service__actions--full    { hidden: true; }
-  .service__actions--compact { hidden: false; }
+  .service__actions--full    { display: none; }
+  .service__actions--compact { display: flex; }
 }
 
-.page-head__clear--full    { hidden: false; }
-.page-head__clear--compact { hidden: true; }
+.page-head__clear--full    { display: flex; }
+.page-head__clear--compact { display: none; }
 @media (max-width: 860) {
-  .page-head__clear--full    { hidden: true; }
-  .page-head__clear--compact { hidden: false; }
+  .page-head__clear--full    { display: none; }
+  .page-head__clear--compact { display: flex; }
 }
 
 @media (max-width: 1000) {
-  .page-head__stats--hide-lg { hidden: true; }
+  .page-head__stats--hide-lg { display: none; }
 }
 
 @media (max-width: 760) {
-  .page-head__stats--hide-md { hidden: true; }
+  .page-head__stats--hide-md { display: none; }
   /* Título + botão de ação dividem a linha e o motor não empilha Row: sem o
      subtítulo (que quebrava palavra por palavra) e com o título menor,
      cabem. */
-  .page-head__subtitle { hidden: true; }
+  .page-head__subtitle { display: none; }
   .page-head__title    { size: 20; }
 }
 
@@ -783,8 +783,8 @@
   /* Em telas estreitas não há largura pra os cards de stat ao lado do título
      (empilhavam sobre o texto) nem pra a coluna INÍCIO — some com ambos
      (glacier-ui 0.10.0: `hidden`). */
-  .page-head__stats    { hidden: true; }
-  .table__col-start    { hidden: true; }
+  .page-head__stats    { display: none; }
+  .table__col-start    { display: none; }
 }
 
 /* Ambientes (aba do projeto e selo no card) */

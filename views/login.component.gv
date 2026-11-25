@@ -58,10 +58,10 @@ component {
         )
 
         column(class = login__brand) {
-          text("{t('common.rustploy')}", class = login__title)
+          text(t("common.rustploy"), class = login__title)
 
           text(
-            "{t('login.infrastructure_management_for_professional_teams')}",
+            t("login.infrastructure_management_for_professional_teams"),
             class = page-head__subtitle,
           )
         }
@@ -76,21 +76,20 @@ component {
         // O erro vem do script (connection.luau grava {error_access_key}); o
         // `field` o põe sob o campo, no lugar onde o `text(if …)` ficava.
         field(
-          label = "{t('login.connection_token')}",
+          label = t("login.connection_token"),
           error = @error_access_key
         ) {
           template(slot = aside) {
-            text("{t('login.secure')}", class = field__label)
+            text(t("login.secure"), class = field__label)
           }
 
           select(
-            if = @saved_servers,
-            not_equals = "[]",
+            if = @saved_servers != "[]",
             class = form-select,
             :options = saved_servers,
             :value = saved_server_choice,
             on_change = choose_saved_server,
-            placeholder = "{t('login.saved_servers')}",
+            placeholder = t("login.saved_servers"),
             width = fill,
           )
 
@@ -99,21 +98,20 @@ component {
             :value = access_key,
             on_change = access_key_input,
             on_submit = connect,
-            placeholder = "{t('login.paste_the_connection_token')}",
+            placeholder = t("login.paste_the_connection_token"),
             width = fill,
           )
 
           text(
             "→ @access_key_target",
-            if = @access_key_target,
-            not_equals = "",
+            if = @access_key_target != "",
             class = u-muted,
           )
         }
 
         row(class = login__forget-row) {
           button(
-            "{t('login.forget_this_server')}",
+            t("login.forget_this_server"),
             class = login__forget-btn,
             on_click = forget_server,
             disabled = @busy_forget_server
@@ -121,14 +119,14 @@ component {
         }
 
         button(
-          "{t('login.connect')}",
+          t("login.connect"),
           class = login__connect,
           type = submit,
           disabled = @busy_connect
         )
       }
 
-      text("⚠ @error", if = @error, not_equals = "", class = u-error)
+      text("⚠ @error", if = @error != "", class = u-error)
 
       // Versão nova do app desktop: aparece ANTES do login (a consulta é ao
       // GitHub, não ao daemon), para dar para atualizar um app que já não
@@ -137,29 +135,26 @@ component {
       if @update_app_is_available == "true" {
         hr
         text(
-          "{t('login.app_update_available',
-            version=update_app_latest_version)}",
+          t("login.app_update_available", version = update_app_latest_version),
           class = u-label-cap,
         )
 
         if @update_app_can_update == "true" {
           row(class = login__status) {
             button(
-              "{t('settings_updates.update_app')}",
+              t("settings_updates.update_app"),
               class = "btn btn--primary btn--sm",
               on_click = update_app_apply
             )
             button(
-              "{t('common.cancel')}",
+              t("common.cancel"),
               class = "btn btn--ghost btn--sm",
               on_click = update_app_cancel,
-              if = @update_app_running,
-              equals = true
+              if = @update_app_running == "true"
             )
           }
           progressbar(
-            if = @update_app_running,
-            equals = true,
+            if = @update_app_running == "true",
             :value = update_app_percent
           )
           text("@update_app_message", class = u-muted)
@@ -167,14 +162,14 @@ component {
 
         if @update_app_can_update == "false" {
           text(
-            "{t('settings_updates.this_app_was_not_installed')}",
+            t("settings_updates.this_app_was_not_installed"),
             class = u-muted
           )
           // o valor num campo só de leitura, com o Copiar colado (inputgroup,
           // glacier-ui 0.164)
           inputgroup(
-            action = "{t('common.copy')}",
-            on_action = "copy_ctx:update_app_manual_command"
+            action = t("common.copy"),
+            on_action = copy_ctx("update_app_manual_command")
           ) {
             input(:value = update_app_manual_command, readonly = true)
           }

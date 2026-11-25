@@ -179,7 +179,7 @@ component {
           button(
             "‹ @service_project",
             class = "btn btn--ghost",
-            on_click = open_project:@service_project_id,
+            on_click = open_project(@service_project_id),
             disabled = @busy_open_project
           )
 
@@ -189,7 +189,7 @@ component {
             class = "service__title-input",
             :value = edit_service_name,
             on_change = service_title_change,
-            placeholder = "{t('general.service_name')}",
+            placeholder = t("general.service_name"),
           )
         }
 
@@ -200,18 +200,16 @@ component {
           )
 
           rp-badge(
-            if = @service_pending_deploy_visible,
-            equals = true,
+            if = @service_pending_deploy_visible == "true",
             color = warn,
             label = "◆ {t('service_card.change_pending_deploy')}"
           )
           rp-badge(
-            if = @service_warm_visible,
-            equals = true, color = @service_warm_color,
+            if = @service_warm_visible == "true", color = @service_warm_color,
             label = "◐ @service_warm_label"
           )
 
-          row(class = badge, if = @service_deploy_running, equals = true) {
+          row(class = badge, if = @service_deploy_running == "true") {
             text("⏱", class = status-dot, color = #58A6FF)
             text(
               "@service_deploy_elapsed",
@@ -222,16 +220,14 @@ component {
         }
 
         text(
-          "{t('service.cold', service_warm_reason=service_warm_reason)}",
-          if = @service_warm_reason,
-          not_equals = "",
+          t("service.cold", service_warm_reason = service_warm_reason),
+          if = @service_warm_reason != "",
           class = u-muted,
         )
 
         text(
           "@service_action_message",
-          if = @service_action_message,
-          not_equals = "",
+          if = @service_action_message != "",
           class = u-muted,
           color = @service_action_color,
         )
@@ -246,28 +242,27 @@ component {
             on_click = service_deploy,
             disabled = @busy_service_deploy,
             button_class = "btn btn--primary",
-            tooltip = "{t('service.deploy')}",
+            tooltip = t("service.deploy"),
           ) {
             menuitem(
-              label = "{t('service.reload')}",
+              label = t("service.reload"),
               on_click = service_reload,
               disabled = @busy_service_reload
             )
             menuitem(
-              label = "{t('service.rebuild')}",
+              label = t("service.rebuild"),
               on_click = service_rebuild,
               disabled = @busy_service_rebuild
             )
             menuitem(
-              label = "{t('service.warm')}",
+              label = t("service.warm"),
               on_click = service_warm,
               disabled = @busy_service_warm,
-              if = @service_warm_visible,
-              equals = true,
+              if = @service_warm_visible == "true",
             )
             menuseparator
             menuitem(
-              label = "{t('service.export_service')}",
+              label = t("service.export_service"),
               on_click = open_export_window,
               disabled = @busy_open_export_window
             )
@@ -278,45 +273,44 @@ component {
             class = "btn btn--danger",
             on_click = service_stop,
             disabled = @busy_service_stop,
-            tooltip = "{t('service.stop')}"
+            tooltip = t("service.stop")
           )
         }
       }
 
       row(class = "service__actions service__actions--full") {
         dropdownbutton(
-          label = "{t('service.deploy')}",
+          label = t("service.deploy"),
           on_click = service_deploy,
           disabled = @busy_service_deploy,
           button_class = "btn btn--primary",
         ) {
           menuitem(
-            label = "{t('service.reload')}",
+            label = t("service.reload"),
             on_click = service_reload,
             disabled = @busy_service_reload
           )
           menuitem(
-            label = "{t('service.rebuild')}",
+            label = t("service.rebuild"),
             on_click = service_rebuild,
             disabled = @busy_service_rebuild
           )
           menuitem(
-            label = "{t('service.warm')}",
+            label = t("service.warm"),
             on_click = service_warm,
             disabled = @busy_service_warm,
-            if = @service_warm_visible,
-            equals = true,
+            if = @service_warm_visible == "true",
           )
           menuseparator
           menuitem(
-            label = "{t('service.export_service')}",
+            label = t("service.export_service"),
             on_click = open_export_window,
             disabled = @busy_open_export_window
           )
         }
 
         button(
-          "{t('service.stop')}",
+          t("service.stop"),
           class = "btn btn--danger",
           on_click = service_stop,
           disabled = @busy_service_stop
@@ -328,35 +322,35 @@ component {
     scroll(class = tabs__scroll, direction = horizontal) {
       row(class = tabs__main) {
         TabButton(
-          label = "{t('service.general')}",
+          label = t("service.general"),
           current = @tab,
           target = general,
           action = tab:general,
         )
 
         TabButton(
-          label = "{t('service.connection')}",
+          label = t("service.connection"),
           current = @tab,
           target = connection,
           action = tab:connection,
         )
 
         TabButton(
-          label = "{t('service.environment')}",
+          label = t("service.environment"),
           current = @tab,
           target = environment,
           action = tab:environment,
         )
 
         TabButton(
-          label = "{t('service.domains')}",
+          label = t("service.domains"),
           current = @tab,
           target = domains,
           action = tab:domains,
         )
 
         TabButton(
-          label = "{t('common.deployments')}",
+          label = t("common.deployments"),
           current = @tab,
           target = deployments,
           action = tab:deployments,
@@ -364,7 +358,7 @@ component {
 
         if @service_shared == "true" {
           TabButton(
-            label = "{t('service.databases')}",
+            label = t("service.databases"),
             current = @tab,
             target = databases,
             action = tab:databases,
@@ -373,7 +367,7 @@ component {
 
         if @service_can_migrate == "true" {
           TabButton(
-            label = "{t('common.migrate')}",
+            label = t("common.migrate"),
             current = @tab,
             target = migrar,
             action = tab:migrar,
@@ -381,28 +375,28 @@ component {
         }
 
         TabButton(
-          label = "{t('dados.tab')}",
+          label = t("dados.tab"),
           current = @tab,
           target = dados,
           action = tab:dados,
         )
 
         TabButton(
-          label = "{t('service.healthcheck')}",
+          label = t("service.healthcheck"),
           current = @tab,
           target = healthcheck,
           action = tab:healthcheck,
         )
 
         TabButton(
-          label = "{t('service.logs')}",
+          label = t("service.logs"),
           current = @tab,
           target = logs,
           action = tab:logs,
         )
 
         TabButton(
-          label = "{t('service.advanced')}",
+          label = t("service.advanced"),
           current = @tab,
           target = advanced,
           action = tab:advanced,
@@ -417,47 +411,46 @@ component {
       column(class = service__main) {
         text(
           "@service_error",
-          if = @service_error,
-          not_equals = "",
+          if = @service_error != "",
           class = service__err,
         )
-        ServiceGeneralTab(if = @tab, equals = general)
-        ServiceConnectionTab(if = @tab, equals = connection)
-        ServiceEnvironmentTab(if = @tab, equals = environment)
-        ServiceDomainsTab(if = @tab, equals = domains)
-        ServiceMigrarTab(if = @tab, equals = migrar)
-        ServiceDadosTab(if = @tab, equals = dados)
-        ServiceDatabasesTab(if = @tab, equals = databases)
-        ServiceDeploymentsTab(if = @tab, equals = deployments)
-        ServiceHealthcheckTab(if = @tab, equals = healthcheck)
-        ServiceLogsTab(if = @tab, equals = logs)
-        ServiceAdvancedTab(if = @tab, equals = advanced)
+        ServiceGeneralTab(if = @tab == "general")
+        ServiceConnectionTab(if = @tab == "connection")
+        ServiceEnvironmentTab(if = @tab == "environment")
+        ServiceDomainsTab(if = @tab == "domains")
+        ServiceMigrarTab(if = @tab == "migrar")
+        ServiceDadosTab(if = @tab == "dados")
+        ServiceDatabasesTab(if = @tab == "databases")
+        ServiceDeploymentsTab(if = @tab == "deployments")
+        ServiceHealthcheckTab(if = @tab == "healthcheck")
+        ServiceLogsTab(if = @tab == "logs")
+        ServiceAdvancedTab(if = @tab == "advanced")
       }
 
       column(class = service__aside) {
         column(class = aside-panel) {
-          text("{t('common.status')}", class = u-label-cap)
+          text(t("common.status"), class = u-label-cap)
           rp-badge(
             color = @service_status_color,
             label = @service_status_label
           )
-          text("{t('common.uptime')}", class = u-label-cap)
+          text(t("common.uptime"), class = u-label-cap)
           text("@daemon_uptime", class = kv-list__val)
-          text("{t('common.services')}", class = u-label-cap)
+          text(t("common.services"), class = u-label-cap)
           text("@services_label", class = kv-list__val)
         }
 
         column(class = "aside-panel aside-panel--fill") {
-          text("{t('service.logs_2')}", class = u-label-cap)
+          text(t("service.logs_2"), class = u-label-cap)
 
           text(
-            "{t('service.runtime_and_build_logs_open')}",
+            t("service.runtime_and_build_logs_open"),
             class = u-muted,
           )
 
           row(class = env__add) {
             button(
-              "{t('service.runtime_logs')}",
+              t("service.runtime_logs"),
               class = tabs__tab,
               on_click = open_logs_window,
               disabled = @busy_open_logs_window

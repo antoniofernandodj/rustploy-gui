@@ -1,15 +1,15 @@
 component {
   resources {
     component(name = SemDependencias) {
-      text("{t('advanced.no_dependencies')}", class = u-muted)
+      text(t("advanced.no_dependencies"), class = u-muted)
     }
 
     component(name = SemVinculos) {
-      text("{t('advanced.no_links')}", class = u-muted)
+      text(t("advanced.no_links"), class = u-muted)
     }
 
     component(name = SemConsumidores) {
-      text("{t('advanced.no_consumers')}", class = u-muted)
+      text(t("advanced.no_consumers"), class = u-muted)
     }
   }
 
@@ -24,7 +24,7 @@ component {
         on_submit = advanced_save,
         class = form-panel
       ) {
-        field(label = "{t('advanced.replicas')}", label_class = u-label-cap) {
+        field(label = t("advanced.replicas"), label_class = u-label-cap) {
           spinbox(
             field_class = field__spin,
             form_control = service_form_replicas,
@@ -37,7 +37,7 @@ component {
         }
 
         field(
-          label = "{t('advanced.run_command')}",
+          label = t("advanced.run_command"),
           label_class = u-label-cap
         ) {
           input(
@@ -45,37 +45,36 @@ component {
             form_control = service_form_run_command,
             :value = service_form_run_command,
             on_change = field:service_form_run_command,
-            placeholder = "{t('advanced.image_default')}",
+            placeholder = t("advanced.image_default"),
           )
         }
 
         text(
-          "{t('advanced.current_run_args',
-            service_run_args=service_run_args)}",
+          t("advanced.current_run_args", service_run_args = service_run_args),
           class = u-muted
         )
 
         toggle(
           :checked = service_form_autostart,
           on_toggle = field:service_form_autostart,
-          label = "{t('advanced.autostart')}",
+          label = t("advanced.autostart"),
         )
 
-        text("{t('advanced.autostart_hint')}", class = u-muted)
+        text(t("advanced.autostart_hint"), class = u-muted)
 
         if @service_source_kind == "Registry" {
           toggle(
             :checked = service_form_registry_auto_deploy,
             on_toggle = field:service_form_registry_auto_deploy,
-            label = "{t('advanced.registry_auto_deploy')}",
+            label = t("advanced.registry_auto_deploy"),
           )
 
-          text("{t('advanced.registry_auto_deploy_hint')}", class = u-muted)
+          text(t("advanced.registry_auto_deploy_hint"), class = u-muted)
         }
 
         row(class = env__add) {
           button(
-            "{t('common.save_2')}",
+            t("common.save_2"),
             class = "btn btn--primary",
             type = submit,
             disabled = @busy_advanced_save
@@ -86,12 +85,11 @@ component {
 
       column(class = form-panel) {
         text(
-          "{t('advanced.depends_on',
-            service_dependencies_count=service_dependencies_count)}",
+          t("advanced.depends_on", service_dependencies_count = service_dependencies_count),
           class = u-label-cap,
         )
 
-        text("{t('advanced.depends_on_hint')}", class = u-muted)
+        text(t("advanced.depends_on_hint"), class = u-muted)
 
         column(class = kv-list, height = shrink) {
           each @service_dependencies as d (fallback = SemDependencias) {
@@ -99,7 +97,7 @@ component {
               button(
                 "✕",
                 class = env__del,
-                on_click = dependency_delete:@d.id,
+                on_click = dependency_delete(@d.id),
                 disabled = @busy_dependency_delete
               )
 
@@ -111,7 +109,7 @@ component {
         }
 
         field(
-          label = "{t('advanced.add_dependency')}",
+          label = t("advanced.add_dependency"),
           label_class = u-label-cap
         ) {
           select(
@@ -119,7 +117,7 @@ component {
             :options = service_dependency_options,
             :value = service_form_dependency_add_id,
             on_change = field:service_form_dependency_add_id,
-            placeholder = "{t('advanced.choose_service')}",
+            placeholder = t("advanced.choose_service"),
             label_field = name,
             value_field = id,
           )
@@ -128,18 +126,16 @@ component {
         // Sem serviço escolhido (valor nulo do select) o botão fica travado.
         row(class = env__add) {
           button(
-            "{t('advanced.add_dependency_button')}",
+            t("advanced.add_dependency_button"),
             class = "btn btn--primary",
-            if = @service_form_dependency_add_id,
-            equals = "",
+            if = @service_form_dependency_add_id == "",
             disabled = true
           )
 
           button(
-            "{t('advanced.add_dependency_button')}",
+            t("advanced.add_dependency_button"),
             class = "btn btn--primary",
-            if = @service_form_dependency_add_id,
-            not_equals = "",
+            if = @service_form_dependency_add_id != "",
             on_click = dependency_add,
             disabled = @busy_dependency_add
           )
@@ -149,11 +145,11 @@ component {
       // Vínculos: os serviços que este USA (docs/plano-recursos-e-vinculos.md).
       column(class = form-panel) {
         text(
-          "{t('advanced.links', service_links_count=service_links_count)}",
+          t("advanced.links", service_links_count = service_links_count),
           class = u-label-cap,
         )
 
-        text("{t('advanced.links_hint')}", class = u-muted)
+        text(t("advanced.links_hint"), class = u-muted)
 
         column(class = kv-list, height = shrink) {
           each @service_links as l (fallback = SemVinculos) {
@@ -161,7 +157,7 @@ component {
               button(
                 "✕",
                 class = env__del,
-                on_click = link_delete:@l.id,
+                on_click = link_delete(@l.id),
                 disabled = @busy_link_delete
               )
 
@@ -171,106 +167,105 @@ component {
               column(width = fill) {
                 text("@l.name", class = "kv-list__val kv-list__val--compact")
                 text("@l.vars", class = u-muted)
-                text("@l.warning", class = link-warning, if = @l.warning, not_equals = "")
+                text("@l.warning", class = link-warning, if = @l.warning != "")
               }
 
               button(
-                "{t('advanced.link_edit')}",
+                t("advanced.link_edit"),
                 class = "btn btn--ghost btn--xs",
-                on_click = link_edit:@l.id
+                on_click = link_edit(@l.id)
               )
             }
           }
         }
 
         // Editando um vínculo: no lugar do seletor, o nome do serviço e o Cancelar.
-        row(class = env__add, if = @service_form_link_editing, not_equals = "") {
+        row(class = env__add, if = @service_form_link_editing != "") {
           text(
-            "{t('advanced.link_editing', name=service_form_link_editing_name)}",
+            t("advanced.link_editing", name = service_form_link_editing_name),
             class = u-label-cap,
           )
 
           button(
-            "{t('common.cancel')}",
+            t("common.cancel"),
             class = "btn btn--ghost btn--xs",
             on_click = link_edit_cancel
           )
         }
 
         field(
-          label = "{t('advanced.add_link')}",
+          label = t("advanced.add_link"),
           label_class = u-label-cap,
-          if = @service_form_link_editing,
-          equals = ""
+          if = @service_form_link_editing == ""
         ) {
           select(
             class = form-select,
             :options = service_link_options,
             :value = service_form_link_add_id,
             on_change = link_target_pick,
-            placeholder = "{t('advanced.choose_service')}",
+            placeholder = t("advanced.choose_service"),
             label_field = name,
             value_field = id,
           )
         }
 
         field(
-          label = "{t('advanced.link_prefix')}",
+          label = t("advanced.link_prefix"),
           label_class = u-label-cap
         ) {
           input(
             class = field__input,
             :value = service_form_link_prefix,
-            on_change = link_form_field:service_form_link_prefix,
-            placeholder = "{t('advanced.link_prefix_placeholder')}",
+            on_change = link_form_field("service_form_link_prefix"),
+            placeholder = t("advanced.link_prefix_placeholder"),
           )
         }
 
         // Recurso: só o campo do tipo do serviço escolhido (bucket num S3,
         // database num banco); nenhum nos outros.
-        column(class = link-resource, if = @service_form_link_add_kind, equals = "bucket") {
+        column(class = link-resource, if = @service_form_link_add_kind == "bucket") {
           field(
-            label = "{t('advanced.link_bucket')}",
+            label = t("advanced.link_bucket"),
             label_class = u-label-cap
           ) {
             input(
               class = field__input,
               :value = service_form_link_resource,
               on_change = field:service_form_link_resource,
-              placeholder = "{t('advanced.link_bucket_placeholder')}",
+              placeholder = t("advanced.link_bucket_placeholder"),
             )
           }
 
           toggle(
             :checked = service_form_link_public_read,
             on_toggle = field:service_form_link_public_read,
-            label = "{t('advanced.link_public_read')}",
+            label = t("advanced.link_public_read"),
           )
 
-          text("{t('advanced.link_bucket_hint')}", class = u-muted)
+          text(t("advanced.link_bucket_hint"), class = u-muted)
         }
 
-        column(class = link-resource, if = @service_form_link_add_kind, equals = "database") {
+        column(class = link-resource, if = @service_form_link_add_kind == "database") {
           field(
-            label = "{t('advanced.link_database')}",
+            label = t("advanced.link_database"),
             label_class = u-label-cap
           ) {
             input(
               class = field__input,
               :value = service_form_link_resource,
               on_change = field:service_form_link_resource,
-              placeholder = "{t('advanced.link_database_placeholder')}",
+              placeholder = t("advanced.link_database_placeholder"),
             )
           }
 
-          text("{t('advanced.link_database_hint')}", class = u-muted)
+          text(t("advanced.link_database_hint"), class = u-muted)
         }
 
         // Nomes das variáveis (docs/arquivo/plano-nomes-das-variaveis-do-vinculo.md): em
         // branco vale o padrão; desligar "Entregar" não entrega.
-        column(class = link-resource, if = @service_form_link_add_id, not_equals = "") {
-          text("{t('advanced.link_names')}", class = u-label-cap)
-          text("{t('advanced.link_names_hint')}", class = u-muted)
+        column(class = link-resource, if = @service_form_link_add_id != "") {
+          text(t("advanced.link_names"), class = u-label-cap)
+          text(t("advanced.link_names_hint"), class = u-muted)
 
           row(class = link-name) {
             text("HOST", class = link-name__suffix)
@@ -278,22 +273,21 @@ component {
             input(
               class = field__input,
               :value = service_form_link_name_host,
-              on_change = link_form_field:service_form_link_name_host,
+              on_change = link_form_field("service_form_link_name_host"),
               placeholder = @service_form_link_placeholder_host,
             )
 
             toggle(
               :checked = service_form_link_deliver_host,
-              on_toggle = link_form_field:service_form_link_deliver_host,
-              label = "{t('advanced.link_deliver')}",
+              on_toggle = link_form_field("service_form_link_deliver_host"),
+              label = t("advanced.link_deliver"),
             )
           }
 
           text(
             "@service_form_link_warning_host",
             class = link-warning,
-            if = @service_form_link_warning_host,
-            not_equals = ""
+            if = @service_form_link_warning_host != ""
           )
 
           row(class = link-name) {
@@ -302,22 +296,21 @@ component {
             input(
               class = field__input,
               :value = service_form_link_name_port,
-              on_change = link_form_field:service_form_link_name_port,
+              on_change = link_form_field("service_form_link_name_port"),
               placeholder = @service_form_link_placeholder_port,
             )
 
             toggle(
               :checked = service_form_link_deliver_port,
-              on_toggle = link_form_field:service_form_link_deliver_port,
-              label = "{t('advanced.link_deliver')}",
+              on_toggle = link_form_field("service_form_link_deliver_port"),
+              label = t("advanced.link_deliver"),
             )
           }
 
           text(
             "@service_form_link_warning_port",
             class = link-warning,
-            if = @service_form_link_warning_port,
-            not_equals = ""
+            if = @service_form_link_warning_port != ""
           )
 
           row(class = link-name) {
@@ -326,101 +319,96 @@ component {
             input(
               class = field__input,
               :value = service_form_link_name_url,
-              on_change = link_form_field:service_form_link_name_url,
+              on_change = link_form_field("service_form_link_name_url"),
               placeholder = @service_form_link_placeholder_url,
             )
 
             toggle(
               :checked = service_form_link_deliver_url,
-              on_toggle = link_form_field:service_form_link_deliver_url,
-              label = "{t('advanced.link_deliver')}",
+              on_toggle = link_form_field("service_form_link_deliver_url"),
+              label = t("advanced.link_deliver"),
             )
           }
 
           text(
             "@service_form_link_warning_url",
             class = link-warning,
-            if = @service_form_link_warning_url,
-            not_equals = ""
+            if = @service_form_link_warning_url != ""
           )
 
-          column(class = link-resource, if = @service_form_link_add_kind, equals = "bucket") {
+          column(class = link-resource, if = @service_form_link_add_kind == "bucket") {
             row(class = link-name) {
               text("BUCKET", class = link-name__suffix)
 
               input(
                 class = field__input,
                 :value = service_form_link_name_bucket,
-                on_change = link_form_field:service_form_link_name_bucket,
+                on_change = link_form_field("service_form_link_name_bucket"),
                 placeholder = @service_form_link_placeholder_bucket,
               )
 
               toggle(
                 :checked = service_form_link_deliver_bucket,
-                on_toggle = link_form_field:service_form_link_deliver_bucket,
-                label = "{t('advanced.link_deliver')}",
+                on_toggle = link_form_field("service_form_link_deliver_bucket"),
+                label = t("advanced.link_deliver"),
               )
             }
 
             text(
               "@service_form_link_warning_bucket",
               class = link-warning,
-              if = @service_form_link_warning_bucket,
-              not_equals = ""
+              if = @service_form_link_warning_bucket != ""
             )
 
           }
 
-          column(class = link-resource, if = @service_form_link_add_kind, equals = "database") {
+          column(class = link-resource, if = @service_form_link_add_kind == "database") {
             row(class = link-name) {
               text("DATABASE", class = link-name__suffix)
 
               input(
                 class = field__input,
                 :value = service_form_link_name_database,
-                on_change = link_form_field:service_form_link_name_database,
+                on_change = link_form_field("service_form_link_name_database"),
                 placeholder = @service_form_link_placeholder_database,
               )
 
               toggle(
                 :checked = service_form_link_deliver_database,
-                on_toggle = link_form_field:service_form_link_deliver_database,
-                label = "{t('advanced.link_deliver')}",
+                on_toggle = link_form_field("service_form_link_deliver_database"),
+                label = t("advanced.link_deliver"),
               )
             }
 
             text(
               "@service_form_link_warning_database",
               class = link-warning,
-              if = @service_form_link_warning_database,
-              not_equals = ""
+              if = @service_form_link_warning_database != ""
             )
 
           }
         }
 
-        row(class = env__add, if = @service_form_link_editing, equals = "") {
+        row(class = env__add, if = @service_form_link_editing == "") {
           button(
-            "{t('advanced.add_link_button')}",
+            t("advanced.add_link_button"),
             class = "btn btn--primary",
-            if = @service_form_link_add_id,
-            equals = "",
+            if = @service_form_link_add_id == "",
             disabled = true
           )
 
           button(
-            "{t('advanced.add_link_button')}",
+            t("advanced.add_link_button"),
             class = "btn btn--primary",
-            if = @service_form_link_add_id,
-            not_equals = "",
+            if = @service_form_link_add_id != "",
             on_click = link_add,
             disabled = @busy_link_add
           )
         }
 
-        row(class = env__add, if = @service_form_link_editing, not_equals = "") {
+        row(class = env__add, if = @service_form_link_editing != "") {
           button(
-            "{t('advanced.link_save')}",
+            t("advanced.link_save"),
             class = "btn btn--primary",
             on_click = link_add,
             disabled = @busy_link_add
@@ -431,12 +419,11 @@ component {
       // Quem usa este serviço: a mesma edição, do lado de quem é usado.
       column(class = form-panel) {
         text(
-          "{t('advanced.consumers',
-            service_consumers_count=service_consumers_count)}",
+          t("advanced.consumers", service_consumers_count = service_consumers_count),
           class = u-label-cap,
         )
 
-        text("{t('advanced.consumers_hint')}", class = u-muted)
+        text(t("advanced.consumers_hint"), class = u-muted)
 
         column(class = kv-list, height = shrink) {
           each @service_consumers as c (fallback = SemConsumidores) {
@@ -444,7 +431,7 @@ component {
               button(
                 "✕",
                 class = env__del,
-                on_click = consumer_delete:@c.id,
+                on_click = consumer_delete(@c.id),
                 disabled = @busy_consumer_delete
               )
 
@@ -455,7 +442,7 @@ component {
         }
 
         field(
-          label = "{t('advanced.add_consumer')}",
+          label = t("advanced.add_consumer"),
           label_class = u-label-cap
         ) {
           select(
@@ -463,7 +450,7 @@ component {
             :options = service_consumer_options,
             :value = service_form_consumer_add_id,
             on_change = field:service_form_consumer_add_id,
-            placeholder = "{t('advanced.choose_service')}",
+            placeholder = t("advanced.choose_service"),
             label_field = name,
             value_field = id,
           )
@@ -471,18 +458,16 @@ component {
 
         row(class = env__add) {
           button(
-            "{t('advanced.add_consumer_button')}",
+            t("advanced.add_consumer_button"),
             class = "btn btn--primary",
-            if = @service_form_consumer_add_id,
-            equals = "",
+            if = @service_form_consumer_add_id == "",
             disabled = true
           )
 
           button(
-            "{t('advanced.add_consumer_button')}",
+            t("advanced.add_consumer_button"),
             class = "btn btn--primary",
-            if = @service_form_consumer_add_id,
-            not_equals = "",
+            if = @service_form_consumer_add_id != "",
             on_click = consumer_add,
             disabled = @busy_consumer_add
           )
@@ -491,35 +476,28 @@ component {
         if @service_is_shared_server == "true" {
           toggle(
             :checked = service_form_accept_links,
-            on_toggle = accept_links_toggle:shared,
-            label = "{t('advanced.accept_links')}",
+            on_toggle = accept_links_toggle("shared"),
+            label = t("advanced.accept_links"),
           )
 
-          text("{t('advanced.accept_links_hint')}", class = u-muted)
+          text(t("advanced.accept_links_hint"), class = u-muted)
         }
       }
 
       column(class = form-panel) {
         text(
-          "{t('advanced.pre_deploy_queue',
-            pre_deploy_checks_count=pre_deploy_checks_count)}",
+          t("advanced.pre_deploy_queue", pre_deploy_checks_count = pre_deploy_checks_count),
           class = u-label-cap,
         )
 
         text(
-          "{t('advanced.runs_these_jobs_in_order_before')}",
+          t("advanced.runs_these_jobs_in_order_before"),
           class = u-muted,
         )
 
         scrollable(direction = vertical, class = u-fill-all) {
           column(class = kv-list, height = shrink) {
-            template(
-              :for_each = pre_deploy_checks,
-              foreach_fallback = SemChecks,
-              var = c,
-              on_reorder = pre_deploy_check_reorder,
-              reorder_key = id,
-            ) {
+            each @pre_deploy_checks as c (foreach_fallback = SemChecks, on_reorder = pre_deploy_check_reorder, key = id) {
               if @c.__dragging == "true" {
                 row(class = "kv-list__row kv-list__row--dragging") {
                   text(
@@ -531,7 +509,7 @@ component {
                   button(
                     "✕",
                     class = env__del,
-                    on_click = pre_deploy_check_delete:@c.id,
+                    on_click = pre_deploy_check_delete(@c.id),
                     disabled = @busy_pre_deploy_check_delete
                   )
 
@@ -550,7 +528,7 @@ component {
                   button(
                     "✕",
                     class = env__del,
-                    on_click = pre_deploy_check_delete:@c.id,
+                    on_click = pre_deploy_check_delete(@c.id),
                     disabled = @busy_pre_deploy_check_delete
                   )
 
@@ -564,7 +542,7 @@ component {
         }
 
         field(
-          label = "{t('advanced.add_to_the_queue')}",
+          label = t("advanced.add_to_the_queue"),
           label_class = u-label-cap
         ) {
           select(
@@ -572,7 +550,7 @@ component {
             :options = pre_deploy_available_jobs,
             :value = service_form_pre_deploy_check_add_job_id,
             on_change = field:service_form_pre_deploy_check_add_job_id,
-            placeholder = "{t('advanced.choose_job')}",
+            placeholder = t("advanced.choose_job"),
             label_field = name,
             value_field = id,
           )
@@ -580,18 +558,16 @@ component {
 
         row(class = env__add) {
           button(
-            "{t('advanced.add_to_the_queue_2')}",
+            t("advanced.add_to_the_queue_2"),
             class = "btn btn--primary",
-            if = @service_form_pre_deploy_check_add_job_id,
-            equals = "",
+            if = @service_form_pre_deploy_check_add_job_id == "",
             disabled = true
           )
 
           button(
-            "{t('advanced.add_to_the_queue_2')}",
+            t("advanced.add_to_the_queue_2"),
             class = "btn btn--primary",
-            if = @service_form_pre_deploy_check_add_job_id,
-            not_equals = "",
+            if = @service_form_pre_deploy_check_add_job_id != "",
             on_click = pre_deploy_check_add,
             disabled = @busy_pre_deploy_check_add
           )

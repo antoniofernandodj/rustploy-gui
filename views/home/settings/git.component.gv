@@ -2,23 +2,19 @@
 component {
   resources {
     component(name = SemContasGit) {
-      text("{t('settings_git.no_git_account_connected_yet')}", class = u-muted)
+      text(t("settings_git.no_git_account_connected_yet"), class = u-muted)
     }
   }
 
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
       text(
-        "{t('settings_git.connected_accounts', gitea_count=gitea_count)}",
+        t("settings_git.connected_accounts", gitea_count = gitea_count),
         class = u-label-cap,
       )
 
       column(class = kv-list) {
-        template(
-          :for_each = gitea_providers,
-          var = p,
-          foreach_fallback = SemContasGit,
-        ) {
+        each @gitea_providers as p (foreach_fallback = SemContasGit) {
           row(class = kv-list__row) {
             column(class = page-head__titles) {
               text("@p.name", class = env__key)
@@ -30,9 +26,9 @@ component {
             }
 
             button(
-              "{t('common.remove')}",
+              t("common.remove"),
               class = "btn btn--danger",
-              on_click = git_provider_delete:@p.id,
+              on_click = git_provider_delete(@p.id),
               disabled = @busy_git_provider_delete
             )
           }
@@ -43,20 +39,20 @@ component {
       // Tipo de provedor: Gitea ou GitHub. Troca a redirect URI (path por
       // provedor) e os textos de ajuda abaixo.
       field(
-        label = "{t('settings_git.connect_git_account')}",
+        label = t("settings_git.connect_git_account"),
         label_class = u-label-cap
       ) {
         scroll(class = tabs__scroll, direction = horizontal) {
           row(class = tabs__main) {
             TabButton(
-              label = "{t('settings_git.gitea')}",
+              label = t("settings_git.gitea"),
               current = @git_provider_kind,
               target = gitea,
               action = git_provider_kind:gitea,
             )
 
             TabButton(
-              label = "{t('settings_git.github')}",
+              label = t("settings_git.github"),
               current = @git_provider_kind,
               target = github,
               action = git_provider_kind:github,
@@ -67,15 +63,13 @@ component {
 
       text(
         "@git_provider_message",
-        if = @git_provider_message,
-        not_equals = "",
+        if = @git_provider_message != "",
         class = u-muted,
       )
 
       button(
-        "{t('settings_git.open_authorization_in_the_browser')}",
-        if = @git_provider_oauth_url,
-        not_equals = "",
+        t("settings_git.open_authorization_in_the_browser"),
+        if = @git_provider_oauth_url != "",
         class = "btn btn--primary",
         on_click = open:git_provider_oauth_url
       )
@@ -89,12 +83,12 @@ component {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
             field(
-              label = "{t('common.name')}",
+              label = t("common.name"),
               label_class = u-label-cap,
               error = @error_git_provider_name
             ) {
               input(
-                placeholder = "{t('settings_git.my_gitea')}",
+                placeholder = t("settings_git.my_gitea"),
                 class = field__input,
                 form_control = git_provider_name,
                 :value = git_provider_name,
@@ -105,11 +99,11 @@ component {
 
           column(class = healthcheck__field) {
             field(
-              label = "{t('settings_git.base_url')}",
+              label = t("settings_git.base_url"),
               label_class = u-label-cap
             ) {
               input(
-                placeholder = "{t('settings_git.https_gitea_example_com')}",
+                placeholder = t("settings_git.https_gitea_example_com"),
                 class = field__input,
                 form_control = git_provider_base_url,
                 :value = git_provider_base_url,
@@ -118,16 +112,15 @@ component {
             }
 
             text(
-              "{t('settings_git.leave_empty_for_github_com_only')}",
-              if = @git_provider_kind,
-              equals = github,
+              t("settings_git.leave_empty_for_github_com_only"),
+              if = @git_provider_kind == "github",
               class = u-muted,
             )
           }
         }
 
         field(
-          label = "{t('settings_git.method')}",
+          label = t("settings_git.method"),
           label_class = u-label-cap
         ) {
           scroll(class = tabs__scroll, direction = horizontal) {
@@ -147,7 +140,7 @@ component {
         // OAuth2
         if @git_provider_mode != "pat" {
           field(
-            label = "{t('settings_git.client_id')}",
+            label = t("settings_git.client_id"),
             label_class = u-label-cap
           ) {
             input(
@@ -160,7 +153,7 @@ component {
           }
 
           field(
-            label = "{t('settings_git.client_secret')}",
+            label = t("settings_git.client_secret"),
             label_class = u-label-cap
           ) {
             input(
@@ -174,30 +167,28 @@ component {
           }
 
           text(
-            "{t('settings_git.redirect_uri_paste_into_the')}",
+            t("settings_git.redirect_uri_paste_into_the"),
             class = u-label-cap,
           )
 
           // o valor num campo só de leitura, com o Copiar colado (inputgroup,
           // glacier-ui 0.164)
           inputgroup(
-            action = "{t('common.copy')}",
-            on_action = "copy_ctx:git_provider_redirect"
+            action = t("common.copy"),
+            on_action = copy_ctx("git_provider_redirect")
           ) {
             input(:value = git_provider_redirect, readonly = true)
           }
 
           text(
-            "{t('settings_git.on_gitea_settings_applications_create_an')}",
-            if = @git_provider_kind,
-            not_equals = github,
+            t("settings_git.on_gitea_settings_applications_create_an"),
+            if = @git_provider_kind != "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.on_github_settings_developer_settings_oauth')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.on_github_settings_developer_settings_oauth"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
         }
@@ -205,7 +196,7 @@ component {
         // PAT
         if @git_provider_mode == "pat" {
           field(
-            label = "{t('settings_git.personal_access_token')}",
+            label = t("settings_git.personal_access_token"),
             label_class = u-label-cap
           ) {
             input(
@@ -219,65 +210,58 @@ component {
           }
 
           text(
-            "{t('settings_git.on_gitea_settings_applications_generate_new')}",
-            if = @git_provider_kind,
-            not_equals = github,
+            t("settings_git.on_gitea_settings_applications_generate_new"),
+            if = @git_provider_kind != "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.on_github_developer_settings_personal')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.on_github_developer_settings_personal"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.github_pat_repository_access')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.github_pat_repository_access"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.github_pat_required_permissions')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.github_pat_required_permissions"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.github_pat_future_permissions')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.github_pat_future_permissions"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.github_pat_avoid_permissions')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.github_pat_avoid_permissions"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
 
           text(
-            "{t('settings_git.github_pat_classic_alternative')}",
-            if = @git_provider_kind,
-            equals = github,
+            t("settings_git.github_pat_classic_alternative"),
+            if = @git_provider_kind == "github",
             class = u-muted,
           )
         }
 
         row(class = env__add) {
           button(
-            "{t('settings_git.connect_account')}",
+            t("settings_git.connect_account"),
             class = "btn btn--primary",
             type = submit,
             disabled = @busy_git_provider_connect
           )
 
           button(
-            "{t('settings_git.refresh_list')}",
+            t("settings_git.refresh_list"),
             class = tabs__tab,
             on_click = git_provider_refresh,
             disabled = @busy_git_provider_refresh

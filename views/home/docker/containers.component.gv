@@ -3,20 +3,19 @@
 component {
   resources {
     component(name = SemContainersDocker) {
-      text("{t('docker_containers.no_containers')}", class = u-muted)
+      text(t("docker_containers.no_containers"), class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__head) {
       text(
-        "{t('docker_containers.container_s',
-          docker_containers_count=docker_containers_count)}",
+        t("docker_containers.container_s", docker_containers_count = docker_containers_count),
         class = "u-muted u-fill",
       )
 
       button(
-        "{t('docker_containers.clean_stopped')}",
+        t("docker_containers.clean_stopped"),
         class = "btn btn--danger",
         on_click = docker_prune_containers,
         disabled = @busy_docker_prune_containers
@@ -25,8 +24,7 @@ component {
 
     text(
       "@docker_message",
-      if = @docker_message,
-      not_equals = "",
+      if = @docker_message != "",
       class = u-muted,
     )
 
@@ -40,7 +38,7 @@ component {
     ) {
       tablecolumn(
         key = name,
-        label = "{t('common.name')}",
+        label = t("common.name"),
         class = table__col-svc
       ) {
         text(
@@ -51,13 +49,13 @@ component {
 
       tablecolumn(
         key = image,
-        label = "{t('docker_containers.image')}",
+        label = t("docker_containers.image"),
         class = table__col-img
       )
 
       tablecolumn(
         key = owner,
-        label = "{t('docker_containers.owner')}",
+        label = t("docker_containers.owner"),
         class = table__col-state
       ) {
         text(
@@ -68,7 +66,7 @@ component {
 
       tablecolumn(
         key = state_label,
-        label = "{t('common.state')}",
+        label = t("common.state"),
         class = table__col-state
       ) {
         StateCell(
@@ -78,24 +76,22 @@ component {
       }
 
       tablecolumn(
-        label = "{t('common.action')}", class = table__col-act) {
+        label = t("common.action"), class = table__col-act) {
         // Só o container órfão ("removido no git") que
         // ainda roda: para-se aqui e depois remove-se.
         button(
-          "{t('docker_containers.stop')}",
-          if = @c.can_stop,
-          equals = 1,
+          t("docker_containers.stop"),
+          if = @c.can_stop == "1",
           class = "btn btn--danger btn--xs",
-          on_click = docker_stop_container:@c.id_full,
+          on_click = docker_stop_container(@c.id_full),
           disabled = @busy_docker_stop_container
         )
 
         button(
-          "{t('common.remove')}",
-          if = @c.can_remove,
-          equals = 1,
+          t("common.remove"),
+          if = @c.can_remove == "1",
           class = "btn btn--danger btn--xs",
-          on_click = docker_remove_container:@c.id_full,
+          on_click = docker_remove_container(@c.id_full),
           disabled = @busy_docker_remove_container
         )
       }

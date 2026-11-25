@@ -8,31 +8,29 @@ component {
     column(class = form-stack) {
       column(class = "form-panel form-panel--grouped") {
         column(class = form-panel__head) {
-          text("{t('settings_backups.s3_destination')}", class = u-label-cap)
-          text("{t('settings_backups.destination_hint')}", class = u-muted)
+          text(t("settings_backups.s3_destination"), class = u-label-cap)
+          text(t("settings_backups.destination_hint"), class = u-muted)
         }
 
         text(
-          "{t('settings_backups.no_recovery_recipient')}",
-          if = @backup_destination_recovery_missing,
-          equals = true,
+          t("settings_backups.no_recovery_recipient"),
+          if = @backup_destination_recovery_missing == "true",
           class = u-error,
         )
 
         row(
           class = form-panel__actions,
-          if = @backup_destination_recovery_missing,
-          equals = true
+          if = @backup_destination_recovery_missing == "true"
         ) {
           button(
-            "{t('settings_recovery_key.generate_key')}",
+            t("settings_recovery_key.generate_key"),
             class = "btn btn--ghost",
             on_click = recovery_key_open
           )
         }
 
         field(
-          label = "{t('settings_backups.endpoint')}",
+          label = t("settings_backups.endpoint"),
           label_class = u-label-cap
         ) {
           input(
@@ -47,7 +45,7 @@ component {
         row(class = healthcheck__grid) {
           column(class = healthcheck__field) {
             field(
-              label = "{t('settings_backups.bucket')}",
+              label = t("settings_backups.bucket"),
               label_class = u-label-cap
             ) {
               input(
@@ -62,7 +60,7 @@ component {
 
           column(class = healthcheck__field) {
             field(
-              label = "{t('settings_backups.region')}",
+              label = t("settings_backups.region"),
               label_class = u-label-cap
             ) {
               input(
@@ -77,7 +75,7 @@ component {
         }
 
         field(
-          label = "{t('settings_backups.folder')}",
+          label = t("settings_backups.folder"),
           label_class = u-label-cap
         ) {
           input(
@@ -89,16 +87,16 @@ component {
           )
         }
 
-        field(description = "{t('settings_backups.path_style_hint')}") {
+        field(description = t("settings_backups.path_style_hint")) {
           toggle(
             :checked = backup_destination_path_style,
             on_toggle = field:backup_destination_path_style,
-            label = "{t('settings_backups.path_style')}",
+            label = t("settings_backups.path_style"),
           )
         }
 
         field(
-          label = "{t('settings_backups.access_key')}",
+          label = t("settings_backups.access_key"),
           label_class = u-label-cap
         ) {
           input(
@@ -111,11 +109,11 @@ component {
         }
 
         field(
-          label = "{t('settings_backups.secret_key')}",
+          label = t("settings_backups.secret_key"),
           label_class = u-label-cap
         ) {
           input(
-            placeholder = "{t('settings_backups.secret_key_placeholder')}",
+            placeholder = t("settings_backups.secret_key_placeholder"),
             secure = true,
             class = field__input,
             form_control = backup_destination_secret_key,
@@ -124,23 +122,22 @@ component {
           )
 
           text(
-            "{t('settings_backups.secret_key_saved')}",
-            if = @backup_destination_secret_set,
-            equals = true,
+            t("settings_backups.secret_key_saved"),
+            if = @backup_destination_secret_set == "true",
             class = u-muted,
           )
         }
 
         row(class = form-panel__actions) {
           button(
-            "{t('common.save')}",
+            t("common.save"),
             class = "btn btn--primary",
             on_click = backup_destination_save,
             disabled = @busy_backup_destination_save
           )
 
           button(
-            "{t('settings_backups.test_connection')}",
+            t("settings_backups.test_connection"),
             class = "btn btn--ghost",
             on_click = backup_destination_test,
             disabled = @busy_backup_destination_test
@@ -148,7 +145,7 @@ component {
 
           if @backup_destination_configured == "true" {
             button(
-              "{t('common.remove')}",
+              t("common.remove"),
               class = "btn btn--danger",
               on_click = backup_destination_clear,
               disabled = @busy_backup_destination_clear

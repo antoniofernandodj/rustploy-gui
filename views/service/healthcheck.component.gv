@@ -3,7 +3,7 @@ component {
   resources {
     component(name = SemChecks) {
       text(
-        "{t('healthcheck.no_check_configured_the_deploy')}",
+        t("healthcheck.no_check_configured_the_deploy"),
         class = u-muted,
       )
     }
@@ -15,7 +15,7 @@ component {
     on_submit = healthcheck_save,
     class = form-panel,
   ) {
-    field(label = "{t('healthcheck.kind')}", label_class = u-label-cap) {
+    field(label = t("healthcheck.kind"), label_class = u-label-cap) {
       scroll(class = tabs__scroll, direction = horizontal) {
         tabbar(
           :value = service_form_healthcheck_kind,
@@ -31,7 +31,7 @@ component {
 
     if @service_form_healthcheck_kind == "http" {
       field(
-        label = "{t('healthcheck.http_path')}",
+        label = t("healthcheck.http_path"),
         label_class = u-label-cap
       ) {
         input(
@@ -39,12 +39,12 @@ component {
           form_control = service_form_healthcheck_path,
           :value = service_form_healthcheck_path,
           on_change = field:service_form_healthcheck_path,
-          placeholder = "{t('healthcheck.health')}",
+          placeholder = t("healthcheck.health"),
         )
       }
 
       field(
-        label = "{t('healthcheck.expected_status')}",
+        label = t("healthcheck.expected_status"),
         label_class = u-label-cap
       ) {
         spinbox(
@@ -62,7 +62,7 @@ component {
     row(class = healthcheck__grid) {
       column(class = healthcheck__field) {
         field(
-          label = "{t('healthcheck.interval_s')}",
+          label = t("healthcheck.interval_s"),
           label_class = u-label-cap
         ) {
           spinbox(
@@ -78,7 +78,7 @@ component {
 
       column(class = healthcheck__field) {
         field(
-          label = "{t('healthcheck.timeout_s')}",
+          label = t("healthcheck.timeout_s"),
           label_class = u-label-cap
         ) {
           spinbox(
@@ -96,7 +96,7 @@ component {
     row(class = healthcheck__grid) {
       column(class = healthcheck__field) {
         field(
-          label = "{t('healthcheck.retries')}",
+          label = t("healthcheck.retries"),
           label_class = u-label-cap
         ) {
           spinbox(
@@ -112,7 +112,7 @@ component {
 
       column(class = healthcheck__field) {
         field(
-          label = "{t('healthcheck.start_period_s')}",
+          label = t("healthcheck.start_period_s"),
           label_class = u-label-cap
         ) {
           spinbox(
@@ -129,7 +129,7 @@ component {
 
     row(class = env__add) {
       button(
-        "{t('common.save_2')}",
+        t("common.save_2"),
         class = "btn btn--primary",
         type = submit,
         disabled = @busy_healthcheck_save

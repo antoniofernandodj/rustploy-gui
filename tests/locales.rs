@@ -30,7 +30,8 @@ fn gv_files(directory: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// Toda chave de `{t('chave'…)}` escrita nas views.
+/// Toda chave de `t("chave"…)` (glacier-ui 0.169) ou `{t('chave'…)}` escrita
+/// nas views.
 fn keys_used_in_views() -> BTreeSet<String> {
     let mut files = Vec::new();
     gv_files(
@@ -40,13 +41,20 @@ fn keys_used_in_views() -> BTreeSet<String> {
     let mut keys = BTreeSet::new();
     for file in files {
         let text = std::fs::read_to_string(&file).expect("ler .gv");
-        let mut rest = text.as_str();
-        while let Some(start) = rest.find("{t('") {
-            let after = &rest[start + 4..];
-            if let Some(end) = after.find('\'') {
-                keys.insert(after[..end].to_string());
+        for (open, close) in [("t('", '\''), ("t(\"", '"')] {
+            let mut from = 0;
+            while let Some(found) = text[from..].find(open) {
+                let start = from + found;
+                from = start + open.len();
+                // `t(` é a função, não o fim de `text(`/`select(`.
+                let before = text[..start].chars().next_back();
+                if before.is_some_and(|c| c.is_alphanumeric() || c == '_') {
+                    continue;
+                }
+                if let Some(end) = text[from..].find(close) {
+                    keys.insert(text[from..from + end].to_string());
+                }
             }
-            rest = &after[1.min(after.len())..];
         }
     }
     keys

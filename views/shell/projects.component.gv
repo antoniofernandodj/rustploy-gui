@@ -2,25 +2,25 @@
 component {
   resources {
     component(name = SemProjetos) {
-      text("{t('common.no_projects_yet')}", class = u-muted)
+      text(t("common.no_projects_yet"), class = u-muted)
     }
   }
 
   column(class = content) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text("{t('projects.projects')}", class = page-head__title)
+        text(t("projects.projects"), class = page-head__title)
 
         text(
-          "{t('projects.projects_of_the_cluster_and')}",
+          t("projects.projects_of_the_cluster_and"),
           class = page-head__subtitle,
         )
       }
 
       row(class = page-head__stats) {
-        StatCard(label = "{t('common.services')}", value = @services_count)
+        StatCard(label = t("common.services"), value = @services_count)
         StatCard(
-          label = "{t('projects.projects_2')}",
+          label = t("projects.projects_2"),
           value = @projects_count,
           accent = 1
         )
@@ -29,7 +29,7 @@ component {
 
     row(class = env__add) {
       button(
-        "{t('projects.new_project')}",
+        t("projects.new_project"),
         class = "btn btn--primary",
         on_click = open_new_project_window,
         disabled = @busy_open_new_project_window
@@ -41,19 +41,14 @@ component {
     }
 
     scrollable(
-      if = @data_loading,
-      not_equals = true,
+      if = @data_loading != "true",
       direction = vertical,
       class = u-fill-all,
     ) {
       column(class = grid) {
-        template(
-          :for_each = project_rows,
-          var = r,
-          foreach_fallback = SemProjetos,
-        ) {
+        each @project_rows as r (foreach_fallback = SemProjetos) {
           row(class = grid__row) {
-            template(:for_each = r.cards, var = c) {
+            each @r.cards as c {
               ProjectCard(spread = @c)
             }
           }

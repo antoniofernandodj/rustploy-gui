@@ -3,10 +3,10 @@
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-panel) {
-      text("{t('settings_language.interface_language')}", class = u-label-cap)
+      text(t("settings_language.interface_language"), class = u-label-cap)
 
       text(
-        "{t('settings_language.choose_the_language_of_the_app')}",
+        t("settings_language.choose_the_language_of_the_app"),
         class = u-muted,
       )
 

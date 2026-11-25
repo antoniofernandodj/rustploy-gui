@@ -4,36 +4,36 @@
 component {
   resources {
     component(name = SemVolumesNaTela) {
-      text("{t('volumes.no_volumes')}", class = u-muted)
+      text(t("volumes.no_volumes"), class = u-muted)
     }
   }
 
   column(width = fill, height = fill, spacing = 12) {
     row(class = page-head) {
       column(class = page-head__titles) {
-        text("{t('shell.volumes')}", class = page-head__title)
-        text("{t('volumes.subtitle')}", class = page-head__subtitle)
-        text("{t('volumes.where_they_come_from')}", class = u-muted)
+        text(t("shell.volumes"), class = page-head__title)
+        text(t("volumes.subtitle"), class = page-head__subtitle)
+        text(t("volumes.where_they_come_from"), class = u-muted)
       }
       row(class = page-head__stats) {
-        StatCard(label = "{t('shell.volumes')}", value = @volumes_count)
+        StatCard(label = t("shell.volumes"), value = @volumes_count)
       }
     }
 
     row(class = env__toolbar) {
       checkbox(
         :checked = volumes_only_orphans,
-        on_toggle = volumes_toggle:volumes_only_orphans,
-        label = "{t('volumes.orphans_only')}",
+        on_toggle = volumes_toggle("volumes_only_orphans"),
+        label = t("volumes.orphans_only"),
       )
       checkbox(
         :checked = volumes_show_anonymous,
-        on_toggle = volumes_toggle:volumes_show_anonymous,
-        label = "{t('volumes.show_anonymous')}",
+        on_toggle = volumes_toggle("volumes_show_anonymous"),
+        label = t("volumes.show_anonymous"),
       )
       column(class = u-fill)
       button(
-        "{t('volumes.refresh')}",
+        t("volumes.refresh"),
         class = "btn btn--ghost btn--sm",
         on_click = volumes_refresh,
         disabled = @busy_volumes_refresh
@@ -42,8 +42,7 @@ component {
 
     // Adotar: escolher o serviço (Application) e o caminho.
     column(
-      if = @volumes_adopt_open,
-      equals = "1",
+      if = @volumes_adopt_open == "1",
       class = route-editor,
     ) {
       text("@volumes_adopt_title", class = u-label-cap)
@@ -53,27 +52,27 @@ component {
           :options = volumes_adopt_service_options,
           :value = volumes_adopt_service,
           on_change = field:volumes_adopt_service,
-          placeholder = "{t('volumes.service')}",
+          placeholder = t("volumes.service"),
           label_field = label,
           value_field = id,
         )
         input(
           :value = volumes_adopt_target,
           on_change = field:volumes_adopt_target,
-          placeholder = "{t('dados.path_in_the_container')}",
+          placeholder = t("dados.path_in_the_container"),
           class = form-input,
         )
       }
       row(class = route-editor__row) {
-        text("{t('volumes.adopt_hint')}", class = "u-muted u-fill")
+        text(t("volumes.adopt_hint"), class = "u-muted u-fill")
         button(
-          "{t('common.cancel')}",
+          t("common.cancel"),
           class = "btn btn--ghost btn--sm",
           on_click = volumes_adopt_cancel,
           disabled = @busy_volumes_adopt_cancel
         )
         button(
-          "{t('dados.mount')}",
+          t("dados.mount"),
           class = "btn btn--primary btn--sm",
           on_click = volumes_adopt_confirm,
           disabled = @busy_volumes_adopt_confirm
@@ -90,45 +89,39 @@ component {
               text("@v.size", class = u-muted)
               text(
                 "@v.status",
-                if = @v.status_kind,
-                equals = "warn",
+                if = @v.status_kind == "warn",
                 class = u-warn,
               )
               text(
                 "@v.status",
-                if = @v.status_kind,
-                equals = "ok",
+                if = @v.status_kind == "ok",
                 class = u-ok,
               )
               text(
                 "@v.status",
-                if = @v.status_kind,
-                equals = "muted",
+                if = @v.status_kind == "muted",
                 class = u-muted,
               )
               text(
                 "@v.backup",
-                if = @v.backup,
-                not_equals = "",
+                if = @v.backup != "",
                 class = environment-badge,
               )
             }
             text("@v.mounts", class = environments__change)
             row(class = environments__actions) {
               button(
-                "{t('volumes.adopt')}",
-                if = @v.can_adopt,
-                equals = "1",
+                t("volumes.adopt"),
+                if = @v.can_adopt == "1",
                 class = "btn btn--ghost btn--xs",
-                on_click = volumes_adopt:@v.name,
+                on_click = volumes_adopt(@v.name),
                 disabled = @busy_volumes_adopt
               )
               button(
-                "{t('volumes.delete')}",
-                if = @v.can_remove,
-                equals = "1",
+                t("volumes.delete"),
+                if = @v.can_remove == "1",
                 class = "btn btn--danger btn--xs",
-                on_click = volumes_remove:@v.name,
+                on_click = volumes_remove(@v.name),
                 disabled = @busy_volumes_remove
               )
             }

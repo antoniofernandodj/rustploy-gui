@@ -4,22 +4,22 @@
 component {
   resources {
     component(name = NadaRodando) {
-      text("{t('running.no_service_running_right_now')}", class = u-muted)
+      text(t("running.no_service_running_right_now"), class = u-muted)
     }
   }
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("{t('common.running')}", class = page-head__title)
+      text(t("common.running"), class = page-head__title)
 
       text(
-        "{t('running.projects_and_services_running_right')}",
+        t("running.projects_and_services_running_right"),
         class = page-head__subtitle,
       )
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
-      StatCard(label = "{t('running.services_up')}", value = @running_count)
+      StatCard(label = t("running.services_up"), value = @running_count)
     }
   }
 
@@ -32,16 +32,16 @@ component {
             text("@p.count_label", class = "u-muted u-fill")
 
             button(
-              "{t('running.open_project')}",
+              t("running.open_project"),
               class = "card__action card__action--auto",
-              on_click = open_project:@p.project_id,
+              on_click = open_project(@p.project_id),
               disabled = @busy_open_project
             )
           }
 
           each @p.rows as r {
             row(class = grid__row) {
-              RunningCard(:for_each = r.cards, var = c, spread = @c)
+              RunningCard(each = @r.cards as c, spread = @c)
             }
           }
         }

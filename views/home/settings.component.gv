@@ -69,10 +69,10 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("{t('common.settings')}", class = page-head__title)
+      text(t("common.settings"), class = page-head__title)
 
       text(
-        "{t('settings.daemon_web_server_https_and')}",
+        t("settings.daemon_web_server_https_and"),
         class = page-head__subtitle,
       )
     }
@@ -86,9 +86,8 @@ component {
       each @settings_tabs as tab {
         button(
           class = "settings__nav-item settings__nav-item--active",
-          if = @settings_tab,
-          equals = "@tab.id",
-          on_click = settings_tab_pick:@tab.id,
+          if = @settings_tab == "@tab.id",
+          on_click = settings_tab_pick(@tab.id),
         ) {
           text("@tab.label", class = settings__nav-label)
         }
@@ -96,7 +95,7 @@ component {
         button(
           class = settings__nav-item,
           else,
-          on_click = settings_tab_pick:@tab.id
+          on_click = settings_tab_pick(@tab.id)
         ) {
           text("@tab.label", class = settings__nav-label)
         }

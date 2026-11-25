@@ -4,7 +4,7 @@ component {
   resources {
     component(name = SemPortasDeHost) {
       text(
-        "{t('ingress.no_service_has_a_host')}",
+        t("ingress.no_service_has_a_host"),
         class = u-muted,
       )
     }
@@ -12,21 +12,21 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("{t('common.ingress')}", class = page-head__title)
+      text(t("common.ingress"), class = page-head__title)
 
       text(
-        "{t('ingress.active_routes_in_the_reverse')}",
+        t("ingress.active_routes_in_the_reverse"),
         class = page-head__subtitle,
       )
     }
 
     row(class = page-head__stats) {
       StatCard(
-        label = "{t('ingress.routes')}",
+        label = t("ingress.routes"),
         value = @ingress_count
       )
       StatCard(
-        label = "{t('ingress.host_ports')}",
+        label = t("ingress.host_ports"),
         value = @host_ports_count
       )
     }
@@ -37,11 +37,11 @@ component {
   column(class = "panel custom-routes") {
     row(class = env__head) {
       text(
-        "{t('ingress.custom_routes', custom_routes_count=custom_routes_count)}",
+        t("ingress.custom_routes", custom_routes_count = custom_routes_count),
         class = "u-label-cap u-fill",
       )
       button(
-        "{t('ingress.new_route')}",
+        t("ingress.new_route"),
         class = "btn btn--primary btn--sm",
         on_click = route_new,
         disabled = @busy_route_new
@@ -49,16 +49,14 @@ component {
     }
 
     text(
-      "{t('ingress.no_custom_route')}",
-      if = @custom_routes_count,
-      equals = "0",
+      t("ingress.no_custom_route"),
+      if = @custom_routes_count == "0",
       class = u-muted,
     )
 
     each @custom_routes as r {
       row(
-        if = @route_editor_open,
-        not_equals = "1",
+        if = @route_editor_open != "1",
         class = kv-list__row,
       ) {
         text("@r.domain", class = env__key)
@@ -66,30 +64,28 @@ component {
         text("@r.tls", class = u-muted)
         text(
           "@r.auth",
-          if = @r.auth,
-          not_equals = "",
+          if = @r.auth != "",
           class = environment-badge,
         )
         button(
-          "{t('ingress.edit')}",
+          t("ingress.edit"),
           class = "btn btn--ghost btn--xs",
-          on_click = route_edit:@r.id,
+          on_click = route_edit(@r.id),
           disabled = @busy_route_edit
         )
         button(
           "✕",
           class = "btn btn--danger btn--xs",
-          on_click = route_delete:@r.id,
+          on_click = route_delete(@r.id),
           disabled = @busy_route_delete,
-          tooltip = "{t('ingress.delete_route')}"
+          tooltip = t("ingress.delete_route")
         )
       }
     }
 
     // Editor (painel): projeto, domínio, TLS, caminhos ou redirect, senha.
     scrollable(
-      if = @route_editor_open,
-      equals = "1",
+      if = @route_editor_open == "1",
       direction = vertical,
       class = route-editor__scroll,
     ) {
@@ -97,7 +93,7 @@ component {
       row(class = env__head) {
         text("@route_editor_title", class = "u-label-cap u-fill")
         button(
-          "{t('common.close')}",
+          t("common.close"),
           class = "btn btn--ghost btn--xs",
           on_click = route_editor_close,
           disabled = @busy_route_editor_close
@@ -110,7 +106,7 @@ component {
           :options = route_project_options,
           :value = route_form_project_id,
           on_change = route_form_project_change,
-          placeholder = "{t('ingress.project')}",
+          placeholder = t("ingress.project"),
           label_field = name,
           value_field = id,
         )
@@ -129,13 +125,13 @@ component {
 
       row(class = route-editor__row) {
         button(
-          "{t('ingress.forwards_to_services')}",
+          t("ingress.forwards_to_services"),
           class = "btn btn--ghost btn--xs",
           on_click = route_form_mode_forward,
           disabled = @busy_route_form_mode_forward
         )
         button(
-          "{t('ingress.redirects')}",
+          t("ingress.redirects"),
           class = "btn btn--ghost btn--xs",
           on_click = route_form_mode_redirect,
           disabled = @busy_route_form_mode_redirect
@@ -144,15 +140,14 @@ component {
       }
 
       column(
-        if = @route_form_mode,
-        equals = "forward",
+        if = @route_form_mode == "forward",
         class = route-editor__rules,
       ) {
         each @route_form_rules as rule {
           row(class = route-editor__row) {
             input(
               :value = "@rule.bind_path",
-              on_change = route_rule_path:@rule.index,
+              on_change = route_rule_path(@rule.index),
               placeholder = "/api",
               class = route-editor__path,
             )
@@ -160,46 +155,44 @@ component {
               class = form-select,
               :options = route_service_options,
               :value = "@rule.bind_service",
-              on_change = route_rule_service:@rule.index,
-              placeholder = "{t('ingress.service')}",
+              on_change = route_rule_service(@rule.index),
+              placeholder = t("ingress.service"),
               label_field = name,
               value_field = id,
             )
             input(
               :value = "@rule.bind_port",
-              on_change = route_rule_port:@rule.index,
-              placeholder = "{t('ingress.port')}",
+              on_change = route_rule_port(@rule.index),
+              placeholder = t("ingress.port"),
               class = route-editor__port,
             )
             checkbox(
               :checked = "@rule.bind_strip",
-              on_toggle = route_rule_strip:@rule.index,
-              label = "{t('ingress.strip_prefix')}",
+              on_toggle = route_rule_strip(@rule.index),
+              label = t("ingress.strip_prefix"),
             )
             button(
               "✕",
-              if = @rule.can_remove,
-              equals = "1",
+              if = @rule.can_remove == "1",
               class = "btn btn--ghost btn--xs",
-              on_click = route_rule_remove:@rule.index,
+              on_click = route_rule_remove(@rule.index),
               disabled = @busy_route_rule_remove
             )
           }
         }
         row(class = route-editor__row) {
           button(
-            "{t('ingress.add_path')}",
+            t("ingress.add_path"),
             class = "btn btn--ghost btn--xs",
             on_click = route_rule_add,
             disabled = @busy_route_rule_add
           )
-          text("{t('ingress.longest_path_wins')}", class = u-muted)
+          text(t("ingress.longest_path_wins"), class = u-muted)
         }
       }
 
       row(
-        if = @route_form_mode,
-        equals = "redirect",
+        if = @route_form_mode == "redirect",
         class = route-editor__row,
       ) {
         input(
@@ -211,30 +204,29 @@ component {
         checkbox(
           :checked = route_form_permanent,
           on_toggle = field:route_form_permanent,
-          label = "{t('ingress.permanent_301')}",
+          label = t("ingress.permanent_301"),
         )
       }
 
       checkbox(
         :checked = route_form_auth_enabled,
         on_toggle = field:route_form_auth_enabled,
-        label = "{t('ingress.ask_user_and_password')}",
+        label = t("ingress.ask_user_and_password"),
       )
       row(
-        if = @route_form_auth_enabled,
-        equals = true,
+        if = @route_form_auth_enabled == "true",
         class = route-editor__row,
       ) {
         input(
           :value = route_form_auth_user,
           on_change = field:route_form_auth_user,
-          placeholder = "{t('ingress.user')}",
+          placeholder = t("ingress.user"),
           class = form-input,
         )
         input(
           :value = route_form_auth_password,
           on_change = field:route_form_auth_password,
-          placeholder = "{t('ingress.password_empty_keeps')}",
+          placeholder = t("ingress.password_empty_keeps"),
           secure = true,
           class = form-input,
         )
@@ -242,21 +234,20 @@ component {
 
       text(
         "@route_editor_error",
-        if = @route_editor_error,
-        not_equals = "",
+        if = @route_editor_error != "",
         class = u-error,
       )
 
       row(class = route-editor__row) {
         column(class = u-fill)
         button(
-          "{t('common.cancel')}",
+          t("common.cancel"),
           class = "btn btn--ghost btn--sm",
           on_click = route_editor_close,
           disabled = @busy_route_editor_close
         )
         button(
-          "{t('ingress.save')}",
+          t("ingress.save"),
           class = "btn btn--primary btn--sm",
           on_click = route_save,
           disabled = @busy_route_save
@@ -268,8 +259,7 @@ component {
 
   // A tabela das rotas vivas sai da frente enquanto o editor está aberto.
   column(
-    if = @route_editor_open,
-    not_equals = "1",
+    if = @route_editor_open != "1",
     class = "panel panel--fill",
   ) {
     tableview(
@@ -282,7 +272,7 @@ component {
     ) {
       tablecolumn(
         key = domain,
-        label = "{t('ingress.domain')}",
+        label = t("ingress.domain"),
         class = table__col-svc
       ) {
         text("@i.domain", class = "table__cell table__cell--key")
@@ -290,7 +280,7 @@ component {
 
       tablecolumn(
         key = service,
-        label = "{t('common.service')}",
+        label = t("common.service"),
         class = table__col-proj
       ) {
         TableLink(kind = service, id = @i.service_id, label = @i.service)
@@ -298,13 +288,13 @@ component {
 
       tablecolumn(
         key = upstream,
-        label = "{t('ingress.upstream')}",
+        label = t("ingress.upstream"),
         class = table__col-dur
       )
 
       tablecolumn(
         key = tls,
-        label = "{t('common.tls')}",
+        label = t("common.tls"),
         class = table__col-start
       ) {
         text("@i.tls", class = u-muted)
@@ -316,7 +306,7 @@ component {
     }
 
     text(
-      "{t('ingress.host_tcp_ports', host_ports_count=host_ports_count)}",
+      t("ingress.host_tcp_ports", host_ports_count = host_ports_count),
       class = u-label-cap,
     )
 
@@ -332,7 +322,7 @@ component {
     ) {
       tablecolumn(
         key = service,
-        label = "{t('common.service')}",
+        label = t("common.service"),
         class = table__col-svc
       ) {
         TableLink(
@@ -344,7 +334,7 @@ component {
 
       tablecolumn(
         key = project,
-        label = "{t('common.project')}",
+        label = t("common.project"),
         class = table__col-proj
       ) {
         TableLink(
@@ -356,13 +346,13 @@ component {
 
       tablecolumn(
         key = host_port,
-        label = "{t('ingress.host_port')}",
+        label = t("ingress.host_port"),
         class = table__col-dur
       )
 
       tablecolumn(
         key = container_port,
-        label = "{t('ingress.container_port')}",
+        label = t("ingress.container_port"),
         class = table__col-start,
       ) {
         text("@hp.container_port", class = u-muted)

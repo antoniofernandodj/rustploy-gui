@@ -3,15 +3,14 @@
 component {
   resources {
     component(name = SemImagens) {
-      text("{t('docker_images.no_images')}", class = u-muted)
+      text(t("docker_images.no_images"), class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__toolbar) {
       text(
-        "{t('docker_images.image_s',
-          docker_images_count=docker_images_count)}",
+        t("docker_images.image_s", docker_images_count = docker_images_count),
         class = "u-muted u-fill"
       )
 
@@ -19,18 +18,18 @@ component {
       // que recebe): o toggle grava a chave e remonta a lista.
       checkbox(
         :checked = docker_images_only_used,
-        on_toggle = docker_only_used:docker_images_only_used,
-        label = "{t('common.in_use_only')}",
+        on_toggle = docker_only_used("docker_images_only_used"),
+        label = t("common.in_use_only"),
       )
 
       checkbox(
         :checked = docker_prune_all_images,
         on_toggle = field:docker_prune_all_images,
-        label = "{t('docker_images.a_clean_everything_not_just')}",
+        label = t("docker_images.a_clean_everything_not_just"),
       )
 
       button(
-        "{t('common.clean_unused')}",
+        t("common.clean_unused"),
         class = "btn btn--danger",
         on_click = docker_prune_images,
         disabled = @busy_docker_prune_images
@@ -39,8 +38,7 @@ component {
 
     text(
       "@docker_message",
-      if = @docker_message,
-      not_equals = "",
+      if = @docker_message != "",
       class = u-muted,
     )
 
@@ -54,7 +52,7 @@ component {
     ) {
       tablecolumn(
         key = tags,
-        label = "{t('common.tags')}",
+        label = t("common.tags"),
         class = table__col-svc
       ) {
         text(
@@ -65,14 +63,14 @@ component {
 
       tablecolumn(
         key = owner,
-        label = "{t('docker_images.project_service')}",
+        label = t("docker_images.project_service"),
         class = table__col-proj
       )
 
       tablecolumn(
         key = size,
         sort_key = size_bytes,
-        label = "{t('common.size')}",
+        label = t("common.size"),
         class = table__col-dur,
       ) {
         text("@i.size", class = u-muted)
@@ -81,7 +79,7 @@ component {
       tablecolumn(
         key = created,
         sort_key = created_iso,
-        label = "{t('docker_images.created')}",
+        label = t("docker_images.created"),
         class = table__col-dur,
       ) {
         text("@i.created", class = u-muted)
@@ -89,7 +87,7 @@ component {
 
       tablecolumn(
         key = in_use_label,
-        label = "{t('common.usage')}",
+        label = t("common.usage"),
         class = table__col-state
       ) {
         StateCell(
@@ -98,13 +96,12 @@ component {
         )
       }
 
-      tablecolumn(label = "{t('common.action')}", class = table__col-act) {
+      tablecolumn(label = t("common.action"), class = table__col-act) {
         button(
-          "{t('common.remove')}",
-          if = @i.in_use,
-          equals = "0",
+          t("common.remove"),
+          if = @i.in_use == "0",
           class = "btn btn--danger btn--xs",
-          on_click = docker_remove_image:@i.id_full,
+          on_click = docker_remove_image(@i.id_full),
           disabled = @busy_docker_remove_image
         )
       }

@@ -213,31 +213,31 @@ fn windows_declare_title_and_size() {
     let filhas = [
         (
             "new_project",
-            Some("{t('new_project_form.new_project_rustploy')}"),
+            Some("{t(\"new_project_form.new_project_rustploy\")}"),
             "460 340",
             "handlers/projects.luau",
         ),
         (
             "new_job",
-            Some("{t('new_job_window.new_job_rustploy')}"),
+            Some("{t(\"new_job_window.new_job_rustploy\")}"),
             "760 760",
             "handlers/jobs.luau",
         ),
         (
             "new_service",
-            Some("{t('new_service_window.new_service_rustploy')}"),
+            Some("{t(\"new_service_window.new_service_rustploy\")}"),
             "560 700",
             "handlers/wizard.luau",
         ),
         (
             "new_registry_token",
-            Some("{t('new_registry_token_window.new_token_rustploy')}"),
+            Some("{t(\"new_registry_token_window.new_token_rustploy\")}"),
             "480 420",
             "handlers/registry.luau",
         ),
         (
             "service_export",
-            Some("{t('service_export_window.export_service_rustploy')}"),
+            Some("{t(\"service_export_window.export_service_rustploy\")}"),
             "620 720",
             "handlers/bundle.luau",
         ),

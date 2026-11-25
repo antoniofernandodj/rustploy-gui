@@ -25,7 +25,7 @@ component {
     prop(name = warm_color)
   }
 
-  column(if = @filler, equals = 1, class = u-fill)
+  column(if = @filler == "1", class = u-fill)
 
   column(else, class = card) {
     row(class = card__head) {
@@ -36,8 +36,7 @@ component {
 
       row(class = "card__badges") {
         rp-badge(
-          if = @has_warm,
-          equals = true,
+          if = @has_warm == "true",
           color = @warm_color,
           label = "◐ @warm_label"
         )
@@ -50,70 +49,70 @@ component {
 
     text("@kind_label", class = u-label-cap)
 
-    row(class = card__container, if = @branch, not_equals = "") {
-      text("{t('common.branch')}", class = u-label-cap)
+    row(class = card__container, if = @branch != "") {
+      text(t("common.branch"), class = u-label-cap)
       text("@branch", class = card__title)
     }
 
-    text("@detail", class = u-muted, if = @detail, not_equals = "")
-    text("@domains", class = u-muted, if = @domains, not_equals = "")
+    text("@detail", class = u-muted, if = @detail != "")
+    text("@domains", class = u-muted, if = @domains != "")
 
     row(class = card__stats) {
       column(class = card__stat) {
-        text("{t('common.cpu')}", class = u-label-cap)
+        text(t("common.cpu"), class = u-label-cap)
         text("@cpu", class = card__stat-num)
       }
 
       column(class = card__stat) {
-        text("{t('common.mem')}", class = u-label-cap)
+        text(t("common.mem"), class = u-label-cap)
         text("@mem", class = card__stat-num)
       }
     }
 
     hr
 
-    text("{t('running_card.pre_deploy_checks')}", class = u-label-cap)
+    text(t("running_card.pre_deploy_checks"), class = u-label-cap)
     text("@checks", class = u-muted)
 
-    text("{t('common.deploy_webhook')}", class = u-label-cap)
+    text(t("common.deploy_webhook"), class = u-label-cap)
     text("@webhook_shown", class = u-muted)
 
-    row(class = card__actions, if = @has_webhook, equals = true) {
+    row(class = card__actions, if = @has_webhook == "true") {
       button(
-        "{t('running_card.copy')}",
+        t("running_card.copy"),
         class = "card__action",
-        on_click = copy_webhook:@webhook,
+        on_click = copy_webhook(@webhook),
         disabled = @busy_copy_webhook
       )
 
       button(
         "@reveal_label",
         class = "card__action",
-        on_click = running_toggle_reveal:@id,
+        on_click = running_toggle_reveal(@id),
         disabled = @busy_running_toggle_reveal
       )
     }
 
     button(
-      "{t('running_card.open_service')}",
+      t("running_card.open_service"),
       class = "card__action card__action--open",
-      on_click = open_service:@id, disabled = @busy_open_service
+      on_click = open_service(@id), disabled = @busy_open_service
     )
 
     row(class = card__actions) {
       button(
-        "{t('running_card.deploy')}",
+        t("running_card.deploy"),
         class = "card__action",
-        on_click = running_deploy:@id,
+        on_click = running_deploy(@id),
         disabled = @busy_running_deploy
       )
 
       button(
         "■",
         class = "card__action card__action--icon",
-        on_click = service_stop_id:@id,
+        on_click = service_stop_id(@id),
         disabled = @busy_service_stop_id,
-        tooltip = "{t('common.stop')}"
+        tooltip = t("common.stop")
       )
     }
   }

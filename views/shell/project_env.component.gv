@@ -2,25 +2,24 @@
 component {
   resources {
     component(name = SemVariaveis) {
-      text("{t('common.no_variables')}", class = u-muted)
+      text(t("common.no_variables"), class = u-muted)
     }
   }
 
   scrollable(
     direction = vertical,
     class = u-fill-all,
-    if = @project_loading,
-    not_equals = true,
+    if = @project_loading != "true",
   ) {
   column(class = env--flow) {
     row(class = env__head) {
       text(
-        "{t('project_env.inherited_by_all_services_of_this')}",
+        t("project_env.inherited_by_all_services_of_this"),
         class = "u-muted u-fill",
       )
 
       button(
-        "{t('common.export')}",
+        t("common.export"),
         class = "btn btn--ghost btn--wide",
         on_click = project_env_export,
         disabled = @busy_project_env_export
@@ -30,14 +29,14 @@ component {
 
       if @project_env_text_open == "true" {
         button(
-          "{t('common.close')}",
+          t("common.close"),
           class = "btn btn--blue btn--wide",
           on_click = project_env_text_toggle,
           disabled = @busy_project_env_text_toggle
         )
       } else {
         button(
-          "{t('common.env')}",
+          t("common.env"),
           class = tabs__tab,
           on_click = project_env_text_toggle,
           disabled = @busy_project_env_text_toggle
@@ -46,7 +45,7 @@ component {
     }
 
     row(class = env__add) {
-      text("{t('project_env.move_to_service')}", class = u-muted)
+      text(t("project_env.move_to_service"), class = u-muted)
 
       select(
         class = form-select,
@@ -72,8 +71,8 @@ component {
           class = env__input,
           form_control = project_env_new_key,
           rules = required,
-          msg = "{t('common.enter_the_key')}",
-          placeholder = "{t('common.key')}",
+          msg = t("common.enter_the_key"),
+          placeholder = t("common.key"),
         )
 
         if @project_env_new_is_secret == "true" {
@@ -84,13 +83,13 @@ component {
             on_change = field:project_env_new_value,
             label_field = label,
             value_field = name,
-            placeholder = "{t('environment.pick_secret')}",
+            placeholder = t("environment.pick_secret"),
           )
         } else {
           input(
             class = env__input,
             form_control = project_env_new_value,
-            placeholder = "{t('common.value')}",
+            placeholder = t("common.value"),
           )
         }
 
@@ -98,11 +97,11 @@ component {
           class = env__use-secret,
           :checked = project_env_new_is_secret,
           on_toggle = project_env_new_use_secret,
-          label = "{t('environment.use_secret')}",
+          label = t("environment.use_secret"),
         )
 
         button(
-          "{t('common.add')}",
+          t("common.add"),
           type = submit,
           disabled = @busy_project_env_add,
           class = "btn btn--primary"
@@ -111,9 +110,8 @@ component {
 
       if @project_env_new_is_secret == "true" {
         text(
-          "{t('project_env.no_secret_registered_create_one')}",
-          if = @project_secrets,
-          empty = "",
+          t("project_env.no_secret_registered_create_one"),
+          if = @project_secrets is empty,
           class = u-muted,
         )
       }
@@ -122,19 +120,12 @@ component {
     text(
       "@error_project_env_new_key",
       class = u-error,
-      if = @error_project_env_new_key,
-      not_equals = "",
+      if = @error_project_env_new_key != "",
     )
 
     column(class = env--flow) {
       column(class = kv-list) {
-        template(
-          :for_each = project_env,
-          foreach_fallback = SemVariaveis,
-          var = e,
-          on_reorder = project_env_reorder,
-          reorder_key = key,
-        ) {
+        each @project_env as e (foreach_fallback = SemVariaveis, on_reorder = project_env_reorder, key = key) {
           if @e.__dragging == "true" {
             if @e.kind == "comment" {
               row(class = "kv-list__row kv-list__row--dragging") {
@@ -157,7 +148,7 @@ component {
                 button(
                   "✕",
                   class = env__del,
-                  on_click = project_env_delete:@e.key,
+                  on_click = project_env_delete(@e.key),
                   disabled = @busy_project_env_delete
                 )
 
@@ -188,40 +179,37 @@ component {
                 button(
                   "✕",
                   class = env__del,
-                  on_click = project_env_delete:@e.key,
+                  on_click = project_env_delete(@e.key),
                   disabled = @busy_project_env_delete
                 )
 
                 button(
                   "🔒",
                   class = "btn btn--ghost btn--sm",
-                  on_click = project_env_to_secret:@e.key,
+                  on_click = project_env_to_secret(@e.key),
                   disabled = @busy_project_env_to_secret,
-                  if = @e.kind,
-                  equals = plain,
-                  tooltip = "{t('environment.to_secret')}",
+                  if = @e.kind == "plain",
+                  tooltip = t("environment.to_secret"),
                   tooltip_delay = "500ms",
                 )
 
-                template(if = @e.kind, equals = plain) {
+                if @e.kind == "plain" {
                   button(
                     "↓",
                     class = "btn btn--ghost btn--sm",
-                    if = @move_target_service_id,
-                    equals = "",
+                    if = @move_target_service_id == "",
                     disabled = true,
-                    tooltip = "{t('project_env.choose_service')}",
+                    tooltip = t("project_env.choose_service"),
                     tooltip_delay = "500ms",
                   )
 
                   button(
                     "↓",
                     class = "btn btn--ghost btn--sm",
-                    on_click = project_env_to_service:@e.key,
+                    on_click = project_env_to_service(@e.key),
                     disabled = @busy_project_env_to_service,
-                    if = @move_target_service_id,
-                    not_equals = "",
-                    tooltip = "{t('project_env.env_to_service')}",
+                    if = @move_target_service_id != "",
+                    tooltip = t("project_env.env_to_service"),
                     tooltip_delay = "500ms",
                   )
                 }
@@ -229,11 +217,10 @@ component {
                 button(
                   "🔓",
                   class = "btn btn--ghost btn--sm",
-                  on_click = project_secret_to_env:@e.secret_name,
+                  on_click = project_secret_to_env(@e.secret_name),
                   disabled = @busy_project_secret_to_env,
-                  if = @e.kind,
-                  equals = secret,
-                  tooltip = "{t('environment.secret_to_env')}",
+                  if = @e.kind == "secret",
+                  tooltip = t("environment.secret_to_env"),
                   tooltip_delay = "500ms",
                 )
 
@@ -245,8 +232,8 @@ component {
                 input(
                   class = env__inline-key,
                   :value = "@e.bind_key",
-                  on_change = project_env_row_key:@e.key,
-                  placeholder = "{t('common.key')}",
+                  on_change = project_env_row_key(@e.key),
+                  placeholder = t("common.key"),
                 )
 
                 if @e.use_secret == "true" {
@@ -254,43 +241,41 @@ component {
                     class = env__secret-select,
                     :options = project_env_secret_options,
                     :value = "@e.bind_secret",
-                    on_change = project_env_row_secret:@e.key,
+                    on_change = project_env_row_secret(@e.key),
                     label_field = label,
                     value_field = name,
-                    placeholder = "{t('environment.pick_secret')}",
+                    placeholder = t("environment.pick_secret"),
                   )
                 } else {
                   input(
                     class = env__inline,
                     :value = "@e.bind_value",
-                    on_change = project_env_row_value:@e.key,
-                    placeholder = "{t('common.value')}",
+                    on_change = project_env_row_value(@e.key),
+                    placeholder = t("common.value"),
                   )
                 }
 
                 checkbox(
                   class = env__use-secret,
                   :checked = "@e.bind_use_secret",
-                  on_toggle = project_env_row_use_secret:@e.key,
-                  label = "{t('environment.use_secret')}",
+                  on_toggle = project_env_row_use_secret(@e.key),
+                  label = t("environment.use_secret"),
                 )
 
                 button(
                   "OK",
                   class = "btn btn--primary btn--sm",
-                  on_click = project_env_row_save:@e.key,
+                  on_click = project_env_row_save(@e.key),
                   disabled = @busy_project_env_row_save,
-                  if = @e.dirty,
-                  equals = "true",
+                  if = @e.dirty == "true",
                 )
 
                 button(
                   "✕",
                   class = "btn btn--ghost btn--sm",
-                  on_click = project_env_row_reset:@e.key,
-                  if = @e.dirty,
-                  equals = "true",
-                  tooltip = "{t('environment.undo')}",
+                  on_click = project_env_row_reset(@e.key),
+                  if = @e.dirty == "true",
+                  tooltip = t("environment.undo"),
                   tooltip_delay = "500ms",
                 )
               }
@@ -300,7 +285,7 @@ component {
 
         if @project_env_text_open == "true" {
           text(
-            "{t('common.paste_edit_in_the_key')}",
+            t("common.paste_edit_in_the_key"),
             class = u-muted,
           )
 
@@ -308,19 +293,19 @@ component {
             class = env__editor,
             font = "JetBrains Mono",
             :value = project_env_text,
-            placeholder = "{t('common.key_value_comment')}",
+            placeholder = t("common.key_value_comment"),
           )
 
           row(class = env__add) {
             button(
-              "{t('common.save')}",
+              t("common.save"),
               class = "btn btn--primary",
               on_click = project_env_import,
               disabled = @busy_project_env_import
             )
 
             button(
-              "{t('common.cancel')}",
+              t("common.cancel"),
               class = "btn btn--ghost",
               on_click = project_env_text_cancel,
               disabled = @busy_project_env_text_cancel

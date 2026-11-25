@@ -25,11 +25,10 @@ component {
 
   button(
     "@label",
-    if = @kind,
-    equals = service,
+    if = @kind == "service",
     class = table-link,
-    on_click = open_service:@id
+    on_click = open_service(@id)
   )
 
-  button("@label", else, class = table-link, on_click = open_project:@id)
+  button("@label", else, class = table-link, on_click = open_project(@id))
 }

@@ -6,13 +6,12 @@ component {
   ) {
     column(width = fill, spacing = 8, class = form-panel) {
       text(
-        "{t('databases.databases',
-          service_shared_databases_count=service_shared_databases_count)}",
+        t("databases.databases", service_shared_databases_count = service_shared_databases_count),
         class = u-label-cap
       )
 
       text(
-        "{t('databases.each_database_has_its_own_user')}",
+        t("databases.each_database_has_its_own_user"),
         class = u-muted,
       )
 
@@ -20,20 +19,19 @@ component {
         column(class = kv-list) {
           row(
             class = kv-list__row,
-            :for_each = service_shared_databases,
-            var = d
+            each = @service_shared_databases as d
           ) {
             button(
               "✕",
               class = env__del,
-              on_click = shared_database_delete:@d.id,
+              on_click = shared_database_delete(@d.id),
               disabled = @busy_shared_database_delete
             )
 
             text(class = env__sep)
             button(
               class = tabs__tab,
-              on_click = shared_database_show:@d.id,
+              on_click = shared_database_show(@d.id),
               disabled = @busy_shared_database_show,
               text = @d.name
             )
@@ -43,22 +41,22 @@ component {
         }
       }
 
-      row(class = kv-list__row, if = @shared_database_url, not_equals = "") {
-        text("{t('databases.url')}", class = kv-list__key)
+      row(class = kv-list__row, if = @shared_database_url != "") {
+        text(t("databases.url"), class = kv-list__key)
         text(
           "@shared_database_url_short",
           class = "kv-list__val kv-list__val--compact"
         )
 
         button(
-          "{t('common.copy')}",
+          t("common.copy"),
           class = "btn btn--ghost btn--xs",
-          on_click = copy_ctx:shared_database_url
+          on_click = copy_ctx("shared_database_url")
         )
       }
 
       field(
-        label = "{t('databases.new_database')}",
+        label = t("databases.new_database"),
         label_class = u-label-cap
       ) {
         input(
@@ -66,7 +64,7 @@ component {
           form_control = service_form_shared_database_name,
           :value = service_form_shared_database_name,
           on_change = field:service_form_shared_database_name,
-          placeholder = "{t('databases.name_a_z_0_9')}",
+          placeholder = t("databases.name_a_z_0_9"),
         )
       }
 
@@ -75,7 +73,7 @@ component {
         :options = service_shared_database_projects,
         :value = service_form_shared_database_project,
         on_change = field:service_form_shared_database_project,
-        placeholder = "{t('databases.consumer_project')}",
+        placeholder = t("databases.consumer_project"),
         label_field = name,
         value_field = id,
       )
@@ -85,7 +83,7 @@ component {
         form_control = service_form_shared_database_env,
         :value = service_form_shared_database_env,
         on_change = field:service_form_shared_database_env,
-        placeholder = "{t('databases.env_var_default_database_url')}",
+        placeholder = t("databases.env_var_default_database_url"),
       )
 
       input(
@@ -93,7 +91,7 @@ component {
         form_control = service_form_shared_database_limit,
         :value = service_form_shared_database_limit,
         on_change = field:service_form_shared_database_limit,
-        placeholder = "{t('databases.connection_limit_optional_does_not')}",
+        placeholder = t("databases.connection_limit_optional_does_not"),
       )
 
       input(
@@ -101,35 +99,33 @@ component {
         form_control = service_form_shared_database_timeout,
         :value = service_form_shared_database_timeout,
         on_change = field:service_form_shared_database_timeout,
-        placeholder = "{t('databases.query_timeout_in_ms_optional')}",
+        placeholder = t("databases.query_timeout_in_ms_optional"),
       )
 
       toggle(
         :checked = service_form_shared_database_overwrite,
         on_toggle = field:service_form_shared_database_overwrite,
-        label = "{t('databases.overwrite_the_env_var_if')}",
+        label = t("databases.overwrite_the_env_var_if"),
       )
 
       toggle(
         :checked = service_form_shared_database_skip_env,
         on_toggle = field:service_form_shared_database_skip_env,
-        label = "{t('databases.do_not_touch_env_vars')}",
+        label = t("databases.do_not_touch_env_vars"),
       )
 
       row(class = env__add) {
         button(
-          "{t('databases.create_database')}",
+          t("databases.create_database"),
           class = "btn btn--primary",
-          if = @service_form_shared_database_project,
-          equals = "",
+          if = @service_form_shared_database_project == "",
           disabled = true
         )
 
         button(
-          "{t('databases.create_database')}",
+          t("databases.create_database"),
           class = "btn btn--primary",
-          if = @service_form_shared_database_project,
-          not_equals = "",
+          if = @service_form_shared_database_project != "",
           on_click = shared_database_create,
           disabled = @busy_shared_database_create
         )

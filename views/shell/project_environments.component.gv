@@ -4,7 +4,7 @@
 component {
   resources {
     component(name = SemAmbientes) {
-      text("{t('project_environments.no_environment_yet')}", class = u-muted)
+      text(t("project_environments.no_environment_yet"), class = u-muted)
     }
   }
 
@@ -12,8 +12,7 @@ component {
     column(class = environments) {
       // Destruir ambiente: o nome digitado é a confirmação.
       column(
-        if = @environment_destroy_open,
-        equals = "1",
+        if = @environment_destroy_open == "1",
         class = route-editor,
       ) {
         text("@environment_destroy_title", class = u-label-cap)
@@ -29,18 +28,18 @@ component {
         checkbox(
           :checked = environment_destroy_volumes,
           on_toggle = field:environment_destroy_volumes,
-          label = "{t('project_environments.also_delete_the_data')}",
+          label = t("project_environments.also_delete_the_data"),
         )
         row(class = route-editor__row) {
           column(class = u-fill)
           button(
-            "{t('common.cancel')}",
+            t("common.cancel"),
             class = "btn btn--ghost btn--sm",
             on_click = environment_destroy_cancel,
             disabled = @busy_environment_destroy_cancel
           )
           button(
-            "{t('project_environments.destroy_environment')}",
+            t("project_environments.destroy_environment"),
             class = "btn btn--danger btn--sm",
             on_click = environment_destroy_confirm,
             disabled = @busy_environment_destroy_confirm
@@ -49,12 +48,11 @@ component {
       }
 
       column(
-        if = @environment_is_environment,
-        not_equals = "1",
+        if = @environment_is_environment != "1",
         class = environments__block,
       ) {
         text(
-          "{t('project_environments.an_environment_is_a_copy')}",
+          t("project_environments.an_environment_is_a_copy"),
           class = u-muted,
         )
 
@@ -62,11 +60,11 @@ component {
           input(
             :value = environment_new_name,
             on_change = environment_name_change,
-            placeholder = "{t('project_environments.environment_name')}",
+            placeholder = t("project_environments.environment_name"),
             class = u-fill,
           )
           button(
-            "{t('project_environments.create_environment')}",
+            t("project_environments.create_environment"),
             class = "btn btn--primary btn--sm",
             on_click = environment_create,
             disabled = @busy_environment_create
@@ -79,15 +77,15 @@ component {
               text("@e.name", class = env__key)
               text("@e.project_name", class = "u-muted u-fill")
               button(
-                "{t('common.open')}",
+                t("common.open"),
                 class = "btn btn--ghost btn--xs",
-                on_click = environment_open:@e.project_id,
+                on_click = environment_open(@e.project_id),
                 disabled = @busy_environment_open
               )
               button(
-                "{t('project_environments.destroy')}",
+                t("project_environments.destroy"),
                 class = "btn btn--danger btn--xs",
-                on_click = environment_destroy_ask:@e.project_id,
+                on_click = environment_destroy_ask(@e.project_id),
                 disabled = @busy_environment_destroy_ask
               )
             }
@@ -96,26 +94,25 @@ component {
       }
 
       column(
-        if = @environment_is_environment,
-        equals = "1",
+        if = @environment_is_environment == "1",
         class = environments__block,
       ) {
         row(class = env__head) {
           text("@environment_compare_title", class = "u-muted u-fill")
           button(
-            "{t('project_environments.open_the_origin')}",
+            t("project_environments.open_the_origin"),
             class = "btn btn--ghost btn--xs",
             on_click = environment_open_origin,
             disabled = @busy_environment_open_origin
           )
           button(
-            "{t('project_environments.refresh')}",
+            t("project_environments.refresh"),
             class = "btn btn--ghost btn--xs",
             on_click = environment_refresh,
             disabled = @busy_environment_refresh
           )
           button(
-            "{t('project_environments.destroy_environment')}",
+            t("project_environments.destroy_environment"),
             class = "btn btn--danger btn--xs",
             on_click = environment_destroy_here,
             disabled = @busy_environment_destroy_here
@@ -129,21 +126,18 @@ component {
               text("@p.releases_label", class = u-muted)
               text(
                 "@p.image_label",
-                if = @p.image_class,
-                equals = "u-ok",
+                if = @p.image_class == "u-ok",
                 class = u-ok,
               )
               text(
                 "@p.image_label",
-                if = @p.image_class,
-                equals = "u-warn",
+                if = @p.image_class == "u-warn",
                 class = u-warn,
               )
             }
             text(
               "@p.note_label",
-              if = @p.note_label,
-              not_equals = "",
+              if = @p.note_label != "",
               class = u-muted,
             )
             each @p.changes as c {
@@ -151,19 +145,17 @@ component {
             }
             row(class = environments__actions) {
               button(
-                "{t('project_environments.promote_to_the_origin')}",
-                if = @p.can_promote,
-                equals = "1",
+                t("project_environments.promote_to_the_origin"),
+                if = @p.can_promote == "1",
                 class = "btn btn--ghost btn--xs",
-                on_click = environment_promote_to_origin:@p.index,
+                on_click = environment_promote_to_origin(@p.index),
                 disabled = @busy_environment_promote_to_origin
               )
               button(
-                "{t('project_environments.bring_from_the_origin')}",
-                if = @p.can_bring,
-                equals = "1",
+                t("project_environments.bring_from_the_origin"),
+                if = @p.can_bring == "1",
                 class = "btn btn--ghost btn--xs",
-                on_click = environment_bring_from_origin:@p.index,
+                on_click = environment_bring_from_origin(@p.index),
                 disabled = @busy_environment_bring_from_origin
               )
             }
@@ -171,12 +163,11 @@ component {
         }
 
         column(
-          if = @environment_project_env_count,
-          not_equals = "0",
+          if = @environment_project_env_count != "0",
           class = environments__pair,
         ) {
           text(
-            "{t('project_environments.project_variables_that_differ')}",
+            t("project_environments.project_variables_that_differ"),
             class = u-label-cap,
           )
           each @environment_project_env_rows as c {
@@ -186,8 +177,7 @@ component {
 
         text(
           "@environment_only_label",
-          if = @environment_only_label,
-          not_equals = "",
+          if = @environment_only_label != "",
           class = u-muted,
         )
       }

@@ -3,7 +3,7 @@ component {
   resources {
     component(name = SemDeployRecente) {
       text(
-        "{t('deploy_engine_historico.no_deploy_finished_in_the')}",
+        t("deploy_engine_historico.no_deploy_finished_in_the"),
         class = empty-state,
       )
     }
@@ -14,8 +14,7 @@ component {
   column(class = "section section--fill") {
     row(class = section__head) {
       text(
-        "{t('deploy_engine_historico.history_24h',
-          deploy_engine_recent_count=deploy_engine_recent_count)}",
+        t("deploy_engine_historico.history_24h", deploy_engine_recent_count = deploy_engine_recent_count),
         class = section__title,
       )
     }
@@ -47,7 +46,7 @@ component {
 
           tablecolumn(
             key = service,
-            label = "{t('common.service')}",
+            label = t("common.service"),
             class = table__col-svc
           ) {
             TableLink(
@@ -59,7 +58,7 @@ component {
 
           tablecolumn(
             key = project,
-            label = "{t('common.project')}",
+            label = t("common.project"),
             class = table__col-proj
           ) {
             TableLink(
@@ -71,7 +70,7 @@ component {
 
           tablecolumn(
             key = state_label,
-            label = "{t('common.state')}",
+            label = t("common.state"),
             class = table__col-state
           ) {
             StateCell(
@@ -83,7 +82,7 @@ component {
           tablecolumn(
             key = duration,
             sort_key = elapsed_secs,
-            label = "{t('common.duration')}",
+            label = t("common.duration"),
             class = table__col-dur,
           ) {
             text("@r.duration", class = u-muted)
@@ -92,7 +91,7 @@ component {
           tablecolumn(
             key = start,
             sort_key = start_iso,
-            label = "{t('common.start')}",
+            label = t("common.start"),
             class = table__col-start,
           ) {
             text("@r.start", class = u-muted)

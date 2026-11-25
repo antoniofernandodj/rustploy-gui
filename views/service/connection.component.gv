@@ -3,54 +3,54 @@ component {
   resources {
     // Estado vazio da lista de containers (`fallback` do <foreach>).
     component(name = SemContainers) {
-      text("{t('connection.no_container_running')}", class = u-muted)
+      text(t("connection.no_container_running"), class = u-muted)
     }
   }
 
   column(class = kv-list) {
     row(class = kv-list__row) {
-      text("{t('connection.container_port')}", class = kv-list__key)
+      text(t("connection.container_port"), class = kv-list__key)
       text("@service_port", class = "kv-list__val kv-list__val--compact")
       text(" ")
 
       button(
-        "{t('common.copy')}",
+        t("common.copy"),
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_port
+        on_click = copy_ctx("service_port")
       )
     }
 
     row(class = kv-list__row) {
-      text("{t('connection.host_port')}", class = kv-list__key)
+      text(t("connection.host_port"), class = kv-list__key)
       text("@service_host_port", class = "kv-list__val kv-list__val--compact")
       text(" ")
 
       button(
-        "{t('common.copy')}",
+        t("common.copy"),
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_host_port
+        on_click = copy_ctx("service_host_port")
       )
     }
 
     row(class = kv-list__row) {
-      text("{t('connection.domain')}", class = kv-list__key)
+      text(t("connection.domain"), class = kv-list__key)
       text("@service_domain", class = "kv-list__val kv-list__val--compact")
       text(" ")
 
       button(
-        "{t('common.copy')}",
+        t("common.copy"),
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_domain
+        on_click = copy_ctx("service_domain")
       )
     }
 
     row(class = kv-list__row) {
-      text("{t('common.tls')}", class = kv-list__key)
+      text(t("common.tls"), class = kv-list__key)
       text("@service_tls", class = "kv-list__val kv-list__val--compact")
     }
 
     row(class = kv-list__row) {
-      text("{t('connection.external_url')}", class = kv-list__key)
+      text(t("connection.external_url"), class = kv-list__key)
       text(
         "@service_external_url_short",
         class = "kv-list__val kv-list__val--compact"
@@ -58,14 +58,14 @@ component {
       text(" ")
 
       button(
-        "{t('common.copy')}",
+        t("common.copy"),
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_external_url
+        on_click = copy_ctx("service_external_url")
       )
     }
 
     row(class = kv-list__row) {
-      text("{t('connection.internal_url')}", class = kv-list__key)
+      text(t("connection.internal_url"), class = kv-list__key)
       text(
         "@service_internal_url_short",
         class = "kv-list__val kv-list__val--compact"
@@ -73,19 +73,19 @@ component {
       text(" ")
 
       button(
-        "{t('common.copy')}",
+        t("common.copy"),
         class = "btn btn--ghost btn--xs",
-        on_click = copy_ctx:service_internal_url
+        on_click = copy_ctx("service_internal_url")
       )
     }
 
-    row(class = kv-list__row, if = @service_can_share, equals = true) {
-      text("{t('connection.shared')}", class = kv-list__key)
+    row(class = kv-list__row, if = @service_can_share == "true") {
+      text(t("connection.shared"), class = kv-list__key)
       text("@service_shared", class = "kv-list__val kv-list__val--compact")
 
       if @service_shared == "false" {
         button(
-          "{t('connection.share')}",
+          t("connection.share"),
           class = "btn btn--ghost btn--xs",
           on_click = shared_enable,
           disabled = @busy_shared_enable
@@ -94,7 +94,7 @@ component {
 
       if @service_shared == "true" {
         button(
-          "{t('connection.turn_off')}",
+          t("connection.turn_off"),
           class = "btn btn--ghost btn--xs",
           on_click = shared_disable,
           disabled = @busy_shared_disable
@@ -102,8 +102,8 @@ component {
       }
     }
 
-    row(class = kv-list__row, if = @service_database_kind, not_equals = "—") {
-      text("{t('connection.type')}", class = kv-list__key)
+    row(class = kv-list__row, if = @service_database_kind != "—") {
+      text(t("connection.type"), class = kv-list__key)
       text(
         "@service_database_kind",
         class = "kv-list__val kv-list__val--compact"
@@ -114,8 +114,7 @@ component {
     hr
 
     text(
-      "{t('connection.containers',
-        service_containers_count=service_containers_count)}",
+      t("connection.containers", service_containers_count = service_containers_count),
       class = u-label-cap,
     )
 

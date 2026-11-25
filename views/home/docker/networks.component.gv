@@ -2,27 +2,26 @@
 component {
   resources {
     component(name = SemNetworks) {
-      text("{t('docker_networks.no_networks')}", class = u-muted)
+      text(t("docker_networks.no_networks"), class = u-muted)
     }
   }
 
   column(class = "panel panel--fill") {
     row(class = env__toolbar) {
       text(
-        "{t('docker_networks.network_s',
-          docker_networks_count=docker_networks_count)}",
+        t("docker_networks.network_s", docker_networks_count = docker_networks_count),
         class = "u-muted u-fill",
       )
 
       // O filtro mora em format.docker_networks — ver images.component.gv.
       checkbox(
         :checked = docker_networks_only_used,
-        on_toggle = docker_only_used:docker_networks_only_used,
-        label = "{t('common.in_use_only')}",
+        on_toggle = docker_only_used("docker_networks_only_used"),
+        label = t("common.in_use_only"),
       )
 
       button(
-        "{t('common.clean_unused')}",
+        t("common.clean_unused"),
         class = "btn btn--danger",
         on_click = docker_prune_networks,
         disabled = @busy_docker_prune_networks
@@ -31,8 +30,7 @@ component {
 
     text(
       "@docker_message",
-      if = @docker_message,
-      not_equals = "",
+      if = @docker_message != "",
       class = u-muted,
     )
 
@@ -46,7 +44,7 @@ component {
     ) {
       tablecolumn(
         key = name,
-        label = "{t('common.name')}",
+        label = t("common.name"),
         class = table__col-svc
       ) {
         text("@n.name", class = "table__cell table__cell--key")
@@ -54,13 +52,13 @@ component {
 
       tablecolumn(
         key = project,
-        label = "{t('common.project')}",
+        label = t("common.project"),
         class = table__col-proj
       )
 
       tablecolumn(
         key = driver,
-        label = "{t('common.driver')}",
+        label = t("common.driver"),
         class = table__col-dur
       ) {
         text("@n.driver",
@@ -69,7 +67,7 @@ component {
 
       tablecolumn(
         key = containers,
-        label = "{t('common.containers')}",
+        label = t("common.containers"),
         class = table__col-dur
       ) {
         text("@n.containers",
@@ -78,7 +76,7 @@ component {
 
       tablecolumn(
         key = in_use_label,
-        label = "{t('common.usage')}",
+        label = t("common.usage"),
         class = table__col-state
       ) {
         StateCell(kind = @n.in_use_kind,
@@ -86,15 +84,14 @@ component {
       }
 
       tablecolumn(
-        label = "{t('common.action')}",
+        label = t("common.action"),
         class = table__col-act
       ) {
         button(
-          "{t('common.remove')}",
-          if = @n.in_use,
-          equals = "0",
+          t("common.remove"),
+          if = @n.in_use == "0",
           class = "btn btn--danger btn--xs",
-          on_click = docker_remove_network:@n.id_full,
+          on_click = docker_remove_network(@n.id_full),
           disabled = @busy_docker_remove_network
         )
       }

@@ -8,26 +8,24 @@ component {
     column(class = form-stack) {
       column(class = "form-panel form-panel--grouped") {
         column(class = form-panel__head) {
-          text("{t('settings_recovery_key.title')}", class = u-label-cap)
-          text("{t('settings_recovery_key.intro')}", class = u-muted)
+          text(t("settings_recovery_key.title"), class = u-label-cap)
+          text(t("settings_recovery_key.intro"), class = u-muted)
         }
 
         text(
-          "{t('settings_recovery_key.not_configured')}",
-          if = @recovery_key_missing,
-          equals = true,
+          t("settings_recovery_key.not_configured"),
+          if = @recovery_key_missing == "true",
           class = u-error,
         )
 
         text(
           "@recovery_key_load_error",
-          if = @recovery_key_load_error,
-          not_equals = "",
+          if = @recovery_key_load_error != "",
           class = u-error
         )
 
-        column(spacing = 6, if = @recovery_key_configured, equals = true) {
-          text("{t('settings_recovery_key.public_key')}", class = u-label-cap)
+        column(spacing = 6, if = @recovery_key_configured == "true") {
+          text(t("settings_recovery_key.public_key"), class = u-label-cap)
           container(class = copy-row__value) {
             text("@recovery_key_public", class = copy-row__text)
           }
@@ -36,25 +34,24 @@ component {
         // Ainda não gerou nesta sessão: o botão (gerar, ou trocar se já
         // existe). Elementos soltos, sem coluna condicional por fora: com ela,
         // o botão não aparecia quando o servidor não tinha chave.
-        column(spacing = 0, if = @recovery_key_warn, equals = true) {
-          text("{t('settings_recovery_key.replace_warning')}", class = u-muted)
+        column(spacing = 0, if = @recovery_key_warn == "true") {
+          text(t("settings_recovery_key.replace_warning"), class = u-muted)
         }
         // O que vai no arquivo junto com a chave: o que a tela Recuperar pede.
         column(
           class = form-panel__body,
-          if = @recovery_key_generated,
-          equals = false
+          if = @recovery_key_generated == "false"
         ) {
           column(class = form-panel__head) {
             text(
-              "{t('settings_recovery_key.file_title')}",
+              t("settings_recovery_key.file_title"),
               class = u-label-cap
             )
-            text("{t('settings_recovery_key.file_intro')}", class = u-muted)
+            text(t("settings_recovery_key.file_intro"), class = u-muted)
           }
 
           field(
-            label = "{t('settings_recover.repository')}",
+            label = t("settings_recover.repository"),
             label_class = u-label-cap,
             required = true
           ) {
@@ -67,7 +64,7 @@ component {
           }
 
           field(
-            label = "{t('settings_recover.branch')}",
+            label = t("settings_recover.branch"),
             label_class = u-label-cap
           ) {
             input(
@@ -79,17 +76,17 @@ component {
           }
 
           field(
-            label = "{t('settings_recovery_key.account')}",
+            label = t("settings_recovery_key.account"),
             label_class = u-label-cap,
             required = true,
-            description = "{t('settings_recovery_key.account_hint')}",
+            description = t("settings_recovery_key.account_hint"),
           ) {
             select(
               class = form-select,
               :options = gitea_providers,
               :value = recovery_key_provider_id,
               on_change = recovery_key_provider_pick,
-              placeholder = "{t('common.select_the_account')}",
+              placeholder = t("common.select_the_account"),
               label_field = display,
               value_field = id,
             )
@@ -98,8 +95,7 @@ component {
 
         row(
           class = form-panel__actions,
-          if = @recovery_key_generated,
-          equals = false
+          if = @recovery_key_generated == "false"
         ) {
           button(
             "@recovery_key_generate_label",
@@ -111,32 +107,31 @@ component {
 
         // Acabou de gerar: a privada aparece uma única vez, e o arquivo já foi
         // para Downloads.
-        column(spacing = 8, if = @recovery_key_generated, equals = true) {
+        column(spacing = 8, if = @recovery_key_generated == "true") {
           text("@recovery_key_saved_message", class = u-ok)
           text(
             "@recovery_key_warning",
-            if = @recovery_key_warning,
-            not_equals = "",
+            if = @recovery_key_warning != "",
             class = u-warn
           )
-          text("{t('settings_recovery_key.only_copy')}", class = u-error)
+          text(t("settings_recovery_key.only_copy"), class = u-error)
           container(class = copy-row__value) {
             text("@recovery_key_private", class = copy-row__text)
           }
           row(class = form-panel__actions) {
             button(
-              "{t('common.copy')}",
+              t("common.copy"),
               class = "btn btn--ghost",
               on_click = recovery_key_copy
             )
             button(
-              "{t('settings_recovery_key.save_again')}",
+              t("settings_recovery_key.save_again"),
               class = "btn btn--ghost",
               on_click = recovery_key_save_again,
               disabled = @busy_recovery_key_save_again
             )
             button(
-              "{t('settings_recovery_key.stored_safely')}",
+              t("settings_recovery_key.stored_safely"),
               class = "btn btn--primary",
               on_click = recovery_key_dismiss
             )

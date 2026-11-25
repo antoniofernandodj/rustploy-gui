@@ -31,29 +31,29 @@ component {
 
   row(class = page-head) {
     column(class = page-head__titles) {
-      text("{t('common.runtime')}", class = page-head__title)
+      text(t("common.runtime"), class = page-head__title)
 
       text(
-        "{t('docker.containers_images_volumes_and_networks')}",
+        t("docker.containers_images_volumes_and_networks"),
         class = page-head__subtitle,
       )
     }
 
     row(class = "page-head__stats page-head__stats--hide-md") {
       StatCard(
-        label = "{t('common.containers')}",
+        label = t("common.containers"),
         value = @docker_containers_count
       )
       StatCard(
-        label = "{t('docker.images')}",
+        label = t("docker.images"),
         value = @docker_images_count
       )
       StatCard(
-        label = "{t('docker.volumes')}",
+        label = t("docker.volumes"),
         value = @docker_volumes_count
       )
       StatCard(
-        label = "{t('docker.networks')}",
+        label = t("docker.networks"),
         value = @docker_networks_count, accent = 1
       )
     }
@@ -62,35 +62,35 @@ component {
   scroll(class = tabs__scroll, direction = horizontal) {
     row(class = tabs__main) {
       TabButton(
-        label = "{t('docker.containers')}",
+        label = t("docker.containers"),
         current = @docker_tab,
         target = containers,
         action = docker_tab:containers,
       )
 
       TabButton(
-        label = "{t('docker.images_2')}",
+        label = t("docker.images_2"),
         current = @docker_tab,
         target = images,
         action = docker_tab:images,
       )
 
       TabButton(
-        label = "{t('docker.volumes_2')}",
+        label = t("docker.volumes_2"),
         current = @docker_tab,
         target = volumes,
         action = docker_tab:volumes,
       )
 
       TabButton(
-        label = "{t('docker.networks_2')}",
+        label = t("docker.networks_2"),
         current = @docker_tab,
         target = networks,
         action = docker_tab:networks,
       )
 
       TabButton(
-        label = "{t('docker.registry')}",
+        label = t("docker.registry"),
         current = @docker_tab,
         target = registry,
         action = docker_tab:registry,
@@ -100,9 +100,9 @@ component {
 
   hr
 
-  DockerContainersTab(if = @docker_tab, equals = containers)
-  DockerImagesTab(if = @docker_tab, equals = images)
-  DockerVolumesTab(if = @docker_tab, equals = volumes)
-  DockerNetworksTab(if = @docker_tab, equals = networks)
-  DockerRegistryTab(if = @docker_tab, equals = registry)
+  DockerContainersTab(if = @docker_tab == "containers")
+  DockerImagesTab(if = @docker_tab == "images")
+  DockerVolumesTab(if = @docker_tab == "volumes")
+  DockerNetworksTab(if = @docker_tab == "networks")
+  DockerRegistryTab(if = @docker_tab == "registry")
 }

@@ -42,8 +42,7 @@ component {
 
   button(
     class = "nav-item nav-item--active",
-    if = @view,
-    one_of = @target,
+    if = @view in @target,
     on_click = @action,
     tooltip = @label,
   ) {

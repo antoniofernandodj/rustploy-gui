@@ -474,7 +474,7 @@ release e no debug do mesmo jeito. `views/scripts/handlers/language.luau` restau
 gravado (`storage`, chave `language`) na subida da janela principal e troca ao vivo;
 `i18n.set_locale` espalha a locale para todas as janelas abertas (cada janela é um motor isolado).
 
-**Duas famílias de chave.** No markup, chave semântica (`{t('docker_images.no_images')}`): é o que
+**Duas famílias de chave.** No markup, chave semântica (`t("docker_images.no_images")`): é o que
 o `tests/locales.rs` confere nos dois idiomas. No Luau, o texto de origem é a chave
 (`i18n.tr("Remover tag?")`): um literal de toast ou confirmação não ganha um nome inventado, e
 sem entrada o texto aparece como foi escrito. **Por que não chave semântica no Luau também:**
@@ -538,10 +538,11 @@ independente da taxa de chegada. O mesmo vale para a aba Logs do serviço, que �
 (`deployment_logs` → `open_window`): renderizar milhares de linhas por reavaliação travava a
 principal.
 
-**A condição vai na chamada, não na raiz do componente.** Num componente extraído, o `if`
-do nó raiz não é aplicado: o conteúdo apareceria sempre. Por isso as abas se escrevem
-`ServiceLogsTab(if = @tab, equals = logs)` e as abas de projeto
-`ProjectEnvTab(if = @project_loading, not_equals = true)`, com o `if` no ponto de uso. O
+**A condição vai na chamada, não na raiz do componente.** Até o glacier-ui 0.168 o `if`
+do nó raiz de um componente extraído não era aplicado (o conteúdo aparecia sempre); desde a
+0.169 vale, mas a convenção ficou: as abas se escrevem `ServiceLogsTab(if = @tab == "logs")`
+e as abas de projeto `ProjectEnvTab(if = @project_loading != "true")`, com o `if` no ponto
+de uso, onde quem lê a tela vê de que cada uma depende. O
 mesmo raciocínio vale para o `LoadingRow` (ver [6.7](#67-os-componentes)).
 
 **Vários filhos condicionais pedem `if @x { … }`, não `if=` como atributo.** O atributo

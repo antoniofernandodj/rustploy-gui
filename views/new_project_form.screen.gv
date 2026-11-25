@@ -1,7 +1,7 @@
 // Janela "Novo projeto": motor Glacier próprio, aberto por open_window a
 // partir do app principal (handlers/projects.luau → open_new_project_window),
 // que semeia a conexão (api_url/api_token) via open_window({ data = ...
-screen(title = "{t('new_project_form.new_project_rustploy')}") {
+screen(title = t("new_project_form.new_project_rustploy")) {
   resources {
     style """
     .dialog__wrap  { width: fill; height: fill; padding: 24; spacing: 18; }
@@ -17,7 +17,7 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
         text(
-          "{t('new_project_form.new_project_rustploy')}",
+          t("new_project_form.new_project_rustploy"),
           class = titlebar__title
         )
       }
@@ -36,10 +36,10 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
 
     column(class = dialog__wrap) {
       column(class = dialog__head) {
-        text("{t('new_project_form.new_project')}", class = dialog__title)
+        text(t("new_project_form.new_project"), class = dialog__title)
 
         text(
-          "{t('new_project_form.register_a_project_in_the')}",
+          t("new_project_form.register_a_project_in_the"),
           class = u-muted,
         )
       }
@@ -51,21 +51,21 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
         on_validation_error = new_project_show_validation_errors,
         class = "form form--gap-14",
       ) {
-        field(label = "{t('common.name')}", error = @error_new_project_name) {
+        field(label = t("common.name"), error = @error_new_project_name) {
           input(
             class = dialog__input,
             form_control = new_project_name,
             rules = required,
-            msg = "{t('common.enter_a_name')}",
-            placeholder = "{t('common.project_name')}",
+            msg = t("common.enter_a_name"),
+            placeholder = t("common.project_name"),
           )
         }
 
-        field(label = "{t('new_project_form.description_optional')}") {
+        field(label = t("new_project_form.description_optional")) {
           input(
             class = dialog__input,
             form_control = new_project_description,
-            placeholder = "{t('new_project_form.description')}",
+            placeholder = t("new_project_form.description"),
           )
         }
 
@@ -73,12 +73,11 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
         // enquanto o RPC está no ar ({new_project_busy}).
         text(
           "@new_project_error",
-          if = @new_project_error,
-          not_equals = "",
+          if = @new_project_error != "",
           class = u-error
         )
 
-        row(class = busy-row, if = @new_project_message, not_equals = "") {
+        row(class = busy-row, if = @new_project_message != "") {
           spinner(class = busy-row__spin, if = @new_project_busy)
           text("@new_project_message", class = u-muted)
         }
@@ -86,13 +85,13 @@ screen(title = "{t('new_project_form.new_project_rustploy')}") {
         row(class = dialog__actions) {
           column(class = u-fill)
           button(
-            "{t('common.cancel')}",
+            t("common.cancel"),
             class = "btn btn--ghost",
             on_click = cancel,
             disabled = @busy_cancel
           )
           button(
-            "{t('new_project_form.create_project')}",
+            t("new_project_form.create_project"),
             type = submit,
             disabled = @busy_submit_project,
             class = "btn btn--primary"

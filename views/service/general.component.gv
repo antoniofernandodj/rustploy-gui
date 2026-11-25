@@ -22,9 +22,9 @@ component {
   ) {
     // O scrollable só renderiza o PRIMEIRO filho: os forms ficam numa coluna.
     column(width = fill, spacing = 12) {
-      column(class = form-panel, if = @service_loading, equals = true) {
+      column(class = form-panel, if = @service_loading == "true") {
         if @service_loading == "true" {
-          LoadingRow(note = "{t('general.loading_service_data')}")
+          LoadingRow(note = t("general.loading_service_data"))
         }
       }
 
@@ -32,28 +32,27 @@ component {
       column(
         class = form-panel,
         width = fill,
-        if = @service_loading,
-        not_equals = true,
+        if = @service_loading != "true",
       ) {
-        text("{t('general.description')}", class = u-label-cap)
-        text("{t('general.description_hint')}", class = u-muted)
+        text(t("general.description"), class = u-label-cap)
+        text(t("general.description_hint"), class = u-muted)
 
         textarea(
           class = description__editor,
           :value = service_description,
-          placeholder = "{t('general.description_placeholder')}",
+          placeholder = t("general.description_placeholder"),
         )
 
         row(class = env__add) {
           button(
-            "{t('general.save_description')}",
+            t("general.save_description"),
             class = "btn btn--primary",
             on_click = service_description_save,
             disabled = @busy_service_description_save
           )
 
           button(
-            "{t('common.cancel')}",
+            t("common.cancel"),
             class = "btn btn--ghost",
             on_click = service_description_cancel,
             disabled = @busy_service_description_cancel
@@ -65,8 +64,7 @@ component {
 
       form(
         error_prefix = error_,
-        if = @service_loading,
-        not_equals = true,
+        if = @service_loading != "true",
         name = general,
         on_submit = general_save,
         class = form-panel,
@@ -79,19 +77,19 @@ component {
 
         // Provider Git/conta-conectada/Zip — apenas para serviços não-Compose.
         if @service_source_kind != "Compose" {
-          field(label = "{t('general.provider')}", label_class = u-label-cap) {
+          field(label = t("general.provider"), label_class = u-label-cap) {
             scroll(class = tabs__scroll, direction = horizontal) {
               row(class = tabs__main) {
                 TabButton(
-                  label = "{t('common.git')}",
+                  label = t("common.git"),
                   current = @provider_tab,
                   target = git,
                   action = select_provider_tab:git,
                 )
 
-                template(if = @gitea_providers, not_empty) {
+                if @gitea_providers is not empty {
                   TabButton(
-                    label = "{t('general.gitea_github')}",
+                    label = t("general.gitea_github"),
                     current = @provider_tab,
                     target = gitea,
                     action = select_provider_tab:gitea,
@@ -99,14 +97,14 @@ component {
                 }
 
                 TabButton(
-                  label = "{t('general.registry')}",
+                  label = t("general.registry"),
                   current = @provider_tab,
                   target = registry,
                   action = select_provider_tab:registry,
                 )
 
                 TabButton(
-                  label = "{t('general.zip')}",
+                  label = t("general.zip"),
                   current = @provider_tab,
                   target = zip,
                   action = select_provider_tab:zip,

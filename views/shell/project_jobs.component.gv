@@ -2,18 +2,18 @@
 component {
   resources {
     component(name = SemJobsNoProjeto) {
-      text("{t('common.no_jobs_registered_yet')}", class = u-muted)
+      text(t("common.no_jobs_registered_yet"), class = u-muted)
     }
   }
 
   row(class = env__head) {
     text(
-      "{t('project_jobs.job_s', project_jobs_count=project_jobs_count)}",
+      t("project_jobs.job_s", project_jobs_count = project_jobs_count),
       class = "u-muted u-fill"
     )
 
     button(
-      "{t('common.new_job')}",
+      t("common.new_job"),
       class = "btn btn--primary btn--sm",
       on_click = open_new_job_window,
       disabled = @busy_open_new_job_window

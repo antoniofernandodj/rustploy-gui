@@ -42,7 +42,7 @@ component {
     """
   }
 
-  column(if = @filler, equals = 1, class = u-fill)
+  column(if = @filler == "1", class = u-fill)
 
   column(else, class = card) {
     row(class = card__head) {
@@ -53,14 +53,12 @@ component {
 
       row(class = "card__badges u-align-y-end") {
         rp-badge(
-          if = @has_pending,
-          equals = true,
+          if = @has_pending == "true",
           color = warn,
           label = "◆ {t('service_card.change_pending_deploy')}"
         )
         rp-badge(
-          if = @has_warm,
-          equals = true,
+          if = @has_warm == "true",
           color = @warm_color,
           label = "◐ @warm_label"
         )
@@ -74,23 +72,21 @@ component {
     text(
       "@description",
       class = card__description,
-      if = @description,
-      not_equals = "",
+      if = @description != "",
     )
 
     row(class = card__container) {
       button(
         "⧉",
         class = card__copy,
-        if = @container_name_full,
-        not_equals = "",
-        on_click = copy_container_name:@container_name_full,
-        tooltip = "{t('service_card.copy_name')}",
+        if = @container_name_full != "",
+        on_click = copy_container_name(@container_name_full),
+        tooltip = t("service_card.copy_name"),
         tooltip_delay = "500ms",
       )
 
       text(
-        "{t('service_card.name', container_name=container_name)}",
+        t("service_card.name", container_name = container_name),
         class = u-muted
       )
     }
@@ -99,23 +95,21 @@ component {
       button(
         "⧉",
         class = card__copy,
-        if = @container_id_full,
-        not_equals = "",
-        on_click = copy_container_id:@container_id_full,
-        tooltip = "{t('service_card.copy_id')}",
+        if = @container_id_full != "",
+        on_click = copy_container_id(@container_id_full),
+        tooltip = t("service_card.copy_id"),
         tooltip_delay = "500ms",
       )
 
       text(
-        "{t('service_card.id', container_id=container_id)}",
+        t("service_card.id", container_id = container_id),
         class = u-muted
       )
 
       text(
-        "{t('service_card.extra', container_extra=container_extra)}",
+        t("service_card.extra", container_extra = container_extra),
         class = u-muted,
-        if = @container_extra,
-        not_equals = "",
+        if = @container_extra != "",
       )
     }
 
@@ -123,12 +117,12 @@ component {
 
     row(class = card__stats) {
       column(class = card__stat) {
-        text("{t('common.cpu')}", class = u-label-cap)
+        text(t("common.cpu"), class = u-label-cap)
         text("@cpu", class = card__stat-num)
       }
 
       column(class = card__stat) {
-        text("{t('common.mem')}", class = u-label-cap)
+        text(t("common.mem"), class = u-label-cap)
         text("@mem", class = card__stat-num)
       }
     }
@@ -136,9 +130,9 @@ component {
     // Ações empilhadas: 3 botões numa linha só transbordam no tamanho mínimo
     // de janela (grade de 3 colunas).
     button(
-      "{t('common.open')}",
+      t("common.open"),
       class = "card__action card__action--open",
-      on_click = open_service:@id,
+      on_click = open_service(@id),
       disabled = @busy_open_service
     )
 
@@ -146,36 +140,36 @@ component {
       button(
         "▶",
         class = "card__action card__action--icon card__action--deploy",
-        on_click = service_card_deploy:@id,
+        on_click = service_card_deploy(@id),
         disabled = @busy_service_card_deploy,
-        tooltip = "{t('common.deploy')}",
+        tooltip = t("common.deploy"),
         tooltip_delay = "500ms",
       )
 
       button(
         "■",
         class = "card__action card__action--icon",
-        on_click = service_stop_id:@id,
+        on_click = service_stop_id(@id),
         disabled = @busy_service_stop_id,
-        tooltip = "{t('common.stop')}",
+        tooltip = t("common.stop"),
         tooltip_delay = "500ms",
       )
 
       button(
         "✕",
         class = "card__action card__action--icon card__action--danger",
-        on_click = stop_delete_service:@id,
+        on_click = stop_delete_service(@id),
         disabled = @busy_stop_delete_service,
-        tooltip = "{t('common.remove')}",
+        tooltip = t("common.remove"),
         tooltip_delay = "500ms",
       )
 
       button(
         "⇪",
         class = "card__action card__action--icon",
-        on_click = open_export_window:@id,
+        on_click = open_export_window(@id),
         disabled = @busy_open_export_window,
-        tooltip = "{t('service_card.export_service_a_file_to')}",
+        tooltip = t("service_card.export_service_a_file_to"),
         tooltip_delay = "500ms",
       )
     }

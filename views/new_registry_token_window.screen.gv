@@ -1,6 +1,6 @@
 // Janela "Novo token do registry": motor Glacier próprio, aberto por
 // open_window a partir do app principal.
-screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
+screen(title = t("new_registry_token_window.new_token_rustploy")) {
   resources {
 
     style """
@@ -23,7 +23,7 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
       row(class = titlebar__drag, on_press = window:drag) {
         text("●", class = titlebar__dot)
         text(
-          "{t('new_registry_token_window.new_token_rustploy')}",
+          t("new_registry_token_window.new_token_rustploy"),
           class = titlebar__title
         )
       }
@@ -45,12 +45,12 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
         // Passo 1: formulário
         if @new_registry_token_step == "form" {
           text(
-            "{t('new_registry_token_window.new_access_token_basic_auth')}",
+            t("new_registry_token_window.new_access_token_basic_auth"),
             class = u-label-cap
           )
 
           text(
-            "{t('new_registry_token_window.used_in_docker_login_push')}",
+            t("new_registry_token_window.used_in_docker_login_push"),
             class = u-muted,
           )
 
@@ -62,19 +62,19 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
             class = "form form--gap-10",
           ) {
             field(
-              label = "{t('common.name')}",
+              label = t("common.name"),
               error = @error_new_registry_token_name
             ) {
               input(
                 class = dialog__input,
                 form_control = new_registry_token_name,
                 rules = required,
-                msg = "{t('common.enter_a_name')}",
-                placeholder = "{t('new_registry_token_window.e_g_ci_deploy')}",
+                msg = t("common.enter_a_name"),
+                placeholder = t("new_registry_token_window.e_g_ci_deploy"),
               )
             }
 
-            field(label = "{t('common.scope')}", label_class = u-label-cap) {
+            field(label = t("common.scope"), label_class = u-label-cap) {
               scroll(class = tabs__scroll, direction = horizontal) {
                 tabbar(
                   :value = new_registry_token_scope,
@@ -90,15 +90,13 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
 
             text(
               "@new_registry_token_error",
-              if = @new_registry_token_error,
-              not_equals = "",
+              if = @new_registry_token_error != "",
               class = u-error,
             )
 
             row(
               class = busy-row,
-              if = @new_registry_token_message,
-              not_equals = ""
+              if = @new_registry_token_message != ""
             ) {
               spinner(class = busy-row__spin, if = @new_registry_token_busy)
               text("@new_registry_token_message", class = u-muted)
@@ -108,13 +106,13 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
               column(class = u-fill)
 
               button(
-                "{t('common.cancel')}",
+                t("common.cancel"),
                 class = "btn btn--ghost",
                 on_click = window:close
               )
 
               button(
-                "{t('new_registry_token_window.create_token')}",
+                t("new_registry_token_window.create_token"),
                 type = submit,
                 disabled = @busy_new_registry_token_create,
                 class = "btn btn--primary"
@@ -126,29 +124,28 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
         // Passo 2: segredo exibido uma única vez
         if @new_registry_token_step == "reveal" {
           text(
-            "{t('new_registry_token_window.token_created_copy_it_now')}",
+            t("new_registry_token_window.token_created_copy_it_now"),
             class = u-label-cap
           )
 
           text(
-            "{t('new_registry_token_window.secret_cannot_be_recovered')}",
+            t("new_registry_token_window.secret_cannot_be_recovered"),
             class = u-error,
           )
 
           text(
             "@new_registry_token_message",
-            if = @new_registry_token_message,
-            not_equals = "",
+            if = @new_registry_token_message != "",
             class = u-ok
           )
 
           column(class = dialog__secret) {
             field(
-              label = "{t('new_registry_token_window.docker_login_command')}"
+              label = t("new_registry_token_window.docker_login_command")
             ) {
               inputgroup(
-                action = "{t('common.copy')}",
-                on_action = "copy_ctx:new_registry_token_login_command"
+                action = t("common.copy"),
+                on_action = copy_ctx("new_registry_token_login_command")
               ) {
                 input(
                   :value = new_registry_token_login_command,
@@ -161,7 +158,7 @@ screen(title = "{t('new_registry_token_window.new_token_rustploy')}") {
           row(class = dialog__actions) {
             column(class = u-fill)
             button(
-              "{t('common.close')}",
+              t("common.close"),
               class = "btn btn--primary",
               on_click = window:close
             )

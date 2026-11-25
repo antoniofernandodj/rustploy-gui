@@ -3,7 +3,7 @@ component {
   resources {
     component(name = SemDeployAtivo) {
       text(
-        "{t('deploy_engine_executando.no_deploy_in_progress')}",
+        t("deploy_engine_executando.no_deploy_in_progress"),
         class = empty-state
       )
     }
@@ -13,36 +13,35 @@ component {
     column(class = section) {
       row(class = section__head) {
         text(
-          "{t('deploy_engine_executando.running_now',
-            deploy_engine_active_count=deploy_engine_active_count)}",
+          t("deploy_engine_executando.running_now", deploy_engine_active_count = deploy_engine_active_count),
           class = section__title,
         )
       }
 
       column(class = section__body) {
-        row(class = table__head, if = @deploy_engine_active, not_empty) {
+        row(class = table__head, if = @deploy_engine_active is not empty) {
           text(
-            "{t('common.service')}",
+            t("common.service"),
             class = "table__head-cell table__col-svc"
           )
 
           text(
-            "{t('common.project')}",
+            t("common.project"),
             class = "table__head-cell table__col-proj"
           )
 
           text(
-            "{t('common.state')}",
+            t("common.state"),
             class = "table__head-cell table__col-state"
           )
 
           text(
-            "{t('deploy_engine_executando.total')}",
+            t("deploy_engine_executando.total"),
             class = "table__head-cell table__col-dur"
           )
 
           text(
-            "{t('deploy_engine_executando.phase')}",
+            t("deploy_engine_executando.phase"),
             class = "table__head-cell table__col-start"
           )
 
@@ -53,7 +52,7 @@ component {
           LoadingRow
         }
 
-        column(if = @data_loading, not_equals = true, class = u-fill) {
+        column(if = @data_loading != "true", class = u-fill) {
           each @deploy_engine_active as a (fallback = SemDeployAtivo) {
             column(class = u-fill) {
               row(class = table__row) {
@@ -77,11 +76,10 @@ component {
                 text("@a.phase", class = "u-muted table__col-start")
 
                 button(
-                  "{t('deploy_engine_executando.details')}",
-                  if = @a.is_deploy,
-                  equals = true,
+                  t("deploy_engine_executando.details"),
+                  if = @a.is_deploy == "true",
                   class = "btn btn--ghost btn--xs",
-                  on_click = deploy_engine_open_detail:@a.service_id,
+                  on_click = deploy_engine_open_detail(@a.service_id),
                   disabled = @busy_deploy_engine_open_detail
                 )
 
@@ -90,13 +88,13 @@ component {
                 button(
                   "■",
                   class = env__del,
-                  on_click = queue_cancel:@a.deployment_id,
+                  on_click = queue_cancel(@a.deployment_id),
                   disabled = @busy_queue_cancel,
-                  tooltip = "{t('deploy_engine_executando.abort_deploy')}"
+                  tooltip = t("deploy_engine_executando.abort_deploy")
                 )
               }
 
-              row(if = @a.is_deploy, equals = true, class = stepper) {
+              row(if = @a.is_deploy == "true", class = stepper) {
                 each @a.steps as st {
                   text(
                     "@st.text",
@@ -115,17 +113,16 @@ component {
     // Detalhe do deploy: painel na própria aba, abaixo da tabela. Era um
     // `popup` centrado, que não aparecia nesta tela (a chave abria, o overlay
     // não era desenhado); no fluxo normal não depende de overlay.
-    column(class = u-fill, if = @deploy_engine_detail_open, equals = "true") {
+    column(class = u-fill, if = @deploy_engine_detail_open == "true") {
       column(class = "panel panel--round detail") {
         row(class = detail__head) {
           text(
-            "{t('deploy_engine_executando.deploy',
-              deploy_engine_detail_title=deploy_engine_detail_title)}",
+            t("deploy_engine_executando.deploy", deploy_engine_detail_title = deploy_engine_detail_title),
             class = detail__title
           )
 
           button(
-            "{t('common.close')}",
+            t("common.close"),
             class = "btn btn--ghost btn--xs",
             on_click = deploy_engine_close_detail,
             disabled = @busy_deploy_engine_close_detail
@@ -147,7 +144,7 @@ component {
           class = u-fill-all,
         ) {
           tablecolumn(
-            label = "{t('common.state')}",
+            label = t("common.state"),
             class = table__col-state
           ) {
             row(class = "state-cell state-cell--@d.kind") {
@@ -156,14 +153,14 @@ component {
           }
 
           tablecolumn(
-            label = "{t('common.duration')}",
+            label = t("common.duration"),
             class = table__col-dur
           ) {
             text("@d.dur", class = u-muted)
           }
 
           tablecolumn(
-            label = "{t('deploy_engine_executando.message')}",
+            label = t("deploy_engine_executando.message"),
             class = table__col-start
           ) {
             text("@d.msg", class = u-muted)

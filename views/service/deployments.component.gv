@@ -2,7 +2,7 @@
 component {
   resources {
     component(name = SemDeploysDoServico) {
-      text("{t('deployments.no_deploy_yet')}", class = u-muted)
+      text(t("deployments.no_deploy_yet"), class = u-muted)
     }
   }
 
@@ -10,25 +10,24 @@ component {
     // Webhook de deploy: servido pelo MESMO listener da API (base
     // derivada de [api] domain/port). Compose não tem webhook.
     column(
-      if = @service_webhook_supported,
-      equals = true,
+      if = @service_webhook_supported == "true",
       class = form-panel,
     ) {
-      text("{t('common.deploy_webhook')}", class = u-label-cap)
+      text(t("common.deploy_webhook"), class = u-label-cap)
 
-      column(if = @service_webhook_url, not_equals = "", class = webhook) {
+      column(if = @service_webhook_url != "", class = webhook) {
         // a URL inteira num campo só de leitura (rola dentro dele), com o
         // Copiar colado — o `_short` + tooltip só existiam para caber na linha
         inputgroup(
-          action = "{t('common.copy')}",
-          on_action = "copy_ctx:service_webhook_url"
+          action = t("common.copy"),
+          on_action = copy_ctx("service_webhook_url")
         ) {
           input(:value = service_webhook_url, readonly = true)
         }
 
         row(class = webhook__actions) {
           button(
-            "{t('deployments.regenerate')}",
+            t("deployments.regenerate"),
             class = "btn btn--danger btn--xs",
             on_click = regenerate_webhook,
             disabled = @busy_regenerate_webhook
@@ -37,14 +36,13 @@ component {
       }
 
       text(
-        "{t('deployments.the_token_is_born_on_this')}",
-        if = @service_webhook_url,
-        equals = "",
+        t("deployments.the_token_is_born_on_this"),
+        if = @service_webhook_url == "",
         class = u-muted,
       )
 
       text(
-        "{t('deployments.a_post_to_this_url_triggers')}",
+        t("deployments.a_post_to_this_url_triggers"),
         class = u-muted,
       )
     }
@@ -52,14 +50,13 @@ component {
     // Janela "Comparar" de uma release, na própria aba: o que um "voltar
     // para esta" mudaria (do declarado agora para a release).
     column(
-      if = @release_diff_open,
-      equals = "1",
+      if = @release_diff_open == "1",
       class = "form-panel release-diff",
     ) {
       row(class = release-diff__head) {
         text("@release_diff_title", class = "u-label-cap u-fill")
         button(
-          "{t('common.close')}",
+          t("common.close"),
           class = "btn btn--ghost btn--xs",
           on_click = release_diff_close,
           disabled = @busy_release_diff_close
@@ -67,9 +64,8 @@ component {
       }
 
       text(
-        "{t('deployments.nothing_changes')}",
-        if = @release_diff_is_empty,
-        equals = "1",
+        t("deployments.nothing_changes"),
+        if = @release_diff_is_empty == "1",
         class = u-muted,
       )
 
@@ -91,27 +87,24 @@ component {
       }
 
       row(
-        if = @release_diff_can_rollback,
-        equals = "1",
+        if = @release_diff_can_rollback == "1",
         class = release-diff__actions,
       ) {
         button(
-          "{t('deployments.roll_back_to_this')}",
+          t("deployments.roll_back_to_this"),
           class = "btn btn--primary btn--xs",
-          on_click = release_rollback:@release_diff_release_id,
+          on_click = release_rollback(@release_diff_release_id),
           disabled = @busy_release_rollback
         )
       }
     }
 
     column(
-      if = @release_diff_open,
-      not_equals = "1",
+      if = @release_diff_open != "1",
       class = deployments__history,
     ) {
     text(
-      "{t('deployments.deployments',
-        service_deployments_count=service_deployments_count)}",
+      t("deployments.deployments", service_deployments_count = service_deployments_count),
       class = u-muted
     )
 
@@ -132,19 +125,18 @@ component {
                 button(
                   "≡",
                   class = "btn btn--ghost btn--xs",
-                  on_click = deployment_logs:@d.id_full,
+                  on_click = deployment_logs(@d.id_full),
                   disabled = @busy_deployment_logs,
-                  tooltip = "{t('deployments.view_build_log')}"
+                  tooltip = t("deployments.view_build_log")
                 )
 
                 button(
                   "✕",
-                  if = @d.can_delete,
-                  equals = 1,
+                  if = @d.can_delete == "1",
                   class = "btn btn--danger btn--xs",
-                  on_click = delete_deployment:@d.id_full,
+                  on_click = delete_deployment(@d.id_full),
                   disabled = @busy_delete_deployment,
-                  tooltip = "{t('deployments.remove_deployment')}"
+                  tooltip = t("deployments.remove_deployment")
                 )
               }
             }
@@ -152,45 +144,40 @@ component {
             text("@d.image", class = deployments__image)
             text(
               "@d.release_restored_label",
-              if = @d.release_restored_label,
-              not_equals = "",
+              if = @d.release_restored_label != "",
               class = deployments__image,
             )
             row(
-              if = @d.release_id,
-              not_equals = "",
+              if = @d.release_id != "",
               class = deployments__release-actions,
             ) {
               row(class = release-badge) {
                 text("@d.release_label", class = release-badge__number)
                 text(
-                  "{t('deployments.current')}",
-                  if = @d.release_is_current,
-                  equals = "1",
+                  t("deployments.current"),
+                  if = @d.release_is_current == "1",
                   class = release-badge__current,
                 )
               }
               button(
-                "{t('deployments.compare')}",
+                t("deployments.compare"),
                 class = "btn btn--ghost btn--xs",
-                on_click = release_compare:@d.release_id,
+                on_click = release_compare(@d.release_id),
                 disabled = @busy_release_compare,
-                tooltip = "{t('deployments.compare_this_release')}"
+                tooltip = t("deployments.compare_this_release")
               )
               button(
-                "{t('deployments.roll_back_to_this')}",
-                if = @d.release_can_rollback,
-                equals = "1",
+                t("deployments.roll_back_to_this"),
+                if = @d.release_can_rollback == "1",
                 class = "btn btn--ghost btn--xs",
-                on_click = release_rollback:@d.release_id,
+                on_click = release_rollback(@d.release_id),
                 disabled = @busy_release_rollback,
-                tooltip = "{t('deployments.roll_back_tooltip')}"
+                tooltip = t("deployments.roll_back_tooltip")
               )
             }
             text(
-              "{t('deployments.release_image_deleted')}",
-              if = @d.release_image_missing,
-              equals = "1",
+              t("deployments.release_image_deleted"),
+              if = @d.release_image_missing == "1",
               class = deployments__image,
             )
             hr

@@ -14,13 +14,12 @@ component {
 
   row(class = loading-row) {
     spinner(class = loading-row__spin)
-    text("@note", class = loading-row__note, if = @note, not_equals = "")
+    text("@note", class = loading-row__note, if = @note != "")
 
     text(
-      "{t('loading_row.loading_data')}",
+      t("loading_row.loading_data"),
       class = loading-row__note,
-      if = @note,
-      equals = "",
+      if = @note == "",
     )
   }
 }

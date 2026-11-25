@@ -17,7 +17,7 @@ component {
 
     component(name = SemServicosNoProjeto) {
       text(
-        "{t('project_services.no_service_in_this_project')}",
+        t("project_services.no_service_in_this_project"),
         class = u-muted
       )
     }
@@ -28,7 +28,7 @@ component {
       column(class = page-head__titles) {
         row(class = proj-bar) {
           button(
-            "{t('project_services.projects')}",
+            t("project_services.projects"),
             class = "btn btn--ghost",
             on_click = nav_projects,
             disabled = @busy_nav_projects
@@ -38,21 +38,21 @@ component {
 
           flow(class = proj-bar__actions) {
             button(
-              "{t('project_services.reorder_services')}",
+              t("project_services.reorder_services"),
               class = "btn btn--ghost btn--sm",
               on_click = open_services_reorder_window,
               disabled = @busy_open_services_reorder_window
             )
 
             button(
-              "{t('project_services.deploy')}",
+              t("project_services.deploy"),
               class = "btn btn--ghost btn--sm",
               on_click = project_deploy,
               disabled = @busy_project_deploy
             )
 
             button(
-              "{t('project_services.new_service')}",
+              t("project_services.new_service"),
               class = "btn btn--primary btn--sm",
               on_click = open_new_service_window,
               disabled = @busy_open_new_service_window
@@ -60,9 +60,9 @@ component {
 
             if @project_can_delete == "1" {
               button(
-                "{t('project_services.remove_project')}",
+                t("project_services.remove_project"),
                 class = "btn btn--danger btn--sm",
-                on_click = delete_project:@selected_project_id,
+                on_click = delete_project(@selected_project_id),
                 disabled = @busy_delete_project
               )
             }
@@ -76,20 +76,19 @@ component {
           class = "page-head__title-input",
           :value = edit_project_name,
           on_change = project_title_change,
-          placeholder = "{t('common.project_name')}",
+          placeholder = t("common.project_name"),
         )
 
         input(
           class = "page-head__subtitle-input",
           :value = edit_project_description,
           on_change = project_description_change,
-          placeholder = "{t('project_services.description_optional')}",
+          placeholder = t("project_services.description_optional"),
         )
 
         text(
           "@project_action_message",
-          if = @project_action_message,
-          not_equals = "",
+          if = @project_action_message != "",
           class = u-muted,
         )
       }
@@ -99,38 +98,35 @@ component {
     scroll(class = tabs__scroll, direction = horizontal) {
       row(class = tabs__main) {
         TabButton(
-          label = "{t('project_services.services')}",
+          label = t("project_services.services"),
           current = @project_tab,
           target = services,
           action = project_tab:services,
         )
 
         TabButton(
-          label = "{t('project_services.variables',
-            project_env_count=project_env_count)}",
+          label = t("project_services.variables", project_env_count = project_env_count),
           current = @project_tab,
           target = env,
           action = project_tab:env,
         )
 
         TabButton(
-          label = "{t('project_services.secrets',
-            project_secrets_count=project_secrets_count)}",
+          label = t("project_services.secrets", project_secrets_count = project_secrets_count),
           current = @project_tab,
           target = secrets,
           action = project_tab:secrets,
         )
 
         TabButton(
-          label = "{t('project_services.jobs',
-            project_jobs_count=project_jobs_count)}",
+          label = t("project_services.jobs", project_jobs_count = project_jobs_count),
           current = @project_tab,
           target = jobs,
           action = project_tab:jobs,
         )
 
         TabButton(
-          label = "{t('project_services.environments')}",
+          label = t("project_services.environments"),
           current = @project_tab,
           target = environments,
           action = project_tab:environments,
@@ -146,12 +142,12 @@ component {
 
     if @project_tab == "env" {
       // ── Variáveis de ambiente do projeto ──────────────────────
-    ProjectEnvTab(if = @project_loading, not_equals = true)
+    ProjectEnvTab(if = @project_loading != "true")
     }
 
     if @project_tab == "secrets" {
       // ── Secrets do projeto ──────────────────────────────────────
-    ProjectSecretsTab(if = @project_loading, not_equals = true)
+    ProjectSecretsTab(if = @project_loading != "true")
     }
 
     if @project_tab == "jobs" {
@@ -164,15 +160,14 @@ component {
 
     if @project_tab == "services" {
       scrollable(
-        if = @project_loading,
-        not_equals = true,
+        if = @project_loading != "true",
         direction = vertical,
         class = u-fill-all,
       ) {
         column(class = grid) {
           each @project_services as r (fallback = SemServicosNoProjeto) {
             row(class = grid__row) {
-              ServiceCard(:for_each = r.cards, var = c, spread = @c)
+              ServiceCard(each = @r.cards as c, spread = @c)
             }
           }
         }

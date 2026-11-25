@@ -2,13 +2,13 @@
 component {
   column(class = log-panel) {
     text(
-      "{t('logs.runtime_logs_open_in_their_own')}",
+      t("logs.runtime_logs_open_in_their_own"),
       class = u-muted,
     )
 
     row(class = env__add) {
       button(
-        "{t('logs.execution_logs')}",
+        t("logs.execution_logs"),
         class = "btn btn--primary",
         on_click = open_logs_window,
         disabled = @busy_open_logs_window
@@ -18,14 +18,14 @@ component {
     // Execuções anteriores: uma por container. "Ver logs" abre uma janela só
     // dela, com data e hora; "Excluir" e "Limpar selecionados" apagam o log
     // guardado (irreversível).
-    column(class = form-panel, if = @log_executions_visible, equals = true) {
+    column(class = form-panel, if = @log_executions_visible == "true") {
       row(class = env__head) {
-        text("{t('logs.previous_executions')}", class = u-label-cap)
+        text(t("logs.previous_executions"), class = u-label-cap)
 
         column(class = u-fill)
 
         button(
-          "{t('logs.select_all')}",
+          t("logs.select_all"),
           class = "btn btn--ghost btn--sm",
           on_click = log_exec_toggle_all
         )
@@ -33,16 +33,14 @@ component {
         button(
           "@log_selected_label",
           class = "btn btn--danger btn--sm",
-          if = @log_selected_none,
-          equals = true,
+          if = @log_selected_none == "true",
           disabled = true
         )
 
         button(
           "@log_selected_label",
           class = "btn btn--danger btn--sm",
-          if = @log_selected_none,
-          not_equals = true,
+          if = @log_selected_none != "true",
           on_click = log_exec_delete_selected,
           disabled = @busy_log_exec_delete_selected
         )
@@ -50,12 +48,12 @@ component {
 
       scrollable(direction = vertical, class = u-fill-all) {
         column(class = kv-list) {
-          template(:for_each = log_executions, var = e) {
+          each @log_executions as e {
             row(class = kv-list__row) {
               button(
                 "@e.mark",
                 class = "btn btn--ghost btn--sm",
-                on_click = log_exec_toggle:@e.key
+                on_click = log_exec_toggle(@e.key)
               )
 
               column(class = u-fill, spacing = 2) {
@@ -71,16 +69,16 @@ component {
               text("@e.partial", class = badge__label)
 
               button(
-                "{t('logs.view_logs')}",
+                t("logs.view_logs"),
                 class = "btn btn--ghost btn--sm",
-                on_click = log_exec_open:@e.key,
+                on_click = log_exec_open(@e.key),
                 disabled = @busy_log_exec_open
               )
 
               button(
-                "{t('logs.delete')}",
+                t("logs.delete"),
                 class = "btn btn--ghost btn--sm",
-                on_click = log_exec_delete:@e.key,
+                on_click = log_exec_delete(@e.key),
                 disabled = @busy_log_exec_delete
               )
             }
