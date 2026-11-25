@@ -5,7 +5,7 @@
 -- Compose), dono, órfão, backup; adotar num serviço Application e remover.
 -- Também o "usar volume existente" do editor do Compose e a pergunta dos
 -- volumes emprestados ao apagar um serviço. Ver
--- docs/plano-volumes-tela-e-emprestados.md.
+-- docs/arquivo/plano-volumes-tela-e-emprestados.md.
 
 local State = require("../state")
 

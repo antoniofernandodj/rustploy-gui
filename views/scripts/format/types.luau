@@ -33,6 +33,7 @@ export type TcpPortRoute = {
 
 export type ServiceSpec = {
     name: string,
+    description: string?,
     port: number,
     host_port: number?,
     tcp_ports: { TcpPortRoute }?,

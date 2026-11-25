@@ -3,7 +3,7 @@
 -- handlers/bundle_import.luau — passo "Importar" do wizard "Novo serviço":
 -- recria aqui um serviço exportado de outro servidor. O destino é SEMPRE o
 -- projeto aberto (ctx.selected_project_id), como numa criação qualquer — não
--- há escolha de projeto. Ver docs/plano-copiar-servico-entre-servidores.md.
+-- há escolha de projeto. Ver docs/arquivo/plano-copiar-servico-entre-servidores.md.
 --
 -- Duas fases, como no daemon: `import_analyze` (dry_run: nada é gravado;
 -- mostra o que não veio e o que precisa de decisão) e `import_create` (analisa

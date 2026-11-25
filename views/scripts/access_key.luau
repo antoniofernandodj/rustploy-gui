@@ -10,7 +10,7 @@
 -- http. O daemon deixa o token pronto no config.toml, em
 -- `[api].connection_token`. Esconde o endereço, não o criptografa — quem tem o
 -- token de conexão tem o token da API. Ver
--- docs/plano-chave-de-acesso-e-mcp.md.
+-- docs/arquivo/plano-chave-de-acesso-e-mcp.md.
 --
 -- Luau não traz base64, daí o codificador aqui embaixo.
 

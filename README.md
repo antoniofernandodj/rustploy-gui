@@ -17,8 +17,8 @@ Os assuntos, na ordem em que fazem sentido para quem chega agora:
 5. [Os testes e o que cada um trava](#5-os-testes-e-o-que-cada-um-trava)
 6. [Os templates `.gv` por dentro](#6-os-templates-gv-por-dentro)
 
-Documentos relacionados: `docs/plano-chave-de-acesso-e-mcp.md` (login por chave
-e a API de agente no daemon) e `docs/plano-reforma-gui-glacier-0.102.md` (a reforma da UI).
+Documentos relacionados: `docs/arquivo/plano-chave-de-acesso-e-mcp.md` (login por chave
+e a API de agente no daemon) e `docs/arquivo/plano-reforma-gui-glacier-0.102.md` (a reforma da UI).
 
 ---
 
@@ -264,7 +264,7 @@ Até 2026-10-13 este crate subia um servidor HTTP local (`src/agent/`, porta
 foi **removido**: o acesso de agente agora é servido pelo próprio daemon —
 `POST /api/login` com a chave de acesso, o servidor MCP em `POST /mcp` e o
 manual em `GET /api/agent/manual` (ver `rustploy-daemon/crates/daemon/src/api/agent/`
-e `docs/plano-chave-de-acesso-e-mcp.md` no agregador). Um agente não depende
+e `docs/arquivo/plano-chave-de-acesso-e-mcp.md` no agregador). Um agente não depende
 mais de a GUI estar aberta, nem de estar na mesma máquina.
 
 O que sobrou aqui do assunto é a tela de login: um campo só, a chave de acesso,
@@ -381,7 +381,7 @@ sem webhook — e as sub-abas Git/Zip do provider e o editor de Compose).
 **Contratos travados por testes próprios:**
 
 - **A sidebar é uma `<drawer>`** (Onda 2 da reforma,
-  `docs/plano-reforma-gui-glacier-0.102.md`), não mais um trilho de ícones
+  `docs/arquivo/plano-reforma-gui-glacier-0.102.md`), não mais um trilho de ícones
   colapsável por `@media`. O teste trava três coisas: (1) o `<drawer>` (um
   `<Reveal axis="x">` após o eval) reflete `{menu}` no seu `open` — `"true"` abre,
   vazio fecha; (2) o gatilho ☰ da topbar dispara `drawer::toggle:menu`, a ação que o
@@ -666,7 +666,7 @@ Projects, serviços de um projeto, detalhe de serviço); delega as telas globais
 `home.component.gv`.
 
 - **A sidebar é uma `<drawer>`** (glacier-ui 0.92+, Onda 2 da reforma,
-  `docs/plano-reforma-gui-glacier-0.102.md`). Largura, padding e spacing vêm das props do
+  `docs/arquivo/plano-reforma-gui-glacier-0.102.md`). Largura, padding e spacing vêm das props do
   `<drawer>` no markup; o CSS só dá a cor (o painel carrega `drawer-panel` + `sidebar`). A
   gaveta **empurra** o conteúdo (não cobre) e não desenha gatilho: o ☰ mora na topbar e
   `drawer::toggle:menu` funciona de qualquer lugar. O `init()` (`connection.luau`) semeia
@@ -755,7 +755,7 @@ Registry), Settings, Schedules e Suporte.
   import rejeita um zip que tenha qualquer outra coisa. Ver `manifest_export`/`manifest_import` em
   `handlers/settings.luau` e a ponte do zip na [seção 3](#3-a-ponte-do-zip-do-infra-as-code).
 - **Settings → Manutenção.** Limpeza automática de recursos Docker sem uso (ver
-  `docs/plano-limpeza-automatica-docker.md`): as mesmas funções dos botões manuais da aba
+  `docs/arquivo/plano-limpeza-automatica-docker.md`): as mesmas funções dos botões manuais da aba
   Docker, disparadas por agendamento em vez de clique.
   - O **dia da semana** eram sete `<TabButton>` escritos à mão mais o handler `docker_cleanup_weekday` só
     para gravar a escolha. O `<radiogroup>` (glacier-ui 0.66) grava a chave sozinho, no update
@@ -963,7 +963,7 @@ props.
   fixo, como `confirm{}`, então não há como levar o job da linha para dentro dele). O `<popup>` não
   é modal: a tela de trás continua clicável. Não existe componente chamado `Painel`: é o apelido
   de `<popover>` no motor. O texto "quente/frio" vem pronto do daemon (`JobWarmStatus`,
-  `docs/plano-aquecer-job.md`), via `format.warm_status`.
+  `docs/arquivo/plano-aquecer-job.md`), via `format.warm_status`.
 - **`picker_row`** — linha de escolha do wizard "Novo serviço": título + subtítulo à esquerda e
   um botão de ação à direita, usada nos passos de tipo, de banco e de template.
 - **`project_card` e `service_card`** — são templates **fragment** com dois nós de topo (o *slot*

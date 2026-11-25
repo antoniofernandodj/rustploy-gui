@@ -1,5 +1,5 @@
 // Settings → Backups: o destino S3 dos backups de dados dos serviços (plano em
-// docs/plano-backup-de-dados-para-s3.md, Fase 1). Handlers em
+// docs/arquivo/plano-backup-de-dados-para-s3.md, Fase 1). Handlers em
 // handlers/data_backup.luau; a webui faz o mesmo em `webui/index.html` (aba
 // "Backups"): mude os dois juntos. A chave secreta nunca volta do daemon: o
 // campo fica vazio e, vazio, mantém a que já está gravada.

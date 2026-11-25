@@ -124,7 +124,7 @@ component {
         )
       }
 
-      // ── Backup no S3 (Fase 2 de docs/plano-backup-de-dados-para-s3.md;
+      // ── Backup no S3 (Fase 2 de docs/arquivo/plano-backup-de-dados-para-s3.md;
       // handlers/service_backup.luau) ──
       text("{t('dados.s3_backup_title')}", class = u-label-cap)
       text("{t('dados.s3_backup_intro')}", class = u-muted)

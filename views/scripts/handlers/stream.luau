@@ -699,7 +699,7 @@ local function apply_bus_event(bus_event: any): ()
                 -- healthcheck que não passou…). O evento sempre o carregou;
                 -- era este consumidor que o descartava, e a notificação dizia
                 -- só "Failed" — o usuário ficava sem hipótese nenhuma. Ver
-                -- docs/plano-erro-de-deploy-invisivel.md.
+                -- docs/arquivo/plano-erro-de-deploy-invisivel.md.
                 local failure_reason =
                     format.short_reason(deploy_event.message)
                 if live then

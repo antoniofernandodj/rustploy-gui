@@ -54,7 +54,7 @@ function job_run_now(job_id: string): ()
     State.jobs_inflight[job_id] = nil
 end
 
--- Cancela um job_run em execução (ver docs/plano-cancelamento-de-jobs.md):
+-- Cancela um job_run em execução (ver docs/arquivo/plano-cancelamento-de-jobs.md):
 -- mata o processo `docker compose up` de verdade no daemon, não só a UI.
 -- `job_run_id` vem de `j.last_run_id` — enquanto `j.running` só reflete o
 -- estado otimista (ver `job_run_now`, antes do primeiro refresh confirmar o

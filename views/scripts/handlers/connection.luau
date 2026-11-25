@@ -190,7 +190,7 @@ function init(): ()
     ctx.data_backup_keep = ctx.data_backup_keep or "7"
     ctx.data_backup_stop = ctx.data_backup_stop or "true"
     ctx.data_backup_next = ctx.data_backup_next or ""
-    -- Aba Recuperar (docs/plano-backup-de-dados-para-s3.md, Fase 4);
+    -- Aba Recuperar (docs/arquivo/plano-backup-de-dados-para-s3.md, Fase 4);
     -- handlers/recover.luau. A chave e o token só moram no campo: o handler os
     -- apaga ao enviar.
     ctx.recover_remote = ctx.recover_remote or ""

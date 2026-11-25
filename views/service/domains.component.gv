@@ -94,7 +94,7 @@ component {
       }
 
       column(class = form-panel) {
-        // Portas TCP do host (docs/plano-multiplas-portas-tcp.md): cada uma
+        // Portas TCP do host (docs/arquivo/plano-multiplas-portas-tcp.md): cada uma
         // liga uma porta do host a uma porta do container. Host vazio =
         // Automática; container vazio = a porta padrão do serviço.
         text(

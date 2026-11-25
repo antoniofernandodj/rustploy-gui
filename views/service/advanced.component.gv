@@ -266,7 +266,7 @@ component {
           text("{t('advanced.link_database_hint')}", class = u-muted)
         }
 
-        // Nomes das variáveis (docs/plano-nomes-das-variaveis-do-vinculo.md): em
+        // Nomes das variáveis (docs/arquivo/plano-nomes-das-variaveis-do-vinculo.md): em
         // branco vale o padrão; desligar "Entregar" não entrega.
         column(class = link-resource, if = @service_form_link_add_id, not_equals = "") {
           text("{t('advanced.link_names')}", class = u-label-cap)

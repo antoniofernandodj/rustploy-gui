@@ -2,7 +2,7 @@
 --!nolint FunctionUnused
 -- handlers/state_git.luau — Settings → Sync: a sincronização do estado de
 -- infra com um repositório git (Fases 6 e 7 de
--- docs/plano-backup-estado-em-git.md).
+-- docs/arquivo/plano-backup-estado-em-git.md).
 --
 -- O STATUS não é buscado aqui: vem no snapshot (`snapshot.state_git`,
 -- `snapshot.infra_audit`) e handlers/stream.luau o espalha no `ctx` via

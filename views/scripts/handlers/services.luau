@@ -13,6 +13,7 @@ local History = require("history")
 local EnvRows = require("env_rows")
 local SecretRows = require("secret_rows")
 local ServiceBackup = require("service_backup")
+local ServiceDescription = require("service_description")
 
 -- `open_service` (logo abaixo) chama estas três antes de elas serem definidas
 -- (mais adiante no arquivo), e o Luau só conhece um campo de `M` depois do
@@ -277,6 +278,7 @@ function M.fetch_service_detail(service_id: string): ()
     ctx.service_source_detail = source_detail
     ctx.service_compose = compose_content
     ctx.service_compose_original = compose_content
+    ServiceDescription.load(service_record.id, spec.description)
     ctx.service_build = source_build
     ctx.service_port = tostring(spec.port)
     ctx.service_host_port = spec.host_port and tostring(spec.host_port)
@@ -475,7 +477,7 @@ function M.fetch_service_detail(service_id: string): ()
     )
 
     -- Jobs do projeto (aba Advanced → fila de pré-deploy check). Ver
-    -- docs/plano-pre-deploy-gate.md.
+    -- docs/arquivo/plano-pre-deploy-gate.md.
     local job_list_ok, job_list_response =
         api:rpc { JobList = { project_id = spec.project_id } }
     local project_jobs = job_list_ok and job_list_response.Jobs or nil
@@ -596,7 +598,7 @@ local function with_spec(mutate: (spec: any) -> (), quiet: boolean?): ()
 end
 
 -- ── Servidor de banco compartilhado (aba Databases) ─────────────────────────
--- Ver docs/plano-banco-compartilhado.md. O daemon cria database + usuário,
+-- Ver docs/arquivo/plano-banco-compartilhado.md. O daemon cria database + usuário,
 -- conecta o servidor à rede do projeto e grava a env var nele.
 
 local SHAREABLE = {
@@ -1166,7 +1168,7 @@ end
 --     end)
 -- end
 
--- ── Portas TCP do host (docs/plano-multiplas-portas-tcp.md) ─────────────────
+-- ── Portas TCP do host (docs/arquivo/plano-multiplas-portas-tcp.md) ─────────────────
 -- Cada porta liga uma porta do host a uma porta do container. Porta do host
 -- vazia = "Automática" (sentinela 0: o daemon troca por uma livre da faixa
 -- [external_ports] e a libera no firewall).

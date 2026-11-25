@@ -258,7 +258,7 @@ end
 
 -- O nome com que a variável `suffix` entra no container (o mesmo de
 -- `ServiceLink::env_name` no daemon): trocado em `env_names` ("" = não entregar
--- → nil), senão prefixo + sufixo. Ver docs/plano-nomes-das-variaveis-do-vinculo.md.
+-- → nil), senão prefixo + sufixo. Ver docs/arquivo/plano-nomes-das-variaveis-do-vinculo.md.
 function M.link_env_name(link: any, default_prefix: string, suffix: string): string?
     local names = link.env_names
     if type(names) == "table" and names[suffix] ~= nil then

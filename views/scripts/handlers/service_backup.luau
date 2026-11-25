@@ -1,7 +1,7 @@
 --!strict
 --!nolint FunctionUnused
 -- handlers/service_backup.luau — aba Dados → "Backup no S3": os backups dos
--- dados do serviço no S3 (docs/plano-backup-de-dados-para-s3.md, Fase 2). O
+-- dados do serviço no S3 (docs/arquivo/plano-backup-de-dados-para-s3.md, Fase 2). O
 -- backup e a restauração rodam em segundo plano no daemon; aqui só se dispara
 -- e se acompanha `ServiceBackupList(.last_run)` a cada 3 s enquanto roda. A
 -- webui faz o mesmo em `webui/screens/service_detail.js` (`loadBackups`…):

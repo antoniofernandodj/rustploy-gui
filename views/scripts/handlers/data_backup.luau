@@ -1,7 +1,7 @@
 --!strict
 --!nolint FunctionUnused
 -- handlers/data_backup.luau — Settings → Backups: o destino S3 dos backups de
--- dados dos serviços (docs/plano-backup-de-dados-para-s3.md, Fase 1). A webui
+-- dados dos serviços (docs/arquivo/plano-backup-de-dados-para-s3.md, Fase 1). A webui
 -- faz o mesmo em `webui/app.js` (`backupDestination*`): mude os dois juntos.
 --
 -- A chave secreta NUNCA volta do daemon: `backup_destination_secret_set` só

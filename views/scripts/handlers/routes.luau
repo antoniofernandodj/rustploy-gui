@@ -3,7 +3,7 @@
 -- handlers/routes.luau — rotas próprias na tela Ingress
 -- (home/ingress.component.gv): lista, editor num painel e apagar. Uma rota
 -- serve um domínio por vários serviços (por caminho), redireciona ou pede
--- senha. Ver docs/plano-releases-ambientes-rotas-volumes.md §3.
+-- senha. Ver docs/arquivo/plano-releases-ambientes-rotas-volumes.md §3.
 
 local State = require("../state")
 

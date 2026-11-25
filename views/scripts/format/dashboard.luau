@@ -159,6 +159,21 @@ local function primary_container(
         chosen.id or ""
 end
 
+-- Primeira linha não vazia da descrição, cortada para caber no card.
+local function description_first_line(description: string?): string
+    for line in string.gmatch(description or "", "[^\n]+") do
+        local trimmed = string.match(line, "^%s*(.-)%s*$") or ""
+        if trimmed ~= "" then
+            if utf8.len(trimmed) and (utf8.len(trimmed) :: number) > 90 then
+                local cut = utf8.offset(trimmed, 91)
+                return string.sub(trimmed, 1, (cut or 91) - 1) .. "…"
+            end
+            return trimmed
+        end
+    end
+    return ""
+end
+
 -- Card de serviço (com CPU/mem mesclados de `metrics_by_id[svc.id]`).
 local function service_card(
     service: Types.Service,
@@ -191,6 +206,7 @@ local function service_card(
         warm_reason = warm ~= nil and Jobs.warm_reason(warm.reason) or "",
         id = service.id,
         name = service.spec.name,
+        description = description_first_line(service.spec.description),
         project = project_name,
         port = tostring(service.spec.port),
         status_label = status_label,

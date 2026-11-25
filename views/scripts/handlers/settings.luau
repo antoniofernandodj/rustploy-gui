@@ -345,7 +345,7 @@ function infra_download(): ()
 end
 
 -- ── Settings → Manutenção (limpeza automática de Docker) ─────────────────
--- Ver docs/plano-limpeza-automatica-docker.md. Config é um singleton do daemon
+-- Ver docs/arquivo/plano-limpeza-automatica-docker.md. Config é um singleton do daemon
 -- (não uma lista) — sem tabela própria, carregada/salva inteira a cada
 -- Get/Set. `docker_cleanup_last_run_at_raw`/`dc_next_run_at_raw` são campos
 -- "mudos" (não exibidos, só round-trip): preservam o `last_run_at` real entre

@@ -27,7 +27,7 @@ fn main() -> iced::Result {
 /// Por padrão o glibc cria até 8 arenas por núcleo — uma para cada thread que aloca —, e a
 /// memória livre numa arena não serve às outras. A GUI tem ~16 threads (iced, wgpu, tokio,
 /// bandeja) e quase todo o trabalho numa só, então as arenas extras são memória parada.
-/// Medido em 2026-11-20 (docs/estudo-consumo-de-ram.md, R-6): −4,5 MB de memória anônima;
+/// Medido em 2026-11-20 (docs/arquivo/estudo-consumo-de-ram.md, R-6): −4,5 MB de memória anônima;
 /// jemalloc (no lugar do mimalloc) ficou PIOR, +5 MB, por isso não trocamos de alocador.
 /// Uma variável `MALLOC_ARENA_MAX` no ambiente continua valendo (o glibc a lê antes).
 fn limit_malloc_arenas() {

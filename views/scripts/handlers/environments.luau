@@ -4,7 +4,7 @@
 -- (shell/project_environments.component.gv). Num projeto de origem: a lista de
 -- ambientes e "Criar ambiente". Num ambiente: a comparação com a origem e,
 -- por serviço, Promover para a origem / Trazer da origem. Ver
--- docs/plano-releases-ambientes-rotas-volumes.md §2.
+-- docs/arquivo/plano-releases-ambientes-rotas-volumes.md §2.
 
 local State = require("../state")
 local Stream = require("stream")

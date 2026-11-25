@@ -1,6 +1,6 @@
 --!strict
 -- format/state_git.luau — a sincronização do estado com o git (Fases 6 e 7 de
--- docs/plano-backup-estado-em-git.md) vista pela GUI: o aviso do topo, os
+-- docs/arquivo/plano-backup-estado-em-git.md) vista pela GUI: o aviso do topo, os
 -- textos da tela Settings → Sync, as listas "removidos no git" e "valores em
 -- claro", o selo "mudança pendente de deploy" e o dono do container órfão.
 -- Tudo vem do snapshot (`snapshot.state_git`, `snapshot.infra_audit`); nada

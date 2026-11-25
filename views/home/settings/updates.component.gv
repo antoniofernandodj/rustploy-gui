@@ -1,6 +1,6 @@
 // Atualizações: pergunta ao daemon se há release mais nova
 // (Command::CheckUpdate). Só consulta — instalar é manual por enquanto
-// (docs/plano-updaters-daemon-e-gui.md).
+// (docs/arquivo/plano-updaters-daemon-e-gui.md).
 component {
   scrollable(direction = vertical, class = u-fill-all) {
     column(class = form-stack) {

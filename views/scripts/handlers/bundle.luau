@@ -2,7 +2,7 @@
 --!nolint FunctionUnused
 -- handlers/bundle.luau — copiar um serviço para outro servidor (lado do app
 -- principal): o botão "Exportar serviço" da tela do serviço. Ver
--- docs/plano-copiar-servico-entre-servidores.md.
+-- docs/arquivo/plano-copiar-servico-entre-servidores.md.
 --
 -- O plano (variáveis do serviço/projeto, com a sugestão de pré-marcação) é
 -- buscado AQUI e semeado na janela via `data`: o `init` de uma janela não pode

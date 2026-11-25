@@ -1,5 +1,5 @@
 // Settings → Recuperar: recuperar este servidor (git + chave de recuperação +
-// backups no S3), Fase 4 de docs/plano-backup-de-dados-para-s3.md. Handlers em
+// backups no S3), Fase 4 de docs/arquivo/plano-backup-de-dados-para-s3.md. Handlers em
 // handlers/recover.luau; a webui faz o mesmo em `webui/index.html` (aba
 // "Recuperar"): mude os dois juntos. A chave e o token só vivem no campo.
 component {

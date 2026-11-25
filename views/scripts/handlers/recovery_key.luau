@@ -1,13 +1,13 @@
 --!strict
 --!nolint FunctionUnused
 -- handlers/recovery_key.luau — Settings → Chave de recuperação
--- (docs/plano-chave-de-recuperacao.md). A webui faz o mesmo em `webui/app.js`
+-- (docs/arquivo/plano-chave-de-recuperacao.md). A webui faz o mesmo em `webui/app.js`
 -- (`recoveryKey*`): mude os dois juntos.
 --
 -- O daemon guarda só a chave PÚBLICA; a privada volta uma única vez, na
 -- resposta de `RecoveryKeyGenerate`, dentro do arquivo de recuperação
 -- (`.rpkit`, binário) com o repositório da infra, a branch e o token da conta
--- escolhida (docs/plano-arquivo-de-recuperacao.md). O arquivo é gravado em
+-- escolhida (docs/arquivo/plano-arquivo-de-recuperacao.md). O arquivo é gravado em
 -- Downloads na hora e fica no `ctx` só até a pessoa dizer "guardei".
 
 local State = require("../state")

@@ -1,5 +1,5 @@
 // Settings → Chave de recuperação (plano em
-// docs/plano-chave-de-recuperacao.md). Handlers em handlers/recovery_key.luau;
+// docs/arquivo/plano-chave-de-recuperacao.md). Handlers em handlers/recovery_key.luau;
 // a webui faz o mesmo em `webui/index.html` (aba "Chave de recuperação"): mude
 // os dois juntos. A privada só existe aqui logo depois de gerar; o servidor
 // guarda só a pública.

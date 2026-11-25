@@ -1,6 +1,6 @@
 // Settings → Sincronização: o estado de infra (projetos, serviços, jobs,
 // secrets cifrados) versionado num repositório git. Fases 6 e 7 de
-// docs/plano-backup-estado-em-git.md. O STATUS vem no snapshot
+// docs/arquivo/plano-backup-estado-em-git.md. O STATUS vem no snapshot
 // (format/state_git.luau → ctx.state_git_*); a webui faz o mesmo em
 // `webui/index.html` (aba "Sync"): mude os dois juntos.
 component {

@@ -3,6 +3,7 @@ component {
   props {
     prop(name = id)
     prop(name = name)
+    prop(name = description, default = "")
     prop(name = port)
     prop(name = status_color)
     prop(name = status_label)
@@ -37,6 +38,7 @@ component {
     .card__actions   { width: fill; spacing: 8; }
     .card__title     { size: 16; bold: true; color: var(--text); }
     .card__port      { size: 12; color: var(--muted); }
+    .card__description { width: fill; size: 12; color: var(--muted); }
     """
   }
 
@@ -68,6 +70,13 @@ component {
         )
       }
     }
+
+    text(
+      "@description",
+      class = card__description,
+      if = @description,
+      not_equals = "",
+    )
 
     row(class = card__container) {
       button(

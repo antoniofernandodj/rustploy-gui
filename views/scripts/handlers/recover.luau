@@ -2,7 +2,7 @@
 --!nolint FunctionUnused
 -- handlers/recover.luau — Settings → Recuperar: recuperar este servidor a
 -- partir do git + chave de recuperação + backups no S3
--- (docs/plano-backup-de-dados-para-s3.md, Fase 4). A webui faz o mesmo em
+-- (docs/arquivo/plano-backup-de-dados-para-s3.md, Fase 4). A webui faz o mesmo em
 -- `webui/app.js` (`recover*`): mude os dois juntos.
 --
 -- A chave e o token só vivem no campo: somem ao enviar, deem certo ou não, e

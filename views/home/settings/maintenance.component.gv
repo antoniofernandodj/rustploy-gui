@@ -1,5 +1,5 @@
 // Manutenção: limpeza automática de recursos do runtime sem uso (ver
-// docs/plano-limpeza-automatica-docker.md) — mesmas funções dos botões
+// docs/arquivo/plano-limpeza-automatica-docker.md) — mesmas funções dos botões
 // manuais da aba Runtime, disparadas por agendamento em vez de clique.
 component {
   scrollable(direction = vertical, class = u-fill-all) {

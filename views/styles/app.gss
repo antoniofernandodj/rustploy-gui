@@ -627,6 +627,12 @@
   padding: 10 12;
   font: JetBrains Mono;
 }
+/* Descrição do serviço (aba General): texto de gente, então sans. */
+.description__editor {
+  width: fill;
+  height: 120;
+  padding: 10 12;
+}
 /* Webhook (aba Deployments): a URL ocupa a linha inteira — é longa demais para
    dividir espaço com os botões, que ficam na linha de baixo. */
 .webhook          { width: fill; spacing: 10; }
