@@ -28,39 +28,8 @@ component {
         }
       }
 
-      // ── Descrição: para que o serviço existe (lida pelos agentes MCP) ──
-      column(
-        class = form-panel,
-        width = fill,
-        if = @service_loading != "true",
-      ) {
-        text(t("general.description"), class = u-label-cap)
-        text(t("general.description_hint"), class = u-muted)
-
-        textarea(
-          class = description__editor,
-          :value = service_description,
-          placeholder = t("general.description_placeholder"),
-        )
-
-        row(class = env__add) {
-          button(
-            t("general.save_description"),
-            class = "btn btn--primary",
-            on_click = service_description_save,
-            disabled = @busy_service_description_save
-          )
-
-          button(
-            t("common.cancel"),
-            class = "btn btn--ghost",
-            on_click = service_description_cancel,
-            disabled = @busy_service_description_cancel
-          )
-
-          text("@service_description_message", class = u-muted)
-        }
-      }
+      // A descrição do serviço saiu daqui: é o campo borderless do cabeçalho
+      // (service.component.gv), que grava sozinho como o nome.
 
       form(
         error_prefix = error_,

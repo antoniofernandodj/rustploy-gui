@@ -104,6 +104,7 @@ function test_shell_cada_visao__service()
         "service_action_message",
         "service_can_migrate",
         "service_deploy_running",
+        "service_description_message", -- só depois de gravar (o campo é o header)
         "service_error",
         "service_project",
         "service_project_id",

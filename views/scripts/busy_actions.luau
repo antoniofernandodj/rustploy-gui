@@ -209,8 +209,6 @@ return {
     "service_backup_restore",
     "service_card_deploy",
     "service_deploy",
-    "service_description_cancel",
-    "service_description_save",
     "service_env_row_reset",
     "service_env_row_save",
     "service_rebuild",

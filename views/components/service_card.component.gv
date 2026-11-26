@@ -4,6 +4,9 @@ component {
     prop(name = id)
     prop(name = name)
     prop(name = description, default = "")
+    prop(name = description_whole, default = "")
+    prop(name = description_truncated, default = "0")
+    prop(name = description_popover_key, default = "")
     prop(name = port)
     prop(name = status_color)
     prop(name = status_label)
@@ -39,6 +42,7 @@ component {
     .card__title     { size: 16; bold: true; color: var(--text); }
     .card__port      { size: 12; color: var(--muted); }
     .card__description { width: fill; size: 12; color: var(--muted); }
+    .card__description--truncated:hover { color: var(--text-2); }
     """
   }
 
@@ -69,11 +73,33 @@ component {
       }
     }
 
-    text(
-      "@description",
-      class = card__description,
-      if = @description != "",
-    )
+    // A primeira linha cortada no cartão; clicar abre um popover com a
+    // descrição inteira — o mesmo do cartão de projeto (project_card).
+    if @description_truncated == "1" {
+      popover(
+        :value = @description_popover_key,
+        placement = bottom,
+        align = start,
+        panel_width = anchor,
+      ) {
+        text(
+          "@description",
+          slot = anchor,
+          class = "card__description card__description--truncated",
+          cursor = pointer,
+        )
+
+        column(class = description-popover) {
+          text("@description_whole", class = description-popover__text)
+        }
+      }
+    } else {
+      text(
+        "@description",
+        class = card__description,
+        if = @description != "",
+      )
+    }
 
     row(class = card__container) {
       button(

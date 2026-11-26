@@ -9,6 +9,12 @@ local function com_menu(aberto)
     env.ctx = { menu = aberto and "true" or "false" }
 end
 
+-- O orçamento da descrição sai da largura da janela; o teste fixa a sua para o
+-- corte ser determinístico.
+local function com_largura(largura)
+    env.__glacier_viewport.width = largura
+end
+
 local function par(nome, projeto, extras)
     local svc = {
         id = "id-" .. nome,
@@ -113,6 +119,30 @@ function test_cards_de_servico__o_container_primario_e_o_live_senao_o()
     assert_eq(c.container_id, "idc")
 end
 
+--- a linha cortada do cartão leva a descrição inteira no popover
+function test_cards_de_servico__descricao_cortada_leva_o_popover()
+    local inteira = "Processa a fila de e-mails.\nSe cair, os e-mails esperam."
+    local com_duas_linhas = par("a", "p")
+    com_duas_linhas.svc.spec.description = inteira
+    local curta = par("b", "p")
+    curta.svc.spec.description = "Curta."
+    local cards =
+        json.decode(Dashboard.services({ com_duas_linhas, curta }, nil, ""))
+    assert_eq(cards[1].description, "Processa a fila de e-mails.")
+    assert_eq(cards[1].description_whole, inteira)
+    assert_eq(cards[1].description_truncated, "1")
+    assert_eq(cards[1].description_popover_key, "service_description_open_id-a")
+    assert_eq(cards[2].description, "Curta.")
+    assert_eq(cards[2].description_truncated, "0")
+
+    -- uma linha só, mais longa que o cartão, também corta e ganha popover
+    local linha_longa = par("c", "p")
+    linha_longa.svc.spec.description = string.rep("palavra ", 30)
+    local cortada = json.decode(Dashboard.services({ linha_longa }, nil, ""))[1]
+    assert_eq(cortada.description_truncated, "1")
+    assert_eq(string.sub(cortada.description, -3), "…")
+end
+
 --- o selo de aquecimento só existe quando há warm
 function test_cards_de_servico__o_selo_de_aquecimento_so_existe_quando_ha()
     local quente = par("a", "p")
@@ -195,6 +225,9 @@ function test_grade__o_card_vazio_carrega_os_campos_dos_dois_contratos_como()
                 "cpu",
                 "mem",
                 "description",
+                "description_short",
+                "description_whole",
+                "description_popover_key",
                 "service_count",
                 "can_delete",
             }
@@ -253,6 +286,44 @@ function test_projetos__conta_servicos_e_os_que_estao_rodando_e_so_deixa()
     assert_eq(cartoes[2].service_count, "0")
     assert_eq(cartoes[2].can_delete, "1")
     assert_eq(cartoes[2].description, "")
+end
+
+--- descrição longa: o card leva o começo cortado e a chave do popover
+function test_projetos__descricao_longa_vem_cortada_com_popover()
+    com_menu(false)
+    com_largura(1200)
+    -- 1200px sem gaveta → 3 colunas de ~368px → 2 linhas de 47 caracteres.
+    local cartoes = json.decode(Dashboard.projects({
+        { id = "p-1", name = "longo", description = string.rep("palavra ", 40) },
+        { id = "p-2", name = "curto", description = "curta" },
+    }, {}, ""))
+    assert_eq(cartoes[1].description, string.rep("palavra ", 40))
+    assert_eq(cartoes[1].description_truncated, "1")
+    assert_eq(utf8.len(cartoes[1].description_short), 95)
+    assert_eq(string.sub(cartoes[1].description_short, -3), "…")
+    assert_eq(cartoes[1].description_popover_key, "project_description_open_p-1")
+    assert_eq(cartoes[2].description_truncated, "0")
+    assert_eq(cartoes[2].description_short, "curta")
+end
+
+--- o corte são 2 linhas na largura do card: coluna mais larga cabe mais texto
+function test_projetos__orcamento_da_descricao_segue_a_largura_do_card()
+    com_menu(false)
+    local description = string.rep("palavra ", 40)
+    com_largura(1200)
+    local estreito = json.decode(Dashboard.projects({
+        { id = "p", name = "p", description = description },
+    }, {}, ""))[1]
+    -- mesma grade de 3 colunas, com cards ~66px mais largos
+    com_largura(1400)
+    local largo = json.decode(Dashboard.projects({
+        { id = "p", name = "p", description = description },
+    }, {}, ""))[1]
+    assert_true(utf8.len(largo.description_short) > utf8.len(estreito.description_short),
+        "com a grade mais larga o card deve caber mais caracteres")
+    -- nos dois o texto que sobra vai para o popover
+    assert_eq(estreito.description_truncated, "1")
+    assert_eq(largo.description_truncated, "1")
 end
 
 --- a busca olha nome e descrição

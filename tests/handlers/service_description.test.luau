@@ -1,8 +1,8 @@
 --!nonstrict
--- Painel "Descrição" da aba General (handlers/service_description.luau): grava
--- só com ServiceDescriptionSet, nada sem mudança, apagar tudo pede confirmação,
--- e um fetch do serviço não atropela o rascunho. O `State.api` é um falso
--- injetado com `tela:eval`; `confirm` suspende o handler e `tela:answer` o retoma.
+-- Descrição do serviço no cabeçalho (handlers/service_description.luau): grava
+-- sozinha depois do debounce, sem botão e sem confirmação; o `State.api` é um
+-- falso injetado com `tela:eval`, e `glacier test` não dispara os `after` — por
+-- isso a gravação é exercitada por `service_description_flush`.
 
 local function nova()
     local tela = component("views/app.gv", {})
@@ -29,10 +29,11 @@ local function com_api(tela)
     ]])
 end
 
-local function carrega(tela, texto)
+local function carrega(tela, texto, service_id)
     tela:eval(
         string.format(
-            [[ require("handlers/service_description").load("svc_1", %s) ]],
+            [[ require("handlers/service_description").load(%s, %s) ]],
+            string.format("%q", service_id or "svc_1"),
             texto and string.format("%q", texto) or "nil"
         )
     )
@@ -55,50 +56,54 @@ function test_descricao__carrega_o_texto_gravado()
     assert_eq(tela:get("service_description"), "")
 end
 
---- salvar manda só a descrição, aparada; sem mudança não manda nada
-function test_descricao__salvar_manda_so_a_descricao()
+--- digitar não grava na hora: é o debounce que segura a escrita
+function test_descricao__digitar_nao_grava_na_hora()
     local tela = nova()
     com_api(tela)
     carrega(tela, "Antiga.")
-    tela:call("service_description_save")
-    assert_eq(#enviados(tela), 0)
+    tela:call("service_description_change", "Nova descrição.")
+    assert_eq(tela:get("service_description"), "Nova descrição.")
+    assert_eq(#enviados(tela), 0, "o save sai do timer, não da tecla")
+end
 
-    tela:set("service_description", "  Nova descrição.  ")
-    tela:call("service_description_save")
+--- grava só a descrição, aparada; sem mudança não manda nada
+function test_descricao__flush_manda_so_a_descricao()
+    local tela = nova()
+    com_api(tela)
+    carrega(tela, "Antiga.")
+    tela:call("service_description_change", "  Nova descrição.  ")
+    tela:call("service_description_flush")
     local lista = enviados(tela)
     assert_eq(#lista, 1)
     assert_eq(lista[1].service_id, "svc_1")
     assert_eq(lista[1].description, "Nova descrição.")
     assert_eq(tela:get("service_description_original"), "Nova descrição.")
+    assert_true(tela:get("service_description_message") ~= "")
+
+    tela:call("service_description_flush")
+    assert_eq(#enviados(tela), 1, "nada mudou: nada a gravar")
 end
 
---- apagar tudo pede confirmação; recusada, nada é gravado
-function test_descricao__apagar_pede_confirmacao()
+--- esvaziar grava direto, sem diálogo
+function test_descricao__esvaziar_grava_sem_confirmacao()
     local tela = nova()
     com_api(tela)
     carrega(tela, "Antiga.")
-    tela:set("service_description", "   ")
-    tela:call("service_description_save")
-    tela:answer(false)
-    assert_eq(#enviados(tela), 0)
-
-    tela:call("service_description_save")
-    tela:answer(true)
+    tela:call("service_description_change", "   ")
+    tela:call("service_description_flush")
     local lista = enviados(tela)
     assert_eq(#lista, 1)
     assert_eq(lista[1].description, "")
 end
 
---- um fetch do mesmo serviço não atropela o que está sendo digitado; outro
---- serviço troca; cancelar volta ao gravado
+--- um fetch durante o debounce não atropela o que está sendo digitado; outro
+--- serviço troca o campo
 function test_descricao__fetch_nao_atropela_rascunho()
     local tela = nova()
     carrega(tela, "Gravada.")
-    tela:set("service_description", "Digitando…")
+    tela:call("service_description_change", "Digitando…")
     carrega(tela, "Gravada.")
     assert_eq(tela:get("service_description"), "Digitando…")
-    tela:call("service_description_cancel")
-    assert_eq(tela:get("service_description"), "Gravada.")
     tela:eval([[ require("handlers/service_description").load("svc_2", "Outro.") ]])
     assert_eq(tela:get("service_description"), "Outro.")
 end

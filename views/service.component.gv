@@ -76,6 +76,22 @@ component {
       .service__title-input:focus  { background: var(--surface); }
       /* Sub-linha de status (badge + timer) logo abaixo do nome. */
       .service__substatus { spacing: 10; align_y: center; }
+      /* Descrição do serviço: textarea sem borda no cabeçalho, como a do
+         projeto — três linhas visíveis, rola quando passa, e o fundo só aparece
+         com o ponteiro em cima ou em foco. */
+      .service__description {
+        width: fill;
+        height: 66;
+        size: 13;
+        color: var(--muted);
+        text_color: var(--muted);
+        background: var(--bg);
+        border_width: 0;
+        border_radius: 4;
+        padding: 2 6;
+      }
+      .service__description:hover { background: var(--surface); }
+      .service__description:focus { background: var(--surface); }
       .service__actions   { spacing: 10; align_y: center; }
       .service__panels    { width: fill; spacing: 14; }
       .tabs__scroll       { width: fill; }
@@ -218,6 +234,22 @@ component {
             )
           }
         }
+
+        // Descrição no cabeçalho (era um painel com botão na aba General):
+        // campo borderless de 3 linhas que grava sozinho (service_description_change).
+        textarea(
+          class = service__description,
+          :value = service_description,
+          on_change = service_description_change,
+          placeholder = t("service.description_placeholder"),
+          tooltip = t("service.description_note"),
+        )
+
+        text(
+          "@service_description_message",
+          if = @service_description_message != "",
+          class = u-muted,
+        )
 
         text(
           t("service.cold", service_warm_reason = service_warm_reason),

@@ -79,8 +79,10 @@ component {
           placeholder = t("common.project_name"),
         )
 
-        input(
-          class = "page-head__subtitle-input",
+        // textarea de ~3 linhas (rola se passar): a descrição longa não cabe
+        // numa linha só. Mesmo visual sem borda do input do título.
+        textarea(
+          class = "page-head__subtitle-textarea",
           :value = edit_project_description,
           on_change = project_description_change,
           placeholder = t("project_services.description_optional"),

@@ -257,8 +257,8 @@
 .page-head__titles   { width: fill; spacing: 6; }
 .page-head__title    { size: 30; bold: true; color: var(--text); }
 .page-head__subtitle { size: 13; color: var(--muted); }
-/* Nome/descrição do projeto editados no lugar (como o título do serviço):
-   input sem borda. */
+/* Nome do projeto editado no lugar (como o título do serviço): input sem
+   borda. */
 .page-head__title-input {
   width: fill;
   size: 30;
@@ -270,16 +270,21 @@
 }
 .page-head__title-input:hover    { background: var(--surface); }
 .page-head__title-input:focus    { background: var(--surface); }
-.page-head__subtitle-input {
+/* Descrição do projeto: textarea de ~3 linhas (rola quando passa), com a
+   mesma cara sem borda do título — a descrição longa não cabia numa linha. */
+.page-head__subtitle-textarea {
   width: fill;
+  height: 66;
   size: 13;
   color: var(--muted);
+  text_color: var(--muted);
   background: var(--bg);
   border_width: 0;
-  padding: 0 6;
+  border_radius: 4;
+  padding: 2 6;
 }
-.page-head__subtitle-input:hover { background: var(--surface); }
-.page-head__subtitle-input:focus { background: var(--surface); }
+.page-head__subtitle-textarea:hover { background: var(--surface); }
+.page-head__subtitle-textarea:focus { background: var(--surface); }
 .page-head__stats    { spacing: 14; }
 
 /* ── Table ────────────────────────────────────────────────────────────── */
@@ -632,12 +637,6 @@
   padding: 10 12;
   font: JetBrains Mono;
 }
-/* Descrição do serviço (aba General): texto de gente, então sans. */
-.description__editor {
-  width: fill;
-  height: 120;
-  padding: 10 12;
-}
 /* Webhook (aba Deployments): a URL ocupa a linha inteira — é longa demais para
    dividir espaço com os botões, que ficam na linha de baixo. */
 .webhook          { width: fill; spacing: 10; }
@@ -794,6 +793,17 @@
 
 /* Ambientes (aba do projeto e selo no card) */
 .environment-badge       { size: 11; color: var(--accent); }
+/* Card de projeto: a descrição cortada abre um popover com o texto inteiro. */
+.project-card__description--truncated:hover { color: var(--text-2); }
+.description-popover {
+  width: fill;
+  background: var(--surface);
+  border_width: 1;
+  border_color: var(--border);
+  border_radius: 6;
+  padding: 12 14;
+}
+.description-popover__text { width: fill; size: 13; color: var(--text-2); }
 .environments            { width: fill; spacing: 12; padding: 0 12 0 0; }
 .environments__block     { width: fill; spacing: 10; }
 .environments__pair {

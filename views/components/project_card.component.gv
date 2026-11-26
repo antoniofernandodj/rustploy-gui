@@ -8,6 +8,9 @@ component {
     prop(name = service_count)
     prop(name = running_count)
     prop(name = description)
+    prop(name = description_short, default = "")
+    prop(name = description_truncated, default = "0")
+    prop(name = description_popover_key, default = "")
     prop(name = can_delete)
     prop(name = filler)
     prop(name = environment_label, default = "")
@@ -32,7 +35,29 @@ component {
         size = 11,
       )
 
-      text("@description", class = u-muted)
+      // A descrição longa vem cortada (format/dashboard.luau); clicar nela
+      // abre um popover com o texto inteiro. Curta, é só o texto.
+      if @description_truncated == "1" {
+        popover(
+          :value = @description_popover_key,
+          placement = bottom,
+          align = start,
+          panel_width = anchor,
+        ) {
+          text(
+            "@description_short",
+            slot = anchor,
+            class = "u-muted project-card__description--truncated",
+            cursor = pointer,
+          )
+
+          column(class = description-popover) {
+            text("@description", class = description-popover__text)
+          }
+        }
+      } else {
+        text("@description", class = u-muted)
+      }
       hr
 
       // Ações empilhadas: um botão fill disputando a linha com

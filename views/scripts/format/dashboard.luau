@@ -26,13 +26,14 @@ local M = {}
 -- card precisa de CARD_MIN px; cabem os que couberem, entre 1 e 3.
 local CARD_MIN = 350
 local SIDEBAR = 264
-local function grid_cols(): number
+local CARD_GAP = 16
+local function grid_metrics(): (number, number, number)
     local viewport_width = viewport().width
     local menu = (ctx :: any).menu
     local sidebar = if menu == "true" or menu == true then SIDEBAR else 0
     -- Mesmos breakpoints do app.gss: padding lateral do `.content` e vão entre
     -- cards.
-    local horizontal_padding, card_gap = 64, 16
+    local horizontal_padding, card_gap = 64, CARD_GAP
     if viewport_width < 560 then
         horizontal_padding, card_gap = 20, 10
     elseif viewport_width < 900 then
@@ -41,7 +42,12 @@ local function grid_cols(): number
     local available_width = viewport_width - sidebar - horizontal_padding
     local columns =
         math.floor((available_width + card_gap) / (CARD_MIN + card_gap))
-    return math.max(1, math.min(3, columns))
+    return math.max(1, math.min(3, columns)), available_width, card_gap
+end
+
+local function grid_cols(): number
+    local columns = grid_metrics()
+    return columns
 end
 
 -- Um card VAZIO que preenche a fileira do grid. Os campos vão como string
@@ -72,6 +78,10 @@ local FILLER: GridCard = {
     container_extra = "",
     -- project_card.component.gv
     description = "",
+    description_short = "",
+    description_whole = "",
+    description_truncated = "0",
+    description_popover_key = "",
     service_count = "",
     running_count = "",
     can_delete = "",
@@ -174,6 +184,11 @@ local function description_first_line(description: string?): string
     return ""
 end
 
+-- Descrição inteira, aparada: é o que o popover do cartão de serviço mostra.
+local function description_whole(description: string?): string
+    return string.match(description or "", "^%s*(.-)%s*$") or ""
+end
+
 -- Card de serviço (com CPU/mem mesclados de `metrics_by_id[svc.id]`).
 local function service_card(
     service: Types.Service,
@@ -195,6 +210,8 @@ local function service_card(
     if warm ~= nil then
         warm_label, warm_color = Jobs.warm_status(warm)
     end
+    local description = description_first_line(service.spec.description)
+    local description_whole_text = description_whole(service.spec.description)
     return {
         filler = "0",
         -- "Mudança pendente de deploy": um commit do repositório mudou o
@@ -206,7 +223,13 @@ local function service_card(
         warm_reason = warm ~= nil and Jobs.warm_reason(warm.reason) or "",
         id = service.id,
         name = service.spec.name,
-        description = description_first_line(service.spec.description),
+        description = description,
+        -- O cartão mostra a primeira linha cortada; clicar abre um popover com
+        -- o texto inteiro (o mesmo mecanismo do cartão de projeto).
+        description_whole = description_whole_text,
+        description_truncated = description ~= description_whole_text
+            and "1" or "0",
+        description_popover_key = "service_description_open_" .. service.id,
         project = project_name,
         port = tostring(service.spec.port),
         status_label = status_label,
@@ -315,6 +338,25 @@ local function order_with_environments(projects: { any }?): { any }
     return ordered
 end
 
+-- Descrição do card de projeto: o `text` do glacier não corta por linhas nem o
+-- Row clipa, então o corte é por caractere — e o orçamento vem da largura real
+-- do card (a mesma conta de `grid_metrics`), para caber em DESCRIPTION_LINES
+-- linhas em qualquer janela. O texto inteiro fica no popover.
+local DESCRIPTION_LINES = 2
+local DESCRIPTION_CHAR_PX = 7   -- largura média de um glifo na sans de 13 px
+local CARD_HORIZONTAL_PADDING = 36
+local function description_budget(): number
+    local columns, available_width, card_gap = grid_metrics()
+    local card_width =
+        (available_width - card_gap * (columns - 1)) / columns
+    local chars_per_line =
+        math.floor((card_width - CARD_HORIZONTAL_PADDING) / DESCRIPTION_CHAR_PX)
+    return math.max(
+        DESCRIPTION_LINES * 10,
+        chars_per_line * DESCRIPTION_LINES
+    )
+end
+
 local function project_card(project: any, service_pairs: { ServicePair })
     local count, running = 0, 0
     for _, pair in ipairs(service_pairs) do
@@ -325,11 +367,20 @@ local function project_card(project: any, service_pairs: { ServicePair })
             end
         end
     end
+    local description = project.description or ""
+    local budget = description_budget()
     return {
         filler = "0",
         id = project.id,
         name = project.name,
-        description = project.description or "",
+        description = description,
+        -- O card mostra só o começo (o `text` do glacier não corta por
+        -- linhas); quando cortou, clicar abre um popover com o texto inteiro.
+        description_short = Util.ellipsis(description, budget),
+        description_truncated = (
+            utf8.len(description) or 0
+        ) > budget and "1" or "0",
+        description_popover_key = "project_description_open_" .. project.id,
         service_count = tostring(count),
         running_count = tostring(running),
         can_delete = (count == 0) and "1" or "0",
