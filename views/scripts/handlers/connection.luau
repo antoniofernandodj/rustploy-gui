@@ -271,6 +271,17 @@ function init(): ()
     ctx.log_selected_count = ctx.log_selected_count or "0"
     ctx.log_selected_label = ctx.log_selected_label or ""
     ctx.service_form_autostart = ctx.service_form_autostart or "true"
+    -- Lista "aquecer depois da limpeza" e o toggle do serviço
+    -- (handlers/settings.luau::warm_targets_publish).
+    ctx.warm_targets = ctx.warm_targets or "[]"
+    ctx.warm_targets_empty = ctx.warm_targets_empty or "true"
+    ctx.service_warm_choice_present = ctx.service_warm_choice_present or "false"
+    ctx.service_warm_after_cleanup = ctx.service_warm_after_cleanup or "false"
+    ctx.service_warm_choice_editable = ctx.service_warm_choice_editable
+        or "false"
+    ctx.service_warm_choice_locked_reason = ctx.service_warm_choice_locked_reason
+        or ""
+    ctx.service_warm_choice_locked = ctx.service_warm_choice_locked or "true"
     local registry_auto_deploy = ctx.service_form_registry_auto_deploy
     ctx.service_form_registry_auto_deploy = registry_auto_deploy or "false"
     ctx.project_service_options = ctx.project_service_options or "[]"

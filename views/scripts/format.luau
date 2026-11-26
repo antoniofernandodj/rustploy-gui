@@ -115,6 +115,8 @@ M.warm_reason = Jobs.warm_reason
 M.running = Running.running
 M.docker_cleanup_resource_label = DockerCleanup.resource_label
 M.docker_cleanup_last_run_summary = DockerCleanup.last_run_summary
+M.docker_cleanup_warm_target_rows = DockerCleanup.warm_target_rows
+M.docker_cleanup_service_warm_choice = DockerCleanup.service_warm_choice
 
 -- Sincronização do estado com o git (format/state_git.luau)
 M.state_git_context = StateGit.context

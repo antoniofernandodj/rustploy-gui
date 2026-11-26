@@ -614,7 +614,7 @@
   "settings_gitsync.versions_the_state": "Versiona o estado (projetos, serviços, jobs e secrets cifrados) num repositório privado do seu provedor Git. Desligada por padrão. Só liga se não houver nenhum valor em claro.",
   "settings_maintenance.0_does_not_filter_by_age": "0 não filtra por idade. O runtime olha a data de criação da imagem, não a do último uso: as imagens base antigas continuam elegíveis.",
   "settings_maintenance.0_removes_all_unused_cache_with": "0 remove todo o cache sem uso. Com um prazo, o cache de um job ou deploy recente sobrevive e o próximo build não recomeça do zero.",
-  "settings_maintenance.after_cleaning_rebuilds_the_image_of": "Depois de limpar, reconstrói a imagem de cada serviço com repositório Git ou zip, um de cada vez, na fila de deploy. Sem isso, o primeiro deploy depois da limpeza paga o build inteiro.",
+  "settings_maintenance.after_cleaning_rebuilds_the_image_of": "Depois de limpar, reconstrói a imagem do que estiver marcado abaixo, um de cada vez, na fila de deploy. Sem isso, o primeiro deploy depois da limpeza paga o build inteiro.",
   "settings_maintenance.automatic_cleanup": "LIMPEZA AUTOMÁTICA",
   "settings_maintenance.build_cache": "Cache de build",
   "settings_maintenance.enable_automatic_cleanup": "  Ativar limpeza automática",
@@ -1578,5 +1578,14 @@
   "Destruir o ambiente %s": "Destruir o ambiente %s",
   "Para e apaga todos os serviços, jobs e rotas deste ambiente, e o projeto. A origem não é tocada. Para confirmar, digite o nome do ambiente: %s": "Para e apaga todos os serviços, jobs e rotas deste ambiente, e o projeto. A origem não é tocada. Para confirmar, digite o nome do ambiente: %s",
   "Digite o nome do ambiente (%s) para confirmar.": "Digite o nome do ambiente (%s) para confirmar.",
-  "ambiente %s destruído": "ambiente %s destruído"
+  "ambiente %s destruído": "ambiente %s destruído",
+  "settings_maintenance.warm_targets_default": "Por padrão, todo serviço com repositório Git ou zip e todo job de pré-deploy. As escolhas valem ao salvar.",
+  "settings_maintenance.no_warm_targets": "Nenhum serviço com build nem job para aquecer.",
+  "settings_maintenance.pre_deploy": "(pré-deploy)",
+  "advanced.warm_after_cleanup": "Aquecer depois da limpeza do Docker",
+  "advanced.warm_after_cleanup_hint": "Reconstrói a imagem deste serviço logo depois da limpeza agendada, para o próximo deploy achar o cache. Vale na hora, sem Salvar.",
+  "Job:": "Job:",
+  "Escolha de aquecimento salva": "Escolha de aquecimento salva",
+  "A limpeza automática do Docker está desligada (Settings → Manutenção): não há o que aquecer depois dela.": "A limpeza automática do Docker está desligada (Settings → Manutenção): não há o que aquecer depois dela.",
+  "O aquecimento depois da limpeza está desligado em Settings → Manutenção.": "O aquecimento depois da limpeza está desligado em Settings → Manutenção."
 }

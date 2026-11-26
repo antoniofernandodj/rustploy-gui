@@ -62,6 +62,26 @@ component {
 
         text(t("advanced.autostart_hint"), class = u-muted)
 
+        if @service_warm_choice_present == "true" {
+          toggle(
+            :checked = service_warm_after_cleanup,
+            on_toggle = service_warm_after_cleanup_toggle,
+            label = t("advanced.warm_after_cleanup"),
+            disabled = @service_warm_choice_locked,
+          )
+
+          text(
+            t("advanced.warm_after_cleanup_hint"),
+            class = u-muted,
+            if = @service_warm_choice_locked == "false",
+          )
+          text(
+            "@service_warm_choice_locked_reason",
+            class = u-muted,
+            if = @service_warm_choice_locked == "true",
+          )
+        }
+
         if @service_source_kind == "Registry" {
           toggle(
             :checked = service_form_registry_auto_deploy,

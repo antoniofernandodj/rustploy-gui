@@ -1023,7 +1023,7 @@
   "settings_gitsync.versions_the_state": "Versions the state (projects, services, jobs and encrypted secrets) in a private repository on your Git provider. Off by default. It only turns on if there is no plaintext value.",
   "settings_maintenance.0_does_not_filter_by_age": "0 does not filter by age. The runtime looks at the image's creation date, not the last use: old base images remain eligible.",
   "settings_maintenance.0_removes_all_unused_cache_with": "0 removes all unused cache. With a deadline, the cache of a recent job or deploy survives and the next build does not start from scratch.",
-  "settings_maintenance.after_cleaning_rebuilds_the_image_of": "After cleaning, rebuilds the image of each service with a Git repository or zip, one at a time, in the deploy queue. Without it, the first deploy after the cleanup pays for the whole build.",
+  "settings_maintenance.after_cleaning_rebuilds_the_image_of": "After cleaning up, rebuilds the image of whatever is checked below, one at a time, in the deploy queue. Without this, the first deploy after cleanup pays for the whole build.",
   "settings_maintenance.automatic_cleanup": "AUTOMATIC CLEANUP",
   "settings_maintenance.build_cache": "Build cache",
   "settings_maintenance.enable_automatic_cleanup": "  Enable automatic cleanup",
@@ -1565,5 +1565,14 @@
   "Destruir o ambiente %s": "Destroy the environment %s",
   "Para e apaga todos os serviços, jobs e rotas deste ambiente, e o projeto. A origem não é tocada. Para confirmar, digite o nome do ambiente: %s": "Stops and deletes all of this environment's services, jobs and routes, and the project. The origin is not touched. To confirm, type the environment's name: %s",
   "Digite o nome do ambiente (%s) para confirmar.": "Type the environment's name (%s) to confirm.",
-  "ambiente %s destruído": "environment %s destroyed"
+  "ambiente %s destruído": "environment %s destroyed",
+  "settings_maintenance.warm_targets_default": "By default, every service with a Git repository or zip and every pre-deploy job. The choices take effect when you save.",
+  "settings_maintenance.no_warm_targets": "No service with a build and no job to warm.",
+  "settings_maintenance.pre_deploy": "(pre-deploy)",
+  "advanced.warm_after_cleanup": "Warm after the Docker cleanup",
+  "advanced.warm_after_cleanup_hint": "Rebuilds this service's image right after the scheduled cleanup, so the next deploy finds the cache. Takes effect immediately, no Save needed.",
+  "Job:": "Job:",
+  "Escolha de aquecimento salva": "Warming choice saved",
+  "A limpeza automática do Docker está desligada (Settings → Manutenção): não há o que aquecer depois dela.": "The automatic Docker cleanup is off (Settings → Maintenance): there is nothing to warm after it.",
+  "O aquecimento depois da limpeza está desligado em Settings → Manutenção.": "Warming after cleanup is off in Settings → Maintenance."
 }

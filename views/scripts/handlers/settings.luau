@@ -414,6 +414,101 @@ local function docker_cleanup_apply_config(config: any): ()
     State.docker_cleanup_last_run_at_raw = config.last_run_at
 end
 
+-- ── Lista "aquecer depois da limpeza" (Command::WarmAfterCleanupTargets) ──
+-- O daemon decide o padrão de cada item; aqui só exibe e manda a escolha.
+
+-- Republica no ctx tudo que lê `State.warm_targets`: a lista da Manutenção e o
+-- toggle da aba Advanced do serviço aberto.
+local function warm_targets_publish(): ()
+    local response = State.warm_targets
+    local targets = response and response.targets or {}
+    local rows = format.docker_cleanup_warm_target_rows(
+        targets,
+        State.warm_targets_pending
+    )
+    -- O checkbox lê uma chave do ctx: uma por item (o padrão `bind_` de
+    -- handlers/env_rows.luau).
+    for position, row in ipairs(rows) do
+        if row.kind == "item" then
+            local key = "warm_target_" .. tostring(position) .. "_checked"
+            ctx[key] = row.checked
+            row.bind_checked = key
+        end
+    end
+    ctx.warm_targets = format.encode_array(rows)
+    ctx.warm_targets_empty = (#targets == 0) and "true" or "false"
+    local choice = format.docker_cleanup_service_warm_choice(
+        response,
+        ctx.service_id or ""
+    )
+    ctx.service_warm_choice_present = choice.present
+    ctx.service_warm_after_cleanup = choice.checked
+    ctx.service_warm_choice_editable = choice.editable
+    ctx.service_warm_choice_locked = choice.locked
+    ctx.service_warm_choice_locked_reason = choice.locked_reason
+end
+
+local function warm_targets_apply(response: any): ()
+    State.warm_targets = response
+    State.warm_targets_pending = {}
+    warm_targets_publish()
+end
+
+function M.warm_targets_load(): ()
+    local api = State.api
+    if not api then
+        return
+    end
+    local warm_targets_ok, warm_targets_response =
+        api:rpc("WarmAfterCleanupTargets")
+    if warm_targets_ok and warm_targets_response.WarmAfterCleanupTargets then
+        warm_targets_apply(warm_targets_response.WarmAfterCleanupTargets)
+    end
+end
+
+-- Grava a escolha de um item. Devolve se deu certo (o erro já virou toast).
+local function warm_target_choice_set(id: string, warm: boolean): boolean
+    local api = State.api
+    if not api then
+        return false
+    end
+    local choice_set_ok, choice_set_response = api:rpc_checked {
+        WarmAfterCleanupChoiceSet = { id = id, warm = warm },
+    }
+    if choice_set_ok and choice_set_response.WarmAfterCleanupTargets then
+        warm_targets_apply(choice_set_response.WarmAfterCleanupTargets)
+        return true
+    end
+    toast { message = tostring(choice_set_response), kind = "error" }
+    return false
+end
+
+-- Checkbox de um item na Manutenção: fica pendente até o "Salvar".
+function warm_target_toggle(id: string, value: any): ()
+    State.warm_targets_pending[id] = Helpers.is_true(value)
+    warm_targets_publish()
+end
+
+-- Toggle da aba Advanced do serviço: grava na hora (não é campo do spec).
+function service_warm_after_cleanup_toggle(value: any): ()
+    if ctx.service_warm_choice_editable ~= "true" then
+        warm_targets_publish()
+        return
+    end
+    local service_id = ctx.service_id or ""
+    if service_id == "" then
+        return
+    end
+    if warm_target_choice_set(service_id, Helpers.is_true(value)) then
+        toast {
+            message = tostring(i18n.tr("Escolha de aquecimento salva")),
+            kind = "success",
+        }
+    else
+        M.warm_targets_load()
+    end
+end
+
 -- Carregado uma vez na conexão (handlers/connection.luau::load_settings) — não
 -- faz parte do snapshot de 2s, é config, não estado que muda sozinho (exceto
 -- por `last_run`, atualizado ao vivo por `Event::DockerCleanupCompleted` em
@@ -423,6 +518,7 @@ function M.docker_cleanup_load(): ()
     if not api then
         return
     end
+    M.warm_targets_load()
     local docker_cleanup_config_get_ok, docker_cleanup_config_get_response =
         api:rpc("DockerCleanupConfigGet")
     if
@@ -538,6 +634,17 @@ function docker_cleanup_save(): ()
         docker_cleanup_config_set_ok
         and docker_cleanup_config_set_response.DockerCleanupConfig
     then
+        -- As escolhas da lista têm comando próprio: manda só as que mudaram.
+        local saved: { [string]: boolean } = {}
+        for _, target in ipairs(State.warm_targets and State.warm_targets.targets or {}) do
+            saved[target.id] = target.warm == true
+        end
+        for id, warm in pairs(State.warm_targets_pending) do
+            if saved[id] ~= warm and not warm_target_choice_set(id, warm) then
+                break
+            end
+        end
+        M.warm_targets_load()
         docker_cleanup_apply_config(
             docker_cleanup_config_set_response.DockerCleanupConfig.config
         )

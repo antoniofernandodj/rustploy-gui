@@ -431,6 +431,11 @@
 .option-group     { width: fill; spacing: 10; }
 .option-nested    { width: fill; spacing: 8; padding: 0 0 0 28; }
 .option-hint      { width: fill; padding: 0 0 0 28; }
+/* Lista "aquecer depois da limpeza" (Manutenção): cabeçalho por projeto e os
+   itens dele embaixo. */
+.warm-targets          { width: fill; spacing: 6; padding: 4 0 0 28; }
+.warm-targets__project { width: fill; padding: 8 0 0 0; }
+.warm-targets__item    { width: fill; spacing: 8; align_y: center; }
 /* O mesmo painel com os campos mais juntos (o formulário de renomear). */
 .form-panel--tight { spacing: 6; }
 /* Uma linha da lista + a linha extra de baixo (ex.: o valor revelado de um

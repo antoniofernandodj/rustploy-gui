@@ -80,6 +80,10 @@ export type State = {
     -- agendamento IntervalHours não reiniciar a contagem a cada "Save" — ver
     -- handlers/settings.luau.
     docker_cleanup_last_run_at_raw: any,
+    -- `WarmAfterCleanupTargets` cru (lista "aquecer depois da limpeza") e as
+    -- escolhas marcadas na Manutenção e ainda não salvas (id → aquecer?).
+    warm_targets: any,
+    warm_targets_pending: { [string]: boolean },
     -- `checked_at` do último UpdateInfo mostrado na aba Atualizações: o
     -- snapshot só reescreve a aba quando há consulta nova (ver
     -- handlers/stream.luau::apply_update_info).
@@ -115,6 +119,8 @@ local shared_state: State = {
     job_env_raw = nil,
     jobs_inflight = {},
     docker_cleanup_last_run_at_raw = nil,
+    warm_targets = nil,
+    warm_targets_pending = {},
     update_checked_at = "",
     restart_notice = "",
 }

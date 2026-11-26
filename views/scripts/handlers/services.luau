@@ -508,6 +508,22 @@ function M.fetch_service_detail(service_id: string): ()
             and "true"
         or "false"
 
+    -- Toggle "aquecer depois da limpeza" (aba Advanced). A lista é do daemon
+    -- (Command::WarmAfterCleanupTargets); o toggle grava na hora, em
+    -- handlers/settings.luau::service_warm_after_cleanup_toggle.
+    local warm_targets_ok, warm_targets_response =
+        api:rpc("WarmAfterCleanupTargets")
+    if warm_targets_ok and warm_targets_response.WarmAfterCleanupTargets then
+        State.warm_targets = warm_targets_response.WarmAfterCleanupTargets
+    end
+    local warm_choice =
+        format.docker_cleanup_service_warm_choice(State.warm_targets, service_id)
+    ctx.service_warm_choice_present = warm_choice.present
+    ctx.service_warm_after_cleanup = warm_choice.checked
+    ctx.service_warm_choice_editable = warm_choice.editable
+    ctx.service_warm_choice_locked = warm_choice.locked
+    ctx.service_warm_choice_locked_reason = warm_choice.locked_reason
+
     -- Provedores Gitea conectados (para o picker de conta).
     local git_provider_list_ok, git_provider_list_response =
         api:rpc("GitProviderList")

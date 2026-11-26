@@ -180,6 +180,41 @@ component {
             t("settings_maintenance.after_cleaning_rebuilds_the_image_of"),
             class = "u-muted option-hint",
           )
+
+          // Quem aquecer: um cabeçalho por projeto e cada serviço/job embaixo.
+          // As escolhas valem no "Salvar" (handlers/settings.luau).
+          if @docker_cleanup_warm_after == "true" {
+            column(class = warm-targets) {
+              text(
+                t("settings_maintenance.warm_targets_default"),
+                class = u-muted,
+              )
+              text(
+                t("settings_maintenance.no_warm_targets"),
+                class = u-muted,
+                if = @warm_targets_empty == "true",
+              )
+              each @warm_targets as w {
+                text(
+                  "@w.label",
+                  class = "u-label-cap warm-targets__project",
+                  if = @w.kind == "project",
+                )
+                row(class = warm-targets__item, if = @w.kind == "item") {
+                  checkbox(
+                    :checked = "@w.bind_checked",
+                    on_toggle = warm_target_toggle(@w.id),
+                    label = "@w.label",
+                  )
+                  text(
+                    t("settings_maintenance.pre_deploy"),
+                    class = u-muted,
+                    if = @w.pre_deploy == "true",
+                  )
+                }
+              }
+            }
+          }
         }
       }
 
